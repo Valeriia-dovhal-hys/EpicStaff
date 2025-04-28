@@ -8,7 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<=3.12.5"
-crewai = "*"
+crewai = { path = ".\\lib\\crewAI" }
 crewai-tools = "*"
 pandas = "*"
 ollama = "*"
@@ -21,14 +21,12 @@ duckduckgo-search = "*"
 wikipedia = "*"
 sentry-sdk = "*"
 open-interpreter = "*"
-
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.2"
+pre-commit = "^3.8.0"
 black = "^24.8.0"
 flake8 = "^7.1.1"
 mypy = "^1.11.1"
-pre-commit = "^3.8.0"
+pytest = "^8.3.2"
+
 
 [build-system]
 requires = ["poetry-core"]
