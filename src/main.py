@@ -244,30 +244,25 @@ def create_crew(created_agents, created_tasks, crew_df):
             "model": embedding_model,
         }
 
-    if provider == "azure-openai":
-        embedder_config["deployment_name"] = (
-            deployment_name  # Set azure specific config
-        )
-        # os.environ["AZURE_OPENAI_DEPLOYMENT"] = deployment_name #Wrokarond since azure
-        os.environ["OPENAI_API_KEY"] = os.environ["AZURE_OPENAI_KEY"]
-
-    if provider == "openai":
-        embedder_config["api_key"] = os.environ.get("SECRET_OPENAI_API_KEY")
-        os.environ["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
-
-    if provider == "ollama":
-        if base_url is not None:
+        if provider == "azure-openai":
+            embedder_config["deployment_name"] = (
+                deployment_name  # Set azure specific config
+            )
+            # os.environ["AZURE_OPENAI_DEPLOYMENT"] = deployment_name #Wrokarond since azure
+            os.environ["OPENAI_API_KEY"] = os.environ["AZURE_OPENAI_KEY"]
+        elif provider == "openai":
+            embedder_config["api_key"] = os.environ.get("SECRET_OPENAI_API_KEY")
+            os.environ["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
+        elif provider == "ollama":
+            if base_url is not None:
+                embedder_config["base_url"] = base_url
+        else:  # Any other openai compatible e.g. ollama or llama-cpp
+            provider = "openai"
+            api_key = "NA"
             embedder_config["base_url"] = base_url
+            embedder_config["api_key"] = api_key
 
-    elif (
-        embedder_config is not None
-    ):  # Any other openai compatible e.g. ollama or llama-cpp
-        provider = "openai"
-        api_key = "NA"
-        embedder_config["base_url"] = base_url
-        embedder_config["api_key"] = api_key
-
-    # Groq doesn't have an embedder
+        # Groq doesn't have an embedder
 
     # Manager LLM
     manager_model = crew_df["Manager LLM"][0]
