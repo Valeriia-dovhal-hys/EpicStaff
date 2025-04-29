@@ -42,6 +42,7 @@ class FileCountLinesTool(BaseTool):
         file_path = kwargs.get("file_path", self.file_path)
         try:
             with open(file_path, "r") as file:
+                # TODO: use sum(1 for _ in file) for memory effectiveness
                 lines = file.readlines()
                 return f"Total lines: {len(lines)}"
         except Exception as e:
