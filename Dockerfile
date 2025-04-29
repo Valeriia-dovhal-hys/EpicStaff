@@ -1,5 +1,5 @@
-# Use a base image with Python 3.12.3
-FROM python:3.12.3
+# Use a base image with Python 3.11.8
+FROM python:3.11.8
 
 # Install updated pip, setuptools, and wheel
 RUN pip install --upgrade pip setuptools wheel
@@ -8,7 +8,7 @@ RUN pip install --upgrade pip setuptools wheel
 RUN pip install poetry
 
 # Clone crewai-sheet-ui
-RUN git clone https://github.com/yuriwa/crewai-sheets-ui.git /home/user/root/crewai-sheets-ui 
+RUN git clone https://github.com/yuriwa/crewai-sheets-ui.git /home/user/root/crewai-sheets-ui
 # Set the working directory in the Docker image
 WORKDIR /home/user/root/crewai-sheets-ui
 
