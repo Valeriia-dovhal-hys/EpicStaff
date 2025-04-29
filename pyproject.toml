@@ -8,7 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<=3.12.5"
-crewai = "*"
+crewai = { git = "https://github.com/a1omax/crewAI" }
 crewai-tools = "*"
 pandas = "*"
 ollama = "*"
