@@ -1,5 +1,5 @@
-# Use a base image with Python 3.11.8
-FROM python:3.11.8
+# Use a base image with Python 3.12.3
+FROM python:3.12.3
 
 # Install updated pip, setuptools, and wheel
 RUN pip install --upgrade pip setuptools wheel

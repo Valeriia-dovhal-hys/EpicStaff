@@ -20,13 +20,9 @@ logger = logging.getLogger("rich")
 
 
 ###
-os.environ['HAYSTACK_TELEMETRY_ENABLED'] = 'False'  # Attmpt to turn off telemetry
-os.environ['ANONYMIZED_TELEMETRY'] = 'False'  # Disable interpreter telemetry
-os.environ['EC_TELEMETRY'] = 'False'  # Disable embedchain telemetry
-
-os.environ['MONITORING_MODE'] = os.environ.get("MONITORING_MODE", "local")
-os.environ['MONITORING_LOCAL_PATH'] = os.environ.get("MONITORING_LOCAL_PATH", os.path.join(os.getcwd(), "telemetry_log"))
-
+os.environ["HAYSTACK_TELEMETRY_ENABLED"] = "False"  # Attmpt to turn off telemetry
+os.environ["ANONYMIZED_TELEMETRY"] = "False"  # Disable interpreter telemetry
+os.environ["EC_TELEMETRY"] = "False"  # Disable embedchain telemetry
 
 
 ###
@@ -248,25 +244,30 @@ def create_crew(created_agents, created_tasks, crew_df):
             "model": embedding_model,
         }
 
-        if provider == "azure-openai":
-            embedder_config["deployment_name"] = (
-                deployment_name  # Set azure specific config
-            )
-            # os.environ["AZURE_OPENAI_DEPLOYMENT"] = deployment_name #Wrokarond since azure
-            os.environ["OPENAI_API_KEY"] = os.environ["AZURE_OPENAI_KEY"]
-        elif provider == "openai":
-            embedder_config["api_key"] = os.environ.get("SECRET_OPENAI_API_KEY")
-            os.environ["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
-        elif provider == "ollama":
-            if base_url is not None:
-                embedder_config["base_url"] = base_url
-        else:  # Any other openai compatible e.g. ollama or llama-cpp
-            provider = "openai"
-            api_key = "NA"
-            embedder_config["base_url"] = base_url
-            embedder_config["api_key"] = api_key
+    if provider == "azure-openai":
+        embedder_config["deployment_name"] = (
+            deployment_name  # Set azure specific config
+        )
+        # os.environ["AZURE_OPENAI_DEPLOYMENT"] = deployment_name #Wrokarond since azure
+        os.environ["OPENAI_API_KEY"] = os.environ["AZURE_OPENAI_KEY"]
 
-        # Groq doesn't have an embedder
+    if provider == "openai":
+        embedder_config["api_key"] = os.environ.get("SECRET_OPENAI_API_KEY")
+        os.environ["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
+
+    if provider == "ollama":
+        if base_url is not None:
+            embedder_config["base_url"] = base_url
+
+    elif (
+        embedder_config is not None
+    ):  # Any other openai compatible e.g. ollama or llama-cpp
+        provider = "openai"
+        api_key = "NA"
+        embedder_config["base_url"] = base_url
+        embedder_config["api_key"] = api_key
+
+    # Groq doesn't have an embedder
 
     # Manager LLM
     manager_model = crew_df["Manager LLM"][0]

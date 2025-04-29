@@ -999,32 +999,29 @@ name = "crewai"
 version = "0.35.8"
 description = "Cutting-edge framework for orchestrating role-playing, autonomous AI agents. By fostering collaborative intelligence, CrewAI empowers agents to work together seamlessly, tackling complex tasks."
 optional = false
-python-versions = ">=3.10,<=3.13"
-files = []
-develop = false
+python-versions = "<=3.13,>=3.10"
+files = [
+    {file = "crewai-0.35.8-py3-none-any.whl", hash = "sha256:3e2d64591d6afd95bf4529aac06127e258531511aa37bffed5a7cab71a9c958a"},
+    {file = "crewai-0.35.8.tar.gz", hash = "sha256:981236f35e250eba26bff393a711bb55afc7173fbd500df9b620705bba69b3a6"},
+]
 
 [package.dependencies]
-appdirs = "^1.4.4"
-click = "^8.1.7"
-embedchain = "^0.1.113"
+appdirs = ">=1.4.4,<2.0.0"
+click = ">=8.1.7,<9.0.0"
+embedchain = ">=0.1.113,<0.2.0"
 instructor = "1.3.3"
-jsonref = "^1.1.0"
+jsonref = ">=1.1.0,<2.0.0"
 langchain = ">=0.1.4,<0.2.0"
-openai = "^1.13.3"
-opentelemetry-api = "^1.22.0"
-opentelemetry-exporter-otlp-proto-http = "^1.22.0"
-opentelemetry-sdk = "^1.22.0"
-pydantic = "^2.4.2"
-python-dotenv = "^1.0.0"
-regex = "^2023.12.25"
+openai = ">=1.13.3,<2.0.0"
+opentelemetry-api = ">=1.22.0,<2.0.0"
+opentelemetry-exporter-otlp-proto-http = ">=1.22.0,<2.0.0"
+opentelemetry-sdk = ">=1.22.0,<2.0.0"
+pydantic = ">=2.4.2,<3.0.0"
+python-dotenv = ">=1.0.0,<2.0.0"
+regex = ">=2023.12.25,<2024.0.0"
 
 [package.extras]
-agentops = ["agentops (>=0.1.9,<0.2.0)"]
 tools = ["crewai-tools (>=0.4.6,<0.5.0)"]
-
-[package.source]
-type = "directory"
-url = "libraries/crewAI"
 
 [[package]]
 name = "crewai-tools"
@@ -7527,4 +7524,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<=3.12.5"
-content-hash = "f54bdcb712051d72e4dfd1bcb65561007dbaf0851188dc3c5a29a6e6a2ca99de"
+content-hash = "3ff445032d71fd679887ce6846180583140afbdc1594be1653e822645ffe7533"
