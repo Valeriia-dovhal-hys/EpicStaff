@@ -1038,10 +1038,8 @@ agentops = ["agentops (>=0.1.9,<0.2.0)"]
 tools = ["crewai-tools (>=0.4.6,<0.5.0)"]
 
 [package.source]
-type = "git"
-url = "https://github.com/a1omax/crewAI"
-reference = "HEAD"
-resolved_reference = "8fbf44c9e7a1041d7011089b6d7a4afd809a0a26"
+type = "directory"
+url = "libraries/crewAI"
 
 [[package]]
 name = "crewai-tools"
@@ -7421,4 +7419,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<=3.12.5"
-content-hash = "8798d7da66a5868de99ec0861f20e61ae01112154a6f9d0b948c657e304c019c"
+content-hash = "f54bdcb712051d72e4dfd1bcb65561007dbaf0851188dc3c5a29a6e6a2ca99de"
