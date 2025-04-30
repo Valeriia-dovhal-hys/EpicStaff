@@ -19,7 +19,6 @@ class FileCountLinesToolSchema(FixedFileToolSchema):
     file_path: str = Field(..., description="The path to the file.")
 
 
-# TODO: Ask yuriwa if there is a reason of such implementation
 class FileCountLinesTool(BaseTool):
     name: str = "Count a file's lines"
     description: str = "A tool that can be used to count the number of lines in a file."
@@ -42,13 +41,8 @@ class FileCountLinesTool(BaseTool):
     ) -> Any:
         file_path = kwargs.get("file_path", self.file_path)
         try:
-            if os.path.isdir(file_path):
-                return "The provided path is a directory, not a file name"
-            with open(file_path, "r", encoding="utf-8") as file:
-                return f"Total lines: {sum(1 for _ in file)}"
-        except UnicodeDecodeError:
-            return "The file cannot be read as it may be a binary or non-text file"
-        except FileNotFoundError:
-            return "The file cannot be found, probably it doesn't exist"
+            with open(file_path, "r") as file:
+                lines = file.readlines()
+                return f"Total lines: {len(lines)}"
         except Exception as e:
-            return f"Didn't manage to read a file. Unpredicted exception occured, I cannot figure out how to handle this"
+            return f"Error reading file: {e}"
