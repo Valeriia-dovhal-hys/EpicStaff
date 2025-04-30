@@ -21,7 +21,9 @@ duckduckgo-search = "*"
 wikipedia = "*"
 sentry-sdk = "*"
 open-interpreter = "*"
-
+langgraph = "*"
+google-auth-oauthlib = "^1.2.1"
+typing-extensions = "^4.12.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
