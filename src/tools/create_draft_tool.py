@@ -2,7 +2,7 @@ from langchain_community.agent_toolkits import GmailToolkit
 from langchain_community.tools.gmail.create_draft import GmailCreateDraft
 from langchain.tools import tool
 
-
+# todo: Ensure that create draft tool works
 class CreateDraftTool:
     @tool("Create Draft")
     def create_draft(data):
@@ -16,5 +16,5 @@ class CreateDraftTool:
         email, subject, message = data.split("|")
         gmail = GmailToolkit()
         draft = GmailCreateDraft(api_resource=gmail.api_resource)
-        resutl = draft({"to": [email], "subject": subject, "message": message})
-        return f"\nDraft created: {resutl}\n"
+        result = draft({"to": [email], "subject": subject, "message": message})
+        return f"\nDraft created: {result}\n"
