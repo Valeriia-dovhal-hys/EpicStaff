@@ -3,7 +3,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 from langchain.tools import tool
-from typing import Optional, Type, Any
+from typing import Optional, Type, Any, List
 from pydantic.v1 import BaseModel, Field, validator
 from crewai_tools import BaseTool
 
@@ -79,14 +79,19 @@ class LineReadFileTool(BaseTool):
         # Calculate the end index for slicing lines; handle case where num_lines is None
         end_index = (line_number - 1) + num_lines if num_lines else len(lines)
         selected_lines = lines[
-            line_number - 1 : end_index
+            line_number - 1: end_index
         ]  # Adjust for zero-based index
 
         if not selected_lines:
             return "No lines found starting from the specified line number."
 
         # Format output to include line numbers with their respective contents
-        content = "".join(
-            [f"{idx + line_number}: {line}" for idx, line in enumerate(selected_lines)]
-        )
+        content = self.format_lines(selected_lines, line_number)
+
         return content
+
+    @staticmethod
+    def format_lines(lines: List[str], line_number: int) -> str:
+        return "".join(
+            [f"{idx + line_number}: {line}" for idx, line in enumerate(lines)]
+        )

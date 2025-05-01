@@ -1,7 +1,6 @@
 import pytest
 import pytest_mock
 from pytest_mock import mocker
-from unittest.mock import patch
 
 from tests.mocks.tools_mocks import mock_file_with_content
 from tests.tools_tests.fixtures import create_file_tool, file_count_lines_tool
@@ -45,7 +44,7 @@ class TestFileCountLinesTool:
         mocked_open.assert_called_once_with(file_called, "r", encoding='utf-8')
         assert result == message
 
-    
+
     @pytest.mark.parametrize("file_passed, is_dir, message", [
         ("file.txt", False, "Total lines: 1"),
         ("/iamdir", True, "The provided path is a directory, not a file name"),
