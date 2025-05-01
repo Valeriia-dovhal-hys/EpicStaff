@@ -115,7 +115,7 @@ class TestFileLineReadTool:
         -11,
     ])
     def test_read_negative_n_lines(self, mocker, line_read_file_tool, num_lines):
-        '''Test read negative number of lines from line_number in file.'''
+        '''Test read negative number of lines in file.'''
 
         tool = line_read_file_tool
 
