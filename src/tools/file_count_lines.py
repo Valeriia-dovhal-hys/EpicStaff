@@ -22,7 +22,7 @@ class FileCountLinesToolSchema(FixedFileToolSchema):
 # TODO: Ask yuriwa if there is a reason of such implementation
 class FileCountLinesTool(BaseTool):
     name: str = "Count a file's lines"
-    description: str = "A tool that can be used to count the number of lines in a file."
+    description: str = "A tool that can be used to count the number of lines in a file from a given filepath."
     args_schema: Type[BaseModel] = FileCountLinesToolSchema
     file_path: Optional[str] = None
 
