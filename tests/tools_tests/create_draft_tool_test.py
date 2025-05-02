@@ -28,13 +28,7 @@ class TestCreateDraftTool:
 
         @tool("Mocked draft creation tool")
         def create_draft_mocked(data: str):
-            """
-            Useful to create an email draft.
-            The input to this tool should be a pipe (|) separated string
-            of length 3 (three), representing who to send the email to,
-            the subject of the email and the actual message.
-            For example, `lorem@ipsum.com|Nice To Meet You|Hey it was great to meet you.`.
-            """
+            create_draft_mocked.__doc__ = CreateDraftTool.__doc__
 
             mocked_tool = mocker.patch("src.tools.create_draft_tool.CreateDraftTool.create_draft", return_value="Draft created")
             return CreateDraftTool.create_draft(data)

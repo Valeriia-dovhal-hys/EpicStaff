@@ -4,7 +4,9 @@ from shutil import rmtree
 import pytest
 
 from src.tools import AppendFileTool, EditFileTool, CreateFileTool, FileCountLinesTool, LineReadFileTool
-from tests.conftest import test_dir
+from src.tools import FolderTool
+
+test_dir = "tests/tmp/"
 
 
 @pytest.fixture
@@ -16,8 +18,10 @@ def create_file_tool():
 def file_count_lines_tool_setup_test_dir():
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
+    path_file = path / "dummy.txt"
+    path_file.write_text("dummy_content\n" * 7)
 
-    yield FileCountLinesTool()
+    yield FileCountLinesTool(path_file.resolve())
 
     rmtree(path)
 
@@ -45,6 +49,12 @@ def edit_file_tool():
     rmtree(path)
 
 
+@pytest.fixture
+def folder_tool():
+    path = Path(test_dir)
+    path.mkdir(parents=True, exist_ok=True)
+    yield FolderTool()
+    rmtree(path)
 
 
 
