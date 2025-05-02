@@ -166,6 +166,3 @@ cython_debug/
 
 # VSCode
 /.vscode
-
-# Logging files
-log.txt
