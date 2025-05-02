@@ -5,9 +5,6 @@ import pytest
 
 from src.tools import AppendFileTool, EditFileTool, CreateFileTool, FileCountLinesTool, LineReadFileTool
 from tests.conftest import test_dir
-from src.tools import FolderTool
-
-
 
 
 @pytest.fixture
@@ -45,14 +42,6 @@ def edit_file_tool():
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
     yield EditFileTool("predefined.txt")
-    rmtree(path)
-
-
-@pytest.fixture
-def folder_tool():
-    path = Path(test_dir)
-    path.mkdir(parents=True, exist_ok=True)
-    yield FolderTool()
     rmtree(path)
 
 

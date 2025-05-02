@@ -137,9 +137,11 @@ class TestFileCountLinesTool:
         task = Task(
             description=f"""Count lines in {abs_path}""",
             agent=agent,
-            expected_output=f"""The number of lines in {abs_path}
+            expected_output=f"""The response in the 
+            following format using relative path:
+            The number of lines in {file_path}
             is {num_lines}.""",
         )
 
         output = agent.execute_task(task)
-        assert output == f"The number of lines in the file {abs_path} is {num_lines}."
+        assert output == f"The number of lines in {file_path} is {num_lines}."
