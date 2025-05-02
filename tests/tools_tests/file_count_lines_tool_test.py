@@ -1,9 +1,13 @@
+from crewai import Task
+from pathlib import Path
+
 import pytest
 import pytest_mock
 from pytest_mock import mocker
 
 from tests.mocks.tools_mocks import mock_file_with_content
-from tests.tools_tests.fixtures import create_file_tool, file_count_lines_tool
+from tests.tools_tests.fixtures import file_count_lines_tool, file_count_lines_tool_setup_test_dir
+from tests.conftest import test_dir
 
 
 class TestFileCountLinesTool:
@@ -63,3 +67,23 @@ class TestFileCountLinesTool:
         if not is_dir:
             mocked_open.assert_called_once_with(file_passed, "r", encoding="utf-8")
 
+
+    @pytest.mark.vcr(filter_headers=["authorization"], record_mode="once")
+    def test_count_lines_tool_with_crewai(self, agent, file_count_lines_tool_setup_test_dir):
+        """Test count lines tool usage with crewai interface"""
+
+        file_path = Path(test_dir) / "dummy.txt"
+        num_lines = 7
+        file_path.write_text("dummy_content\n" * num_lines)
+        abs_path = file_path.resolve()
+
+        agent.tools.append(file_count_lines_tool_setup_test_dir)
+        task = Task(
+            description=f"""Count lines in {abs_path}""",
+            agent=agent,
+            expected_output=f"""The number of lines in {abs_path}
+            is {num_lines}.""",
+        )
+
+        output = agent.execute_task(task)
+        assert output == f"The number of lines in the file {abs_path} is {num_lines}."
