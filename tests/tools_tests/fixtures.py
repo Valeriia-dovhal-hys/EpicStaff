@@ -37,7 +37,12 @@ def line_read_file_tool():
 
 @pytest.fixture
 def append_file_tool():
+    path = Path(test_dir)
+    path.mkdir(parents=True, exist_ok=True)
+
     yield AppendFileTool("predefined.txt")
+
+    rmtree(path)
 
 
 @pytest.fixture
