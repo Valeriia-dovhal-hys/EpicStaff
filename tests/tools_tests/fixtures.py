@@ -41,8 +41,18 @@ def file_count_lines_tool():
 
 
 @pytest.fixture
-def line_read_file_tool():
+def file_line_read_tool():
     yield LineReadFileTool("predefined.txt")
+
+
+@pytest.fixture
+def file_line_read_tool_setup_test_dir():
+    path = Path(test_dir)
+    path.mkdir(parents=True, exist_ok=True)
+
+    yield LineReadFileTool()
+
+    rmtree(path)
 
 
 @pytest.fixture
@@ -59,7 +69,9 @@ def append_file_tool():
 def edit_file_tool():
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
+
     yield EditFileTool("predefined.txt")
+
     rmtree(path)
 
 
@@ -67,7 +79,9 @@ def edit_file_tool():
 def folder_tool():
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
+
     yield FolderTool()
+
     rmtree(path)
 
 

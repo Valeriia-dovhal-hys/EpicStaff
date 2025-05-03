@@ -11,7 +11,6 @@ class TestInterpreterTool:
 		("print('hello world')"),
 		("len(range(10))")
 	])
-	@pytest.mark.vcr(filter_headers=["authorization"], record_mode="once")
 	def test_interpreter_tool(self, mocker, interpreter_tool: CLITool, command):
 		""" Test interpreter tool run interpreter.chat command with command"""
 

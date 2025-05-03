@@ -6,7 +6,6 @@ from crewai import Agent, Task
 from crewai_tools import tool
 
 from tests.mocks.tools_mocks import mock_file_with_content, mock_empty_file
-from tests.tools_tests.fixtures import line_read_file_tool
 from src.tools.create_draft_tool import CreateDraftTool
 
 # todo: Ensure that create draft tool works
