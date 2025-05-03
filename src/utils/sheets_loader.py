@@ -1,4 +1,5 @@
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 from config.config import AppConfig
@@ -11,113 +12,36 @@ import sys
 template_sheet_url = AppConfig.template_sheet_url
 
 
-class Sheets:
+class SheetsManager:
+
     @staticmethod
     def read_google_sheet(sheet_url):
+
         # Extract the base URL from the provided Google Sheet URL
         base_url = sheet_url.split("/edit")[0]
         dataframes = []
+
         # Define the worksheets and their respective columns to be read
-        worksheets = {
-            "Agents": [
-                "Agent Role",
-                "Goal",
-                "Backstory",
-                "Tools",
-                "Allow delegation",
-                "Verbose",
-                "Memory",
-                "Max_iter",
-                "Model Name",
-                "Temperature",
-                "Function Calling Model",
-            ],
-            "Tasks": ["Task Name", "Agent", "Instructions", "Expected Output"],
-            "Crew": [
-                "Team Name",
-                "Assignment",
-                "Verbose",
-                "Process",
-                "Memory",
-                "Embedding model",
-                "Manager LLM",
-                "t",
-                "num_ctx",
-            ],
-            "Models": [
-                "Model",
-                "Context size (local only)",
-                "Provider",
-                "base_url",
-                "Deployment",
-            ],
-            "Tools": ["Tool", "On", "Class", "Args", "Model", "Embedding Model"],
+        worksheets = {}
+        with open("src/config/worksheets_config.json", "r") as f:
+            worksheets = json.load(f)
+
+        dispatcher = {
+            "Agents": SheetsManager._process_agents_df,
+            "Models": SheetsManager._process_models_df,
+            "Tasks": SheetsManager._process_tasks_df,
+            "Crew": SheetsManager._process_crew_df,
+            "Tools": SheetsManager._process_tools_df,
         }
 
         for worksheet, columns in worksheets.items():
+
             url = f"{base_url}/gviz/tq?tqx=out:csv&sheet={worksheet}"
+
             # Read the worksheet into a DataFrame, selecting only the specified columns
             try:
                 data = pd.read_csv(url, usecols=columns)
-                if worksheet == "Agents":  # sanitize the data
-                    data.dropna(subset=["Agent Role"], inplace=True)
-
-                    for col in [
-                        "Agent Role",
-                        "Goal",
-                        "Backstory",
-                        "Tools",
-                        "Model Name",
-                        "Function Calling Model",
-                    ]:
-                        data[col] = (
-                            data[col].astype(str).apply(dedent).replace("None", None)
-                        )
-
-                    for col in ["Tools"]:
-                        data[col] = data[col].replace("\n", "")
-                    for col in ["Allow delegation", "Verbose", "Memory"]:
-                        data[col] = data[col].astype(bool)
-
-                    data["Temperature"] = data["Temperature"].astype(float)
-                    data["Max_iter"] = data["Max_iter"].astype(int)
-
-                if worksheet == "Models":
-                    data["Context size (local only)"] = data[
-                        "Context size (local only)"
-                    ].replace(0, None)
-                    data["base_url"] = data["base_url"].replace("None", None)
-                    data["Deployment"] = data["Deployment"].replace("None", None)
-                if worksheet == "Tasks":
-                    # check if all columns are present are string. If not, print error and exit
-                    for col in columns:
-                        # convert all columns to string
-                        data[col] = data[col].astype(str)
-                        if data[col].dtype != "object":
-                            raise ValueError(
-                                f"Column '{col}' is not of type 'Plain Text'."
-                            )
-                if worksheet == "Crew":
-                    for col in [
-                        "Team Name",
-                        "Assignment",
-                        "Process",
-                        "Embedding model",
-                        "Manager LLM",
-                    ]:
-                        data[col] = (
-                            data[col]
-                            .astype(str)
-                            .apply(dedent)
-                            .replace("None", None)
-                            .replace("nan", None)
-                        )
-                    for col in ["Verbose", "Memory"]:
-                        data[col] = data[col].astype(bool)
-                    data["t"] = data["t"].astype(float)
-                    data["num_ctx"] = data["num_ctx"].astype(int).replace(0, None)
-                if worksheet == "Tools":
-                    data.replace("None", None, inplace=True)
+                dispatcher[worksheet](data=data, columns=columns)
             except Exception as e:
                 return e
 
@@ -129,11 +53,75 @@ class Sheets:
         return dataframes
 
     @staticmethod
+    def _process_agents_df(*, data, **kwargs):
+        data.dropna(subset=["Agent Role"], inplace=True)
+
+        for col in [
+            "Agent Role",
+            "Goal",
+            "Backstory",
+            "Tools",
+            "Model Name",
+            "Function Calling Model",
+        ]:
+            data[col] = data[col].astype(str).apply(dedent).replace("None", None)
+
+        for col in ["Tools"]:
+            data[col] = data[col].replace("\n", "")
+        for col in ["Allow delegation", "Verbose", "Memory"]:
+            data[col] = data[col].astype(bool)
+
+        data["Temperature"] = data["Temperature"].astype(float)
+        data["Max_iter"] = data["Max_iter"].astype(int)
+
+    @staticmethod
+    def _process_models_df(*, data, **kwargs):
+        data["Context size (local only)"] = data["Context size (local only)"].replace(
+            0, None
+        )
+        data["base_url"] = data["base_url"].replace("None", None)
+        data["Deployment"] = data["Deployment"].replace("None", None)
+
+    @staticmethod
+    def _process_tasks_df(*, data, columns, **kwargs):
+        # check if all columns are present are string. If not, print error and exit
+        for col in columns:
+            # convert all columns to string
+            data[col] = data[col].astype(str)
+            if data[col].dtype != "object":
+                raise ValueError(f"Column '{col}' is not of type 'Plain Text'.")
+
+    @staticmethod
+    def _process_crew_df(*, data, **kwargs):
+        for col in [
+            "Team Name",
+            "Assignment",
+            "Process",
+            "Embedding model",
+            "Manager LLM",
+        ]:
+            data[col] = (
+                data[col]
+                .astype(str)
+                .apply(dedent)
+                .replace("None", None)
+                .replace("nan", None)
+            )
+        for col in ["Verbose", "Memory"]:
+            data[col] = data[col].astype(bool)
+        data["t"] = data["t"].astype(float)
+        data["num_ctx"] = data["num_ctx"].astype(int).replace(0, None)
+
+    @staticmethod
+    def _process_tools_df(*, data, **kwargs):
+        data.replace("None", None, inplace=True)
+
+    @staticmethod
     def parse_table(url=template_sheet_url):
         num_att = 0
         while num_att < 10:
             try:
-                dataframes = Sheets.read_google_sheet(url)
+                dataframes = SheetsManager.read_google_sheet(url)
                 if isinstance(dataframes, Exception):
                     raise dataframes
                 break
