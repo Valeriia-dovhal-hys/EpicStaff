@@ -460,20 +460,29 @@ wcwidth = ">=0.1.4"
 [[package]]
 name = "boto3"
 version = "1.35.4"
+<<<<<<< HEAD
 version = "1.35.4"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
     {file = "boto3-1.35.4-py3-none-any.whl", hash = "sha256:96c39593afb7b55ebb74d08c8e3201041d105b557c8c8536c9054c9f13da5f2a"},
     {file = "boto3-1.35.4.tar.gz", hash = "sha256:d997b82c468bd5c2d5cd29810d47079b66b178d2b5ae021aebe262c4d78d4c94"},
+<<<<<<< HEAD
     {file = "boto3-1.35.4-py3-none-any.whl", hash = "sha256:96c39593afb7b55ebb74d08c8e3201041d105b557c8c8536c9054c9f13da5f2a"},
     {file = "boto3-1.35.4.tar.gz", hash = "sha256:d997b82c468bd5c2d5cd29810d47079b66b178d2b5ae021aebe262c4d78d4c94"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
 botocore = ">=1.35.4,<1.36.0"
+<<<<<<< HEAD
 botocore = ">=1.35.4,<1.36.0"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -483,15 +492,21 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 [[package]]
 name = "botocore"
 version = "1.35.4"
+<<<<<<< HEAD
 version = "1.35.4"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.8"
 files = [
     {file = "botocore-1.35.4-py3-none-any.whl", hash = "sha256:10195e5ca764745f02b9a51df048b996ddbdc1899a44a2caf35dfb225dfea489"},
     {file = "botocore-1.35.4.tar.gz", hash = "sha256:4cc51a6a486915aedc140f9d027b7e156646b7a0f7b33b1000762c81aff9a12f"},
+<<<<<<< HEAD
     {file = "botocore-1.35.4-py3-none-any.whl", hash = "sha256:10195e5ca764745f02b9a51df048b996ddbdc1899a44a2caf35dfb225dfea489"},
     {file = "botocore-1.35.4.tar.gz", hash = "sha256:4cc51a6a486915aedc140f9d027b7e156646b7a0f7b33b1000762c81aff9a12f"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
@@ -1024,20 +1039,28 @@ optional = false
 python-versions = ">=3.10,<=3.13"
 files = []
 develop = false
+<<<<<<< HEAD
 python-versions = ">=3.10,<=3.13"
 files = []
 develop = false
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 
 [package.dependencies]
 appdirs = "^1.4.4"
 click = "^8.1.7"
 embedchain = "^0.1.113"
+<<<<<<< HEAD
 appdirs = "^1.4.4"
 click = "^8.1.7"
 embedchain = "^0.1.113"
 instructor = "1.3.3"
 jsonref = "^1.1.0"
 jsonref = "^1.1.0"
+=======
+instructor = "1.3.3"
+jsonref = "^1.1.0"
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 langchain = ">=0.1.4,<0.2.0"
 openai = "^1.13.3"
 opentelemetry-api = "^1.22.0"
@@ -1046,6 +1069,7 @@ opentelemetry-sdk = "^1.22.0"
 pydantic = "^2.4.2"
 python-dotenv = "^1.0.0"
 regex = "^2023.12.25"
+<<<<<<< HEAD
 openai = "^1.13.3"
 opentelemetry-api = "^1.22.0"
 opentelemetry-exporter-otlp-proto-http = "^1.22.0"
@@ -1057,16 +1081,24 @@ regex = "^2023.12.25"
 [package.extras]
 agentops = ["agentops (>=0.1.9,<0.2.0)"]
 agentops = ["agentops (>=0.1.9,<0.2.0)"]
+=======
+
+[package.extras]
+agentops = ["agentops (>=0.1.9,<0.2.0)"]
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 tools = ["crewai-tools (>=0.4.6,<0.5.0)"]
 
 [package.source]
 type = "directory"
 url = "libraries/crewAI"
 
+<<<<<<< HEAD
 [package.source]
 type = "directory"
 url = "libraries/crewAI"
 
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 [[package]]
 name = "crewai-tools"
 version = "0.4.6"
@@ -1276,21 +1308,30 @@ files = [
 [[package]]
 name = "duckduckgo-search"
 version = "6.2.10"
+<<<<<<< HEAD
 version = "6.2.10"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Search for words, documents, images, news, maps and text translation using the DuckDuckGo.com search engine."
 optional = false
 python-versions = ">=3.8"
 files = [
     {file = "duckduckgo_search-6.2.10-py3-none-any.whl", hash = "sha256:266c1528dcbc90931b7c800a2c1041a0cb447c83c485414d77a7e443be717ed6"},
     {file = "duckduckgo_search-6.2.10.tar.gz", hash = "sha256:53057368480ca496fc4e331a34648124711580cf43fbb65336eaa6fd2ee37cec"},
+<<<<<<< HEAD
     {file = "duckduckgo_search-6.2.10-py3-none-any.whl", hash = "sha256:266c1528dcbc90931b7c800a2c1041a0cb447c83c485414d77a7e443be717ed6"},
     {file = "duckduckgo_search-6.2.10.tar.gz", hash = "sha256:53057368480ca496fc4e331a34648124711580cf43fbb65336eaa6fd2ee37cec"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
 click = ">=8.1.7"
 primp = ">=0.6.1"
+<<<<<<< HEAD
 primp = ">=0.6.1"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 
 [package.extras]
 dev = ["mypy (>=1.11.1)", "pytest (>=8.3.1)", "pytest-asyncio (>=0.23.8)", "ruff (>=0.6.1)"]
@@ -1797,15 +1838,21 @@ grpcio-gcp = ["grpcio-gcp (>=0.2.2,<1.0.dev0)"]
 [[package]]
 name = "google-api-python-client"
 version = "2.142.0"
+<<<<<<< HEAD
 version = "2.142.0"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Google API Client Library for Python"
 optional = false
 python-versions = ">=3.7"
 files = [
     {file = "google_api_python_client-2.142.0-py2.py3-none-any.whl", hash = "sha256:266799082bb8301f423ec204dffbffb470b502abbf29efd1f83e644d36eb5a8f"},
     {file = "google_api_python_client-2.142.0.tar.gz", hash = "sha256:a1101ac9e24356557ca22f07ff48b7f61fa5d4b4e7feeef3bda16e5dcb86350e"},
+<<<<<<< HEAD
     {file = "google_api_python_client-2.142.0-py2.py3-none-any.whl", hash = "sha256:266799082bb8301f423ec204dffbffb470b502abbf29efd1f83e644d36eb5a8f"},
     {file = "google_api_python_client-2.142.0.tar.gz", hash = "sha256:a1101ac9e24356557ca22f07ff48b7f61fa5d4b4e7feeef3bda16e5dcb86350e"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
@@ -1872,6 +1919,7 @@ requests-oauthlib = ">=0.7.0"
 tool = ["click (>=6.0.0)"]
 
 [[package]]
+<<<<<<< HEAD
 name = "google-auth-oauthlib"
 version = "1.2.1"
 description = "Google Authentication Library"
@@ -1893,14 +1941,21 @@ tool = ["click (>=6.0.0)"]
 name = "google-cloud-aiplatform"
 version = "1.63.0"
 version = "1.63.0"
+=======
+name = "google-cloud-aiplatform"
+version = "1.63.0"
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Vertex AI API client library"
 optional = false
 python-versions = ">=3.8"
 files = [
     {file = "google-cloud-aiplatform-1.63.0.tar.gz", hash = "sha256:4eb2398bed02a60ad23656b4a442b5d6efa181d11653f8c31f0a5f642c09f913"},
     {file = "google_cloud_aiplatform-1.63.0-py2.py3-none-any.whl", hash = "sha256:857abe09d1f3f49f62000dbd2302bc653c9a4cdce67ccf65bfd5878fcc81760d"},
+<<<<<<< HEAD
     {file = "google-cloud-aiplatform-1.63.0.tar.gz", hash = "sha256:4eb2398bed02a60ad23656b4a442b5d6efa181d11653f8c31f0a5f642c09f913"},
     {file = "google_cloud_aiplatform-1.63.0-py2.py3-none-any.whl", hash = "sha256:857abe09d1f3f49f62000dbd2302bc653c9a4cdce67ccf65bfd5878fcc81760d"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
@@ -1922,7 +1977,10 @@ cloud-profiler = ["tensorboard-plugin-profile (>=2.4.0,<3.0.0dev)", "tensorflow 
 datasets = ["pyarrow (>=10.0.1)", "pyarrow (>=14.0.0)", "pyarrow (>=3.0.0,<8.0dev)"]
 endpoint = ["requests (>=2.28.1)"]
 evaluation = ["pandas (>=1.0.0,<2.2.0)", "tqdm (>=4.23.0)"]
+<<<<<<< HEAD
 evaluation = ["pandas (>=1.0.0,<2.2.0)", "tqdm (>=4.23.0)"]
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 full = ["cloudpickle (<3.0)", "docker (>=5.0.3)", "explainable-ai-sdk (>=1.0.0)", "fastapi (>=0.71.0,<=0.109.1)", "google-cloud-bigquery", "google-cloud-bigquery-storage", "google-cloud-logging (<4.0)", "google-vizier (>=0.1.6)", "httpx (>=0.23.0,<0.25.0)", "immutabledict", "lit-nlp (==0.4.0)", "mlflow (>=1.27.0,<=2.1.1)", "numpy (>=1.15.0)", "pandas (>=1.0.0)", "pandas (>=1.0.0,<2.2.0)", "pyarrow (>=10.0.1)", "pyarrow (>=14.0.0)", "pyarrow (>=3.0.0,<8.0dev)", "pyarrow (>=6.0.1)", "pydantic (<2)", "pyyaml (>=5.3.1,<7)", "ray[default] (>=2.4,<2.5.dev0 || >2.9.0,!=2.9.1,!=2.9.2,<=2.9.3)", "ray[default] (>=2.5,<=2.9.3)", "requests (>=2.28.1)", "setuptools (<70.0.0)", "starlette (>=0.17.1)", "tensorboard-plugin-profile (>=2.4.0,<3.0.0dev)", "tensorflow (>=2.3.0,<3.0.0dev)", "tensorflow (>=2.3.0,<3.0.0dev)", "tensorflow (>=2.4.0,<3.0.0dev)", "tqdm (>=4.23.0)", "urllib3 (>=1.21.1,<1.27)", "uvicorn[standard] (>=0.16.0)", "werkzeug (>=2.0.0,<2.1.0dev)"]
 langchain = ["langchain (>=0.1.16,<0.3)", "langchain-core (<0.3)", "langchain-google-vertexai (<2)", "openinference-instrumentation-langchain (>=0.1.19,<0.2)", "orjson (<=3.10.6)", "tenacity (<=8.3)"]
 langchain-testing = ["absl-py", "cloudpickle (>=3.0,<4.0)", "google-cloud-trace (<2)", "langchain (>=0.1.16,<0.3)", "langchain-core (<0.3)", "langchain-google-vertexai (<2)", "openinference-instrumentation-langchain (>=0.1.19,<0.2)", "opentelemetry-exporter-gcp-trace (<2)", "opentelemetry-sdk (<2)", "orjson (<=3.10.6)", "pydantic (>=2.6.3,<3)", "pytest-xdist", "tenacity (<=8.3)"]
@@ -2295,7 +2353,10 @@ protobuf = ">=3.20.2,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4
 [[package]]
 name = "grpcio"
 version = "1.66.0"
+<<<<<<< HEAD
 version = "1.66.0"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "HTTP/2-based RPC framework"
 optional = false
 python-versions = ">=3.8"
@@ -2346,6 +2407,7 @@ files = [
     {file = "grpcio-1.66.0-cp39-cp39-win32.whl", hash = "sha256:8096a922eb91bc97c839f675c3efa1257c6ef181ae1b25d3fb97f2cae4c57c01"},
     {file = "grpcio-1.66.0-cp39-cp39-win_amd64.whl", hash = "sha256:375b58892301a5fc6ca7d7ff689c9dc9d00895f5d560604ace9f4f0573013c63"},
     {file = "grpcio-1.66.0.tar.gz", hash = "sha256:c1ea4c528e7db6660718e4165fd1b5ac24b79a70c870a7bc0b7bdb9babab7c1e"},
+<<<<<<< HEAD
     {file = "grpcio-1.66.0-cp310-cp310-linux_armv7l.whl", hash = "sha256:ad7256f224437b2c29c2bef98ddd3130454c5b1ab1f0471fc11794cefd4dbd3d"},
     {file = "grpcio-1.66.0-cp310-cp310-macosx_12_0_universal2.whl", hash = "sha256:5f4b3357e59dfba9140a51597287297bc638710d6a163f99ee14efc19967a821"},
     {file = "grpcio-1.66.0-cp310-cp310-manylinux_2_17_aarch64.whl", hash = "sha256:e8d20308eeae15b3e182f47876f05acbdec1eebd9473a9814a44e46ec4a84c04"},
@@ -2392,11 +2454,16 @@ files = [
     {file = "grpcio-1.66.0-cp39-cp39-win32.whl", hash = "sha256:8096a922eb91bc97c839f675c3efa1257c6ef181ae1b25d3fb97f2cae4c57c01"},
     {file = "grpcio-1.66.0-cp39-cp39-win_amd64.whl", hash = "sha256:375b58892301a5fc6ca7d7ff689c9dc9d00895f5d560604ace9f4f0573013c63"},
     {file = "grpcio-1.66.0.tar.gz", hash = "sha256:c1ea4c528e7db6660718e4165fd1b5ac24b79a70c870a7bc0b7bdb9babab7c1e"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.extras]
 protobuf = ["grpcio-tools (>=1.66.0)"]
+<<<<<<< HEAD
 protobuf = ["grpcio-tools (>=1.66.0)"]
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 
 [[package]]
 name = "grpcio-status"
@@ -2653,29 +2720,41 @@ test = ["flufl.flake8", "importlib-resources (>=1.3)", "jaraco.test (>=5.4)", "p
 [[package]]
 name = "importlib-resources"
 version = "6.4.4"
+<<<<<<< HEAD
 version = "6.4.4"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Read resources from Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
     {file = "importlib_resources-6.4.4-py3-none-any.whl", hash = "sha256:dda242603d1c9cd836c3368b1174ed74cb4049ecd209e7a1a0104620c18c5c11"},
     {file = "importlib_resources-6.4.4.tar.gz", hash = "sha256:20600c8b7361938dc0bb2d5ec0297802e575df486f5a544fa414da65e13721f7"},
+<<<<<<< HEAD
     {file = "importlib_resources-6.4.4-py3-none-any.whl", hash = "sha256:dda242603d1c9cd836c3368b1174ed74cb4049ecd209e7a1a0104620c18c5c11"},
     {file = "importlib_resources-6.4.4.tar.gz", hash = "sha256:20600c8b7361938dc0bb2d5ec0297802e575df486f5a544fa414da65e13721f7"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.extras]
 check = ["pytest-checkdocs (>=2.4)", "pytest-ruff (>=0.2.1)"]
 cover = ["pytest-cov"]
+<<<<<<< HEAD
 check = ["pytest-checkdocs (>=2.4)", "pytest-ruff (>=0.2.1)"]
 cover = ["pytest-cov"]
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-lint"]
 enabler = ["pytest-enabler (>=2.2)"]
 test = ["jaraco.test (>=5.4)", "pytest (>=6,!=8.1.*)", "zipp (>=3.17)"]
 type = ["pytest-mypy"]
+<<<<<<< HEAD
 enabler = ["pytest-enabler (>=2.2)"]
 test = ["jaraco.test (>=5.4)", "pytest (>=6,!=8.1.*)", "zipp (>=3.17)"]
 type = ["pytest-mypy"]
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 
 [[package]]
 name = "iniconfig"
@@ -3435,6 +3514,7 @@ langchain-core = ">=0.1.52,<0.3"
 uuid6 = ">=2024.1.12,<2025.0.0"
 
 [[package]]
+<<<<<<< HEAD
 name = "langgraph"
 version = "0.0.51"
 description = "langgraph"
@@ -3453,19 +3533,29 @@ uuid6 = ">=2024.1.12,<2025.0.0"
 name = "langsmith"
 version = "0.1.104"
 version = "0.1.104"
+=======
+name = "langsmith"
+version = "0.1.104"
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Client library to connect to the LangSmith LLM Tracing and Evaluation Platform."
 optional = false
 python-versions = "<4.0,>=3.8.1"
 files = [
     {file = "langsmith-0.1.104-py3-none-any.whl", hash = "sha256:049cd312952a0db9f5edeed3b9a8616e66ef86e5490c835c8bb054569203b0d0"},
     {file = "langsmith-0.1.104.tar.gz", hash = "sha256:7892dfe452d143fba573d7eb28dbff3202d2f2daacab8c7276ffe4a850179d4d"},
+<<<<<<< HEAD
     {file = "langsmith-0.1.104-py3-none-any.whl", hash = "sha256:049cd312952a0db9f5edeed3b9a8616e66ef86e5490c835c8bb054569203b0d0"},
     {file = "langsmith-0.1.104.tar.gz", hash = "sha256:7892dfe452d143fba573d7eb28dbff3202d2f2daacab8c7276ffe4a850179d4d"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
 httpx = ">=0.23.0,<1"
+<<<<<<< HEAD
 httpx = ">=0.23.0,<1"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 orjson = ">=3.9.14,<4.0.0"
 pydantic = [
     {version = ">=1,<3", markers = "python_full_version < \"3.12.4\""},
@@ -3476,15 +3566,21 @@ requests = ">=2,<3"
 [[package]]
 name = "litellm"
 version = "1.44.4"
+<<<<<<< HEAD
 version = "1.44.4"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Library to easily interface with LLM API providers"
 optional = false
 python-versions = "!=2.7.*,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,!=3.7.*,>=3.8"
 files = [
     {file = "litellm-1.44.4-py3-none-any.whl", hash = "sha256:0e2d56cc767003b30275005072ad6f7e2e37b0468719e50817cc581a055b8f1a"},
     {file = "litellm-1.44.4.tar.gz", hash = "sha256:3216424a27e6405b9a099aff166c6d2442b1013c9f9909084ab722eb9d3b8861"},
+<<<<<<< HEAD
     {file = "litellm-1.44.4-py3-none-any.whl", hash = "sha256:0e2d56cc767003b30275005072ad6f7e2e37b0468719e50817cc581a055b8f1a"},
     {file = "litellm-1.44.4.tar.gz", hash = "sha256:3216424a27e6405b9a099aff166c6d2442b1013c9f9909084ab722eb9d3b8861"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
@@ -3619,15 +3715,21 @@ files = [
 [[package]]
 name = "marshmallow"
 version = "3.22.0"
+<<<<<<< HEAD
 version = "3.22.0"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
 optional = false
 python-versions = ">=3.8"
 files = [
     {file = "marshmallow-3.22.0-py3-none-any.whl", hash = "sha256:71a2dce49ef901c3f97ed296ae5051135fd3febd2bf43afe0ae9a82143a494d9"},
     {file = "marshmallow-3.22.0.tar.gz", hash = "sha256:4972f529104a220bb8637d595aa4c9762afbe7f7a77d82dc58c1615d70c5823e"},
+<<<<<<< HEAD
     {file = "marshmallow-3.22.0-py3-none-any.whl", hash = "sha256:71a2dce49ef901c3f97ed296ae5051135fd3febd2bf43afe0ae9a82143a494d9"},
     {file = "marshmallow-3.22.0.tar.gz", hash = "sha256:4972f529104a220bb8637d595aa4c9762afbe7f7a77d82dc58c1615d70c5823e"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
@@ -3636,7 +3738,10 @@ packaging = ">=17.0"
 [package.extras]
 dev = ["marshmallow[tests]", "pre-commit (>=3.5,<4.0)", "tox"]
 docs = ["alabaster (==1.0.0)", "autodocsumm (==0.2.13)", "sphinx (==8.0.2)", "sphinx-issues (==4.1.0)", "sphinx-version-warning (==1.1.2)"]
+<<<<<<< HEAD
 docs = ["alabaster (==1.0.0)", "autodocsumm (==0.2.13)", "sphinx (==8.0.2)", "sphinx-issues (==4.1.0)", "sphinx-version-warning (==1.1.2)"]
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 tests = ["pytest", "pytz", "simplejson"]
 
 [[package]]
@@ -4182,15 +4287,21 @@ sympy = "*"
 [[package]]
 name = "open-interpreter"
 version = "0.3.8"
+<<<<<<< HEAD
 version = "0.3.8"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Let language models run code"
 optional = false
 python-versions = "<4,>=3.9"
 files = [
     {file = "open_interpreter-0.3.8-py3-none-any.whl", hash = "sha256:facffdda4fe20718e902c9c3b53e30d5b15ea1a18df3c5a317f33f9f1d3fe859"},
     {file = "open_interpreter-0.3.8.tar.gz", hash = "sha256:9d336018b0111a2ad1e2ec163dac34bfc20327e8609d51575080c2d68b1e0209"},
+<<<<<<< HEAD
     {file = "open_interpreter-0.3.8-py3-none-any.whl", hash = "sha256:facffdda4fe20718e902c9c3b53e30d5b15ea1a18df3c5a317f33f9f1d3fe859"},
     {file = "open_interpreter-0.3.8.tar.gz", hash = "sha256:9d336018b0111a2ad1e2ec163dac34bfc20327e8609d51575080c2d68b1e0209"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
@@ -4216,7 +4327,10 @@ setuptools = "*"
 shortuuid = ">=1.0.13,<2.0.0"
 six = ">=1.16.0,<2.0.0"
 starlette = ">=0.37.2,<0.38.0"
+<<<<<<< HEAD
 starlette = ">=0.37.2,<0.38.0"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 tiktoken = ">=0.7.0,<0.8.0"
 tokentrim = ">=0.1.13,<0.2.0"
 toml = ">=0.10.2,<0.11.0"
@@ -4232,15 +4346,21 @@ server = ["fastapi (>=0.111.0,<0.112.0)", "janus (>=1.0.0,<2.0.0)", "uvicorn (>=
 [[package]]
 name = "openai"
 version = "1.42.0"
+<<<<<<< HEAD
 version = "1.42.0"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "The official Python library for the openai API"
 optional = false
 python-versions = ">=3.7.1"
 files = [
     {file = "openai-1.42.0-py3-none-any.whl", hash = "sha256:dc91e0307033a4f94931e5d03cc3b29b9717014ad5e73f9f2051b6cb5eda4d80"},
     {file = "openai-1.42.0.tar.gz", hash = "sha256:c9d31853b4e0bc2dc8bd08003b462a006035655a701471695d0bfdc08529cde3"},
+<<<<<<< HEAD
     {file = "openai-1.42.0-py3-none-any.whl", hash = "sha256:dc91e0307033a4f94931e5d03cc3b29b9717014ad5e73f9f2051b6cb5eda4d80"},
     {file = "openai-1.42.0.tar.gz", hash = "sha256:c9d31853b4e0bc2dc8bd08003b462a006035655a701471695d0bfdc08529cde3"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
@@ -4813,15 +4933,21 @@ testing = ["pytest", "pytest-benchmark"]
 [[package]]
 name = "posthog"
 version = "3.5.2"
+<<<<<<< HEAD
 version = "3.5.2"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Integrate PostHog into any python application."
 optional = false
 python-versions = "*"
 files = [
     {file = "posthog-3.5.2-py2.py3-none-any.whl", hash = "sha256:605b3d92369971cc99290b1fcc8534cbddac3726ef7972caa993454a5ecfb644"},
     {file = "posthog-3.5.2.tar.gz", hash = "sha256:a383a80c1f47e0243f5ce359e81e06e2e7b37eb39d1d6f8d01c3e64ed29df2ee"},
+<<<<<<< HEAD
     {file = "posthog-3.5.2-py2.py3-none-any.whl", hash = "sha256:605b3d92369971cc99290b1fcc8534cbddac3726ef7972caa993454a5ecfb644"},
     {file = "posthog-3.5.2.tar.gz", hash = "sha256:a383a80c1f47e0243f5ce359e81e06e2e7b37eb39d1d6f8d01c3e64ed29df2ee"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
@@ -4857,7 +4983,10 @@ virtualenv = ">=20.10.0"
 [[package]]
 name = "primp"
 version = "0.6.1"
+<<<<<<< HEAD
 version = "0.6.1"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "HTTP client that can impersonate web browsers, mimicking their headers and `TLS/JA3/JA4/HTTP2` fingerprints"
 optional = false
 python-versions = ">=3.8"
@@ -4870,6 +4999,7 @@ files = [
     {file = "primp-0.6.1-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:5dc15bd9d47ded7bc356fcb5d8321972dcbeba18e7d3b7250e12bb7365447b2b"},
     {file = "primp-0.6.1-cp38-abi3-win_amd64.whl", hash = "sha256:eebf0412ebba4089547b16b97b765d83f69f1433d811bb02b02cdcdbca20f672"},
     {file = "primp-0.6.1.tar.gz", hash = "sha256:64b3c12e3d463a887518811c46f3ec37cca02e6af1ddf1287e548342de436301"},
+<<<<<<< HEAD
     {file = "primp-0.6.1-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:60cfe95e0bdf154b0f9036d38acaddc9aef02d6723ed125839b01449672d3946"},
     {file = "primp-0.6.1-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:e1e92433ecf32639f9e800bc3a5d58b03792bdec99421b7fb06500e2fae63c85"},
     {file = "primp-0.6.1-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6e02353f13f07fb5a6f91df9e2f4d8ec9f41312de95088744dce1c9729a3865d"},
@@ -4878,6 +5008,8 @@ files = [
     {file = "primp-0.6.1-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:5dc15bd9d47ded7bc356fcb5d8321972dcbeba18e7d3b7250e12bb7365447b2b"},
     {file = "primp-0.6.1-cp38-abi3-win_amd64.whl", hash = "sha256:eebf0412ebba4089547b16b97b765d83f69f1433d811bb02b02cdcdbca20f672"},
     {file = "primp-0.6.1.tar.gz", hash = "sha256:64b3c12e3d463a887518811c46f3ec37cca02e6af1ddf1287e548342de436301"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.extras]
@@ -5392,15 +5524,21 @@ files = [
 [[package]]
 name = "pyright"
 version = "1.1.377"
+<<<<<<< HEAD
 version = "1.1.377"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Command line wrapper for pyright"
 optional = false
 python-versions = ">=3.7"
 files = [
     {file = "pyright-1.1.377-py3-none-any.whl", hash = "sha256:af0dd2b6b636c383a6569a083f8c5a8748ae4dcde5df7914b3f3f267e14dd162"},
     {file = "pyright-1.1.377.tar.gz", hash = "sha256:aabc30fedce0ded34baa0c49b24f10e68f4bfc8f68ae7f3d175c4b0f256b4fcf"},
+<<<<<<< HEAD
     {file = "pyright-1.1.377-py3-none-any.whl", hash = "sha256:af0dd2b6b636c383a6569a083f8c5a8748ae4dcde5df7914b3f3f267e14dd162"},
     {file = "pyright-1.1.377.tar.gz", hash = "sha256:aabc30fedce0ded34baa0c49b24f10e68f4bfc8f68ae7f3d175c4b0f256b4fcf"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
@@ -5724,7 +5862,10 @@ files = [
 [[package]]
 name = "pyzmq"
 version = "26.2.0"
+<<<<<<< HEAD
 version = "26.2.0"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Python bindings for 0MQ"
 optional = false
 python-versions = ">=3.7"
@@ -5838,6 +5979,7 @@ files = [
     {file = "pyzmq-26.2.0-pp39-pypy39_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:6a96179a24b14fa6428cbfc08641c779a53f8fcec43644030328f44034c7f1f4"},
     {file = "pyzmq-26.2.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:4f78c88905461a9203eac9faac157a2a0dbba84a0fd09fd29315db27be40af9f"},
     {file = "pyzmq-26.2.0.tar.gz", hash = "sha256:070672c258581c8e4f640b5159297580a9974b026043bd4ab0470be9ed324f1f"},
+<<<<<<< HEAD
     {file = "pyzmq-26.2.0-cp310-cp310-macosx_10_15_universal2.whl", hash = "sha256:ddf33d97d2f52d89f6e6e7ae66ee35a4d9ca6f36eda89c24591b0c40205a3629"},
     {file = "pyzmq-26.2.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:dacd995031a01d16eec825bf30802fceb2c3791ef24bcce48fa98ce40918c27b"},
     {file = "pyzmq-26.2.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:89289a5ee32ef6c439086184529ae060c741334b8970a6855ec0b6ad3ff28764"},
@@ -5947,6 +6089,8 @@ files = [
     {file = "pyzmq-26.2.0-pp39-pypy39_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:6a96179a24b14fa6428cbfc08641c779a53f8fcec43644030328f44034c7f1f4"},
     {file = "pyzmq-26.2.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:4f78c88905461a9203eac9faac157a2a0dbba84a0fd09fd29315db27be40af9f"},
     {file = "pyzmq-26.2.0.tar.gz", hash = "sha256:070672c258581c8e4f640b5159297580a9974b026043bd4ab0470be9ed324f1f"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
@@ -6452,15 +6596,21 @@ tornado = ["tornado (>=6)"]
 [[package]]
 name = "setuptools"
 version = "73.0.1"
+<<<<<<< HEAD
 version = "73.0.1"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
     {file = "setuptools-73.0.1-py3-none-any.whl", hash = "sha256:b208925fcb9f7af924ed2dc04708ea89791e24bde0d3020b27df0e116088b34e"},
     {file = "setuptools-73.0.1.tar.gz", hash = "sha256:d59a3e788ab7e012ab2c4baed1b376da6366883ee20d7a5fc426816e3d7b1193"},
+<<<<<<< HEAD
     {file = "setuptools-73.0.1-py3-none-any.whl", hash = "sha256:b208925fcb9f7af924ed2dc04708ea89791e24bde0d3020b27df0e116088b34e"},
     {file = "setuptools-73.0.1.tar.gz", hash = "sha256:d59a3e788ab7e012ab2c4baed1b376da6366883ee20d7a5fc426816e3d7b1193"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.extras]
@@ -6712,15 +6862,21 @@ tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 [[package]]
 name = "starlette"
 version = "0.37.2"
+<<<<<<< HEAD
 version = "0.37.2"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "The little ASGI library that shines."
 optional = false
 python-versions = ">=3.8"
 files = [
     {file = "starlette-0.37.2-py3-none-any.whl", hash = "sha256:6fe59f29268538e5d0d182f2791a479a0c64638e6935d1c6989e63fb2699c6ee"},
     {file = "starlette-0.37.2.tar.gz", hash = "sha256:9af890290133b79fc3db55474ade20f6220a364a0402e0b556e7cd5e1e093823"},
+<<<<<<< HEAD
     {file = "starlette-0.37.2-py3-none-any.whl", hash = "sha256:6fe59f29268538e5d0d182f2791a479a0c64638e6935d1c6989e63fb2699c6ee"},
     {file = "starlette-0.37.2.tar.gz", hash = "sha256:9af890290133b79fc3db55474ade20f6220a364a0402e0b556e7cd5e1e093823"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [package.dependencies]
@@ -7467,7 +7623,10 @@ test = ["websockets"]
 [[package]]
 name = "websockets"
 version = "13.0"
+<<<<<<< HEAD
 version = "13.0"
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 description = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
 optional = false
 python-versions = ">=3.8"
@@ -7558,6 +7717,7 @@ files = [
     {file = "websockets-13.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:81a11a1ddd5320429db47c04d35119c3e674d215173d87aaeb06ae80f6e9031f"},
     {file = "websockets-13.0-py3-none-any.whl", hash = "sha256:dbbac01e80aee253d44c4f098ab3cc17c822518519e869b284cfbb8cd16cc9de"},
     {file = "websockets-13.0.tar.gz", hash = "sha256:b7bf950234a482b7461afdb2ec99eee3548ec4d53f418c7990bb79c620476602"},
+<<<<<<< HEAD
     {file = "websockets-13.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:ad4fa707ff9e2ffee019e946257b5300a45137a58f41fbd9a4db8e684ab61528"},
     {file = "websockets-13.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:6fd757f313c13c34dae9f126d3ba4cf97175859c719e57c6a614b781c86b617e"},
     {file = "websockets-13.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:cbac2eb7ce0fac755fb983c9247c4a60c4019bcde4c0e4d167aeb17520cc7ef1"},
@@ -7644,6 +7804,8 @@ files = [
     {file = "websockets-13.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:81a11a1ddd5320429db47c04d35119c3e674d215173d87aaeb06ae80f6e9031f"},
     {file = "websockets-13.0-py3-none-any.whl", hash = "sha256:dbbac01e80aee253d44c4f098ab3cc17c822518519e869b284cfbb8cd16cc9de"},
     {file = "websockets-13.0.tar.gz", hash = "sha256:b7bf950234a482b7461afdb2ec99eee3548ec4d53f418c7990bb79c620476602"},
+=======
+>>>>>>> a5ab116 (Poetry lock for ci/cd)
 ]
 
 [[package]]
