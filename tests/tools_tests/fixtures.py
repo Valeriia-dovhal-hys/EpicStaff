@@ -3,7 +3,7 @@ from shutil import rmtree
 
 import pytest
 
-from src.tools import AppendFileTool, EditFileTool, CreateFileTool, FileCountLinesTool, LineReadFileTool
+from src.tools import AppendFileTool, EditFileTool, CreateFileTool, FileCountLinesTool, LineReadFileTool, CLITool
 from tests.conftest import test_dir
 from src.tools import FolderTool
 
@@ -71,7 +71,6 @@ def folder_tool():
     rmtree(path)
 
 
-
-
-
-
+@pytest.fixture
+def interpreter_tool():
+    yield CLITool()
