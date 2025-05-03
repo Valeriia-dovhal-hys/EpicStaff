@@ -8,6 +8,16 @@ from tests.mocks.tools_mocks import mock_file_with_content
 from tests.tools_tests.fixtures import edit_file_tool, test_dir
 
 
+class MockWriter:
+	"""Collect all written data."""
+
+	def __init__(self):
+		self.contents = ''
+
+	def write(self, data):
+		self.contents += data
+
+
 class TestFileEditTool:
 	test_text = """Sed ut perspiciatis, 
 unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, 

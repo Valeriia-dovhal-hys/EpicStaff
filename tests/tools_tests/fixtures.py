@@ -16,6 +16,16 @@ def create_file_tool():
 
 
 @pytest.fixture
+def create_file_tool_setup_test_dir():
+    path = Path(test_dir)
+    path.mkdir(parents=True, exist_ok=True)
+    
+    yield CreateFileTool()
+
+    rmtree(path)
+
+
+@pytest.fixture
 def file_count_lines_tool_setup_test_dir():
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
@@ -37,12 +47,7 @@ def line_read_file_tool():
 
 @pytest.fixture
 def append_file_tool():
-    path = Path(test_dir)
-    path.mkdir(parents=True, exist_ok=True)
-
     yield AppendFileTool("predefined.txt")
-
-    rmtree(path)
 
 
 @pytest.fixture
