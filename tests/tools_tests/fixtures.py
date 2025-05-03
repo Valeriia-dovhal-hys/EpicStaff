@@ -50,7 +50,7 @@ def append_file_tool():
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
 
-    yield AppendFileTool("predefined.txt")
+    yield AppendFileTool()
 
     rmtree(path)
 
