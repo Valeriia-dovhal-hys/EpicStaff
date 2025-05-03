@@ -17,7 +17,7 @@ class LineReadFileToolSchema(FixedFileToolSchema):
 
     file_path: str = Field(..., description="Mandatory file full path to read the file")
     line_number: int = Field(
-        ..., description="Manadatory line number (1-based) to start reading from."
+        ..., description="Mandatory line number (1-based) to start reading from."
     )
     num_lines: Optional[int] = Field(
         ...,
@@ -26,9 +26,9 @@ class LineReadFileToolSchema(FixedFileToolSchema):
 
 
 class LineReadFileTool(BaseTool):
-    name: str = "Read a file's content by line number"
+    name: str = "Read a file's content starting with line number given"
     description: str = (
-        "A tool that can be used to read a file's content by line number."
+        "A tool that can be used to read a file's content starting with the line number given."
     )
     args_schema: Type[BaseModel] = LineReadFileToolSchema
     file_path: Optional[str] = None
@@ -48,7 +48,7 @@ class LineReadFileTool(BaseTool):
             self.line_number = line_number
             self.num_lines = num_lines
             self.description = (
-                f"A tool that can be used to read {file_path}'s content by line number."
+                f"A tool that can be used to read {file_path}'s content starting with line number given."
             )
             self.args_schema = FixedFileToolSchema
             self._generate_description()
