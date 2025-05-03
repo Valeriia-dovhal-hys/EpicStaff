@@ -1,10 +1,13 @@
+from crewai import Task
+from pathlib import Path
+
 import pytest
 import pytest_mock
 from pytest_mock import mocker
-from unittest.mock import patch
 
 from tests.mocks.tools_mocks import mock_empty_file
-from tests.tools_tests.fixtures import create_file_tool, file_count_lines_tool
+from tests.tools_tests.fixtures import create_file_tool, create_file_tool_setup_test_dir
+from tests.conftest import test_dir
 
 
 class TestFileCreateTool:
@@ -38,3 +41,29 @@ class TestFileCreateTool:
         result = tool._run(file_path="newfile.txt")
         assert result == "File already exists"
         mocked_open.call_count == 2
+
+
+    @pytest.mark.vcr(filter_headers=["authorization"], record_mode="once")
+    def test_file_create_tool_with_crewai(self, agent, create_file_tool_setup_test_dir):
+        """Test file create tool usage with crewai interface"""
+
+        tool = create_file_tool_setup_test_dir
+        path = Path(test_dir)
+        abs_path = path.resolve()
+        filename = "dummy.txt"
+
+        agent.tools.append(tool)
+        task = Task(
+            description=f"""Create a file with a name {filename} in {abs_path}""",
+            agent=agent,
+            expected_output=f"""The response in the 
+            following format using relative path:
+            "I created a file {filename} in {path}." (without "")
+            if file is succesfully created, "Error." if not""",
+        )
+
+        output = agent.execute_task(task)
+
+        assert (path / filename).exists()
+        assert output == f"I created a file {filename} in {path}."
+        
