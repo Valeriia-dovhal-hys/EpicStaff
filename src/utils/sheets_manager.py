@@ -1,24 +1,30 @@
 import logging
 import json
-
+from pathlib import Path
 logger = logging.getLogger(__name__)
-from config.config import AppConfig
 from urllib.error import URLError
 from textwrap import dedent
-from utils.helpers import get_sheet_url_from_user
 import pandas as pd
 import sys
+from io import StringIO
+import requests
+from requests.exceptions import HTTPError
+
+from config.config import AppConfig
+from utils.helpers import get_sheet_url_from_user
+from utils.auth_manager import AuthManager
 
 template_sheet_url = AppConfig.template_sheet_url
 
 
 class SheetsManager:
 
+    _SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+
     @staticmethod
-    def read_google_sheet(sheet_url):
+    def read_google_sheet(base_url, creds=None):
 
         # Extract the base URL from the provided Google Sheet URL
-        base_url = sheet_url.split("/edit")[0]
         dataframes = []
 
         # Define the worksheets and their respective columns to be read
@@ -40,7 +46,14 @@ class SheetsManager:
 
             # Read the worksheet into a DataFrame, selecting only the specified columns
             try:
-                data = pd.read_csv(url, usecols=columns)
+                headers = {
+                    'Authorization': f'Bearer {creds.token}'
+                } if creds is not None else {}
+
+                response = requests.get(url, headers=headers)
+                csv_like = StringIO(response.text)
+
+                data = pd.read_csv(csv_like, usecols=columns)
                 dispatcher[worksheet](data=data, columns=columns)
             except Exception as e:
                 return e
@@ -118,10 +131,23 @@ class SheetsManager:
 
     @staticmethod
     def parse_table(url=template_sheet_url):
+        creds = None
+
+        try:
+            response = requests.get(url=url)
+            response.raise_for_status()
+        except HTTPError as http_err:
+            if response.status_code == 401:
+                creds = AuthManager.authenticate_user(scopes=SheetsManager._SCOPES)
+            else:
+                raise Exception(f"HTTP Error occured: {http_err}")
+            
+        base_url = url.split("/edit")[0]
+
         num_att = 0
         while num_att < 10:
             try:
-                dataframes = SheetsManager.read_google_sheet(url)
+                dataframes = SheetsManager.read_google_sheet(base_url, creds)
                 if isinstance(dataframes, Exception):
                     raise dataframes
                 break
@@ -142,12 +168,8 @@ class SheetsManager:
                 "10 attempts? Is this a new world record? I'm not equipped for marathons! Gotta hit the shutdown button now."
             )
             sys.exit(0)
-
-        Agents = dataframes[0]
-        Tasks = dataframes[1]
-        Crew = dataframes[2]
-        Models = dataframes[3]
-        Tools = dataframes[4]
+            
+        Agents, Tasks, Crew, Models, Tools = dataframes
 
         return Agents, Tasks, Crew, Models, Tools
 
