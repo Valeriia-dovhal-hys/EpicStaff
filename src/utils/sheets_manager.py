@@ -42,19 +42,16 @@ class SheetsManager:
 
             url = f"{base_url}/gviz/tq?tqx=out:csv&sheet={worksheet}"
 
+            headers = {
+                'Authorization': f'Bearer {creds.token}'
+            } if creds is not None else {}
+
+            response = requests.get(url, headers=headers)
+            csv_like = StringIO(response.text)
+
             # Read the worksheet into a DataFrame, selecting only the specified columns
-            try:
-                headers = {
-                    'Authorization': f'Bearer {creds.token}'
-                } if creds is not None else {}
-
-                response = requests.get(url, headers=headers)
-                csv_like = StringIO(response.text)
-
-                data = pd.read_csv(csv_like, usecols=columns)
-                dispatcher[worksheet](data=data, columns=columns)
-            except Exception as e:
-                return e
+            data = pd.read_csv(csv_like, usecols=columns)
+            dispatcher[worksheet](data=data, columns=columns)
 
             data = data.where(pd.notnull(data), None)  # Replace NaN values with None
 
@@ -130,24 +127,29 @@ class SheetsManager:
     @staticmethod
     def parse_table(url=template_sheet_url):
         creds = None
+        num_att = 0
 
-        try:
-            response = requests.get(url=url)
-            response.raise_for_status()
-        except HTTPError as http_err:
-            if response.status_code == 401:
-                creds = AuthManager.authenticate_google_user()
-            else:
-                raise Exception(f"HTTP Error occured: {http_err}")
+        while num_att < 10:
+            try:
+                response = requests.get(url=url)
+                response.raise_for_status()
+                break
+            except HTTPError as http_err:
+                if response.status_code == 401:
+                    creds = AuthManager.authenticate_google_user()
+                    break
+                else:
+                    logger.error(f"HTTP error with code {response.status_code} occurred: {http_err}")
+                    print(f"I got HTTP error code {response.status_code}, double-check your link and try again")
+                    url = get_sheet_url_from_user()
+                    num_att += 1
+                    
             
         base_url = url.split("/edit")[0]
 
-        num_att = 0
         while num_att < 10:
             try:
                 dataframes = SheetsManager.read_google_sheet(base_url, creds)
-                if isinstance(dataframes, Exception):
-                    raise dataframes
                 break
             except ValueError as e:
                 logger.error(f"ValueError occurred: {e}")
