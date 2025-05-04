@@ -24,6 +24,7 @@ def get_text_lines(text, from_=0, to_=None):
 
 
 class TestFileLineReadTool:
+    # TODO check what happen if number_of_lines is == 0 looks like they will be read last line
     test_text = """Sed ut perspiciatis, 
     unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, 
     totam rem aperiam eaque ipsa, 
@@ -64,6 +65,7 @@ class TestFileLineReadTool:
         expected = LineReadFileTool.format_lines(
             get_text_lines(text=self.test_text, from_=line_number - 1), line_number
         )
+
         result = tool._run(
             file_path=file_path, line_number=line_number, number_of_lines=None
         )

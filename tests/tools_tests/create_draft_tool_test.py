@@ -14,6 +14,7 @@ class TestCreateDraftTool:
 
     def test_create_draft(self, mocker):
         """Test create draft"""
+        # TODO - looks like should be deleted cause test_email_draft_tool is testing the same thing
         pass
 
 

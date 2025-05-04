@@ -19,12 +19,15 @@ class FolderToolSchema(BaseModel):
     recursive: bool = Field(
         False, description="whether to list files recursively. Default is False."
     )
-
+    # TODO for all tools classes what use folder_path or file_path should be inherit from a class with implemented
+    #  resolve_path method what will resolve the path to the absolute path
+    #  and restrict access only for save_files directory
 
 class FolderTool(BaseTool):
     """
     Tool to create and execute code using Open Interpreter.
     """
+
 
     name: str = "FolderTool"
     description: str = (
