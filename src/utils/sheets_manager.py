@@ -138,7 +138,7 @@ class SheetsManager:
             response.raise_for_status()
         except HTTPError as http_err:
             if response.status_code == 401:
-                creds = AuthManager.authenticate_user(scopes=SheetsManager._SCOPES)
+                creds = AuthManager.authenticate_google_user(scopes=SheetsManager._SCOPES)
             else:
                 raise Exception(f"HTTP Error occured: {http_err}")
             
@@ -168,7 +168,7 @@ class SheetsManager:
                 "10 attempts? Is this a new world record? I'm not equipped for marathons! Gotta hit the shutdown button now."
             )
             sys.exit(0)
-            
+
         Agents, Tasks, Crew, Models, Tools = dataframes
 
         return Agents, Tasks, Crew, Models, Tools
