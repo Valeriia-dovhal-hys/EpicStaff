@@ -3,7 +3,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 from langchain.tools import tool
-from typing import Optional, Type, Any, List
+from typing import Optional, Type, Any
 from pydantic.v1 import BaseModel, Field, validator
 from crewai_tools import BaseTool
 
@@ -17,7 +17,7 @@ class LineReadFileToolSchema(FixedFileToolSchema):
 
     file_path: str = Field(..., description="Mandatory file full path to read the file")
     line_number: int = Field(
-        ..., description="Mandatory line number (1-based) to start reading from."
+        ..., description="Manadatory line number (1-based) to start reading from."
     )
     num_lines: Optional[int] = Field(
         ...,
@@ -26,9 +26,9 @@ class LineReadFileToolSchema(FixedFileToolSchema):
 
 
 class LineReadFileTool(BaseTool):
-    name: str = "Read a file's content starting with line number given"
+    name: str = "Read a file's content by line number"
     description: str = (
-        "A tool that can be used to read a file's content starting with the line number given."
+        "A tool that can be used to read a file's content by line number."
     )
     args_schema: Type[BaseModel] = LineReadFileToolSchema
     file_path: Optional[str] = None
@@ -48,7 +48,7 @@ class LineReadFileTool(BaseTool):
             self.line_number = line_number
             self.num_lines = num_lines
             self.description = (
-                f"A tool that can be used to read {file_path}'s content starting with line number given."
+                f"A tool that can be used to read {file_path}'s content by line number."
             )
             self.args_schema = FixedFileToolSchema
             self._generate_description()
@@ -79,19 +79,14 @@ class LineReadFileTool(BaseTool):
         # Calculate the end index for slicing lines; handle case where num_lines is None
         end_index = (line_number - 1) + num_lines if num_lines else len(lines)
         selected_lines = lines[
-            line_number - 1: end_index
+            line_number - 1 : end_index
         ]  # Adjust for zero-based index
 
         if not selected_lines:
             return "No lines found starting from the specified line number."
 
         # Format output to include line numbers with their respective contents
-        content = self.format_lines(selected_lines, line_number)
-
-        return content
-
-    @staticmethod
-    def format_lines(lines: List[str], line_number: int) -> str:
-        return "".join(
-            [f"{idx + line_number}: {line}" for idx, line in enumerate(lines)]
+        content = "".join(
+            [f"{idx + line_number}: {line}" for idx, line in enumerate(selected_lines)]
         )
+        return content

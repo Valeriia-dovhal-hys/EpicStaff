@@ -48,7 +48,7 @@ from utils.agent_crew_llm import get_llm
 from utils.tools_mapping import ToolsMapping
 from utils.cli_parser import get_parser
 from utils.helpers import load_env, is_valid_google_sheets_url, get_sheet_url_from_user
-from utils import Sheets, helpers
+from utils import SheetsManager, helpers
 
 import pandas as pd
 import sentry_sdk
@@ -345,7 +345,7 @@ if __name__ == "__main__":
     terminal_width = max(terminal_width, 120)
 
     # Enter main process
-    agents_df, tasks_df, crew_df, models_df, tools_df = Sheets.parse_table(sheet_url)
+    agents_df, tasks_df, crew_df, models_df, tools_df = SheetsManager.parse_table(sheet_url)
     helpers.after_read_sheet_print(
         agents_df, tasks_df
     )  # Print overview of agents and tasks
