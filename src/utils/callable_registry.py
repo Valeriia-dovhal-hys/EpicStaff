@@ -1,5 +1,7 @@
 import logging
 
+from utils.exceptions import ToolRegisterException
+
 logger = logging.getLogger(__name__)
 from config.config import ToolsConfig
 import inspect
@@ -51,6 +53,7 @@ class CallableRegistry:
                     )
             except AttributeError as e:
                 logging.error(f"Failed to register {callable_item}: {str(e)}")
+                raise ToolRegisterException(callable_item, e)
 
     def _register_callable(self, name, qualified_name, callable_item):
         """Helper method to register a callable under both its full and simple names."""
