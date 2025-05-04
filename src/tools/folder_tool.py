@@ -19,15 +19,12 @@ class FolderToolSchema(BaseModel):
     recursive: bool = Field(
         False, description="whether to list files recursively. Default is False."
     )
-    # TODO for all tools classes what use folder_path or file_path should be inherit from a class with implemented
-    #  resolve_path method what will resolve the path to the absolute path
-    #  and restrict access only for save_files directory
+
 
 class FolderTool(BaseTool):
     """
     Tool to create and execute code using Open Interpreter.
     """
-
 
     name: str = "FolderTool"
     description: str = (
@@ -46,7 +43,6 @@ class FolderTool(BaseTool):
         Parameters:
         - folder_path: Path to the folder.
         - recursive: Whether to list files recursively.
-        - save_directory: Directory to save the output files to.
 
         Returns:
         A string indicating the number of files listed and the first 5 files,
@@ -54,11 +50,10 @@ class FolderTool(BaseTool):
         """
         folder_path = kwargs.get("folder_path")
         recursive = kwargs.get("recursive")
-        save_directory = kwargs.get("save_directory", os.getcwd())
-
         # Generate the output file name with a timestamp
         output_file_name = f"find_{datetime.now().strftime('%Y%m%d%H%M%S')}.txt"
-        output_file_path = os.path.join(save_directory, output_file_name)
+        # Assuming the output is to be saved in the current directory, modify as needed
+        output_file_path = os.path.join(os.getcwd(), output_file_name)
         files_listed = []
 
         # List files in the specified folder recursively or not, based on the recursive parameter

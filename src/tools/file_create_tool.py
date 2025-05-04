@@ -41,8 +41,6 @@ class CreateFileTool(BaseTool):
         try:
             file_path = kwargs.get("file_path", self.file_path)
             with open(file_path, "x") as file:
-                return "File created successfully"
+                return "File created successfully."
         except FileExistsError:
-            return "File already exists"
-        except Exception:
-            return "Didn't manage to create a file. Unpredicted exception occured, I cannot figure out how to handle this"
+            return "File already exists."

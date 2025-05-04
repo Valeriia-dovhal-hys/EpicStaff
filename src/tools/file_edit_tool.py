@@ -70,31 +70,25 @@ class EditFileTool(BaseTool):
         line_number = kwargs.get("line_number", self.line_number)
         expected_text = kwargs.get("expected_text", self.expected_text)
         new_text = kwargs.get("new_text", self.new_text)
-        try:
-            with open(file_path, "r") as file:
-                lines = file.read().splitlines()
-        except Exception as e:
-            return f"There was an error reading the file {file_path}: {e}"
-
+        with open(file_path, "r") as file:
+            lines = file.readlines()
         # Check if the line number is within the file's range
         if not 1 <= line_number <= len(lines):
             return f"I made an error: Line number {line_number} is out of the file's range. The file has {len(lines)} lines. The first line is line 1."
 
         # Check if the expected text matches the current line content
-        current_line = lines[line_number - 1]
+        current_line = lines[line_number - 1].rstrip("\n")
 
         if expected_text is not None and current_line != expected_text:
             return f"I made an Error: Expected text does not match the text on line {line_number}."
 
         # Replace the line with new text
-        lines[line_number - 1] = new_text
-
-        text = "\n".join(lines)
+        lines[line_number - 1] = new_text + "\n"
 
         # Write the updated lines back to the file directly within this method
         try:
             with open(file_path, "w") as file:
-                file.writelines(text)
+                file.writelines(lines)
         except Exception as e:
             return f"There was an eeror writing to file {file_path}: {e}"
 
