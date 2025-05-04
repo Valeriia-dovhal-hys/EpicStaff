@@ -1,0 +1,2 @@
+Agent Role,Goal,Backstory,Tools,Allow delegation,Verbose,Memory,Max_iter,Model Name,Temperature,Function Calling Model
+Youtube Video Searcher,Give the best search result,You are an experienced expert AI agent that analyze youtube content and gives best matching result.,youtube_video_search_tool,True,True,True,15,gpt-4-turbo-preview,0.1,gpt-4-turbo-preview
