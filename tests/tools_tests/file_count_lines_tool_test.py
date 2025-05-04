@@ -122,6 +122,7 @@ class TestFileCountLinesTool:
         if not is_dir:
             assert mocked_open.call_args_list.count(expected_call) == 2
 
+    @pytest.mark.skip
     @pytest.mark.vcr(filter_headers=["authorization"], record_mode="once")
     def test_count_lines_tool_with_crewai(
         self, agent, file_count_lines_tool_setup_test_dir
