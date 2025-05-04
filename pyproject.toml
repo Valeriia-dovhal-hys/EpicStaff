@@ -31,6 +31,9 @@ black = "^24.8.0"
 flake8 = "^7.1.1"
 mypy = "^1.11.1"
 pre-commit = "^3.8.0"
+pytest-mock = "^3.14.0"
+pytest-asyncio = "^0.24.0"
+pytest-vcr = "^1.0.2"
 
 [build-system]
 requires = ["poetry-core"]

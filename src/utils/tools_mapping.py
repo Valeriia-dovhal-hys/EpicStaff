@@ -2,7 +2,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 logger.debug(f"Entered {__file__}")
-from utils.exceptions import ToolCallableFoundException, ToolNotFoundException
 from utils.helpers import load_env
 
 # load_env("../../ENV/.env", ["OPENAI_API_KEY","OPENAI_BASE_URL"])
@@ -37,8 +36,6 @@ class ToolsMapping:
                 logger.warning(
                     f"No class or function found for tool '{tool_name}'. Tool not created."
                 )
-                raise ToolNotFoundException(tool_name=tool_name)
-                # todo: Remove logger and continue
                 continue
 
             # Extract the base function or class name and any indices or arguments
@@ -54,10 +51,6 @@ class ToolsMapping:
                 logger.warning(
                     f"No callable found for '{base_name}'. Tool '{tool_name}' not created."
                 )
-                raise ToolCallableFoundException(
-                    base_name=base_name, tool_name=tool_name
-                )
-                # todo: Remove logger and continue
                 continue
 
             if isinstance(class_or_func, list) and index_match:
