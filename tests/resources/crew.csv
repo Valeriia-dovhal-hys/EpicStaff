@@ -1,2 +1,0 @@
-Team Name,Assignment,Process,Verbose,Memory,Embedding model,Manager LLM,t,num_ctx
-Youtube Analyzer,Find best cat videos!,sequential,True,True,text-embedding-3-small,gpt-4-turbo-preview,0.1,
