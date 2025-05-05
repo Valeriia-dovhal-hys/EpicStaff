@@ -7,6 +7,7 @@ from crewai_tools import BaseTool
 from typing import Type, Any
 import os
 from datetime import datetime
+from pathlib import Path
 
 from src.tools.route_tool import RouteTool
 
@@ -27,9 +28,10 @@ class FolderToolSchema(BaseModel):
 class FolderTool(RouteTool):
 
     name: str = "FolderTool"
-    description: str = (
-        "Tool to list files in a specified folder, with the option to list recursively. Takes in two parameters: 'folder_path' - the path to the folder, and 'recursive' - whether to list files recursively."
-    )
+    description: str = """Tool to list files in a specified 
+    folder, with the option to list recursively. 
+    Takes in two parameters: 'folder_path' - the path to the folder, 
+    and 'recursive' - whether to list files recursively."""
     args_schema: Type[BaseModel] = FolderToolSchema
 
     def __init__(self, **kwargs):
@@ -48,7 +50,7 @@ class FolderTool(RouteTool):
         A string indicating the number of files listed and the first 5 files,
         with a note on where to find the rest in the output file.
         """
-        
+
         folder_path = kwargs.get("folder_path")
         recursive = kwargs.get("recursive")
 

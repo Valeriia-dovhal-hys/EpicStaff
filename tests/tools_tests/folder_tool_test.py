@@ -76,18 +76,45 @@ class TestFileCreateTool:
 
         assert result.startswith(f"{len(expected)} files were listed. Here are the files:\n")
 
-    @pytest.mark.skip
+    # TODO: Need to make sure folder_tool return posix paths, 
+    # as for now there is a bug here with weird paths like tests/tmp/help\falling\in\love\you.md
+
+    # TODO: Need to reduce repetitive code with initializing and populating dirs, investigate the 
+    # best approach to remove it to fixtures or something like that
     @pytest.mark.vcr(filter_headers=["authorization"], record_mode="once")
-    def test_folder_tool_with_crewai(self, agent, folder_tool):
+    def test_folder_tool_with_crewai(self, mocker, monkeypatch, agent, folder_tool):
+
+        dirs_paths = {Path(test_dir) / d for d in self.dirs}
+        file_paths = {Path(test_dir) / f for f in self.recursive_files + self.non_recursive_files}
+
+        create_test_files(dirs_paths, file_paths)
+
+        mocked_datetime = mocker.patch('time.strftime', return_value='CREWAITEST')
+        monkeypatch.setenv("SAVE_FILE_PATH", test_dir)
         
-        agent.append(folder_tool)
+        agent.tools.append(folder_tool)
         task = Task(
-            description=f"""""",
+            description=f"""List all files in the folder {test_dir}, 
+            including those that are in subfolders.""",
             agent=agent,
-            epected_output=f""""""
+            expected_output=f"""The response in the 
+            following format using relative path:
+            "The list of files in the given folder: the list of files (each on the new line)." (without "")
+            if operation was succesfull, "Error." if not""",
         )
 
         output = agent.execute_task(task)
 
-        assert output == f""
+        expected = file_paths
+        actual = read_test_filepaths(test_dir + "folder_tool_outputCREWAITEST.txt")
+
+        assert output == r"""The list of files in the given folder:
+```
+tests/tmp/but.ini
+tests/tmp/cant.py
+tests/tmp/in.exe
+tests/tmp/help\falling\in\love\with.cpp
+tests/tmp/help\falling\in\love\you.md
+[Additional lines from tests\tmp\folder_tool_outputCREWAITEST.txt]
+```"""
 
