@@ -51,9 +51,10 @@ def file_line_read_tool_setup_test_dir():
 
 
 @pytest.fixture
-def append_file_tool():
+def append_file_tool(monkeypatch):
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("SAVE_FILE_PATH", test_dir)
 
     yield AppendFileTool()
 
