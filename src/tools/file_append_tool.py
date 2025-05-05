@@ -19,7 +19,7 @@ class AppendFileToolSchema(FixedFileToolSchema):
     """Input for appending text to a file."""
 
     file_path: str = Field(
-        ..., description="Manadatory file full path to append the text."
+        ..., description="Mandatory file full path to append the text."
     )
     append_text: str = Field(
         ..., description="Mandatory text to be appended to the file."

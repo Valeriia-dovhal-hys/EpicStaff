@@ -24,7 +24,7 @@ class TestFileAppendTool:
         text = ""
         for line in text_lines:
             result = tool._run(file_path=file_path, append_text=line)
-            assert result == "Text appended successfully."
+            assert result == f"Text appended successfully to the file {file_path}."
             text += line + "\n"
 
             with open(Path(test_dir) / Path(file_path)) as f:
