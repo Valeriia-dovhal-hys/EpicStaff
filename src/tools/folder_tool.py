@@ -8,6 +8,8 @@ from typing import Type, Any
 import os
 from datetime import datetime
 
+from src.tools.route_tool import RouteTool
+
 
 class FolderToolSchema(BaseModel):
     """Input schema for FolderTool, specifying the required 
@@ -17,11 +19,12 @@ class FolderToolSchema(BaseModel):
     recursive: bool = Field(
         False, description="whether to list files recursively. Default is False."
     )
+
     # TODO for all tools classes what use folder_path or file_path should be inherit from a class with implemented
     #  resolve_path method what will resolve the path to the absolute path
     #  and restrict access only for save_files directory
 
-class FolderTool(BaseTool):
+class FolderTool(RouteTool):
 
     name: str = "FolderTool"
     description: str = (
@@ -40,24 +43,23 @@ class FolderTool(BaseTool):
         Parameters:
         - folder_path: Path to the folder.
         - recursive: Whether to list files recursively.
-        - save_directory: Directory to save the output files to.
 
         Returns:
         A string indicating the number of files listed and the first 5 files,
         with a note on where to find the rest in the output file.
         """
+        
         folder_path = kwargs.get("folder_path")
         recursive = kwargs.get("recursive")
-        save_directory = kwargs.get("save_directory", os.getcwd())
 
         # Generate the output file name with a timestamp
-        output_file_name = f"find_{datetime.now().strftime('%Y%m%d%H%M%S')}.txt"
-        output_file_path = os.path.join(save_directory, output_file_name)
+        file_output = f"folder_tool_output{datetime.now().strftime('%Y%m%d%H%M%S')}.txt"
+        file_savepath = self.construct_savepath(frompath=file_output)
         files_listed = []
 
         # List files in the specified folder recursively or not, based on the recursive parameter
         if recursive:
-            for root, dirs, files in os.walk(folder_path):
+            for root, _, files in os.walk(folder_path):
                 for file in files:
                     files_listed.append(os.path.join(root, file))
         else:
@@ -66,9 +68,9 @@ class FolderTool(BaseTool):
                     files_listed.append(os.path.join(folder_path, item))
 
         # Write the list of files to the output file
-        with open(output_file_path, "w") as output_file:
+        with open(file_savepath.resolve(), "w") as file:
             for file_path in files_listed:
-                output_file.write(file_path + "\n")
+                file.write(file_path + "\n")
 
         # Prepare the output message
         if len(files_listed) > 5:
@@ -77,7 +79,7 @@ class FolderTool(BaseTool):
                 f"{len(files_listed)} files were listed. Here are the first 5 lines:\n\n{first_5_files}\n"
                 f"\n-- TOOL MESSAGE: End of part! --\n"
                 f"The current output segment has concluded. Note: Additional content not displayed here.\n"
-                f"ACTION REQUIRED: To continue reading the remaining lines, open the file: '{output_file_path}'\n"
+                f"ACTION REQUIRED: To continue reading the remaining lines, open the file: '{file_savepath}'\n"
             )
         else:
             files = "\n".join(files_listed)
