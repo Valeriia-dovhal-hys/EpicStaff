@@ -1,0 +1,95 @@
+from pathlib import Path
+from shutil import rmtree
+
+import pytest
+
+from src.tools import AppendFileTool, EditFileTool, CreateFileTool, FileCountLinesTool, LineReadFileTool, CLITool
+from tests.conftest import test_dir
+from src.tools import FolderTool
+
+
+
+
+@pytest.fixture
+def create_file_tool():
+    yield CreateFileTool("predefined.txt")
+
+
+@pytest.fixture
+def create_file_tool_setup_test_dir():
+    path = Path(test_dir)
+    path.mkdir(parents=True, exist_ok=True)
+
+    create_file_tool = CreateFileTool()
+
+    create_file_tool.description = f"""A tool that's used to create a file in 
+    a directory {test_dir} combined with a user-provided file path if it's given.
+    Otherwise, tool should be used to create a file in {test_dir} directory."""
+    
+    yield create_file_tool
+    rmtree(path)
+
+
+@pytest.fixture
+def file_count_lines_tool_setup_test_dir():
+    path = Path(test_dir)
+    path.mkdir(parents=True, exist_ok=True)
+
+    yield FileCountLinesTool()
+
+    rmtree(path)
+
+
+@pytest.fixture
+def file_count_lines_tool():
+    yield FileCountLinesTool("predefined.txt")
+
+
+@pytest.fixture
+def file_line_read_tool():
+    yield LineReadFileTool("predefined.txt")
+
+
+@pytest.fixture
+def file_line_read_tool_setup_test_dir():
+    path = Path(test_dir)
+    path.mkdir(parents=True, exist_ok=True)
+
+    yield LineReadFileTool()
+
+    rmtree(path)
+
+
+@pytest.fixture
+def append_file_tool():
+    path = Path(test_dir)
+    path.mkdir(parents=True, exist_ok=True)
+
+    yield AppendFileTool()
+
+    rmtree(path)
+
+
+@pytest.fixture
+def edit_file_tool():
+    path = Path(test_dir)
+    path.mkdir(parents=True, exist_ok=True)
+
+    yield EditFileTool("predefined.txt")
+
+    rmtree(path)
+
+
+@pytest.fixture
+def folder_tool():
+    path = Path(test_dir)
+    path.mkdir(parents=True, exist_ok=True)
+
+    yield FolderTool()
+
+    rmtree(path)
+
+
+@pytest.fixture
+def interpreter_tool():
+    yield CLITool()
