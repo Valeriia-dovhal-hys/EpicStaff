@@ -9,24 +9,14 @@ from src.tools import FolderTool
 
 
 
-
 @pytest.fixture
-def create_file_tool():
-    yield CreateFileTool("predefined.txt")
-
-
-@pytest.fixture
-def create_file_tool_setup_test_dir():
+def create_file_tool_setup_test_dir(monkeypatch):
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
-
-    create_file_tool = CreateFileTool()
-
-    create_file_tool.description = f"""A tool that's used to create a file in 
-    a directory {test_dir} combined with a user-provided file path if it's given.
-    Otherwise, tool should be used to create a file in {test_dir} directory."""
+    monkeypatch.setenv("SAVE_FILE_PATH", test_dir)
     
-    yield create_file_tool
+    yield CreateFileTool()
+
     rmtree(path)
 
 

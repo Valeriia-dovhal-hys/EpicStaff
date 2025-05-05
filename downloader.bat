@@ -2,9 +2,9 @@
 setlocal
 
 :: Define variables
-set "ZIP_URL=https://github.com/EpicStaff/downloader/archive/refs/heads/main.zip"
-set "TMP_ZIP=downloader.zip"
-set "EXTRACTED_DIR=downloader-main"
+set "ZIP_URL=https://github.com/EpicStaff/EpicStaff/archive/refs/heads/main.zip"
+set "TMP_ZIP=epicstaff.zip"
+set "EXTRACTED_DIR=EpicStaff-main"
 set "SRC_DIR=%EXTRACTED_DIR%\run_program"
 set "TARGET_DIR=run_program"
 
