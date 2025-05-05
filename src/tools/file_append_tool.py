@@ -58,8 +58,8 @@ class AppendFileTool(RouteTool):
             if not AppendFileTool.is_path_has_permission(file_savepath):
                 return "Given filepath doesn't have access to the specified directory."
             append_text = kwargs.get("append_text", self.append_text)
-            with open(file_savepath, "a") as file:
+            with open(file_savepath, "a", encoding='utf-8') as file:
                 file.write(append_text + "\n")
-            return "Text appended successfully."
+            return f"Text appended successfully to the file {file_path}."
         except Exception as e:
             return f"Failed to append text: {e}"

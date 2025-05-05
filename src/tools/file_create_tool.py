@@ -8,6 +8,7 @@ from pydantic.v1 import BaseModel, Field
 from crewai_tools import BaseTool
 
 from src.tools.route_tool import RouteTool
+from pathlib import Path
 
 
 class CreateFileSchema(BaseModel):
@@ -35,11 +36,12 @@ class CreateFileTool(RouteTool):
         try:
             file_path = kwargs.get("file_path", "./")
             file_savepath = self.construct_savepath(frompath=file_path)
+
             if not CreateFileTool.is_path_has_permission(file_savepath):
                 return "Given filepath doesn't have access to the specified directory."
             with open(file_savepath.resolve(), "x") as file:
-                return "File created successfully"
+                return f"File created successfully in {file_path}"
         except FileExistsError:
-            return "File already exists"
+            return f"File {file_path} already exists, no need to create it"
         except Exception as e:
             return f"Didn't manage to create a file. Unpredicted exception occured, I cannot figure out how to handle this {e}"
