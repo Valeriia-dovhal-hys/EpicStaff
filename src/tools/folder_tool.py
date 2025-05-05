@@ -7,13 +7,11 @@ from crewai_tools import BaseTool
 from typing import Type, Any
 import os
 from datetime import datetime
-from langchain.tools import tool
 
 
 class FolderToolSchema(BaseModel):
-    """
-    Input schema for FolderTool, specifying the required parameters for listing files in a folder.
-    """
+    """Input schema for FolderTool, specifying the required 
+    parameters for listing files in a folder."""
 
     folder_path: str = Field(..., description="folder path to list files from.")
     recursive: bool = Field(
@@ -24,10 +22,6 @@ class FolderToolSchema(BaseModel):
     #  and restrict access only for save_files directory
 
 class FolderTool(BaseTool):
-    """
-    Tool to create and execute code using Open Interpreter.
-    """
-
 
     name: str = "FolderTool"
     description: str = (
