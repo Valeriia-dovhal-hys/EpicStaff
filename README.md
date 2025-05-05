@@ -43,3 +43,74 @@ Our vision is to pioneer the future of intelligent collaboration alongside our u
 Join the journey with **EpicStaff**, and together let’s shape the future of intelligent collaboration!
 
 ---
+
+# Downloader
+
+## Requirements
+- **Git**  
+- **Docker Desktop** (Must be running)
+
+---
+
+## 🚀 Getting Started
+
+### 🪟 Windows
+
+1. **Install dependencies**  
+   - [Git](https://git-scm.com/download/win)  
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+2. **Start Docker Desktop**
+
+3. **Download the project**  
+   Double-click `downloader.bat`
+
+4. **Navigate to the program directory**  
+   ```bash
+   cd run_program/windows
+   ```
+
+5. **Update the program**  
+   Double-click `update.bat`
+
+6. **Run the program**  
+   Double-click `run_project.bat`
+
+7. **Open the app**  
+   Visit: [http://127.0.0.1:4200/](http://127.0.0.1:4200/)
+
+---
+
+### 🐧 Linux / 🍎 macOS
+
+1. **Install dependencies**  
+   - [Git](https://git-scm.com/downloads)  
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+2. **Start Docker Desktop**
+
+3. **Download the project**  
+   ```bash
+   chmod +x downloader.sh
+   ./downloader.sh
+   ```
+
+4. **Navigate to the program directory**  
+   ```bash
+   cd run_program/linux_mac
+   ```
+
+5. **Update the program**
+   ```bash
+   chmod +x update.sh
+   ./update.sh
+   ```
+
+6. **Run the program**
+   ```bash
+   chmod +x run_project.sh
+   ./run_project.sh
+   ```
+
+7. **Open the app**  
+   Visit: [http://127.0.0.1:4200/](http://127.0.0.1:4200/)
