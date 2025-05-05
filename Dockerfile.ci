@@ -11,14 +11,19 @@ RUN pip install poetry
 # Set the working directory in the Docker image
 WORKDIR /home/user/root/crewai-sheets-ui
 
-#Coping file to workdir
-COPY . .
-
 ENV PEP517_BUILD_BACKEND=setuptools.build_meta
+
+COPY pyproject.toml .
+COPY poetry.lock .
+COPY libraries/ ./libraries
+
 
 # Configure poetry to not create a virtual environment and install dependencies and delete cache
 # Maybe poetry cache clear --all
 RUN poetry config virtualenvs.create false && poetry install && rm -rf /root/.cache
+
+#Coping file to workdir
+COPY . .
 
 # Expose port 11434
 #EXPOSE 11434
@@ -35,6 +40,4 @@ CMD if [ -z "$OPENAI_API_KEY" ]; then \
       echo "Minimal usage: docker run -it -p 11434:11434 -v $(pwd)/savefiles:/home/user/root/savefiles -e OPENAI_API_KEY='YOUR API KEY' crewai-image" && \
       echo "You can replace $(pwd)$(pwd)/savefiles with the path to your savefiles folder"; \
     fi
-
-
 
