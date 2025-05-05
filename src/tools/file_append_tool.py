@@ -8,6 +8,8 @@ logger.debug(f"Entered {__file__}")
 from pydantic.v1 import BaseModel, Field, validator
 from crewai_tools import BaseTool
 
+from tools.route_tool import RouteTool
+
 
 class FixedFileToolSchema(BaseModel):
     """Input for AppendFileTool."""
@@ -24,7 +26,7 @@ class AppendFileToolSchema(FixedFileToolSchema):
     )
 
 
-class AppendFileTool(BaseTool):
+class AppendFileTool(RouteTool):
     name: str = "Append text to a file"
     description: str = "A tool that can be used to append text to a file."
     args_schema: Type[BaseModel] = AppendFileToolSchema
@@ -52,8 +54,11 @@ class AppendFileTool(BaseTool):
     ) -> Any:
         try:
             file_path = kwargs.get("file_path", self.file_path)
+            file_savepath = self.construct_savepath(frompath=file_path)
+            if not AppendFileTool.is_path_has_permission(file_savepath):
+                return "Given filepath doesn't have access to the specified directory."
             append_text = kwargs.get("append_text", self.append_text)
-            with open(file_path, "a") as file:
+            with open(file_savepath, "a") as file:
                 file.write(append_text + "\n")
             return "Text appended successfully."
         except Exception as e:
