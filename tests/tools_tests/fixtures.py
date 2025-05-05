@@ -19,9 +19,14 @@ def create_file_tool():
 def create_file_tool_setup_test_dir():
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
-    
-    yield CreateFileTool()
 
+    create_file_tool = CreateFileTool()
+
+    create_file_tool.description = f"""A tool that's used to create a file in 
+    a directory {test_dir} combined with a user-provided file path if it's given.
+    Otherwise, tool should be used to create a file in {test_dir} directory."""
+    
+    yield create_file_tool
     rmtree(path)
 
 

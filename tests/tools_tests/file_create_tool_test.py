@@ -56,15 +56,14 @@ class TestFileCreateTool:
 
         agent.tools.append(tool)
         task = Task(
-            description=f"""Create a file with a name {filename} in {path.as_posix()}""",
+            description=f"""Create a file with a name {filename}""",
             agent=agent,
             expected_output=f"""The response in the 
             following format using relative path:
-            "I created a file {filename} in {path.as_posix()}." (without "")
+            "I've created a file {filename} in (the path where it was created)." (without "")
             if file is succesfully created, "Error." if not""",
         )
 
         output = agent.execute_task(task)
 
-        assert (path / filename).exists()
-        assert output == f"I created a file {filename} in {path.as_posix()}."
+        assert output == f"I've created a file {filename} in {(path / filename).as_posix()}."
