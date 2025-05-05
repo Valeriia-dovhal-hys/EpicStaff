@@ -6,33 +6,31 @@ logger = logging.getLogger(__name__)
 from pydantic.v1 import BaseModel, Field
 from crewai_tools import BaseTool
 
+import os
 
-class FixedFileToolSchema(BaseModel):
-    """Input for FileTool."""
-
-    pass
+SAVE_FILE_PATH = os.getenv("SAVE_FILE_PATH")
 
 
-class CreateFileSchema(FixedFileToolSchema):
+class CreateFileSchema(BaseModel):
     """Input for CreateFileTool."""
 
-    file_path: str = Field(..., description="The path to the file.")
+    file_path: Optional[str] = Field(..., description=f"""The relative path where the file 
+                                     should be created within the {SAVE_FILE_PATH} directory""")
 
 
 class CreateFileTool(BaseTool):
     name: str = "Create a file"
-    description: str = "A tool that's used to Create a file."
+    description: str = f"""A tool that's used to create a file in 
+    a directory {SAVE_FILE_PATH} combined with a user-provided file path if it's given.
+    Otherwise, tool should be used to create a file in {SAVE_FILE_PATH} directory."""
     args_schema: Type[BaseModel] = CreateFileSchema
     file_path: Optional[str] = None
 
     def __init__(self, file_path: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
 
-        if file_path is not None:
-            self.file_path = file_path
-            self.description = f"A tool that's used to create a file at {file_path}."
-            self.args_schema = FixedFileToolSchema
-            self._generate_description()
+        self.file_path = file_path
+        self._generate_description()
 
     def _run(
         self,
