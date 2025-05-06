@@ -9,16 +9,11 @@ from src.tools import FolderTool
 
 
 
-
 @pytest.fixture
-def create_file_tool():
-    yield CreateFileTool("predefined.txt")
-
-
-@pytest.fixture
-def create_file_tool_setup_test_dir():
+def create_file_tool_setup_test_dir(monkeypatch):
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("SAVE_FILE_PATH", test_dir)
     
     yield CreateFileTool()
 
@@ -37,7 +32,7 @@ def file_count_lines_tool_setup_test_dir():
 
 @pytest.fixture
 def file_count_lines_tool():
-    yield FileCountLinesTool("predefined.txt")
+    yield FileCountLinesTool()
 
 
 @pytest.fixture
@@ -56,9 +51,10 @@ def file_line_read_tool_setup_test_dir():
 
 
 @pytest.fixture
-def append_file_tool():
+def append_file_tool(monkeypatch):
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("SAVE_FILE_PATH", test_dir)
 
     yield AppendFileTool()
 

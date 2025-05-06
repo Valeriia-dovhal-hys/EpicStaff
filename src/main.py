@@ -20,20 +20,13 @@ logger = logging.getLogger("rich")
 
 
 ###
-# TODO: Move this somewhere
-os.environ["HAYSTACK_TELEMETRY_ENABLED"] = os.environ.get(
-    "HAYSTACK_TELEMETRY_ENABLED", "False"
-)  # Attmpt to turn off telemetry
-os.environ["ANONYMIZED_TELEMETRY"] = os.environ.get(
-    "ANONYMIZED_TELEMETRY", "False"
-)  # Disable interpreter telemetry
-os.environ["EC_TELEMETRY"] = os.environ.get(
-    "EC_TELEMETRY", "False"
-)  # Disable embedchain telemetry
-os.environ["MONITORING_MODE"] = os.environ.get("MONITORING_MODE", "local")
-os.environ["MONITORING_LOCAL_PATH"] = os.environ.get(
-    "MONITORING_LOCAL_PATH", os.path.join(os.getcwd(), "telemetry_log")
-)
+os.environ['HAYSTACK_TELEMETRY_ENABLED'] = 'False'  # Attmpt to turn off telemetry
+os.environ['ANONYMIZED_TELEMETRY'] = 'False'  # Disable interpreter telemetry
+os.environ['EC_TELEMETRY'] = 'False'  # Disable embedchain telemetry
+
+os.environ['MONITORING_MODE'] = os.environ.get("MONITORING_MODE", "local")
+os.environ['MONITORING_LOCAL_PATH'] = os.environ.get("MONITORING_LOCAL_PATH", os.path.join(os.getcwd(), "telemetry_log"))
+
 
 
 ###
