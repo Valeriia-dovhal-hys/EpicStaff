@@ -1,6 +1,3 @@
-from pathlib import Path
-from textwrap import dedent
-
 import pytest
 import pytest_mock
 from pytest_mock import mocker, MockerFixture
@@ -8,21 +5,41 @@ from unittest.mock import patch, call, Mock
 
 from src.tools import AppendFileTool, EditFileTool
 from tests.mocks.tools_mocks import mock_file_with_content
-from tests.tools_tests.fixtures import edit_file_tool, test_dir, lorem_text
+from tests.tools_tests.fixtures import edit_file_tool, test_dir
 
 
 class TestFileEditTool:
-	test_text = lorem_text
+	test_text = """Sed ut perspiciatis, 
+unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, 
+totam rem aperiam eaque ipsa, 
+quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt, explicabo. 
+Nemo enim ipsam voluptatem, quia voluptas sit, 
+aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos, 
+qui ratione voluptatem sequi nesciunt, neque porro quisquam est, qui dolorem ipsum, 
+quia dolor sit, amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt, 
+ut labore et dolore magnam aliquam quaerat voluptatem. 
+Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, 
+nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit, 
+qui in ea voluptate velit esse, quam nihil molestiae consequatur, vel illum, qui dolorem eum fugiat, 
+quo voluptas nulla pariatur? At vero eos et accusamus et iusto odio dignissimos ducimus, 
+qui blanditiis praesentium voluptatum deleniti atque corrupti, quos dolores et quas molestias excepturi sint, 
+obcaecati cupiditate non provident, similique sunt in culpa, qui officia deserunt mollitia animi, 
+id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. 
+Nam libero tempore, cum soluta nobis est eligendi optio, 
+cumque nihil impedit, quo minus id, quod maxime placeat, facere possimus, 
+omnis voluptas assumenda est, omnis dolor repellendus. 
+
+"""
 
 	@pytest.mark.parametrize("file_path, line_number, expected_text, new_text", [
-		("file.txt", 1, "Sed ut perspiciatis, ", "Changed 1 line"),
+		(test_dir + "file.txt", 1, "Sed ut perspiciatis, ", "Changed 1 line"),
 		(
-			"file.txt",
-			6,
-			"aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos, ",
-			"Changed 6 line"
+				test_dir + "file.txt",
+				6,
+				"aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos, ",
+				"Changed 6 line"
 		),
-		("file.txt", 20, "", f"Changed 20 line{"\n" * 10}"),
+		(test_dir + "file.txt", 20, "", "Changed 20 line\n\n\n\n\n\n\n\n\n\n"),
 	])
 	def test_edit_tool(
 			self,
@@ -34,7 +51,7 @@ class TestFileEditTool:
 	):
 		"""Test file edit tool"""
 
-		with open(Path(test_dir) / file_path, "w") as f:
+		with open(file_path, "w") as f:
 			f.write(self.test_text)
 
 		tool = edit_file_tool
@@ -45,20 +62,23 @@ class TestFileEditTool:
 			expected_text=expected_text,
 			new_text=new_text,
 		)
-		assert result == f"Line {line_number} in the file {file_path} edited successfully."
+		assert result == "Line edited successfully."
 		text_lines = self.test_text.splitlines(keepends=False)
 		text_lines[line_number - 1] = new_text
 		expected = "\n".join(text_lines)
 
-		with open(Path(test_dir) / file_path, "r") as f:
+		with open(file_path, "r") as f:
 			data = f.read()
 
 		assert data == expected
 
 	@pytest.mark.parametrize("file_path, line_number", [
-		("file.txt", 21),
-		("file.txt", -3),
-		("file.txt", 0)
+		(test_dir + "file.txt", 21),
+		(test_dir + "file.txt", -1),
+		(test_dir + "file.txt", 0),
+		(test_dir + "file.txt", -40),
+		(test_dir + "file.txt", 40),
+		(test_dir + "file.txt", 12124124142),
 
 	])
 	def test_edit_tool_with_wrong_line_numbers(
@@ -68,7 +88,7 @@ class TestFileEditTool:
 			line_number: int,
 	):
 		"""Test file edit tool with wrong line numbers"""
-		with open(Path(test_dir) / file_path, "w") as f:
+		with open(file_path, "w") as f:
 			f.write(self.test_text)
 
 		tool = edit_file_tool
@@ -79,19 +99,15 @@ class TestFileEditTool:
 			expected_text="",
 			new_text="",
 		)
-		assert result == dedent(
-			f"""
-				There is an error: Line number {line_number} is out of the file's range. 
-				The file has {len(self.test_text.splitlines())} lines. The first line is line 1."""
-		)
+		assert result == f"I made an error: Line number {line_number} is out of the file's range. The file has {len(self.test_text.splitlines())} lines. The first line is line 1."
 
 	@pytest.mark.parametrize("file_path, line_number, expected_text, new_text", [
-		("file.txt", 2, "Sed ut perspiciatis, ", "Changed 2 line"),
-		("file.txt", 7,
+		(test_dir + "file.txt", 2, "Sed ut perspiciatis, ", "Changed 2 line"),
+		(test_dir + "file.txt", 7,
 				"BLABLABLA",
 				"Changed 7 line"
 		),
-		("file.txt", 20, " " * 3, "\n" * 10),
+		(test_dir + "file.txt", 20, "   ", "\n\n\n\n\n\n\n\n\n\n"),
 	])
 	def test_edit_tool_with_wrong_expected_text(
 			self,
@@ -101,8 +117,8 @@ class TestFileEditTool:
 			expected_text: str,
 			new_text: str
 	):
-		"""Test file edit tool with wrong expected text"""
-		with open(Path(test_dir) / file_path, "w") as f:
+		"""Test file edit tool with wrong line numbers"""
+		with open(file_path, "w") as f:
 			f.write(self.test_text)
 
 		tool = edit_file_tool
@@ -113,17 +129,11 @@ class TestFileEditTool:
 			expected_text=expected_text,
 			new_text=new_text,
 		)
-		assert result == f"There is an error: Expected text does not match the text on line {line_number}."
+		assert result == f"I made an Error: Expected text does not match the text on line {line_number}."
 
-
-	# TODO: Due to the construct_savepath injection
-	# this exception here is unreachable in a way
-	# it was designed earlier, need to catch other type 
-	# of error or reconsider the tool logic itself
-	@pytest.mark.skip
 	@pytest.mark.parametrize("file_path", [
-		("file.txtsfa",),
-		("fil a s fze.txt"),
+		(test_dir + "file.txtsfa",),
+		(test_dir + "fil a s fze.txt"),
 
 	])
 	def test_edit_tool_error_reading_file(

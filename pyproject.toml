@@ -5,6 +5,11 @@ description = "Use Google sheets as UI for CrewAI"
 authors = ["yuriwa"]
 license = "MIT"
 readme = "README.md"
+packages = [
+    { include = "src" },
+    { include = "libraries/crewAI" }
+]
+
 
 [tool.poetry.dependencies]
 python = ">=3.10,<=3.12.5"

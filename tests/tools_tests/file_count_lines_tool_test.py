@@ -41,6 +41,7 @@ class TestFileCountLinesTool:
     @pytest.mark.parametrize(
         "file_passed, file_called, expectation, message",
         [
+            (None, "predefined.txt", None, "Total lines: 1"),
             ("newfile.txt", "newfile.txt", None, "Total lines: 1"),
             (
                 "not_exists.txt",
@@ -105,13 +106,16 @@ class TestFileCountLinesTool:
 
         tool = file_count_lines_tool
         mocked_isdir = mocker.patch("os.path.isdir", return_value=is_dir)
-        mocked_access = mocker.patch("src.tools.file_count_lines.FileCountLinesTool.is_path_has_permission", return_value=True)
 
         if not is_dir:
             mocked_open = mocker.patch(
                 "builtins.open", mock_file_with_content("dummy_content")
             )
-        result = tool._run(file_path=file_passed)
+        result = (
+            tool._run(file_path=file_passed)
+            if file_passed is not None and not is_dir
+            else tool._run()
+        )
 
         expected_call = mocker.call(file_passed, "r", encoding="utf-8")
         assert result == message

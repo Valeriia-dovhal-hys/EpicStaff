@@ -1,5 +1,6 @@
 import pytest
 import pytest_mock
+from pytest_mock import mocker
 from unittest.mock import patch
 from crewai import Agent, Task
 from crewai_tools import tool
@@ -9,6 +10,12 @@ from src.tools.create_draft_tool import CreateDraftTool
 
 # todo: Ensure that create draft tool works
 class TestCreateDraftTool:
+
+
+    def test_create_draft(self, mocker):
+        """Test create draft"""
+        # TODO - looks like should be deleted cause test_email_draft_tool is testing the same thing
+        pass
 
 
     @pytest.mark.vcr(filter_headers=["authorization"], record_mode="once")
