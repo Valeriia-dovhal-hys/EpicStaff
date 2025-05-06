@@ -2,7 +2,7 @@ from langchain_community.agent_toolkits import GmailToolkit
 from langchain_community.tools.gmail.create_draft import GmailCreateDraft
 from langchain.tools import tool
 
-# todo: Ensure that create draft tool works
+# TODO: Ensure that create draft tool works
 class CreateDraftTool:
     @tool("Create Draft")
     def create_draft(data):
