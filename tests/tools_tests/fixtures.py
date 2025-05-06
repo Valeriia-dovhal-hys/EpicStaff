@@ -32,7 +32,7 @@ def file_count_lines_tool_setup_test_dir():
 
 @pytest.fixture
 def file_count_lines_tool():
-    yield FileCountLinesTool("predefined.txt")
+    yield FileCountLinesTool()
 
 
 @pytest.fixture
