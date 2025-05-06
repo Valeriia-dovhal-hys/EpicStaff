@@ -16,7 +16,7 @@ interpreter.auto_run = True
 # interpreter.llm.api_key = "fake_key" # LiteLLM, which we use to talk to LM Studio, requires this
 # interpreter.llm.api_base = "http://localhost:1234/v1" # Point this at any OpenAI compatible server
 interpreter.llm.context_window = 32768  # TODO remove hardcoding
-interpreter.llm.model = "openai/gpt-4o"  # Todo remove hardcoding
+interpreter.llm.model = "openai/gpt-4-turbo-preview"  # Todo remove hardcoding
 
 
 class CLIToolSchema(BaseModel):
