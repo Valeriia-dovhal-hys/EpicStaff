@@ -28,16 +28,19 @@ COPY . .
 # Expose port 11434
 #EXPOSE 11434
 
-WORKDIR /home/user/root/savefiles
+# WORKDIR /home/user/root/savefiles
 
-CMD if [ -z "$OPENAI_API_KEY" ]; then \
-      echo "See https://github.com/yuriwa/crewai-sheets-ui for instructions on how run this Docker container" && \
-      echo "Minimal usage: docker run -it -p 11434:11434 -v $(pwd)/savefiles:/home/user/root/savefiles -e OPENAI_API_KEY='YOUR API KEY' crewai-image" && \
-      echo "You can replace $(pwd)$(pwd)/savefiles with the path to your savefiles folder"; \
-    elif [ ! -d "/home/user/root/savefiles" ]; then \
-      echo "The required volume is not mounted." && \
-      echo "See https://github.com/yuriwa/crewai-sheets-ui for instructions on how run this Docker container" && \
-      echo "Minimal usage: docker run -it -p 11434:11434 -v $(pwd)/savefiles:/home/user/root/savefiles -e OPENAI_API_KEY='YOUR API KEY' crewai-image" && \
-      echo "You can replace $(pwd)$(pwd)/savefiles with the path to your savefiles folder"; \
-    fi
+ENTRYPOINT ["poetry", "run", "python3", "/home/user/root/crewai-sheets-ui/src/main.py"]
+
+
+# CMD if [ -z "$OPENAI_API_KEY" ]; then \
+#       echo "See https://github.com/yuriwa/crewai-sheets-ui for instructions on how run this Docker container" && \
+#       echo "Minimal usage: docker run -it -p 11434:11434 -v $(pwd)/savefiles:/home/user/root/savefiles -e OPENAI_API_KEY='YOUR API KEY' crewai-image" && \
+#       echo "You can replace $(pwd)$(pwd)/savefiles with the path to your savefiles folder"; \
+#     elif [ ! -d "/home/user/root/savefiles" ]; then \
+#       echo "The required volume is not mounted." && \
+#       echo "See https://github.com/yuriwa/crewai-sheets-ui for instructions on how run this Docker container" && \
+#       echo "Minimal usage: docker run -it -p 11434:11434 -v $(pwd)/savefiles:/home/user/root/savefiles -e OPENAI_API_KEY='YOUR API KEY' crewai-image" && \
+#       echo "You can replace $(pwd)$(pwd)/savefiles with the path to your savefiles folder"; \
+#     fi
 

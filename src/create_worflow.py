@@ -167,7 +167,7 @@ class Workflow:
 def main():
 
 	from utils import load_env
-	load_env("../ENV/.env", ["OPENAI_API_KEY", ])
+	load_env("../config/config.yaml", ["OPENAI_API_KEY", ])
 	workflow_data = {
 		'Process': ['Draft Responses', 'Draft Responses', 'Draft Responses'],
 		'Entry Point': [True, False, False],
