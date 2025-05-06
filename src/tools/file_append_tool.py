@@ -45,7 +45,7 @@ class AppendFileTool(RouteTool):
                 return "Given filepath doesn't have access to the specified directory."
             
             append_text = kwargs.get("append_text")
-            if file_path is None:
+            if append_text is None:
                 return "append_text argument is mandatory and it wasn't given to the tool"
             
             with open(file_savepath, "a", encoding='utf-8') as file:

@@ -41,9 +41,9 @@ class TestFileAppendTool:
         with pytest.raises(TypeError) as exc_info:
             None + "str"  # This will raise a TypeError
 
-        result = tool._run()
+        result = tool._run(file_path='dummy.txt')
 
-        assert result == f"Failed to append text: {exc_info.value}"
+        assert result == f"append_text argument is mandatory and it wasn't given to the tool"
 
     @pytest.mark.vcr(filter_headers=["authorization"], record_mode="once")
     def test_append_tool_with_crewai(self, agent, append_file_tool):
