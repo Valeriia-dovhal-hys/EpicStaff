@@ -23,7 +23,6 @@ class CreateFileTool(RouteTool):
     description: str = f"""A tool that's used to create a file in 
     a user-provided file path"""
     args_schema: Type[BaseModel] = CreateFileSchema
-    file_path: Optional[str] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
