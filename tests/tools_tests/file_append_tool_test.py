@@ -38,8 +38,6 @@ class TestFileAppendTool:
         mocker.patch("builtins.open", mock_empty_file())
         mocker.patch("src.tools.file_append_tool.AppendFileTool.construct_savepath", return_value=test_dir)
         mocker.patch("src.tools.file_append_tool.AppendFileTool.is_path_has_permission", return_vaue=True)
-        with pytest.raises(TypeError) as exc_info:
-            None + "str"  # This will raise a TypeError
 
         result = tool._run(file_path='dummy.txt')
 

@@ -58,14 +58,10 @@ def file_count_lines_tool():
 
 
 @pytest.fixture
-def file_line_read_tool():
-    yield LineReadFileTool("predefined.txt")
-
-
-@pytest.fixture
-def file_line_read_tool_setup_test_dir():
+def file_line_read_tool(monkeypatch):
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("SAVE_FILE_PATH", test_dir)
 
     yield LineReadFileTool()
 
