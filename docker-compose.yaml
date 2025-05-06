@@ -1,0 +1,18 @@
+version: '3.8' 
+
+services:
+  crewai-sheets:
+    environment:
+      - HAYSTACK_TELEMETRY_ENABLED=False
+      - ANONYMIZED_TELEMETRY=False
+      - EC_TELEMETRY=False
+      - MONITORING_MODE=local
+    build:
+      dockerfile: Dockerfile.ci
+      context: .
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    
+    volumes:
+      - ./config:/home/user/root/crewai-sheets-ui/config/
+      

@@ -10,42 +10,45 @@ from typing import Optional, Type, Any
 from pydantic.v1 import BaseModel, Field, validator
 from crewai_tools import BaseTool
 
-from src.tools.route_tool import RouteTool
+
+class FixedFileToolSchema(BaseModel):
+    """Input for FileCountLinesTool."""
 
 
-class FileCountLinesToolSchema(BaseModel):
+class FileCountLinesToolSchema(FixedFileToolSchema):
     """Input for FileCountLinesTool"""
 
-    file_path: str = Field(..., description="Mandatory argument: the path to the file.")
+    file_path: str = Field(..., description="The path to the file.")
 
 
-class FileCountLinesTool(RouteTool):
+# TODO: Ask yuriwa if there is a reason of such implementation
+class FileCountLinesTool(BaseTool):
     name: str = "Count a file's lines"
     description: str = (
         "A tool that can be used to count the number of lines in a file from a given filepath."
     )
     args_schema: Type[BaseModel] = FileCountLinesToolSchema
+    file_path: Optional[str] = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, file_path: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
-        self._generate_description()
+        if file_path is not None:
+            self.file_path = file_path
+            self.description = (
+                f"A tool that can be used to count the number of lines in {file_path}."
+            )
+            self.args_schema = FixedFileToolSchema
+            self._generate_description()
 
     def _run(
         self,
         **kwargs: Any,
     ) -> Any:
-        file_path = kwargs.get("file_path")
-        if file_path is None:
-            return "file_path argument is mandatory and it wasn't given to the tool"
-        
-        file_savepath = self.construct_savepath(frompath=file_path)
-        if not FileCountLinesTool.is_path_has_permission(file_savepath):
-            return "Given filepath doesn't have access to the specified directory."
-        
+        file_path = kwargs.get("file_path", self.file_path)
         try:
             if os.path.isdir(file_path):
                 return "The provided path is a directory, not a file name"
-            encoding = self._retrieve_encoding(file_path=file_path)
+            encoding = self.try_open_file(file_path=file_path)
             with open(file_path, "r", encoding=encoding) as file:
                 return f"Total lines: {sum(1 for _ in file)}"
         except ValueError:
@@ -77,9 +80,8 @@ class FileCountLinesTool(RouteTool):
 
         return sorted_encodings
 
-    def _retrieve_encoding(self, file_path):
+    def try_open_file(self, file_path):
         """Tries to open the file with all possible encodings starting with more frequent"""
-
         for encoding in self._get_sorted_encodings():
             try:
                 with open(file_path, "r", encoding=encoding) as file:
