@@ -43,9 +43,10 @@ def create_file_tool_setup_test_dir(monkeypatch):
 
 
 @pytest.fixture
-def file_count_lines_tool_setup_test_dir():
+def file_count_lines_tool_setup_test_dir(monkeypatch):
     path = Path(test_dir)
     path.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("SAVE_FILE_PATH", test_dir)
 
     yield FileCountLinesTool()
 
