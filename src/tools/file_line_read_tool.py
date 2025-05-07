@@ -3,19 +3,21 @@ import logging
 
 logger = logging.getLogger(__name__)
 from langchain.tools import tool
-from typing import Optional, Type, Any, List
+from typing import Optional, Type, Any
 from pydantic.v1 import BaseModel, Field, validator
 from crewai_tools import BaseTool
 
-from src.tools.route_tool import RouteTool
+
+class FixedFileToolSchema(BaseModel):
+    """Input for LineReadFileTool"""
 
 
-class LineReadFileToolSchema(BaseModel):
+class LineReadFileToolSchema(FixedFileToolSchema):
     """Input for LineReadFileTool"""
 
     file_path: str = Field(..., description="Mandatory file full path to read the file")
     line_number: int = Field(
-        ..., description="Mandatory line number (1-based) to start reading from."
+        ..., description="Manadatory line number (1-based) to start reading from."
     )
     num_lines: Optional[int] = Field(
         ...,
@@ -23,62 +25,68 @@ class LineReadFileToolSchema(BaseModel):
     )
 
 
-class LineReadFileTool(RouteTool):
-    name: str = "Read a file's content starting with line number given"
+class LineReadFileTool(BaseTool):
+    name: str = "Read a file's content by line number"
     description: str = (
-        "A tool that can be used to read a file's content starting with the line number given."
+        "A tool that can be used to read a file's content by line number."
     )
     args_schema: Type[BaseModel] = LineReadFileToolSchema
+    file_path: Optional[str] = None
+    line_number: Optional[int] = None
+    num_lines: Optional[int] = None
 
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        file_path: Optional[str] = None,
+        line_number: Optional[int] = None,
+        num_lines: Optional[int] = None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
-        self._generate_description()
+        if file_path is not None and line_number is not None:
+            self.file_path = file_path
+            self.line_number = line_number
+            self.num_lines = num_lines
+            self.description = (
+                f"A tool that can be used to read {file_path}'s content by line number."
+            )
+            self.args_schema = FixedFileToolSchema
+            self._generate_description()
 
-    def _run(self, **kwargs: Any) -> Any:
-        file_path = kwargs.get("file_path")
-        line_number = kwargs.get("line_number")
-        num_lines = kwargs.get("num_lines")
-
-        file_savepath = self.construct_savepath(frompath=file_path)
-        if not self.is_path_has_permission(file_savepath):
-            return "Given filepath doesn't have access to the specified directory."
-
-        # TODO: Make a concise functionality to check whether all these mandatory
-        # fields are not None
-
+    def _run(
+        self,
+        **kwargs: Any,
+    ) -> Any:
+        file_path = kwargs.get("file_path", self.file_path)
+        line_number = kwargs.get("line_number", self.line_number)
+        num_lines = kwargs.get("num_lines", self.num_lines)
         if num_lines is not None:
             if num_lines == 0:
                 num_lines = None  # Normalize zero to None to indicate "read all lines"
             elif num_lines < 1:
-                return f"Number of lines argument has to be positive, num_lines = {num_lines} given instead."
-            
+                return "I made a mistake, I forgot that number of lines has to be positive."
         # Ensure line_number starts at least from 1
         if line_number < 1:
-            return f"Line number should be at least 1, because it's 1-based, but {line_number} was given instead."
+            return "I made a mistake, I forgot that the first line is 1."
 
-        with open(file_savepath, "r") as file:
+        with open(file_path, "r") as file:
             lines = file.readlines()
 
         # Validate line_number to ensure it's within the range of the file's line count.
         if line_number > len(lines):
-            return f"Line number {line_number} is out of the {file_path} range, so I cannot retrieve this line"
+            return f"I made a mistake: Line number {line_number} is out of the file's range."
 
         # Calculate the end index for slicing lines; handle case where num_lines is None
         end_index = (line_number - 1) + num_lines if num_lines else len(lines)
         selected_lines = lines[
-            line_number - 1: end_index
+            line_number - 1 : end_index
         ]  # Adjust for zero-based index
 
         if not selected_lines:
-            return f"No lines found starting from the specified line number in {file_path}."
+            return "No lines found starting from the specified line number."
 
         # Format output to include line numbers with their respective contents
-        content = self.format_lines(selected_lines, line_number)
-
-        return content
-
-    @staticmethod
-    def format_lines(lines: List[str], line_number: int) -> str:
-        return "".join(
-            [f"{idx + line_number}: {line}" for idx, line in enumerate(lines)]
+        content = "".join(
+            [f"{idx + line_number}: {line}" for idx, line in enumerate(selected_lines)]
         )
+        return content
