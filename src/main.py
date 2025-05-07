@@ -34,6 +34,7 @@ os.environ["MONITORING_MODE"] = os.environ.get("MONITORING_MODE", "local")
 os.environ["MONITORING_LOCAL_PATH"] = os.environ.get(
     "MONITORING_LOCAL_PATH", os.path.join(os.getcwd(), "telemetry_log")
 )
+os.environ["SAVE_FILE_PATH"] = os.environ.get("SAVE_FILE_PATH", "./../savefiles")
 
 
 ###
