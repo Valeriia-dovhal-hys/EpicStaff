@@ -7,10 +7,10 @@ import langchain_community.utilities as lcutils
 import langchain_community.tools as lctools
 import crewai_tools
 import tools
-
+import importlib.metadata
 
 class AppConfig:
-    version = "0.5.3"
+    version = importlib.metadata.version("crewai-sheets-ui")
     name = "crewai-sheets-ui"
     template_sheet_url = "https://docs.google.com/spreadsheets/d/1J975Flh82qPjiyUmDE_oKQ2l4iycUq6B3457G5kCD18/copy"
     pass
