@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "crewai-sheets-ui"
-version = "0.5.3"
+version = "0.5.4"
 description = "Use Google sheets as UI for CrewAI"
 authors = ["yuriwa"]
 license = "MIT"
