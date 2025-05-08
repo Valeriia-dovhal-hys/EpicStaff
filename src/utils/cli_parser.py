@@ -37,7 +37,7 @@ def get_parser():
     CRITICAL - Information about critical problems \nDefault: ERROR
     """,
     )
-    parser.add_argument("--env_path", type=str, default="../ENV/.env")
+    parser.add_argument("--env_path", type=str, default="../../config/config.yaml")
 
     parser.add_argument(
         "--version",

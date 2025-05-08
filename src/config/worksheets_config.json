@@ -1,7 +1,0 @@
-{
-    "Agents": ["Agent Role", "Goal", "Backstory", "Tools", "Allow delegation", "Verbose", "Memory", "Max_iter", "Model Name", "Temperature", "Function Calling Model"],
-    "Tasks": ["Task Name", "Agent", "Instructions", "Expected Output"],
-    "Crew": ["Team Name", "Assignment", "Verbose", "Process", "Memory", "Embedding model", "Manager LLM", "t", "num_ctx"],
-    "Models": ["Model", "Context size (local only)", "Provider", "base_url", "Deployment"],
-    "Tools": ["Tool", "On", "Class", "Args", "Model", "Embedding Model"]
-}
