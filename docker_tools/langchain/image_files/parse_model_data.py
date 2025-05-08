@@ -44,6 +44,6 @@ def parse_sequence(sequence: typing.Sequence) -> list:
 
 def parse_dict(dict_: typing.Dict[str, typing.Any]):
     parsed_dict = dict()
-    for k, v in dict_:
+    for k, v in dict_.items():
         parsed_dict[k] = parse_entity(v)
     return parsed_dict

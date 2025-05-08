@@ -22,3 +22,22 @@ tool = tool_class(*args, **kwargs)
 
 res = tool._run(*run_args, **run_kwargs)
 print(res)
+
+
+# td = ImportToolData(
+#     callable=Callable(
+#         module_path="langchain_community.tools.wikipedia.tool",
+#         class_name="WikipediaQueryRun",
+#         kwargs={
+#             "api_wrapper": Callable(
+#                 module_path="langchain_community.utilities.wikipedia",
+#                 class_name="WikipediaAPIWrapper",
+#             )
+#         },
+#     )
+# )
+# tool_class, args, kwargs = parse_callable(td.callable)
+# tool = tool_class(*args, **kwargs)
+# res = tool._run(query="Love")
+
+# print(res)

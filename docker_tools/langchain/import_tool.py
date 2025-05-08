@@ -32,16 +32,36 @@ def import_tool(import_tool_data: ImportToolData):
 
 
 # from langchain.tools.ddg_search import DuckDuckGoSearchRun
+# from langchain_community.tools.wikipedia.tool import WikipediaQueryRun
+
 if __name__ == "__main__":
     td = ImportToolData(
         callable=Callable(
-            module_path="langchain.tools.ddg_search", class_name="DuckDuckGoSearchRun"
+            module_path="langchain_community.tools.wikipedia.tool",
+            class_name="WikipediaQueryRun",
+            kwargs={
+                "api_wrapper": Callable(
+                    module_path="langchain_community.utilities.wikipedia",
+                    class_name="WikipediaAPIWrapper",
+                )
+            },
         ),
-        dependencies=["duckduckgo-search"],
-        force_build=True,
+        dependencies=["langchain-community", "wikipedia"],
+        force_build=True
     )
 
     tool_class = import_tool(td)
 
-    output = tool_class()._run(query="wise men say")
+    output = tool_class()._run(query="Love")
+
     print("\nHere's your output:\n\n" + output)
+
+# ImportToolData(
+#     callable=Callable(
+#         module_path="langchain.tools.ddg_search",
+#         class_name="DuckDuckGoSearchRun",
+
+#     ),
+#     dependencies=["duckduckgo-search"],
+#     force_build=True,
+# )
