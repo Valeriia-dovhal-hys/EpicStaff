@@ -1,0 +1,2 @@
+DuckDuckGoSearchRun: langchain_community.tools.ddg_search.tool.DuckDuckGoSearchRun
+TavilySearchResults: langchain_community.tools.tavily_search.tool.TavilySearchResults

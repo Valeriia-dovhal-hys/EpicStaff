@@ -1,0 +1,4 @@
+duck_duck_search:
+  class_name: "DuckDuckGoSearchRun"
+tavility_search_results:
+  class_name: "TavilySearchResults"
