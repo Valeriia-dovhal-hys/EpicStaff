@@ -31,8 +31,7 @@ def import_tool(import_tool_data: ImportToolData):
     return ltdib.get_proxy_tool_class(image=image)
 
 
-# from langchain.tools.ddg_search import DuckDuckGoSearchRun
-# from langchain_community.tools.wikipedia.tool import WikipediaQueryRun
+from langchain.tools.ddg_search import DuckDuckGoSearchRun
 
 if __name__ == "__main__":
     td = ImportToolData(
@@ -47,14 +46,16 @@ if __name__ == "__main__":
             },
         ),
         dependencies=["langchain-community", "wikipedia"],
-        force_build=True
+        force_build=False,
     )
 
     tool_class = import_tool(td)
 
-    output = tool_class()._run(query="Love")
+    tool = tool_class()
+    output = tool._run(query="Love")
 
     print("\nHere's your output:\n\n" + output)
+
 
 # ImportToolData(
 #     callable=Callable(

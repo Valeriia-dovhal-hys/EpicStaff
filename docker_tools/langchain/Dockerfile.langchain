@@ -8,7 +8,6 @@ ARG PIP_REQUIREMENTS
 RUN if [ -n "$PIP_REQUIREMENTS" ]; then pip install $PIP_REQUIREMENTS; fi
 
 ARG CALLABLE
-
 RUN echo "CALLABLE=$CALLABLE" > ./.env
 
 CMD ["python", "tool.py"]

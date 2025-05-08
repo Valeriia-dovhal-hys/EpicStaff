@@ -33,7 +33,7 @@ class LangchainToolDockerImageBuilder:
 
     def build_tool(self, name: str | None = None) -> Image:
         if name is None:
-            name = self.callable.class_name
+            name = self.callable.class_name.lower() + ":latest"
 
         import_list = self.import_list
         import_list.append("langchain==" + self.langchain_version)
@@ -57,20 +57,41 @@ class LangchainToolDockerImageBuilder:
 
         if image is None:
             image = f"{self.callable.class_name.lower()}:latest"
+
+        from langchain_core.tools import BaseTool
+        from langchain_community.tools.wikipedia.tool import WikipediaQueryRun
+
         class_ = self.get_class()
 
-        class ProxyTool:
-            # TODO: get all attributes
-            # name = class_.name
-            # description = class_.description
-            # args_schema = class_.args_schema
+        class ProxyTool(class_):
+            def __init__(self):
+                pass
 
             def _run(self, *args, **kwargs):
                 run_params = (args, kwargs)
                 return run_tool_in_container(image=image, run_params=run_params)
 
-        # ProxyTool.__dir__ = class_.__dir__
+        new_fields = (
+            "name",
+            "description",
+            "args_schema",
+            "return_direct",
+            "verbose",
+            "callbacks",
+            "callback_manager",
+            "tags",
+            "metadata",
+            "handle_tool_error",
+            "handle_validation_error",
+        )
+        proxy_fields_dict = dict()
 
+        for k, v in class_.__dict__["__fields__"].items():
+            if k in new_fields:
+                proxy_fields_dict[k] = v
+
+        setattr(ProxyTool, "__fields__", proxy_fields_dict)
+        
         return ProxyTool
 
     @classmethod
@@ -96,4 +117,3 @@ def run_tool_in_container(
 
     byte_out = client.containers.run(image=image, environment=enviroment)
     return byte_out.decode("utf-8")
-
