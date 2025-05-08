@@ -8,7 +8,7 @@ from rich.logging import RichHandler
 
 import yaml
 import importlib
-from utils.tool_scanner import perform_scanning, load_tools_paths
+from utils.tool_scanner import ToolScanner
 
 
 ###
@@ -324,10 +324,10 @@ if __name__ == "__main__":
     if os.environ.get('IN_DOCKER'):
         # TODO: Change prints to logging
         print("Running inside Docker. Loading precomputed class paths.")
-        tools_paths = load_tools_paths()
+        tools_paths = ToolScanner.load_tools_paths()
     else:
         print("Running in development. Performing scanning as needed.")
-        tools_paths = perform_scanning()
+        tools_paths = ToolScanner.perform_scanning()
 
 
     release = f"{AppConfig.name}@{AppConfig.version}"
@@ -389,13 +389,13 @@ if __name__ == "__main__":
         "[green]I've created the crew for you. Let's start working on these tasks! :rocket: [/green]"
     )
 
-    try:
-        results = crew.kickoff()
-    except Exception as e:
-        console.print(
-            f"[red]I'm sorry, I couldn't complete the tasks :( Here's the error I encountered: {e}"
-        )
-        sys.exit(0)
+    # try:
+    #     results = crew.kickoff()
+    # except Exception as e:
+    #     console.print(
+    #         f"[red]I'm sorry, I couldn't complete the tasks :( Here's the error I encountered: {e}"
+    #     )
+    #     sys.exit(0)
 
     # Create a table for results
     result_table = Table(show_header=True, header_style="bold magenta")
@@ -403,6 +403,6 @@ if __name__ == "__main__":
         "Here are the results, see you soon =) ", style="green", width=terminal_width
     )
 
-    result_table.add_row(str(results))
+    # result_table.add_row(str(results))
     console.print(result_table)
     console.print("[bold green]\n\n")
