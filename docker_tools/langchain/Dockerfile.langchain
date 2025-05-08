@@ -1,0 +1,18 @@
+FROM python:3.12.3
+
+WORKDIR /usr/src/app
+
+RUN pip install --upgrade pip setuptools wheel
+
+ARG PIP_REQUIREMENTS
+RUN if [ -n "$PIP_REQUIREMENTS" ]; then pip install $PIP_REQUIREMENTS; fi
+
+ARG TOOL_MODULE_PATH
+ARG TOOL_CLASS_NAME
+
+RUN echo "TOOL_MODULE_PATH=$TOOL_MODULE_PATH\nTOOL_CLASS_NAME=$TOOL_CLASS_NAME" > ./.env
+
+CMD ["python", "tool.py"]
+
+COPY . .
+

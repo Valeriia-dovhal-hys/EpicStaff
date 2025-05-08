@@ -20,13 +20,21 @@ logger = logging.getLogger("rich")
 
 
 ###
-os.environ['HAYSTACK_TELEMETRY_ENABLED'] = 'False'  # Attmpt to turn off telemetry
-os.environ['ANONYMIZED_TELEMETRY'] = 'False'  # Disable interpreter telemetry
-os.environ['EC_TELEMETRY'] = 'False'  # Disable embedchain telemetry
-
-os.environ['MONITORING_MODE'] = os.environ.get("MONITORING_MODE", "local")
-os.environ['MONITORING_LOCAL_PATH'] = os.environ.get("MONITORING_LOCAL_PATH", os.path.join(os.getcwd(), "telemetry_log"))
-
+# TODO: Move this somewhere
+os.environ["HAYSTACK_TELEMETRY_ENABLED"] = os.environ.get(
+    "HAYSTACK_TELEMETRY_ENABLED", "False"
+)  # Attmpt to turn off telemetry
+os.environ["ANONYMIZED_TELEMETRY"] = os.environ.get(
+    "ANONYMIZED_TELEMETRY", "False"
+)  # Disable interpreter telemetry
+os.environ["EC_TELEMETRY"] = os.environ.get(
+    "EC_TELEMETRY", "False"
+)  # Disable embedchain telemetry
+os.environ["MONITORING_MODE"] = os.environ.get("MONITORING_MODE", "local")
+os.environ["MONITORING_LOCAL_PATH"] = os.environ.get(
+    "MONITORING_LOCAL_PATH", os.path.join(os.getcwd(), "telemetry_log")
+)
+os.environ["SAVE_FILE_PATH"] = os.environ.get("SAVE_FILE_PATH", "./../savefiles")
 
 
 ###
@@ -48,7 +56,7 @@ from utils.agent_crew_llm import get_llm
 from utils.tools_mapping import ToolsMapping
 from utils.cli_parser import get_parser
 from utils.helpers import load_env, is_valid_google_sheets_url, get_sheet_url_from_user
-from utils import SheetsManager, helpers
+from utils import Sheets, helpers
 
 import pandas as pd
 import sentry_sdk
@@ -345,7 +353,7 @@ if __name__ == "__main__":
     terminal_width = max(terminal_width, 120)
 
     # Enter main process
-    agents_df, tasks_df, crew_df, models_df, tools_df = SheetsManager.parse_table(sheet_url)
+    agents_df, tasks_df, crew_df, models_df, tools_df = Sheets.parse_table(sheet_url)
     helpers.after_read_sheet_print(
         agents_df, tasks_df
     )  # Print overview of agents and tasks
