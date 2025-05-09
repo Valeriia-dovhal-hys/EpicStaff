@@ -14,15 +14,6 @@ from crew_runner import create_agents_from_df, create_tasks_from_df, create_crew
 
 if __name__ == "__main__":
 
-    if os.environ.get('IN_DOCKER'):
-        # TODO: Change prints to logging
-        print("Running inside Docker. Loading precomputed class paths.")
-        tools_paths = ToolsScanner.load_tools_paths()
-    else:
-        print("Running in development. Performing scanning as needed.")
-        tools_paths = ToolsScanner.perform_scanning()
-
-
     release = f"{AppConfig.name}@{AppConfig.version}"
     if os.environ.get("CREWAI_SHEETS_SENRY") != "False":
         sentry_sdk.init(
