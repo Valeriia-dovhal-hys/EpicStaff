@@ -6,6 +6,10 @@ import signal
 from rich.console import Console
 from rich.logging import RichHandler
 
+import yaml
+import importlib
+from utils.tool_scanner import ToolScanner
+
 
 ###
 console = Console()
@@ -34,7 +38,6 @@ os.environ["MONITORING_MODE"] = os.environ.get("MONITORING_MODE", "local")
 os.environ["MONITORING_LOCAL_PATH"] = os.environ.get(
     "MONITORING_LOCAL_PATH", os.path.join(os.getcwd(), "telemetry_log")
 )
-os.environ["SAVE_FILE_PATH"] = os.environ.get("SAVE_FILE_PATH", "./../savefiles")
 
 
 ###
@@ -66,9 +69,7 @@ from config.config import AppConfig
 def create_agents_from_df(row, models_df=None, tools_df=None):
     def get_agent_tools(tools_string):
         tool_names = [tool.strip() for tool in tools_string.split(",")]
-        tools_mapping = ToolsMapping(
-            tools_df, models_df
-        )  # Get the ToolsMapping instance
+        tools_mapping = ToolsMapping(tools_df, models_df)
         tools_dict = (
             tools_mapping.get_tools()
         )  # Get the dictionary of tools from the instance
@@ -319,6 +320,16 @@ def create_crew(created_agents, created_tasks, crew_df):
 
 
 if __name__ == "__main__":
+
+    if os.environ.get('IN_DOCKER'):
+        # TODO: Change prints to logging
+        print("Running inside Docker. Loading precomputed class paths.")
+        tools_paths = ToolScanner.load_tools_paths()
+    else:
+        print("Running in development. Performing scanning as needed.")
+        tools_paths = ToolScanner.perform_scanning()
+
+
     release = f"{AppConfig.name}@{AppConfig.version}"
     if os.environ.get("CREWAI_SHEETS_SENRY") != "False":
         sentry_sdk.init(
@@ -378,13 +389,13 @@ if __name__ == "__main__":
         "[green]I've created the crew for you. Let's start working on these tasks! :rocket: [/green]"
     )
 
-    try:
-        results = crew.kickoff()
-    except Exception as e:
-        console.print(
-            f"[red]I'm sorry, I couldn't complete the tasks :( Here's the error I encountered: {e}"
-        )
-        sys.exit(0)
+    # try:
+    #     results = crew.kickoff()
+    # except Exception as e:
+    #     console.print(
+    #         f"[red]I'm sorry, I couldn't complete the tasks :( Here's the error I encountered: {e}"
+    #     )
+    #     sys.exit(0)
 
     # Create a table for results
     result_table = Table(show_header=True, header_style="bold magenta")
@@ -392,6 +403,6 @@ if __name__ == "__main__":
         "Here are the results, see you soon =) ", style="green", width=terminal_width
     )
 
-    result_table.add_row(str(results))
+    # result_table.add_row(str(results))
     console.print(result_table)
     console.print("[bold green]\n\n")
