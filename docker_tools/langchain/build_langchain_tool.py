@@ -22,6 +22,7 @@ class LangchainToolDockerImageBuilder:
     default_imports = [
         "python-dotenv",
         "pydantic",
+        "fastapi[all]",
     ]
 
     def __init__(self, *args, **kwargs):
@@ -39,7 +40,7 @@ class LangchainToolDockerImageBuilder:
         import_list.append("langchain==" + self.langchain_version)
         requirements = " ".join(self.import_list)
 
-        client.images.build(
+        return client.images.build(
             path=str(self.image_files.resolve()),
             tag=name.lower(),
             dockerfile=str(self.dockerfile.resolve()),
@@ -48,51 +49,6 @@ class LangchainToolDockerImageBuilder:
                 "CALLABLE": obj_to_txt(self.callable),
             },
         )
-
-    def get_class(self) -> str:
-        tool_module = import_module(self.callable.module_path)
-        return getattr(tool_module, self.callable.class_name)
-
-    def get_proxy_tool_class(self, image: Image | str | None = None):
-        # TODO: replace this with data from container
-        if image is None:
-            image = f"{self.callable.class_name.lower()}:latest"
-
-        from langchain_core.tools import BaseTool
-        from langchain_community.tools.wikipedia.tool import WikipediaQueryRun
-
-        class_ = self.get_class()
-
-        class ProxyTool(BaseTool):
-            def __init__(self):
-                pass
-
-            def _run(self, *args, **kwargs):
-                run_params = (args, kwargs)
-                return run_tool_in_container(image=image, run_params=run_params)
-
-        new_fields = (
-            "name",
-            "description",
-            "args_schema",
-            "return_direct",
-            "verbose",
-            "callbacks",
-            "callback_manager",
-            "tags",
-            "metadata",
-            "handle_tool_error",
-            "handle_validation_error",
-        )
-        proxy_fields_dict = dict()
-
-        for k, v in class_.__dict__["__fields__"].items():
-            if k in new_fields:
-                proxy_fields_dict[k] = v
-
-        setattr(ProxyTool, "__fields__", proxy_fields_dict)
-
-        return ProxyTool
 
     @classmethod
     def __add_default_imports_to_list(cls, import_list: list[str]):
@@ -107,13 +63,3 @@ def get_image_by_name(image_name: str) -> Image | None:
     return None
 
 
-def run_tool_in_container(
-    *, image: Image | str, run_params: tuple[tuple, dict[str, Any]] | None = None
-) -> str:
-
-    enviroment = dict()
-
-    enviroment["TOOL_RUN_PARAMS"] = obj_to_txt(run_params)
-
-    byte_out = client.containers.run(image=image, environment=enviroment)
-    return byte_out.decode("utf-8")

@@ -13,3 +13,7 @@ class ImportToolData(BaseModel):
     callable: Callable
     dependencies: list[str] | None = None
     force_build: bool = False
+
+
+class RunToolModel(BaseModel):
+    run_params_txt: str
