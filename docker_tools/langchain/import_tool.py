@@ -1,8 +1,8 @@
 from enum import Enum
-from build_langchain_tool import *
+from .build_langchain_tool import *
 from docker.models.images import Image
-from base_models import *
-from proxy_tool_builder import ProxyToolBuilder
+from .base_models import *
+from .proxy_tool_builder import ProxyToolBuilder
 
 class ToolTypes(Enum):
     langchain = "langchain"

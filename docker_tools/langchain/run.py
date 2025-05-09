@@ -58,7 +58,7 @@ def main():
 
     tool = tool_class()
 
-    crew = create_crew([tool_class()])
+    crew = create_crew([tool])
 
     crew.kickoff(inputs={"input": "Mark Twain"})
 
