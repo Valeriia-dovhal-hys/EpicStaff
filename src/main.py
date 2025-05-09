@@ -8,7 +8,7 @@ from rich.logging import RichHandler
 
 import yaml
 import importlib
-from utils.tool_scanner import ToolScanner
+from src.utils.tools_scanner import ToolsScanner
 
 
 ###
@@ -324,10 +324,10 @@ if __name__ == "__main__":
     if os.environ.get('IN_DOCKER'):
         # TODO: Change prints to logging
         print("Running inside Docker. Loading precomputed class paths.")
-        tools_paths = ToolScanner.load_tools_paths()
+        tools_paths = ToolsScanner.load_tools_paths()
     else:
         print("Running in development. Performing scanning as needed.")
-        tools_paths = ToolScanner.perform_scanning()
+        tools_paths = ToolsScanner.perform_scanning()
 
 
     release = f"{AppConfig.name}@{AppConfig.version}"
