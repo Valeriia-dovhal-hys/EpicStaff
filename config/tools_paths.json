@@ -1,5 +1,0 @@
-{
-    "DuckDuckGoSearchRun": "langchain_community.tools.ddg_search.tool.DuckDuckGoSearchRun",
-    "WolframAlphaQueryRun": "langchain_community.tools.wolfram_alpha.tool.WolframAlphaQueryRun",
-    "WolframAlphaAPIWrapper": "langchain_community.utilities.wolfram_alpha"
-}
