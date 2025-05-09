@@ -1,0 +1,25 @@
+{
+    "duck_duck_search": {
+        "class_name": "DuckDuckGoSearchRun"
+    },
+
+    "wolfram_alpha": {
+      "class_name": "WolframAlphaQueryRun",
+      "args": [
+        {
+          "api_token": "token"
+        }
+      ],
+      "kwargs": {
+        "api_wrapper": {
+          "callable_name": "WolframAlphaAPIWrapper",
+          "kwargs": {
+            "wolfram_alpha_appid": "123"
+          }
+        }
+      },
+      "dependencies": [
+        "wolframalpha"
+      ]
+    }
+}
