@@ -24,6 +24,10 @@
           "api_wrapper": {
             "callable_name": "WikipediaAPIWrapper"
           }
-        }
+        },
+        "dependencies": [
+          "langchain-community", 
+          "wikipedia"
+        ]
     }
 }
