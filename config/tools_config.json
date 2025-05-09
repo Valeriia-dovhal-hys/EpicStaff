@@ -5,11 +5,6 @@
 
     "wolfram_alpha": {
       "class_name": "WolframAlphaQueryRun",
-      "args": [
-        {
-          "api_token": "token"
-        }
-      ],
       "kwargs": {
         "api_wrapper": {
           "callable_name": "WolframAlphaAPIWrapper",
@@ -21,5 +16,14 @@
       "dependencies": [
         "wolframalpha"
       ]
+    },
+
+    "wikipedia": {
+        "class_name": "WikipediaQueryRun",
+        "kwargs": {
+          "api_wrapper": {
+            "callable_name": "WikipediaAPIWrapper"
+          }
+        }
     }
 }

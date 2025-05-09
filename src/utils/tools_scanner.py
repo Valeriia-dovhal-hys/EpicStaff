@@ -17,6 +17,20 @@ class ToolsScanner:
         if tools_paths_path:
             self.tools_paths_path = tools_paths_path
 
+    def extract_callable_names(self, data):
+        callable_names = set()
+        if isinstance(data, dict):
+            if 'class_name' in data:
+                callable_names.add(data['class_name'])
+            if 'callable_name' in data:
+                callable_names.add(data['callable_name'])
+            for key, value in data.items():
+                callable_names.update(self.extract_callable_names(value))
+        elif isinstance(data, list):
+            for item in data:
+                callable_names.update(self.extract_callable_names(item))
+        return callable_names
+
     def load_tools_paths(self):
         """
         Load the previously saved tools paths from tools_paths_path JSON file.
@@ -35,7 +49,7 @@ class ToolsScanner:
         with open(self.tools_paths_path, 'w') as f:
             json.dump(tools_paths, f, indent=4)
 
-    def find_tools(self, tools_names, target_packages):
+    def find_tools(self, callable_names, target_packages):
         """
         Recursively search through the target packages for the tool classes and their paths.
         """
@@ -49,15 +63,14 @@ class ToolsScanner:
                 for module_info in pkgutil.walk_packages(pkg_path, pkg_name + '.'):
                     try:
                         module = importlib.import_module(module_info.name)
-                        for tool_key, tool_details in tools_names.items():
-                            tool_class_name = tool_details["class_name"]
-                            if hasattr(module, tool_class_name):
-                                cls_obj = getattr(module, tool_class_name)
+                        for callable_name in callable_names:
+                            if hasattr(module, callable_name):
+                                cls_obj = getattr(module, callable_name)
                                 if isinstance(cls_obj, type):
-                                    full_path = f"{module.__name__}.{tool_class_name}"
-                                    tools_paths[tool_class_name] = full_path
+                                    full_path = f"{module.__name__}"
+                                    tools_paths[callable_name] = full_path
                         if module_info.ispkg:
-                            nested_tools = self.find_tools(tools_names, [module_info.name])
+                            nested_tools = self.find_tools(callable_names, [module_info.name])
                             tools_paths.update(nested_tools)
                     except (ImportError, AttributeError, ModuleNotFoundError) as e:
                         continue
@@ -74,7 +87,8 @@ class ToolsScanner:
         if os.path.exists(self.tools_config_path):
             with open(self.tools_config_path, 'r') as f:
                 tools_config = json.load(f)
-                return tools_config
+                callable_names = self.extract_callable_names(tools_config)
+                return callable_names
         else:
             raise FileNotFoundError(f"{self.tools_config_path} not found.")
 
@@ -82,13 +96,15 @@ class ToolsScanner:
         """
         Scan the packages for tools and update the dedicated file accordingly.
         """
-        tools_names = self.load_tools_names()
+        callable_names = self.load_tools_names()
 
         lctools = "langchain_community.tools"
         lcutils = "langchain_community.utilities"
         crewai_tools = "crewai_tools"
+        custom_tools = "tools"
 
-        tools_paths = self.find_tools(tools_names, [lctools, lcutils, crewai_tools])
+        target_packages = [lctools, lcutils, crewai_tools]
+        tools_paths = self.find_tools(callable_names, target_packages)
         self.save_tools_paths(tools_paths)
         return tools_paths
 
