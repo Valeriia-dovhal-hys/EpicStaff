@@ -1,28 +1,20 @@
 import json
 from typing import Any, List, Dict, Optional
 from pydantic import BaseModel
-
-class Callable(BaseModel):
-    module_path: str
-    class_name: str
-    args: Optional[List[Any]] = None
-    kwargs: Optional[Dict[str, Any]] = None
-
-class ImportClassData(BaseModel):
-    callable: Callable
-    dependencies: Optional[List[str]] = None
-    force_build: bool = False
+from base_models import Callable, ImportToolData
 
 class ImportToolDataBuilder:
 
     tools_config_path = "config/tools_config.json"
     tools_paths_path = "config/tools_paths.json"
 
-    def __init__(self, tools_config_path=None, tools_paths_path=None):
+    def __init__(self, *, tools_config_path=None, tools_paths_path=None, force_build=False):
         if tools_config_path:
             self.tools_config_path = tools_config_path
         if tools_paths_path:
             self.tools_paths_path = tools_paths_path
+
+        self.force_build = force_build
 
     def process_value(self, value: Any) -> Any:
         if isinstance(value, dict):
@@ -54,7 +46,7 @@ class ImportToolDataBuilder:
             kwargs=processed_kwargs
         )
 
-    def get_import_class_data(self, key: str) -> ImportClassData:
+    def get_import_class_data(self, key: str) -> ImportToolData:
         with open(self.tools_config_path, 'r') as f:
             self.tools_config = json.load(f)
         
@@ -84,10 +76,10 @@ class ImportToolDataBuilder:
             kwargs=processed_kwargs
         )
         
-        return ImportClassData(
+        return ImportToolData(
             callable=main_callable,
             dependencies=dependencies,
-            force_build = False
+            force_build = self.force_build
         )
 
 if __name__ == "__main__":
