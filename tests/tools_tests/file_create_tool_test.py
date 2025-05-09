@@ -27,10 +27,10 @@ class TestFileCreateTool:
         result = tool._run(file_path="dummy.txt") if is_filepath_passed_to_run else tool._run()
         if is_filepath_passed_to_run:
             mocked_open.assert_called_once_with((Path(test_dir) / Path("dummy.txt")).resolve(), "x")
+            assert result == "File created successfully in dummy.txt"
         else:
             mocked_open.assert_called_once_with(Path(test_dir).resolve(), "x")
-
-        assert result == "File created successfully"
+            assert result == "File created successfully in ./"
 
     def test_create_tool_file_exists(self, mocker, create_file_tool_setup_test_dir):
         """Test the attempt to create an already existing file"""
@@ -39,12 +39,12 @@ class TestFileCreateTool:
         mocked_open = mocker.patch("builtins.open", mock_empty_file())
 
         result = tool._run(file_path="newfile.txt")
-        assert result == "File created successfully"
+        assert result == "File created successfully in newfile.txt"
         mocked_open.assert_called_once_with((Path(test_dir) / Path("newfile.txt")).resolve(), "x")
 
         mocked_open.side_effect = FileExistsError
         result = tool._run(file_path="newfile.txt")
-        assert result == "File already exists"
+        assert result == "File newfile.txt already exists, no need to create it"
         mocked_open.call_count == 2
 
     @pytest.mark.vcr(filter_headers=["authorization"], record_mode="once")

@@ -9,7 +9,6 @@ class RouteTool(BaseTool):
     name: str = "Parent tool for tools that operate with paths"
     description: str = f"""Does nothing by itself, exists only to provide 
     base functionality to its child"""
-    save_file_path: Optional[str] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

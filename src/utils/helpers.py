@@ -1,4 +1,7 @@
 import logging
+import sys
+
+from .envpy import load_env_from_yaml_config
 
 logger = logging.getLogger(__name__)
 logger.debug(f"Entered {__file__}")
@@ -39,6 +42,13 @@ To get you started, copy this sheet template and create your agents and tasks. I
     # Print the greeting using Rich's Markdown support for nice formatting
     console.print(Markdown(greeting_message))
     console.print("\n")
+
+
+def signal_handler(sig, frame):
+    print(
+        "\n\nI received a termination signal. You are the Terminator?! I'll shut down gracefully...\n\n"
+    )
+    sys.exit(0)
 
 
 def after_read_sheet_print(agents_df, tasks_df):
@@ -93,21 +103,21 @@ def after_read_sheet_print(agents_df, tasks_df):
 
 
 # Function to load environment variables
-def load_env(env_path, expected_vars=None):
+def load_env(config_path, expected_vars=None):
     """
-    Load environment variables from a .env file and verify expected variables with stylized print output.
+    Load environment variables from a confi.yaml file and verify expected variables with stylized print output.
 
-    :param env_path: Path to the .env file, can be relative or absolute.
+    :param config_path: Path to the confi.yaml file, can be relative or absolute.
     :param expected_vars: A list of environment variable names that are expected to be set.
     """
     # Convert to absolute path if necessary
-    if not os.path.isabs(env_path):
-        env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), env_path)
+    if not os.path.isabs(config_path):
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), config_path)
 
-    loaded = load_dotenv(env_path)
+    loaded = load_env_from_yaml_config(config_path)
     if not loaded:
         print(
-            f"I failed to load the .env file from '{env_path}'. I'm so sorry, the environmen variables may not be set."
+            f"I failed to load the config.yaml file from '{config_path}'. I'm so sorry, the environmen variables may not be set."
         )
         return
 
