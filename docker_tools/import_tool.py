@@ -6,7 +6,7 @@ from .base_models import *
 from .proxy_tool_builder import ProxyToolBuilder
 
 
-def import_tool(import_tool_data: ImportToolData):
+def import_tools(import_tool_data: ImportToolData):
     dependencies = import_tool_data.dependencies
     force_build = import_tool_data.force_build
 
@@ -14,16 +14,16 @@ def import_tool(import_tool_data: ImportToolData):
         dependencies = []
 
     ltdib = ToolDockerImageBuilder(
-        callable=import_tool_data.callable,
+        tool_dict=import_tool_data.tool_dict,
         import_list=dependencies,
     )
 
-    image_name = import_tool_data.callable.class_name.lower()
-
-    image: Image | None = get_image_by_name(image_name=image_name)  # optimize
+    image: Image | None = get_image_by_name(
+        image_name=import_tool_data.image_name
+    )  # optimize
 
     if force_build or not image:
-        image = ltdib.build_tool(name=image_name)[0]
+        image = ltdib.build_tool(image_name=import_tool_data.image_name)[0]
 
     # TODO: refactor
 
@@ -33,6 +33,10 @@ def import_tool(import_tool_data: ImportToolData):
         image=image, ports={"8000/tcp": port}, detach=True
     )
 
-    proxy_tool_builder = ProxyToolBuilder(image=image, port=port)
+    tool_alias_dict = dict()
+    for alias in import_tool_data.tool_dict.keys():
+        tool_alias_dict[alias] = ProxyToolBuilder(
+            tool_alias=alias, image=image, port=port
+        ).build()
 
-    return proxy_tool_builder.build()
+    return tool_alias_dict

@@ -26,23 +26,23 @@ class ToolDockerImageBuilder:
     ]
 
     def __init__(self, *args, **kwargs):
-        self.callable: Callable = kwargs["callable"]
+        self.tool_dict: dict[str, Callable] = kwargs["tool_dict"]
         self.import_list: list[str] = kwargs.get("import_list", [])
         self.__add_default_imports_to_list(import_list=self.import_list)
 
-    def build_tool(self, name: str | None = None) -> Image:
-        if name is None:
-            name = self.callable.class_name.lower() + ":latest"
+    def build_tool(self, image_name: str | None = None) -> Image:
+        # if name is None:
+        #     name = self.callable.class_name.lower() + ":latest"
 
         requirements = " ".join(self.import_list)
 
         return client.images.build(
             path=str(self.image_files.resolve()),
-            tag=name.lower(),
+            tag=image_name,
             dockerfile=str(self.dockerfile.resolve()),
             buildargs={
                 "PIP_REQUIREMENTS": requirements,
-                "CALLABLE": obj_to_txt(self.callable),
+                "ALIAS_CALLABLE": obj_to_txt(self.tool_dict),
             },
         )
 

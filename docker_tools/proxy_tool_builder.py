@@ -16,10 +16,11 @@ class ProxyToolBuilder:
     def __init__(self, *args, **kwargs):
         self.image = kwargs["image"]
         self.port = kwargs["port"]
+        self.tool_alias = kwargs["tool_alias"]
 
     def build(self) -> Type[BaseTool]:
         resp = self.fetch_data_with_retry(
-            url=f"http://localhost:{self.port}/tool/class-data"
+            url=f"http://localhost:{self.port}/tool/{self.tool_alias}/class-data"
         )
         data_txt = resp.json()["classdata"]
         data: dict = txt_to_obj(data_txt)
@@ -32,7 +33,7 @@ class ProxyToolBuilder:
             run_params=(args[1:], kwargs),  # remove self
         )
 
-        return type("ProxyTool", (BaseTool,), {**data})
+        return type("ProxyTool", (BaseTool,), {**data})  # TODO: Change ProxyTool name
 
     # TODO: rewrite
 
@@ -42,7 +43,7 @@ class ProxyToolBuilder:
     ) -> str:
         tool_run_params_txt = obj_to_txt(run_params)
         response = requests.post(
-            url=f"http://localhost:{self.port}/tool/run",
+            url=f"http://localhost:{self.port}/tool/{self.tool_alias}/run",
             data=json.dumps({"run_params_txt": tool_run_params_txt}),
         )
 

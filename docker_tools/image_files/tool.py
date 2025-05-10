@@ -19,9 +19,8 @@ def run_tool(tool, tool_run_params_txt):
     return tool._run(*run_args, **run_kwargs)
 
 
-def create_tool(callable_txt) -> BaseTool:
+def create_tool(callable: Callable) -> BaseTool:
 
-    callable: Callable = txt_to_obj(callable_txt)
     cp: CallableParser = CallableParser() 
     return cp.eval_callable(callable=callable)
 
