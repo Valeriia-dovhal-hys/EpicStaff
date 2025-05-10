@@ -17,7 +17,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/
 lib64/
 parts/
 sdist/
@@ -126,9 +126,10 @@ celerybeat.pid
 # Environments
 .env
 .venv
-env/
+src/ENV/
 venv/
 ENV/
+env/
 env.bak/
 venv.bak/
 
@@ -173,3 +174,8 @@ log.txt
 
 # Config
 config.yaml
+
+# Credentials
+/credentials
+oauth2_credentials.json
+token.json

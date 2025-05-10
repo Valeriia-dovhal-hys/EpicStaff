@@ -1,4 +1,4 @@
-from .sheets_loader import Sheets
+from .sheets_manager import SheetsManager
 from .import_package_modules import import_package_modules
 from .safe_argment_parser import parse_arguments
 from .callable_registry import CallableRegistry

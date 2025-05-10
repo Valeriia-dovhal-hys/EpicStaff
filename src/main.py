@@ -1,27 +1,60 @@
+import os
 import sys
 
 from rich.table import Table
+import sentry_sdk
 
-from .utils import Sheets, helpers
-from .utils.bootstrap import Bootstrapper as bst
-from .utils.crew_runner import create_agents_from_df, create_tasks_from_df, create_crew
+from utils.cli_parser import get_parser
+from utils.helpers import load_env, is_valid_google_sheets_url, get_sheet_url_from_user
+from utils import SheetsManager, helpers
+
+import pandas as pd
+import sentry_sdk
+from config.config import AppConfig
+from bootstrap import logger, console
+from crew_runner import create_agents_from_df, create_tasks_from_df, create_crew
 
 
 if __name__ == "__main__":
-    
-    bst.set_logger()
-    bst.set_envvars()
-    bst.prepare_console()
 
-    console = bst.console
-    terminal_width = bst.terminal_width
-    sheet_url = bst.sheet_url
+    release = f"{AppConfig.name}@{AppConfig.version}"
+    if os.environ.get("CREWAI_SHEETS_SENRY") != "False":
+        sentry_sdk.init(
+            dsn="https://fc662aa323fcc1629fb9ea7713f63137@o4507186870157312.ingest.de.sentry.io/4507186878414928",
+            traces_sample_rate=1.0,
+            profiles_sample_rate=1.0,
+            release=release,
+        )
+    helpers.greetings_print()
+    args = get_parser()
+    log_level = args.loglevel.upper() if hasattr(args, "loglevel") else "ERROR"
+    logger.setLevel(log_level)
+
+    load_env(
+        args.env_path,
+        [
+            "OPENAI_API_KEY",
+        ],
+    )
+
+    if (
+        hasattr(args, "sheet_url")
+        and args.sheet_url
+        and is_valid_google_sheets_url(args.sheet_url)
+    ):
+        sheet_url = args.sheet_url
+    else:
+        sheet_url = get_sheet_url_from_user()
+
+    # Define a function to handle termination signals
+    terminal_width = console.width
+    terminal_width = max(terminal_width, 120)
 
     # Enter main process
-    agents_df, tasks_df, crew_df, models_df, tools_df = Sheets.parse_table(sheet_url)
+    agents_df, tasks_df, crew_df, models_df, tools_df = SheetsManager.parse_table(sheet_url)
     helpers.after_read_sheet_print(
         agents_df, tasks_df
-    )
+    )  # Print overview of agents and tasks
 
     # Create Agents
     agents_df["crewAIAgent"] = agents_df.apply(
