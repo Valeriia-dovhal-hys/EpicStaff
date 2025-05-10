@@ -1,8 +1,11 @@
 import os
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from models.models import RunToolModel
 import uvicorn
+
+from models.models import RunToolModel
+from import_tool_data_builder import ImportToolDataBuilder
 
 app = FastAPI()
 
@@ -11,9 +14,11 @@ tool_alias_dict = dict()
 
 
 @app.get("/tool/list", status_code=200)
-async def get_class_data(tool_alias: str):
-
-    return
+async def get_all_classes_data(tool_alias: str):
+    itdb = ImportToolDataBuilder()
+    itd = itdb.get_import_class_data(tool_alias)
+    
+    # TODO: Then we shall run container with tool 
 
 
 @app.get("/tool/{tool_alias}/class-data", status_code=200)
