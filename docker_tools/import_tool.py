@@ -1,12 +1,9 @@
 from enum import Enum
-from .build_langchain_tool import *
 from docker.models.images import Image
+
+from .build_langchain_tool import ToolDockerImageBuilder, get_image_by_name, client
 from .base_models import *
 from .proxy_tool_builder import ProxyToolBuilder
-
-class ToolTypes(Enum):
-    langchain = "langchain"
-    other = "other"
 
 
 def import_tool(import_tool_data: ImportToolData):
@@ -16,7 +13,7 @@ def import_tool(import_tool_data: ImportToolData):
     if dependencies is None:
         dependencies = []
 
-    ltdib = LangchainToolDockerImageBuilder(
+    ltdib = ToolDockerImageBuilder(
         callable=import_tool_data.callable,
         import_list=dependencies,
     )

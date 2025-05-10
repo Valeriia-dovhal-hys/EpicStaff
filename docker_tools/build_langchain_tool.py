@@ -15,9 +15,9 @@ from .pickle_encode import obj_to_txt
 client = docker.from_env()
 
 
-class LangchainToolDockerImageBuilder:
-    dockerfile = Path("./docker_tools/langchain/Dockerfile.langchain")
-    image_files = Path("./docker_tools/langchain/image_files/")
+class ToolDockerImageBuilder:
+    dockerfile = Path("./docker_tools/Dockerfile.tool")
+    image_files = Path("./docker_tools/image_files/")
 
     default_imports = [
         "python-dotenv",
@@ -27,17 +27,13 @@ class LangchainToolDockerImageBuilder:
 
     def __init__(self, *args, **kwargs):
         self.callable: Callable = kwargs["callable"]
-        self.langchain_version = kwargs.get("langchain_version", version("langchain"))
         self.import_list: list[str] = kwargs.get("import_list", [])
-
         self.__add_default_imports_to_list(import_list=self.import_list)
 
     def build_tool(self, name: str | None = None) -> Image:
         if name is None:
             name = self.callable.class_name.lower() + ":latest"
 
-        import_list = self.import_list
-        import_list.append("langchain==" + self.langchain_version)
         requirements = " ".join(self.import_list)
 
         return client.images.build(
@@ -61,5 +57,3 @@ def get_image_by_name(image_name: str) -> Image | None:
     if images:
         return images[0]
     return None
-
-
