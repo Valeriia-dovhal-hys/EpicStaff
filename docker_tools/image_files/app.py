@@ -9,13 +9,12 @@ import uvicorn
 app = FastAPI()
 load_dotenv()
 tool_alias_callable_dict_txt = os.environ.get("ALIAS_CALLABLE")
-tool_alias_callable_dict: dict[Callable] = txt_to_obj(tool_alias_callable_dict_txt)
+tool_alias_callable_dict: dict[str, Callable] = txt_to_obj(tool_alias_callable_dict_txt)
 
 tool_alias_dict = dict()
 for k, v in tool_alias_callable_dict.items():
     tool_alias_dict[k] = create_tool(v)
 
-map_tool = dict()
 
 
 @app.get("/tool/{tool_alias}/class-data/", status_code=200)

@@ -1,9 +1,9 @@
 from enum import Enum
 from docker.models.images import Image
 
-from .build_langchain_tool import ToolDockerImageBuilder, get_image_by_name, client
-from .base_models import *
-from .proxy_tool_builder import ProxyToolBuilder
+from build_langchain_tool import ToolDockerImageBuilder, get_image_by_name, client
+from base_models import *
+from proxy_tool_builder import ProxyToolBuilder
 
 
 def import_tools(import_tool_data: ImportToolData):
@@ -13,7 +13,7 @@ def import_tools(import_tool_data: ImportToolData):
     if dependencies is None:
         dependencies = []
 
-    ltdib = ToolDockerImageBuilder(
+    tdib = ToolDockerImageBuilder(
         tool_dict=import_tool_data.tool_dict,
         import_list=dependencies,
     )
@@ -23,7 +23,7 @@ def import_tools(import_tool_data: ImportToolData):
     )  # optimize
 
     if force_build or not image:
-        image = ltdib.build_tool(image_name=import_tool_data.image_name)[0]
+        image = tdib.build_tool(image_name=import_tool_data.image_name)[0]
 
     # TODO: refactor
 

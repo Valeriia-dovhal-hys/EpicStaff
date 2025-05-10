@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
 from base_models import Callable, ImportToolData
-from docker_tools.import_tool import import_tools
+from import_tool import import_tools
 
 
 def create_llm():

@@ -5,8 +5,8 @@ from pydantic import BaseModel as V2BaseModel
 from langchain_core.tools import BaseTool
 import requests
 
-from .schema_converter.converter import generate_model_from_schema
-from .pickle_encode import txt_to_obj, obj_to_txt
+from schema_converter.converter import generate_model_from_schema
+from pickle_encode import txt_to_obj, obj_to_txt
 from docker import client
 from docker.models.images import Image
 

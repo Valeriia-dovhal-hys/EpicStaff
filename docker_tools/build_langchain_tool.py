@@ -9,8 +9,8 @@ from langchain.tools.ddg_search import DuckDuckGoSearchRun
 import docker
 from docker.models.images import Image
 
-from .base_models import Callable
-from .pickle_encode import obj_to_txt
+from base_models import Callable
+from pickle_encode import obj_to_txt
 
 client = docker.from_env()
 
