@@ -3,21 +3,20 @@ from importlib import import_module
 from pathlib import Path
 from json import dumps
 from typing import Any
-from langchain.tools.ddg_search import DuckDuckGoSearchRun
 
 
 import docker
 from docker.models.images import Image
 
-from base_models import Callable
-from pickle_encode import obj_to_txt
+from .base_models import Callable
+from .pickle_encode import obj_to_txt
 
 client = docker.from_env()
 
 
 class ToolDockerImageBuilder:
-    dockerfile = Path("./docker_tools/Dockerfile.tool")
-    image_files = Path("./docker_tools/image_files/")
+    dockerfile = Path("./services/docker_tools/Dockerfile.tool")
+    image_files = Path("./services/docker_tools/tool_image_files/")
 
     default_imports = [
         "python-dotenv",
