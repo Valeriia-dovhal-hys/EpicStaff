@@ -81,6 +81,12 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class SessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Session
+        fields = ["crew", "status"]
+
+
 class RunCrewSerializer(serializers.Serializer):
     crew_id = serializers.IntegerField(required=True)
 
