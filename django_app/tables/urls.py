@@ -12,6 +12,7 @@ from .views import (
     AgentViewSet,
     CrewViewSet,
     TaskViewSet,
+    RunCrew,
 )
 
 router = DefaultRouter()
@@ -29,4 +30,5 @@ router.register(r"tasks", TaskViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("run-crew/", RunCrew.as_view(), name="run-crew"),
 ]

@@ -128,3 +128,15 @@ class Task(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Session(models.Model):
+    class SessionStatus(models.TextChoices):
+        END = "end"
+        RUN = "run"
+        WAIT_FOR_USER = "wait_for_user"
+        ERROR = "error"
+
+    crew = models.ForeignKey(Crew, on_delete=models.SET_NULL, null=True)
+    status = models.CharField(choices=SessionStatus.choices, default=SessionStatus.RUN, max_length=255)
+

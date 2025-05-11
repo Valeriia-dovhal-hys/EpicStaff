@@ -1,5 +1,8 @@
-from django.shortcuts import render
+from rest_framework.views import APIView
 from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework import status
+
 from .models import (
     TemplateAgent,
     ConfigLLM,
@@ -25,6 +28,7 @@ from .serializers import (
     AgentSerializer,
     CrewSerializer,
     TaskSerializer,
+    RunCrewSerializer,
 )
 
 
@@ -81,3 +85,16 @@ class CrewViewSet(viewsets.ModelViewSet):
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
+
+
+class RunCrew(APIView):
+    def post(self, request, format=None):
+        serializer = RunCrewSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        crew_id = serializer.validated_data["crew_id"]
+
+        # CREATED SESSION
+        session_id = 0
+
+        return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
