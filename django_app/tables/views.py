@@ -1,7 +1,10 @@
+from drf_yasg import openapi
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
+from drf_yasg.utils import swagger_auto_schema
+
 
 from .models import (
     TemplateAgent,
@@ -15,8 +18,11 @@ from .models import (
     Agent,
     Crew,
     Task,
+    Session,
 )
 from .serializers import (
+    AnswerToLLMSerializer,
+    SessionStatusSerializer,
     TemplateAgentSerializer,
     ConfigLLMSerializer,
     ProviderSerializer,
@@ -29,6 +35,7 @@ from .serializers import (
     CrewSerializer,
     TaskSerializer,
     RunCrewSerializer,
+    GetUpdatesSerializer,
 )
 
 
@@ -88,13 +95,134 @@ class TaskViewSet(viewsets.ModelViewSet):
 
 
 class RunCrew(APIView):
-    def post(self, request, format=None):
+
+    @swagger_auto_schema(
+        request_body=RunCrewSerializer,
+        responses={
+            201: openapi.Response(
+                description="Session Created",
+                examples={"application/json": {"session_id": 123}},
+            ),
+            400: "Bad Request - Invalid Input",
+        },
+    )
+    def post(self, request):
         serializer = RunCrewSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         crew_id = serializer.validated_data["crew_id"]
 
         # CREATED SESSION
-        session_id = 0
 
-        return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
+        new_session = Session.objects.create(
+            crew_id=crew_id, status=Session.SessionStatus.RUN
+        )
+
+        return Response(
+            data={"session_id": new_session.pk}, status=status.HTTP_201_CREATED
+        )
+
+
+class GetUpdates(APIView):
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(
+                description="Session details retrieved successfully",
+                examples={
+                    "application/json": {
+                        "status": "run",
+                        "conversation": "Sample conversation",
+                    }
+                },
+            ),
+            404: openapi.Response(
+                description="Session not found or session ID missing"
+            ),
+        }
+    )
+    def get(self, request, *args, **kwargs):
+
+        session_id = kwargs.get("session_id", None)
+        if session_id is None:
+            return Response("Session id not found", status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            session = Session.objects.get(id=session_id)
+        except Session.DoesNotExist:
+            return Response("Session not found", status=status.HTTP_404_NOT_FOUND)
+
+        return Response(
+            data={"status": session.status, "conversation": session.conversation},
+            status=status.HTTP_200_OK,
+        )
+
+
+class UpdateStatus(APIView):
+
+    @swagger_auto_schema(
+        request_body=SessionStatusSerializer,
+        responses={
+            200: openapi.Response(description="Status updated successfully"),
+            400: openapi.Response(description="Invalid data provided"),
+            404: openapi.Response(
+                description="Session not found or session ID missing"
+            ),
+        },
+    )
+    def patch(self, request, *args, **kwargs):
+
+        session_id = kwargs.get("session_id", None)
+        if session_id is None:
+            return Response("Session id not found", status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            session = Session.objects.get(id=session_id)
+        except Session.DoesNotExist:
+            return Response("Session not found", status=status.HTTP_404_NOT_FOUND)
+
+        serializer = SessionStatusSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        new_status = serializer.validated_data["status"]
+
+        session.status = new_status
+        session.save()
+
+        return Response(
+            status=status.HTTP_200_OK,
+        )
+
+
+class AnswerToLLM(APIView):
+
+    @swagger_auto_schema(
+        request_body=AnswerToLLMSerializer,
+        responses={
+            200: openapi.Response(
+                description="Status updated successfully",
+                examples={
+                    "application/json": {
+                        "status": "run",
+                    }
+                },
+            ),
+            400: openapi.Response(description="Invalid data provided"),
+            404: openapi.Response(description="Session not found"),
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = AnswerToLLMSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        session_id = serializer.validated_data["session_id"]
+        answer = serializer.validated_data["answer"]
+        try:
+            session = Session.objects.get(id=session_id)
+        except Session.DoesNotExist:
+            return Response("Session not found", status=status.HTTP_404_NOT_FOUND)
+
+        # business logic
+
+        return Response(data={"status": session.status}, status=status.HTTP_200_OK)

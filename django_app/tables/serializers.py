@@ -11,6 +11,7 @@ from .models import (
     Agent,
     Crew,
     Task,
+    Session,
 )
 
 
@@ -82,3 +83,18 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class RunCrewSerializer(serializers.Serializer):
     crew_id = serializers.IntegerField(required=True)
+
+
+class GetUpdatesSerializer(serializers.Serializer):
+    session_id = serializers.IntegerField(required=True)
+
+
+class SessionStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Session
+        fields = ["status"]
+
+
+class AnswerToLLMSerializer(serializers.Serializer):
+    session_id = serializers.IntegerField(required=True)
+    answer = serializers.CharField()

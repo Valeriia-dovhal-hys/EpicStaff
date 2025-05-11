@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
+    AnswerToLLM,
     TemplateAgentViewSet,
     ConfigLLMViewSet,
     ProviderViewSet,
@@ -13,6 +14,8 @@ from .views import (
     CrewViewSet,
     TaskViewSet,
     RunCrew,
+    GetUpdates,
+    UpdateStatus,
 )
 
 router = DefaultRouter()
@@ -31,4 +34,16 @@ router.register(r"tasks", TaskViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path("run-crew/", RunCrew.as_view(), name="run-crew"),
+    path("answer-to-llm/", AnswerToLLM.as_view(), name="answer-to-llm"),
+    path(
+        "sessions/<int:session_id>/get-updates/",
+        GetUpdates.as_view(),
+        name="get-updates",
+    ),
+    path(
+        "sessions/<int:session_id>/",
+        UpdateStatus.as_view(),
+        name="status",
+    ),
+    
 ]

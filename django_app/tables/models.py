@@ -112,7 +112,11 @@ class Crew(models.Model):
     manager_llm_model = models.ForeignKey(
         ManagerLLMModel, on_delete=models.SET_NULL, null=True
     )
-    temperature = models.FloatField()
+    manager_llm_config = models.ForeignKey(
+        ConfigLLM,
+        on_delete=models.SET_NULL,
+        null=True,
+    )
 
     def __str__(self):
         return self.name
@@ -138,5 +142,7 @@ class Session(models.Model):
         ERROR = "error"
 
     crew = models.ForeignKey(Crew, on_delete=models.SET_NULL, null=True)
-    status = models.CharField(choices=SessionStatus.choices, default=SessionStatus.RUN, max_length=255)
-
+    status = models.CharField(
+        choices=SessionStatus.choices, max_length=255, blank=False, null=False
+    )
+    conversation = models.TextField(blank=True)
