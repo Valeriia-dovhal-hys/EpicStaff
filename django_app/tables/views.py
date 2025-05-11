@@ -28,7 +28,6 @@ from .serializers import (
     AnswerToLLMSerializer,
     SessionMessageSerializer,
     SessionSerializer,
-    SessionStatusSerializer,
     TemplateAgentSerializer,
     ConfigLLMSerializer,
     ProviderSerializer,
@@ -41,7 +40,6 @@ from .serializers import (
     CrewSerializer,
     TaskSerializer,
     RunCrewSerializer,
-    GetUpdatesSerializer,
 )
 
 
@@ -190,6 +188,7 @@ class StopSession(APIView):
 
         # TODO: business logic
         session.status = Session.SessionStatus.END
+        session.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -230,7 +229,7 @@ class AnswerToLLM(APIView):
 
 class SessionMessageListView(generics.ListAPIView):
     serializer_class = SessionMessageSerializer
-    
+
     def get_queryset(self):
         session_id = self.kwargs["session_id"]
         return SessionMessage.objects.filter(session_id=session_id)
