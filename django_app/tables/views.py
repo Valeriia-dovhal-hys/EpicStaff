@@ -1,12 +1,16 @@
 from drf_yasg import openapi
 from rest_framework.views import APIView
+from rest_framework import generics
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
+from django.core.paginator import Paginator, EmptyPage
 
 
 from .models import (
+    SessionMessage,
     TemplateAgent,
     ConfigLLM,
     Provider,
@@ -22,6 +26,7 @@ from .models import (
 )
 from .serializers import (
     AnswerToLLMSerializer,
+    SessionMessageSerializer,
     SessionSerializer,
     SessionStatusSerializer,
     TemplateAgentSerializer,
@@ -221,3 +226,11 @@ class AnswerToLLM(APIView):
         # TODO: business logic
 
         return Response(data={"status": session.status}, status=status.HTTP_200_OK)
+
+
+class SessionMessageListView(generics.ListAPIView):
+    serializer_class = SessionMessageSerializer
+    
+    def get_queryset(self):
+        session_id = self.kwargs["session_id"]
+        return SessionMessage.objects.filter(session_id=session_id)

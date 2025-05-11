@@ -146,3 +146,17 @@ class Session(models.Model):
         choices=SessionStatus.choices, max_length=255, blank=False, null=False
     )
     conversation = models.TextField(blank=True)
+
+
+class SessionMessage(models.Model):
+    class MessageFrom(models.TextChoices):
+        USER = "user"
+        CREW = "crew"
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True) 
+    
+    message_from = models.CharField(
+        choices=MessageFrom.choices, max_length=255, blank=False, null=False
+    )

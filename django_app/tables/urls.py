@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     AnswerToLLM,
+    SessionMessageListView,
     SessionViewSet,
     TemplateAgentViewSet,
     ConfigLLMViewSet,
@@ -41,9 +42,10 @@ urlpatterns = [
         GetUpdates.as_view(),
         name="get-updates",
     ),
+    path("sessions/<int:session_id>/stop", StopSession.as_view(), name="stop-session"),
     path(
-        "sessions/<int:session_id>/stop",
-        StopSession.as_view(),
-        name="stop-session"
+        "sessions/<int:session_id>/messages",
+        SessionMessageListView.as_view(),
+        name="messages",
     ),
 ]

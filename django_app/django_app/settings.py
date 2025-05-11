@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "tables",
     "rest_framework",
-    'drf_yasg',
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -51,6 +51,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 50,
+}
+
 
 ROOT_URLCONF = "django_app.urls"
 

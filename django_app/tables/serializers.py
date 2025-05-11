@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import (
+    SessionMessage,
     TemplateAgent,
     ConfigLLM,
     Provider,
@@ -104,3 +105,9 @@ class SessionStatusSerializer(serializers.ModelSerializer):
 class AnswerToLLMSerializer(serializers.Serializer):
     session_id = serializers.IntegerField(required=True)
     answer = serializers.CharField()
+
+
+class SessionMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SessionMessage
+        fields = "__all__"
