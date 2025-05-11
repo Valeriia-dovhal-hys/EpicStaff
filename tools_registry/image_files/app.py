@@ -5,25 +5,23 @@ from fastapi import FastAPI
 import uvicorn
 
 from models.models import RunToolModel
-from import_tool_data_builder import ImportToolDataBuilder
+from tools_registry.image_files.repositories.import_tool_data_repository import ImportToolDataRepository
 
 app = FastAPI()
-
-
-tool_alias_dict = dict()
+itdb = ImportToolDataRepository()
 
 
 @app.get("/tool/list", status_code=200)
 async def get_all_classes_data(tool_alias: str):
-    itdb = ImportToolDataBuilder()
-    itd = itdb.get_import_class_data(tool_alias)
-    
-    # TODO: Then we shall run container with tool 
+
+    return
+    # TODO: Then we shall run container with tool
 
 
 @app.get("/tool/{tool_alias}/class-data", status_code=200)
 async def get_class_data(tool_alias: str):
-    return
+    
+    return 
 
 
 @app.post("/tool/{tool_alias}/run", status_code=200)

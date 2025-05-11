@@ -1,5 +1,5 @@
 import json
-from typing import Any, List, Dict, Optional
+from typing import Any, List, Dict, Optional, Set
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -8,7 +8,7 @@ from docker_tools.base_models import Callable, ImportToolData
 base_path = Path(__file__).resolve().parent
 
 
-class ImportToolDataBuilder:
+class ImportToolDataRepository:
 
     tools_config_path = base_path / "tools_config.json"
     tools_paths_path = base_path / "tools_paths.json"
@@ -22,6 +22,12 @@ class ImportToolDataBuilder:
             self.tools_paths_path = tools_paths_path
 
         self.force_build = force_build
+
+        with open(self.tools_config_path, "r") as f:
+            self.tools_config = json.load(f)
+
+        with open(self.tools_paths_path, "r") as f:
+            self.tools_paths = json.load(f)
 
     def process_value(self, value: Any) -> Any:
         if isinstance(value, dict):
@@ -52,25 +58,37 @@ class ImportToolDataBuilder:
             args=processed_args,
             kwargs=processed_kwargs,
         )
-    
 
     def get_tool_group(self, image_name: str):
         k = "image_name"
         v = image_name
         try:
-            tool_group = next(filter(lambda tool_gr: tool_gr[k] == v, self.tools_config))
+            tool_group = next(
+                filter(lambda tool_gr: tool_gr[k] == v, self.tools_config)
+            )
             return tool_group
         except StopIteration:
             raise ValueError(f"Incorrect key {image_name}")
 
+    def get_tool_alias_list(self) -> list[str]:
+
+        tool_alias_set = set()
+
+        for item in self.tools_config:
+            tool_dict = item["tool_dict"]
+            for k, _ in tool_dict.items():
+                tool_alias_set.add(k)
+
+        return list(tool_alias_set)
+
+    def find_image_name_by_tool_alias(self, tool_alias) -> str:
+        for item in self.tools_config:
+            tool_dict = item["tool_dict"]
+            for k, _ in tool_dict.items():
+                if tool_alias == k:
+                    return item["image_name"]
 
     def get_import_class_data(self, image_name: str) -> ImportToolData:
-
-        with open(self.tools_config_path, "r") as f:
-            self.tools_config = json.load(f)
-
-        with open(self.tools_paths_path, "r") as f:
-            self.tools_paths = json.load(f)
 
         tool_group = self.get_tool_group(image_name)
         dependencies = tool_group.get("dependencies")
@@ -107,7 +125,11 @@ class ImportToolDataBuilder:
 
 
 if __name__ == "__main__":
-    itdb = ImportToolDataBuilder()
-    import_class_data = itdb.get_import_class_data("wolfram_alpha")
+    itdr = ImportToolDataRepository()
+    import_class_data = itdr.get_import_class_data("wolfram_alpha")
 
-    print(import_class_data)
+    # print(import_class_data)
+
+    alias_list = itdr.get_tool_alias_list()
+    image_name = itdr.find_image_name_by_tool_alias(alias_list[0])
+    print(image_name)

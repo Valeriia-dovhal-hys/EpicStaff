@@ -25,12 +25,15 @@ class ToolDockerImageBuilder:
         "fastapi[all]",
     ]
 
-    def __init__(self, *args, **kwargs):
-        self.tool_dict: dict[str, Callable] = kwargs["tool_dict"]
-        self.import_list: list[str] = kwargs.get("import_list", [])
+    def __init__(
+        self, tool_dict: dict[str, Callable], import_list: list[str] | None = None
+    ):
+
+        self.tool_dict: dict[str, Callable] = tool_dict
+        self.import_list: list[str] = import_list if import_list is not None else list()
         self.__add_default_imports_to_list(import_list=self.import_list)
 
-    def build_tool(self, image_name: str | None = None) -> Image:
+    def build_tool_image(self, image_name: str | None = None) -> Image:
 
         requirements = " ".join(self.import_list)
 
@@ -42,7 +45,7 @@ class ToolDockerImageBuilder:
                 "PIP_REQUIREMENTS": requirements,
                 "ALIAS_CALLABLE": obj_to_txt(self.tool_dict),
             },
-        )
+        )[0]
 
     @classmethod
     def __add_default_imports_to_list(cls, import_list: list[str]):
