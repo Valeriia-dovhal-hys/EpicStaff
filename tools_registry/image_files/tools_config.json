@@ -16,7 +16,7 @@
         }
       },
       "dependencies": [
-        "wolframalpha"
+        "wolframalpha", "langchain", "langchain_community"
       ]
     }
 ]
