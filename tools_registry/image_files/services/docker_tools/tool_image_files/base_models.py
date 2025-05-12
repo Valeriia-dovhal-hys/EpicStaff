@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Any, Union
 import typing
 from pydantic import BaseModel
 
@@ -21,5 +21,6 @@ class ImportToolData(BaseModel):
     force_build: bool = False
 
 
-class RunToolModel(BaseModel):
-    run_params_txt: str
+class RunToolParamsModel(BaseModel):
+    run_args: list[str]
+    run_kwargs: dict[str, Any]

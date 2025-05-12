@@ -6,7 +6,7 @@ from fastapi import FastAPI
 import uvicorn
 import requests
 
-from models.models import RunToolModel
+from models.models import RunToolParamsModel
 from repositories.import_tool_data_repository import ImportToolDataRepository
 from services.tool_image_service import ToolImageService
 from services.tool_container_service import (
@@ -46,10 +46,10 @@ async def get_class_data(tool_alias: str):
 
 
 @app.post("/tool/{tool_alias}/run", status_code=200)
-async def run(tool_alias: str, run_tool_model: RunToolModel):
+async def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
 
     return tool_container_service.request_run_tool(
-        tool_alias=tool_alias, run_tool_model=run_tool_model
+        tool_alias=tool_alias, run_tool_params_model=run_tool_params_model
     )
 
 

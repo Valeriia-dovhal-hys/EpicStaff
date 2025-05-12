@@ -1,7 +1,7 @@
 from importlib import import_module
 import json
 import os
-from typing import Type
+from typing import Any, Type
 from dotenv import load_dotenv
 from base_models import Callable, ImportToolData
 from tools_scanner import ToolsScanner
@@ -14,8 +14,8 @@ load_dotenv()
 
 
 
-def run_tool(tool, tool_run_params_txt):
-    run_args, run_kwargs = txt_to_obj(tool_run_params_txt)
+def run_tool(tool, run_args: list[str], run_kwargs: dict[str, Any]):
+    
     return tool._run(*run_args, **run_kwargs)
 
 

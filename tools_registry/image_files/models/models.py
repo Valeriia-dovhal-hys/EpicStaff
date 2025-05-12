@@ -1,4 +1,6 @@
+from typing import Any
 from pydantic import BaseModel
 
-class RunToolModel(BaseModel):
-    run_params_txt: str
+class RunToolParamsModel(BaseModel):
+    run_args: list[str]
+    run_kwargs: dict[str, Any]

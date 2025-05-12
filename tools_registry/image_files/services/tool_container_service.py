@@ -5,9 +5,8 @@ from docker.models.containers import Container
 import docker
 import requests
 
-from models.models import RunToolModel
+from models.models import RunToolParamsModel
 
-from services.docker_tools.tool_image_files.base_models import RunToolModel
 from repositories.import_tool_data_repository import (
     ImportToolDataRepository,
 )
@@ -63,14 +62,16 @@ class ToolContainerService:
         )
         return response.json()
 
-    def request_run_tool(self, tool_alias: str, run_tool_model: RunToolModel) -> dict:
+    def request_run_tool(
+        self, tool_alias: str, run_tool_params_model: RunToolParamsModel
+    ) -> dict:
         container = self.get_running_tool(tool_alias=tool_alias)
         if not container:
             container = self.run_container_by_tool_alias(tool_alias=tool_alias)
 
         response = requests.post(
-            url=f"http://{container.name}:8000/tool/{tool_alias}/run/",
-            data=run_tool_model.model_dump_json(),
+            url=f"http://{container.name}:8000/tool/{tool_alias}/run",
+            json=run_tool_params_model.model_dump(),
         )
         return response.json()
 
@@ -83,7 +84,7 @@ class ToolContainerService:
     ) -> Container:
         if container_name is None:
             print(image.tags)
-            container_name = image.tags[0].split(':')[0]
+            container_name = image.tags[0].split(":")[0]
         container_tool = self.docker_client.containers.run(
             image=image,
             ports={"8000/tcp": port},
