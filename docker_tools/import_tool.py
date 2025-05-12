@@ -3,8 +3,9 @@ from docker.models.images import Image
 
 from build_langchain_tool import ToolDockerImageBuilder, get_image_by_name, client
 from base_models import *
-from proxy_tool_builder import ProxyToolBuilder
+from docker_tools.proxy_tool_factory import ProxyToolFactory
 
+proxy_tool_factory = ProxyToolFactory()
 
 def import_tools(import_tool_data: ImportToolData):
     dependencies = import_tool_data.dependencies
@@ -35,8 +36,6 @@ def import_tools(import_tool_data: ImportToolData):
 
     tool_alias_dict = dict()
     for alias in import_tool_data.tool_dict.keys():
-        tool_alias_dict[alias] = ProxyToolBuilder(
-            tool_alias=alias, image=image, port=port
-        ).build()
+        tool_alias_dict[alias] = proxy_tool_factory.create_proxy_class(alias)
 
     return tool_alias_dict

@@ -11,40 +11,51 @@ from docker import client
 from docker.models.images import Image
 
 
-class ProxyToolBuilder:
+class ProxyToolFactory:
 
-    def __init__(self, *args, **kwargs):
-        self.image = kwargs["image"]
-        self.port = kwargs["port"]
-        self.tool_alias = kwargs["tool_alias"]
+    def __init__(
+        self,
+        host: str = "tool_registry_container",
+        port: int = 8000,
+    ):
+        self.host = host
+        self.port = port
 
-    def build(self) -> Type[BaseTool]:
+    def create_proxy_class(
+        self,
+        tool_alias,
+    ) -> Type[BaseTool]:
         resp = self.fetch_data_with_retry(
-            url=f"http://localhost:{self.port}/tool/{self.tool_alias}/class-data"
+            url=f"http://{self.host}:{self.port}/tool/{tool_alias}/class-data"
         )
         data_txt = resp.json()["classdata"]
         data: dict = txt_to_obj(data_txt)
         args_schema_json_schema = data["args_schema_json_schema"]
-        data["args_schema"] = generate_model_from_schema(args_schema_json_schema)
+        data["args_schema"] = generate_model_from_schema(
+            args_schema_json_schema
+        )  # TODO: rename
 
         data.pop("args_schema_json_schema", None)
 
         data["_run"] = lambda *args, **kwargs: self.run_tool_in_container(
+            tool_alias=tool_alias,
             run_params=(args[1:], kwargs),  # remove self
         )
 
         return type("ProxyTool", (BaseTool,), {**data})  # TODO: Change ProxyTool name
 
-    # TODO: rewrite
-
     def run_tool_in_container(
         self,
-        run_params: tuple[tuple, dict[str, Any]] | None = None,
+        tool_alias,
+        run_params: tuple[tuple, dict[str, Any]],
     ) -> str:
-        tool_run_params_txt = obj_to_txt(run_params)
+
+        run_args = run_params[0]
+        run_kwargs = run_params[1]
+
         response = requests.post(
-            url=f"http://localhost:{self.port}/tool/{self.tool_alias}/run",
-            data=json.dumps({"run_params_txt": tool_run_params_txt}),
+            url=f"http://{self.host}:{self.port}/tool/{tool_alias}/run",
+            data={"run_args": run_args, "run_kwargs": run_kwargs},
         )
 
         return response.json()["data"]
