@@ -8,8 +8,8 @@ import requests
 
 from models.models import RunToolModel
 from repositories.import_tool_data_repository import ImportToolDataRepository
-from tools_registry.image_files.services.tool_image_service import ToolImageService
-from tools_registry.image_files.services.tool_container_serivce import (
+from services.tool_image_service import ToolImageService
+from services.tool_container_serivce import (
     ToolContainerService,
 )
 from services.registry import Registry
@@ -23,10 +23,15 @@ client: Container = docker.client
 app = FastAPI()
 registry = Registry()
 import_tool_data_repository = ImportToolDataRepository()
+
 tool_image_service = ToolImageService(
-    registry=registry, import_tool_data_repository=import_tool_data_repository
+    registry=registry, 
+    import_tool_data_repository=import_tool_data_repository
 )
-tool_container_service = ToolContainerService(tool_image_service=tool_image_service)
+tool_container_service = ToolContainerService(
+    tool_image_service=tool_image_service,
+    import_tool_data_repository=import_tool_data_repository
+)
 
 
 @app.get("/tool/list", status_code=200)

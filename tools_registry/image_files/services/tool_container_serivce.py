@@ -7,11 +7,11 @@ import requests
 
 from models.models import RunToolModel
 
-from docker_tools.image_files.base_models import RunToolModel
-from tools_registry.image_files.repositories.import_tool_data_repository import (
+from services.docker_tools.tool_image_files.base_models import RunToolModel
+from repositories.import_tool_data_repository import (
     ImportToolDataRepository,
 )
-from tools_registry.image_files.services.tool_image_service import ToolImageService
+from services.tool_image_service import ToolImageService
 
 
 class ToolContainerService:
@@ -76,13 +76,13 @@ class ToolContainerService:
 
     def run_container_by_tool_alias(self, tool_alias):
         image = self.tool_image_service.get_or_build_tool_alias(tool_alias=tool_alias)
-        return self.run_container(image=image)
+        return self.run_container(image=image, container_name=tool_alias)
 
     def run_container(
         self, image: Image, container_name=None, port: int = 0
     ) -> Container:
         if container_name is None:
-            container_name = image.labels.keys()[0]
+            container_name = image.labels.keys()[0]  # BUG: keys() returns dict[str, Any], its not subscriptable with int
         container_tool = self.docker_client.containers.run(
             image=image,
             ports={"8000/tcp": port},
