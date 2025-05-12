@@ -55,7 +55,7 @@ class ProxyToolFactory:
 
         response = requests.post(
             url=f"http://{self.host}:{self.port}/tool/{tool_alias}/run",
-            data={"run_args": run_args, "run_kwargs": run_kwargs},
+            json={"run_args": run_args, "run_kwargs": run_kwargs},
         )
 
         return response.json()["data"]
