@@ -13,15 +13,15 @@ class __SingletonMeta(type):
 class Registry(metaclass=__SingletonMeta):
 
     def __init__(self):
-        self.__alias_port = dict()
+        self.__tool_alias_container = dict()
 
     # def get_available_port(self): ...
 
-    def register(self, alias, port):
-        self.__alias_port[alias] = port
+    def register(self, tool_alias, container_name,):
+        self.__tool_alias_container[tool_alias] = container_name
 
-    def get_port_by_alias(self, alias):
-        return self.__alias_port[alias]
+    def get_container_name_by_tool_alias(self, tool_alias):
+        return self.__tool_alias_container[tool_alias]
 
     def set_alias_port(self, alias, port):
         self.__alias_port[alias] = port

@@ -80,7 +80,7 @@ class ImportToolDataRepository:
 
         return list(tool_alias_set)
 
-    def find_image_name_by_tool_alias(self, tool_alias) -> str:
+    def find_image_name_by_tool_alias(self, tool_alias: str) -> str:
         for item in self.tools_config:
             tool_dict = item["tool_dict"]
             for k, _ in tool_dict.items():
