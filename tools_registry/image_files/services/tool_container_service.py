@@ -76,13 +76,14 @@ class ToolContainerService:
 
     def run_container_by_tool_alias(self, tool_alias):
         image = self.tool_image_service.get_or_build_tool_alias(tool_alias=tool_alias)
-        return self.run_container(image=image, container_name=tool_alias)
+        return self.run_container(image=image)
 
     def run_container(
         self, image: Image, container_name=None, port: int = 0
     ) -> Container:
         if container_name is None:
-            container_name = image.labels.keys()[0]  # BUG: keys() returns dict[str, Any], its not subscriptable with int
+            print(image.tags)
+            container_name = image.tags[0].split(':')[0]
         container_tool = self.docker_client.containers.run(
             image=image,
             ports={"8000/tcp": port},
