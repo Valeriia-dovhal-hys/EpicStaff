@@ -18,5 +18,21 @@
       "dependencies": [
         "wolframalpha", "langchain", "langchain_community"
       ]
+    },
+    {
+      "image_name": "wikipedia_tool",
+      "tool_dict": {
+          "wikipedia": {
+            "class_name": "WikipediaQueryRun",        
+            "kwargs": {
+              "api_wrapper": {
+                "callable_name": "WikipediaAPIWrapper"
+              }
+            }
+          }
+      },
+      "dependencies": [
+        "wikipedia", "langchain_community"
+      ]
     }
 ]
