@@ -1,4 +1,5 @@
 import os
+import time
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -21,6 +22,21 @@ app = FastAPI()
 itdb = ImportToolDataRepository()
 
 
+def fetch_data_with_retry(url, retries=10, delay=3):
+    for attempt in range(retries):
+        try:
+            print(f"Attempt {attempt + 1} to fetch data...")
+            resp = requests.get(url)
+            if resp.status_code == 200:
+                return resp
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed: {e}")
+        # Wait before retrying
+        if attempt < retries - 1:
+            time.sleep(delay)
+    raise Exception(f"Failed to fetch data after {retries} attempts.")
+
+
 @app.get("/tool/list", status_code=200)
 async def get_all_classes_data(tool_alias: str):
     return
@@ -32,10 +48,11 @@ async def get_class_data(tool_alias: str):
     image = ibs.build_tool_alias(tool_alias)
 
     container = RunnerService().run_image(image=image, tool_alias=tool_alias, port=3001)
-    
 
-    response = requests.get(f"http://localhost:3001/tool/{tool_alias}/class-data/")
-    return response
+    response = fetch_data_with_retry(
+        f"http://{tool_alias}:8000/tool/{tool_alias}/class-data/"
+    )
+    return response.json()
 
 
 @app.post("/tool/{tool_alias}/run", status_code=200)
