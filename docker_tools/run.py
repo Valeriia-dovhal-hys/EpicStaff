@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
 from base_models import Callable, ImportToolData
-from import_tool import import_tools
+from import_tool import import_tool
 
 
 def create_llm():
@@ -39,28 +39,10 @@ def create_crew(proxy_tool_list: list) -> Crew:
 
 
 def main():
-    td = ImportToolData(
-        image_name="group1",
-        tool_dict={
-            "wikipedia_tool": Callable(
-                module_path="langchain_community.tools.wikipedia.tool",  # Might not exist
-                class_name="WikipediaQueryRun",
-                kwargs={
-                    "api_wrapper": Callable(
-                        # module_path="langchain_community.utilities.wikipedia",  # Might not exist
-                        class_name="WikipediaAPIWrapper",
-                        package="langchain_community",
-                    )
-                },
-            )
-        },
-        dependencies=["langchain-community", "wikipedia", "langchain"],
-        force_build=True,
-    )
 
-    tool_class = import_tools(td)
+    tool_class = import_tool(tool_alias="wikipedia")
 
-    tool = tool_class["wikipedia_tool"]()
+    tool = tool_class()
 
     crew = create_crew([tool])
 
