@@ -54,4 +54,4 @@ async def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
 
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True, workers=1)
+    uvicorn.run("app:app", host="0.0.0.0", port=8001, reload=True, workers=1)
