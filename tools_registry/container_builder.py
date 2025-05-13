@@ -9,12 +9,12 @@ class ToolsRegistryContainerBuilder:
 
     client = docker.client.from_env()
     image_name = "tools_registry"
-    port = 8001
-    dockerfile = Path('./tools_registry/image_files/Dockerfile.reg').resolve().as_posix()
+    port = 4800
+    dockerfile = Path('./tools_registry/Dockerfile.reg').resolve().as_posix()
     path = Path('./tools_registry/image_files').resolve().as_posix()
     container_name = "tools_registry_container"
 
-    def __init__(self, *, image_name="tools_registry", port=8001, force_build=False):
+    def __init__(self, *, image_name="tools_registry", port=4800, force_build=False):
         self.image_name = image_name
         self.port = port
         self.force_build = force_build
