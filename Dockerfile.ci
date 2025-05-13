@@ -24,8 +24,9 @@ COPY libraries/ ./libraries
 
 ENV PEP517_BUILD_BACKEND=setuptools.build_meta
 
-# Install Python dependencies using Poetry
+# Install Python dependencies using Poetry, clearing cache
 RUN poetry install --no-root --no-dev
+RUN rm -rf /root/.cache
 
 #Coping file to workdir
 COPY . .
