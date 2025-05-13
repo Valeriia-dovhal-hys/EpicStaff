@@ -7,19 +7,26 @@ import pandas as pd
 
 from utils.agent_crew_llm import get_llm
 from utils.tools_mapping import ToolsMapping
+from utils.import_tool_data_builder import ImportToolDataBuilder
+from docker_tools.langchain.import_tool import import_tool
 
 
 def create_agents_from_df(row, models_df=None, tools_df=None):
-    def get_agent_tools(tools_string):
-        tool_names = [tool.strip() for tool in tools_string.split(",")]
-        tools_mapping = ToolsMapping(
-            tools_df, models_df
-        )  # Get the ToolsMapping instance
-        tools_dict = (
-            tools_mapping.get_tools()
-        )  # Get the dictionary of tools from the instance
-        return [tools_dict[tool] for tool in tool_names if tool in tools_dict]
 
+    def get_agent_tools(tools_string):
+        tool_aliases = [tool.strip() for tool in tools_string.split(",")]
+        itdb = ImportToolDataBuilder(force_build=True)
+        itdb_list = []
+        for alias in tool_aliases:
+            itdb_list.append(itdb.get_import_class_data(alias))
+        
+        proxies = []
+        for it in itdb_list:
+            proxy_class = import_tool(it)
+            proxies.append(proxy_class())
+
+        return proxies
+        
     role = row.get("Agent Role", "Assistant")
     goal = row.get("Goal", "To assist the human in their tasks")
     model_name = row.get("Model Name", "gpt-4-turbo-preview").strip()

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     sheet_url = bst.sheet_url
 
     # Enter main process
-    agents_df, tasks_df, crew_df, models_df, tools_df = Sheets.parse_table(sheet_url)
+    agents_df, tasks_df, crew_df, models_df, tools_df = SheetsManager.parse_table(sheet_url)
     helpers.after_read_sheet_print(
         agents_df, tasks_df
     )

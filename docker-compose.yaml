@@ -1,18 +1,38 @@
-version: '3.8' 
+version: '3.8'
 
 services:
-  crewai-sheets:
+  main_crewai_script:
+    build:
+      context: .
+      dockerfile: Dockerfile.ci
+    container_name: main_crewai_script
     environment:
       - HAYSTACK_TELEMETRY_ENABLED=False
       - ANONYMIZED_TELEMETRY=False
       - EC_TELEMETRY=False
       - MONITORING_MODE=local
+    ports:
+      - "8000:8000"
+    networks:
+      - crewai_network
+    depends_on:
+      - tools_registry
+
+  tools_registry:
     build:
-      dockerfile: Dockerfile.ci
-      context: .
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
-    
+      context: ./tools_registry/image_files
+      dockerfile: Dockerfile.reg
+    container_name: tools_registry
+    ports:
+      - "8001:8001"
+    networks:
+      - crewai_network
     volumes:
-      - ./config:/home/user/root/crewai-sheets-ui/config/
-      
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - /usr/bin/docker:/usr/bin/docker
+    tty: true
+    stdin_open: true
+
+networks:
+  crewai_network:
+    driver: bridge
