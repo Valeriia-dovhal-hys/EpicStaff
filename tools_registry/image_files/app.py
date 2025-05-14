@@ -13,18 +13,15 @@ from services.tool_image_service import ToolImageService
 from services.tool_container_service import (
     ToolContainerService,
 )
-from services.registry import Registry
 
 import docker
 
 docker.from_env()
 
 app = FastAPI()
-registry = Registry()
 import_tool_data_repository = ImportToolDataRepository()
 
 tool_image_service = ToolImageService(
-    registry=registry, 
     import_tool_data_repository=import_tool_data_repository
 )
 tool_container_service = ToolContainerService(

@@ -1,5 +1,4 @@
 from services.docker_tools.build_tool import ToolDockerImageBuilder
-from services.registry import Registry
 from repositories.import_tool_data_repository import ImportToolDataRepository
 from docker.models.images import Image
 import docker
@@ -11,9 +10,8 @@ class ToolImageService:
     docker_client: DockerClient = docker.from_env()
 
     def __init__(
-        self, registry: Registry, import_tool_data_repository: ImportToolDataRepository
+        self, import_tool_data_repository: ImportToolDataRepository
     ):
-        self.registry = registry
         self.import_tool_data_repository = import_tool_data_repository
 
     def build_image(self, image_name: str) -> Image:
