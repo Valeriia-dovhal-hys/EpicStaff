@@ -16,11 +16,7 @@ class ToolImageService:
         self.registry = registry
         self.import_tool_data_repository = import_tool_data_repository
 
-    def build_tool_alias(self, tool_alias: str) -> Image:
-
-        image_name = self.import_tool_data_repository.find_image_name_by_tool_alias(
-            tool_alias=tool_alias
-        )
+    def build_image(self, image_name: str) -> Image:
 
         import_tool_data = self.import_tool_data_repository.get_import_class_data(
             image_name=image_name
@@ -34,6 +30,7 @@ class ToolImageService:
         return tdib.build_tool_image(image_name=import_tool_data.image_name)
 
     def get_or_build_tool_alias(self, tool_alias: str) -> Image:
+
         image_name = self.import_tool_data_repository.find_image_name_by_tool_alias(
             tool_alias=tool_alias
         )
@@ -41,4 +38,4 @@ class ToolImageService:
         if image_list:
             return image_list[0]
 
-        return self.build_tool_alias(tool_alias=tool_alias)
+        return self.build_image(image_name=image_name)

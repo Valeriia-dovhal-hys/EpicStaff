@@ -3,17 +3,17 @@ from typing import Any, List, Dict, Optional, Set
 from pathlib import Path
 
 from pydantic import BaseModel
-from base_models import Callable, ImportToolData
+from base_models import Callable, ImportToolData  # need when we copy for docker image
 
 base_path = Path(__file__).resolve().parent
 
-class ImportToolDataRepository:
 
+class ImportToolDataRepository:
     tools_config_path = base_path.parent / "tools_config.json"
     tools_paths_path = base_path.parent / "tools_paths.json"
 
     def __init__(
-        self, *, tools_config_path=None, tools_paths_path=None, force_build=False
+            self, *, tools_config_path=None, tools_paths_path=None, force_build=False
     ):
         if tools_config_path:
             self.tools_config_path = tools_config_path
@@ -94,7 +94,6 @@ class ImportToolDataRepository:
         tool_dict = {}
 
         for tool_alias, data in tool_group.get("tool_dict").items():
-
             class_name = data["class_name"]
             module_path = self.tools_paths.get(class_name)
             package = data.get("package")
