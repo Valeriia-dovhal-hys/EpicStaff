@@ -1,37 +1,36 @@
 # Use a base image with Python 3.12.3
 FROM python:3.12.3
 
-# Set environment variables for Poetry
-ENV POETRY_VERSION=1.8.3 \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \
-    POETRY_NO_INTERACTION=1
+# Install updated pip, setuptools, and wheel
+RUN pip install --upgrade pip setuptools wheel
 
-# Install dependencies for Poetry and Python
-RUN apt-get update && \
-    apt-get install -y curl && \
-    curl -sSL https://install.python-poetry.org | python3 - && \
-    apt-get clean
+# Install crewai and its tools
+RUN pip install poetry
 
-# Add Poetry to the PATH
-ENV PATH="/root/.local/bin:$PATH"
 
 # Set the working directory in the Docker image
 WORKDIR /home/user/root/crewai-sheets-ui
 
-# Copy pyproject.toml and poetry.lock first to avoid rebuilding on code changes
-COPY pyproject.toml poetry.lock ./
-COPY libraries/ ./libraries
-
 ENV PEP517_BUILD_BACKEND=setuptools.build_meta
 
-# Install Python dependencies using Poetry, clearing cache
-RUN poetry install --no-root --no-dev
-RUN rm -rf /root/.cache
+COPY pyproject.toml .
+COPY poetry.lock .
+COPY libraries/ ./libraries
+
+
+# Configure poetry to not create a virtual environment and install dependencies and delete cache
+# Maybe poetry cache clear --all
+RUN poetry config virtualenvs.create false && poetry install && rm -rf /root/.cache
 
 #Coping file to workdir
 COPY . .
 
-CMD ["poetry", "run", "python3", "/home/user/root/crewai-sheets-ui/src/main.py"]
+# Expose port 11434
+#EXPOSE 11434
+
+# WORKDIR /home/user/root/savefiles
+
+ENTRYPOINT ["poetry", "run", "python3", "/home/user/root/crewai-sheets-ui/src/main.py"]
 
 
 # CMD if [ -z "$OPENAI_API_KEY" ]; then \

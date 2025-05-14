@@ -21,4 +21,6 @@ class ImportToolData(BaseModel):
     force_build: bool = False
 
 
-
+class RunToolParamsModel(BaseModel):
+    run_args: list[str]
+    run_kwargs: dict[str, Any]
