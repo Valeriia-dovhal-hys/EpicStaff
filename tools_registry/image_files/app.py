@@ -1,3 +1,4 @@
+import json
 import os
 import time
 
@@ -5,7 +6,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 import uvicorn
 import requests
-
+from fastapi.responses import JSONResponse
 from models.models import RunToolParamsModel
 from repositories.import_tool_data_repository import ImportToolDataRepository
 from services.tool_image_service import ToolImageService
@@ -15,10 +16,8 @@ from services.tool_container_service import (
 from services.registry import Registry
 
 import docker
-from docker.models.containers import Container
 
 docker.from_env()
-client: Container = docker.client
 
 app = FastAPI()
 registry = Registry()
@@ -32,11 +31,14 @@ tool_container_service = ToolContainerService(
     tool_image_service=tool_image_service,
     import_tool_data_repository=import_tool_data_repository
 )
+# TODO ADD LOGGER
+# TODO add error handlers (if error in important request -send to some service)
 
 
 @app.get("/tool/list", status_code=200)
 async def get_all_tool_aliases(tool_alias: str):
-    return
+
+    return JSONResponse(status_code=500, content={"error": "Not Implemented"})
 
 
 @app.get("/tool/{tool_alias}/class-data", status_code=200)
@@ -46,8 +48,8 @@ async def get_class_data(tool_alias: str):
 
 
 @app.post("/tool/{tool_alias}/run", status_code=200)
-async def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
-
+def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
+    # logger.debug(f"run tool {tool_alias} with params {run_tool_params_model.dict()}")
     return tool_container_service.request_run_tool(
         tool_alias=tool_alias, run_tool_params_model=run_tool_params_model
     )

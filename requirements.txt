@@ -1,8 +1,0 @@
-crewai
-crewai[tools]
-open-interpreter
-pandas
-ollama
-langchain_community
-langchain-anthropic
-rich

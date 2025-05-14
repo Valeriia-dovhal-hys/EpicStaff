@@ -4,7 +4,7 @@ from docker.models.containers import Container
 from docker.errors import ImageNotFound, NotFound
 from pathlib import Path
 
-
+# TODO IF NEEDED
 class ToolsRegistryContainerBuilder:
 
     client = docker.client.from_env()
