@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Union
 import typing
 from pydantic import BaseModel
 
@@ -11,10 +11,15 @@ class Callable(BaseModel):
     kwargs: dict[str, Union[str, "Callable", typing.Iterable, typing.Dict]] | None = (
         None
     )
+    # args: list[Union[str, "Callable"]] | None = None
+    # kwargs: dict[str, Union[str, "Callable"]] | None = None
+
 
 class ImportToolData(BaseModel):
-    image_name: str
-    tool_dict: Dict[str, Callable]  # alias, Callable
-    
+    callable: Callable
     dependencies: list[str] | None = None
     force_build: bool = False
+
+
+class RunToolModel(BaseModel):
+    run_params_txt: str
