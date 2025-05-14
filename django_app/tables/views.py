@@ -8,8 +8,8 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from django.core.paginator import Paginator, EmptyPage
 
-from django_app.tables.services.session_manager_service import SessionManagerService
-from django_app.tables.services.crew_runner_service import CrewRunnerService
+from .services.session_manager_service import SessionManagerService
+from .services.crew_runner_service import CrewRunnerService
 
 
 from .models import (
@@ -25,7 +25,7 @@ from .model_serializers import SessionSerializer
 
 
 session_manager_service = SessionManagerService()
-crew_runner_service = CrewRunnerService()
+crew_runner_service = CrewRunnerService(session_manager_service=session_manager_service)
 
 
 class SessionViewSet(viewsets.ReadOnlyModelViewSet):

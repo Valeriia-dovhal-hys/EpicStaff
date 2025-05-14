@@ -1,4 +1,4 @@
-from django_app.tables.models import Session
+from tables.models import Session
 
 
 class SessionManagerService:
