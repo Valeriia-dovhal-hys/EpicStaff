@@ -53,6 +53,7 @@ class Tool(models.Model):
         return self.description
 
 
+# TODO: change many to many to something else
 class EnabledTools(models.Model):
     tools = models.ManyToManyField(Tool)
 
@@ -61,7 +62,7 @@ class Agent(models.Model):
     role = models.TextField()
     goal = models.TextField()
     backstory = models.TextField()
-    tools = models.ManyToManyField(Tool)
+    tools = models.ManyToManyField(Tool, blank=True)
     allow_delegation = models.BooleanField(default=False)
     memory = models.TextField(null=True, blank=True)
     max_iter = models.IntegerField(default=25)
@@ -100,7 +101,7 @@ class Crew(models.Model):
     comments = models.TextField(null=True, blank=True)
     name = models.TextField()
     assignment = models.TextField()
-    agents = models.ManyToManyField(Agent)
+    agents = models.ManyToManyField(Agent, blank=True)
     process = models.CharField(
         max_length=255, choices=Process, default=Process.SEQUENTIAL
     )
@@ -152,11 +153,12 @@ class SessionMessage(models.Model):
     class MessageFrom(models.TextChoices):
         USER = "user"
         CREW = "crew"
+
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
 
     text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True) 
-    
+    created_at = models.DateTimeField(auto_now_add=True)
+
     message_from = models.CharField(
         choices=MessageFrom.choices, max_length=255, blank=False, null=False
     )
