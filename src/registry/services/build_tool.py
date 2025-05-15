@@ -8,15 +8,15 @@ from typing import Any
 import docker
 from docker.models.images import Image
 
-from .base_models import Callable
-from .pickle_encode import obj_to_txt
+from services.base_models import Callable
+from services.pickle_encode import obj_to_txt
 
 client = docker.from_env()
 
 
 class ToolDockerImageBuilder:
-    dockerfile = Path("./services/docker_tools/Dockerfile.tool")
-    image_files = Path("./services/docker_tools/tool_image_files/")
+    dockerfile = Path("./tool/Dockerfile.tool")
+    image_files = Path("./tool")
 
     default_imports = [
         "python-dotenv",

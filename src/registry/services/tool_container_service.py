@@ -1,12 +1,11 @@
 import time
+import requests
+
+import docker
 from docker.models.images import Image
 from docker.models.containers import Container
 
-import docker
-import requests
-
 from models.models import RunToolParamsModel
-
 from repositories.import_tool_data_repository import (
     ImportToolDataRepository,
 )
@@ -24,7 +23,7 @@ class ToolContainerService:
         self.tool_image_service = tool_image_service
         self.import_tool_data_repository = import_tool_data_repository
         
-        tr_container = self.docker_client.containers.get('tools_registry')
+        tr_container = self.docker_client.containers.get('tools_registry_container')
         network_settings = tr_container.attrs['NetworkSettings']
         self.network_name = list(network_settings['Networks'].keys())[0]
 
@@ -86,7 +85,6 @@ class ToolContainerService:
         self, image: Image, container_name=None, port: int = 0
     ) -> Container:
         if container_name is None:
-            print(image.tags)
             container_name = image.tags[0].split(":")[0]
 
         container_tool = self.docker_client.containers.run(
