@@ -10,10 +10,8 @@ class ToolsRegistryContainerBuilder:
     client = docker.client.from_env()
     image_name = "tools_registry"
     port = 8001
-    dockerfile = Path('./src/registry/Dockerfile.reg').resolve().as_posix()
-    path = Path('./src/registry').resolve().as_posix()
-    tool_image_files_path = Path('./src/tool').resolve().as_posix()
-    crew_image_files_path = Path('./src/crew').resolve().as_posix()
+    dockerfile = Path('./registry/Dockerfile.reg').as_posix()
+    path = Path('./src').as_posix()
     container_name = "tools_registry_container"
 
     def __init__(self, *, image_name="tools_registry", port=8001, force_build=False):
@@ -54,16 +52,6 @@ class ToolsRegistryContainerBuilder:
                     'bind': '/usr/bin/docker', 
                     'mode': 'rw'
                 },
-
-                str(self.tool_image_files_path): {
-                    'bind': '/usr/src/app/tool',
-                    'mode': 'rw'
-                },
-
-                str(self.crew_image_files_path): {
-                    'bind': '/usr/src/app/crew',
-                    'mode': 'rw'
-                }
             },
             tty=True,
             stdin_open=True,
