@@ -1,0 +1,47 @@
+# Use a base image with Python 3.12.3
+FROM python:3.12.3
+
+# Set environment variables for Poetry
+ENV POETRY_VERSION=1.8.3 \
+    POETRY_VIRTUALENVS_IN_PROJECT=true \
+    POETRY_NO_INTERACTION=1
+
+# Install dependencies for Poetry and Python
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -sSL https://install.python-poetry.org | python3 - && \
+    apt-get clean
+
+# Add Poetry to the PATH
+ENV PATH="/root/.local/bin:$PATH"
+
+# Set the working directory in the Docker image
+WORKDIR /home/user/root/crewai-sheets-ui
+
+# Copy pyproject.toml and poetry.lock first to avoid rebuilding on code changes
+COPY pyproject.toml poetry.lock ./
+COPY libraries/ ./libraries
+
+ENV PEP517_BUILD_BACKEND=setuptools.build_meta
+
+# Install Python dependencies using Poetry, clearing cache
+RUN poetry install --no-root --no-dev
+RUN rm -rf /root/.cache
+
+#Coping file to workdir
+COPY . .
+
+CMD ["poetry", "run", "python3", "/home/user/root/crewai-sheets-ui/main.py"]
+
+
+# CMD if [ -z "$OPENAI_API_KEY" ]; then \
+#       echo "See https://github.com/yuriwa/crewai-sheets-ui for instructions on how run this Docker container" && \
+#       echo "Minimal usage: docker run -it -p 11434:11434 -v $(pwd)/savefiles:/home/user/root/savefiles -e OPENAI_API_KEY='YOUR API KEY' crewai-image" && \
+#       echo "You can replace $(pwd)$(pwd)/savefiles with the path to your savefiles folder"; \
+#     elif [ ! -d "/home/user/root/savefiles" ]; then \
+#       echo "The required volume is not mounted." && \
+#       echo "See https://github.com/yuriwa/crewai-sheets-ui for instructions on how run this Docker container" && \
+#       echo "Minimal usage: docker run -it -p 11434:11434 -v $(pwd)/savefiles:/home/user/root/savefiles -e OPENAI_API_KEY='YOUR API KEY' crewai-image" && \
+#       echo "You can replace $(pwd)$(pwd)/savefiles with the path to your savefiles folder"; \
+#     fi
+
