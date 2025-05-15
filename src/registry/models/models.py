@@ -22,3 +22,5 @@ class RunToolResponseModel(BaseModel):
     data: str
 
 
+class RunCrewResponseModel(BaseModel):
+    data: str

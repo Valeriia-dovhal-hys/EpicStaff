@@ -12,12 +12,12 @@ from models.models import (
     ToolListResponseModel,
     ClassDataResponseModel,
     RunToolResponseModel,
+    RunCrewResponseModel,
 )
 from repositories.import_tool_data_repository import ImportToolDataRepository
 from services.tool_image_service import ToolImageService
-from services.tool_container_service import (
-    ToolContainerService,
-)
+from services.tool_container_service import ToolContainerService
+from services.crew_container_service import CrewContainerService
 
 
 import docker
@@ -34,16 +34,19 @@ tool_container_service = ToolContainerService(
     tool_image_service=tool_image_service,
     import_tool_data_repository=import_tool_data_repository,
 )
+crew_container_service = CrewContainerService()
 # TODO ADD LOGGER
 # TODO add error handlers (if error in important request -send to some service)
 
-print("hello")
 
 @app.post(
     "/crew/run", status_code=200
 )
-def run(tool_alias: str, run_crew_model: RunCrewModel):
-    return
+def run(run_crew_model: RunCrewModel):
+    run_crew_data = crew_container_service.request_run_crew(run_crew_model)
+    return RunCrewResponseModel(
+        data=run_crew_data
+    )
 
 
 @app.get("/tool/list", status_code=200, response_model=ToolListResponseModel)
