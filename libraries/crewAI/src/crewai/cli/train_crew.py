@@ -3,21 +3,18 @@ import subprocess
 import click
 
 
-def train_crew(n_iterations: int, filename: str) -> None:
+def train_crew(n_iterations: int) -> None:
     """
     Train the crew by running a command in the Poetry environment.
 
     Args:
         n_iterations (int): The number of iterations to train the crew.
     """
-    command = ["poetry", "run", "train", str(n_iterations), filename]
+    command = ["poetry", "run", "train", str(n_iterations)]
 
     try:
         if n_iterations <= 0:
             raise ValueError("The number of iterations must be a positive integer.")
-
-        if not filename.endswith(".pkl"):
-            raise ValueError("The filename must not end with .pkl")
 
         result = subprocess.run(command, capture_output=False, text=True, check=True)
 
