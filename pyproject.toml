@@ -12,27 +12,20 @@ packages = [
 
 
 [tool.poetry.dependencies]
-python = ">=3.10,<=3.12.5"
+python = ">=3.11,<=3.13"
 crewai = { path = "libraries/crewAI" }
 crewai-tools = "*"
 pandas = "*"
 ollama = "*"
 langchain-anthropic = "*"
-langchain-groq = "<=0.1.3"
+langchain-groq = "*"
+langchain-community = ">=0.2"
 rich = "*"
-restrictedpython = "*"
-langchain-community = "*"
-duckduckgo-search = "*"
-wikipedia = "*"
 sentry-sdk = "*"
 open-interpreter = "*"
 langgraph = "*"
-google-auth-oauthlib = "^1.2.1"
 typing-extensions = "^4.12.2"
 pyyaml = "^6.0.2"
-google-auth = "^2.34.0"
-google-auth-httplib2 = "^0.2.0"
-google-api-python-client = "^2.142.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
