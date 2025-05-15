@@ -1,7 +1,12 @@
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from base_models import Callable, RunToolParamsModel
+from base_models import Callable
+from models.models import (
+    RunToolParamsModel,
+    ClassDataResponseModel,
+    RunToolResponseModel,
+)
 from tool import get_tool_data, create_tool, run_tool
 from pickle_encode import obj_to_txt, txt_to_obj
 import uvicorn
@@ -16,23 +21,29 @@ for k, v in tool_alias_callable_dict.items():
     tool_alias_dict[k] = create_tool(v)
 
 
-@app.get("/tool/{tool_alias}/class-data/", status_code=200)
-async def get_class_data(tool_alias: str):
+@app.get(
+    "/tool/{tool_alias}/class-data/",
+    status_code=200,
+    response_model=ClassDataResponseModel,
+)
+def get_class_data(tool_alias: str):
     tool_data = get_tool_data(tool_alias_dict[tool_alias])
     txt = obj_to_txt(tool_data)
-    return {"classdata": txt}
+    return ClassDataResponseModel(classdata=txt)
 
 
-@app.post("/tool/{tool_alias}/run", status_code=200)
-async def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
-  
+@app.post(
+    "/tool/{tool_alias}/run", status_code=200, response_model=RunToolResponseModel
+)
+def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
+
     result = run_tool(
         tool_alias_dict[tool_alias],
         run_tool_params_model.run_args,
         run_tool_params_model.run_kwargs,
     )
 
-    return {"data": result}
+    return RunToolResponseModel(data=result)
 
 
 if __name__ == "__main__":
