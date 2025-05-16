@@ -31,7 +31,8 @@ class EmbeddingModel(models.Model):
         Provider, on_delete=models.SET_NULL, null=True
     )
 
-
+    deployment = models.TextField(null=True, blank=True)
+    base_url = models.URLField(null=True, blank=True)
 
 
 class Tool(models.Model):
@@ -46,7 +47,6 @@ class Tool(models.Model):
         EmbeddingModel, on_delete=models.SET_NULL, null=True
     )
     enabled = models.BooleanField(default=True)
-
 
     def __str__(self):
         return self.description
@@ -105,8 +105,9 @@ class Crew(models.Model):
         EmbeddingModel, on_delete=models.SET_NULL, null=True
     )
     manager_llm_model = models.ForeignKey(LLMModel, on_delete=models.CASCADE)
-    manager_llm_config = models.ForeignKey(ConfigLLM, on_delete=models.SET_NULL, null=True)
-    
+    manager_llm_config = models.ForeignKey(
+        ConfigLLM, on_delete=models.SET_NULL, null=True
+    )
 
     def __str__(self):
         return self.name
