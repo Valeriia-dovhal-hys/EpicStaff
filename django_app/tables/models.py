@@ -45,14 +45,11 @@ class Tool(models.Model):
     embedding_model = models.ForeignKey(
         EmbeddingModel, on_delete=models.SET_NULL, null=True
     )
+    enabled = models.BooleanField(default=True)
+
 
     def __str__(self):
         return self.description
-
-
-# TODO: change many to many to something else
-class EnabledTools(models.Model):
-    tools = models.ManyToManyField(Tool)
 
 
 class Agent(models.Model):

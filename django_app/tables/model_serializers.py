@@ -6,7 +6,6 @@ from .models import (
     LLMModel,
     EmbeddingModel,
     Tool,
-    EnabledTools,
     Agent,
     Crew,
     Task,
@@ -52,13 +51,6 @@ class ToolSerializer(serializers.ModelSerializer):
         model = Tool
         fields = "__all__"
 
-
-class EnabledToolsSerializer(serializers.ModelSerializer):
-    tools = ToolSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = EnabledTools
-        fields = "__all__"
 
 
 class AgentSerializer(serializers.ModelSerializer):

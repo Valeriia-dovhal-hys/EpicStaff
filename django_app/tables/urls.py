@@ -7,7 +7,6 @@ from .model_views import (
     LLMModelViewSet,
     EmbeddingModelViewSet,
     ToolViewSet,
-    EnabledToolsViewSet,
     AgentViewSet,
     CrewViewSet,
     TaskViewSet,
@@ -28,7 +27,6 @@ router.register(r"providers", ProviderViewSet)
 router.register(r"llm-models", LLMModelViewSet)
 router.register(r"embedding-models", EmbeddingModelViewSet)
 router.register(r"tools", ToolViewSet)
-router.register(r"enabled-tools", EnabledToolsViewSet)
 router.register(r"agents", AgentViewSet)
 router.register(r"crews", CrewViewSet)
 router.register(r"tasks", TaskViewSet)

@@ -1,7 +1,6 @@
 from rest_framework import viewsets
 
 
-
 from .models import (
     TemplateAgent,
     ConfigLLM,
@@ -9,7 +8,6 @@ from .models import (
     LLMModel,
     EmbeddingModel,
     Tool,
-    EnabledTools,
     Agent,
     Crew,
     Task,
@@ -21,11 +19,11 @@ from .model_serializers import (
     LLMModelSerializer,
     EmbeddingModelSerializer,
     ToolSerializer,
-    EnabledToolsSerializer,
     AgentSerializer,
     CrewSerializer,
     TaskSerializer,
 )
+
 
 class TemplateAgentViewSet(viewsets.ModelViewSet):
     queryset = TemplateAgent.objects.all()
@@ -52,15 +50,9 @@ class EmbeddingModelViewSet(viewsets.ModelViewSet):
     serializer_class = EmbeddingModelSerializer
 
 
-
-class ToolViewSet(viewsets.ModelViewSet): 
+class ToolViewSet(viewsets.ModelViewSet):
     queryset = Tool.objects.all()
     serializer_class = ToolSerializer
-
-
-class EnabledToolsViewSet(viewsets.ModelViewSet):
-    queryset = EnabledTools.objects.all()
-    serializer_class = EnabledToolsSerializer
 
 
 class AgentViewSet(viewsets.ModelViewSet):
