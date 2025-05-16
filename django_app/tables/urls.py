@@ -1,17 +1,20 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .model_views import (
-    TemplateAgentViewSet,
-    ConfigLLMViewSet,
-    ProviderViewSet,
-    LLMModelViewSet,
-    EmbeddingModelViewSet,
-    ToolViewSet,
-    AgentViewSet,
-    CrewViewSet,
-    TaskViewSet,
+
+from tables.views.model_view_sets import (
+    TemplateAgentReadWriteViewSet,
+    ConfigLLMReadWriteViewSet,
+    ProviderReadWriteViewSet,
+    LLMModelReadWriteViewSet,
+    EmbeddingModelReadWriteViewSet,
+    ToolReadWriteViewSet,
+    AgentReadWriteViewSet,
+    CrewReadWriteViewSet,
+    TaskReadWriteViewSet,
 )
-from .views import (
+
+
+from .views.views import (
     AnswerToLLM,
     SessionMessageListView,
     SessionViewSet,
@@ -21,15 +24,19 @@ from .views import (
 )
 
 router = DefaultRouter()
-router.register(r"template-agents", TemplateAgentViewSet)
-router.register(r"config-llm", ConfigLLMViewSet)
-router.register(r"providers", ProviderViewSet)
-router.register(r"llm-models", LLMModelViewSet)
-router.register(r"embedding-models", EmbeddingModelViewSet)
-router.register(r"tools", ToolViewSet)
-router.register(r"agents", AgentViewSet)
-router.register(r"crews", CrewViewSet)
-router.register(r"tasks", TaskViewSet)
+router.register(r"template-agents", TemplateAgentReadWriteViewSet)
+
+
+router.register(r"config-llm", ConfigLLMReadWriteViewSet)
+router.register(r"providers", ProviderReadWriteViewSet)
+router.register(r"llm-models", LLMModelReadWriteViewSet)
+router.register(r"embedding-models", EmbeddingModelReadWriteViewSet)
+router.register(r"tools", ToolReadWriteViewSet)
+router.register(r"agents", AgentReadWriteViewSet)
+router.register(r"crews", CrewReadWriteViewSet)
+router.register(r"tasks", TaskReadWriteViewSet)
+
+
 router.register(r"sessions", SessionViewSet)
 
 urlpatterns = [

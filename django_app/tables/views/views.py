@@ -8,20 +8,19 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from django.core.paginator import Paginator, EmptyPage
 
-from .services.session_manager_service import SessionManagerService
-from .services.crew_runner_service import CrewRunnerService
+from tables.services.session_manager_service import SessionManagerService
+from tables.services.crew_runner_service import CrewRunnerService
 
 
-from .models import (
+from tables.models import (
     SessionMessage,
     Session,
 )
-from .serializers import (
+from tables.serializers.serializers import (
     AnswerToLLMSerializer,
-    SessionMessageSerializer,
     RunCrewSerializer,
 )
-from .model_serializers import SessionSerializer
+from tables.serializers.nested_model_serializers import NestedSessionSerializer, SessionMessageSerializer
 
 
 session_manager_service = SessionManagerService()
@@ -30,7 +29,7 @@ crew_runner_service = CrewRunnerService(session_manager_service=session_manager_
 
 class SessionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Session.objects.all()
-    serializer_class = SessionSerializer
+    serializer_class = NestedSessionSerializer
 
 
 class SessionMessageListView(generics.ListAPIView):

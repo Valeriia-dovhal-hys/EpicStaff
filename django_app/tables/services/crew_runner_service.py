@@ -1,7 +1,10 @@
-from tables.models import Crew
-from .session_manager_service import SessionManagerService
+from tables.models import Crew, Task
+from tables.services.session_manager_service import SessionManagerService
 from django.forms.models import model_to_dict
-from tables.model_serializers import CrewSerializer
+from tables.serializers.nested_model_serializers import (
+    NestedCrewSerializer,
+    NestedTaskSerializer,
+)
 
 
 class CrewRunnerService:
@@ -12,11 +15,12 @@ class CrewRunnerService:
     def run_crew(self, crew_id) -> int:
 
         crew = Crew.objects.get(pk=crew_id)
-        serialized_data = CrewSerializer(crew).data
+        serialized_crew = NestedCrewSerializer(crew).data
+        tasks = Task.objects.filter(crew=crew_id)
+        serialized_task_list = NestedTaskSerializer(tasks, many=True)
 
-        print(serialized_data)
+        serialized_crew["tasks"] = serialized_task_list
+        print(serialized_crew)
 
         session = self.session_manager_service.create_session(crew_id=crew_id)
         return session.pk
-    
-

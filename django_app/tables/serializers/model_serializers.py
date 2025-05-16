@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import (
+from ..models import (
     TemplateAgent,
     ConfigLLM,
     Provider,
@@ -26,7 +26,6 @@ class ProviderSerializer(serializers.ModelSerializer):
 
 
 class LLMModelSerializer(serializers.ModelSerializer):
-    llm_provider = ProviderSerializer(read_only=True)
 
     class Meta:
         model = LLMModel
@@ -34,7 +33,6 @@ class LLMModelSerializer(serializers.ModelSerializer):
 
 
 class EmbeddingModelSerializer(serializers.ModelSerializer):
-    embedding_provider = ProviderSerializer(read_only=True)
 
     class Meta:
         model = EmbeddingModel
@@ -42,32 +40,18 @@ class EmbeddingModelSerializer(serializers.ModelSerializer):
 
 
 class ToolSerializer(serializers.ModelSerializer):
-    llm_model = LLMModelSerializer(read_only=True)
-    llm_config = ConfigLLMSerializer(read_only=True)
-
-    embedding_model = EmbeddingModelSerializer(read_only=True)
-
     class Meta:
         model = Tool
         fields = "__all__"
 
 
-
 class AgentSerializer(serializers.ModelSerializer):
-    tools = ToolSerializer(many=True, read_only=True)
-    llm_model = LLMModelSerializer(read_only=True)
-    llm_config = ConfigLLMSerializer(read_only=True)
-
-    fcm_llm_model = LLMModelSerializer(read_only=True)
-    fcm_llm_config = ConfigLLMSerializer(read_only=True)
-
     class Meta:
         model = Agent
         fields = "__all__"
 
 
 class TemplateAgentSerializer(serializers.ModelSerializer):
-    agent = AgentSerializer(read_only=True)
 
     class Meta:
         model = TemplateAgent
@@ -75,25 +59,31 @@ class TemplateAgentSerializer(serializers.ModelSerializer):
 
 
 class CrewSerializer(serializers.ModelSerializer):
-    agents = AgentSerializer(many=True, read_only=True)
-    embedding_model = EmbeddingModelSerializer(read_only=True)
-    manager_llm_model = LLMModelSerializer(read_only=True)
-    manager_llm_config = ConfigLLMSerializer(read_only=True)
+
     class Meta:
         model = Crew
         fields = "__all__"
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    crew = CrewSerializer(read_only=True)
-    agent = AgentSerializer(read_only=True)
 
     class Meta:
         model = Task
-        fields = "__all__"
+
+        fields = [
+            "crew",
+            "name",
+            "agent",
+            "instructions",
+            "expected_output",
+            "order",
+        ]
 
 
 class SessionSerializer(serializers.ModelSerializer):
+    crew = CrewSerializer(read_only=True)
+    agent = AgentSerializer(read_only=True)
+
     class Meta:
         model = Session
         fields = ["crew", "status"]
