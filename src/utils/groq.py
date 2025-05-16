@@ -15,10 +15,8 @@ from langchain_core.messages import AIMessageChunk, BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
 from langchain_core.pydantic_v1 import BaseModel
 from langchain_groq import ChatGroq
-from langchain_groq.chat_models import (
-    _convert_delta_to_message_chunk,
-    _convert_dict_to_message,
-)
+from langchain_groq.chat_models import _convert_dict_to_message
+from langchain_community.chat_models.litellm import _convert_delta_to_message_chunk
 from rich.console import Console
 import tiktoken
 

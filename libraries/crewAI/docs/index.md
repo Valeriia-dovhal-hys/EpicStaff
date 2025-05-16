@@ -6,6 +6,26 @@ Cutting-edge framework for orchestrating role-playing, autonomous AI agents. By 
 
 <div style="display:flex; margin:0 auto; justify-content: center;">
     <div style="width:25%">
+        <h2>Getting Started</h2>
+        <ul>
+            <li>
+                <a href='./getting-started/Installing-CrewAI'>
+                   Installing CrewAI
+                </a>
+            </li>
+            <li>
+                <a href='./getting-started/Start-a-New-CrewAI-Project-Template-Method'>
+                   Start a New CrewAI Project: Template Method
+                </a>
+            </li>
+            <li>
+                <a href='./getting-started/Create-a-New-CrewAI-Pipeline-Template-Method'>
+                    Create a New CrewAI Pipeline: Template Method
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div style="width:25%">
         <h2>Core Concepts</h2>
         <ul>
             <li>
@@ -34,6 +54,21 @@ Cutting-edge framework for orchestrating role-playing, autonomous AI agents. By 
                 </a>
             </li>
             <li>
+                <a href="./core-concepts/LLMs">
+                    LLMs
+                </a>
+            </li>
+            <!-- <li>
+                <a href="./core-concepts/Flows">
+                    Flows
+                </a>
+            </li> -->
+            <li>
+                <a href="./core-concepts/Pipeline">
+                    Pipeline
+                </a>
+            </li>
+            <li>
                 <a href="./core-concepts/Training-Crew">
                     Training
                 </a>
@@ -43,21 +78,21 @@ Cutting-edge framework for orchestrating role-playing, autonomous AI agents. By 
                     Memory
                 </a>
             </li>
+            <li>
+                <a href="./core-concepts/Planning">
+                    Planning
+                </a>
+            </li>
+            <li>
+                <a href="./core-concepts/Testing">
+                    Testing
+                </a>
+            </li>
         </ul>
     </div>
     <div style="width:30%">
         <h2>How-To Guides</h2>
         <ul>
-            <li>
-                <a href="./how-to/Installing-CrewAI">
-                    Installing crewAI
-                </a>
-            </li>
-            <li>
-                <a href="./how-to/Creating-a-Crew-and-kick-it-off">
-                    Getting Started
-                </a>
-            </li>
             <li>
                 <a href="./how-to/Create-Custom-Tools">
                     Create Custom Tools
@@ -89,6 +124,11 @@ Cutting-edge framework for orchestrating role-playing, autonomous AI agents. By 
                 </a>
             </li>
             <li>
+                <a href="./how-to/Force-Tool-Ouput-as-Result">
+                    Forcing Tool Output as Result
+                </a>
+            </li>
+            <li>
                 <a href="./how-to/Human-Input-on-Execution">
                     Human Input on Execution
                 </a>
@@ -104,6 +144,16 @@ Cutting-edge framework for orchestrating role-playing, autonomous AI agents. By 
                 </a>
             </li>
             <li>
+                <a href="./how-to/Replay-tasks-from-latest-Crew-Kickoff">
+                    Replay from a Task
+                </a>
+            </li>
+            <li>
+                <a href="./how-to/Conditional-Tasks">
+                    Conditional Tasks
+                </a>
+            </li>
+            <li>
                 <a href="./how-to/AgentOps-Observability">
                     Agent Monitoring with AgentOps
                 </a>
@@ -115,7 +165,7 @@ Cutting-edge framework for orchestrating role-playing, autonomous AI agents. By 
             </li>
         </ul>
     </div>
-    <div style="width:30%">
+    <!-- <div style="width:30%">
         <h2>Examples</h2>
         <ul>
             <li>
@@ -153,6 +203,26 @@ Cutting-edge framework for orchestrating role-playing, autonomous AI agents. By 
                     Landing Page Generator
                 </a>
             </li>
+            <li>
+                <a target='_blank' href="https://github.com/crewAIInc/crewAI-examples/tree/main/email_auto_responder_flow">
+                    Email Auto Responder Flow
+                </a>
+            </li>
+            <li>
+                <a target='_blank' href="https://github.com/crewAIInc/crewAI-examples/tree/main/lead-score-flow">
+                    Lead Score Flow
+                </a>
+            </li>
+            <li>
+                <a target='_blank' href="https://github.com/crewAIInc/crewAI-examples/tree/main/write_a_book_with_flows">
+                    Write a Book Flow
+                </a>
+            </li>
+            <li>
+                <a target='_blank' href="https://github.com/crewAIInc/crewAI-examples/tree/main/meeting_assistant_flow">
+                    Meeting Assistant Flow
+                </a>
+            </li>
         </ul>
-    </div>
+    </div> -->
 </div>

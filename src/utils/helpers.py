@@ -1,5 +1,4 @@
 import logging
-import sys
 
 from .envpy import load_env_from_yaml_config
 
@@ -42,13 +41,6 @@ To get you started, copy this sheet template and create your agents and tasks. I
     # Print the greeting using Rich's Markdown support for nice formatting
     console.print(Markdown(greeting_message))
     console.print("\n")
-
-
-def signal_handler(sig, frame):
-    print(
-        "\n\nI received a termination signal. You are the Terminator?! I'll shut down gracefully...\n\n"
-    )
-    sys.exit(0)
 
 
 def after_read_sheet_print(agents_df, tasks_df):
