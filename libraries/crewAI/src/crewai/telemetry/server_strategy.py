@@ -4,9 +4,22 @@ import asyncio
 import json
 import os
 import platform
+import warnings
+
 from crewai.crew import Crew
 from crewai.task import Task
-import pkg_resources
+
+from contextlib import contextmanager
+
+@contextmanager
+def suppress_warnings():
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore")
+        yield
+
+
+with suppress_warnings():
+    import pkg_resources
 
 from crewai.telemetry.abstract_telemetry_strategy import AbstractTelemetryStrategy
 
