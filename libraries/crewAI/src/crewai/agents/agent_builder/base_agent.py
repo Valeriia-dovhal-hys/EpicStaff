@@ -1,12 +1,12 @@
 import uuid
 from abc import ABC, abstractmethod
 from copy import copy as shallow_copy
-from hashlib import md5
 from typing import Any, Dict, List, Optional, TypeVar
 
 from pydantic import (
     UUID4,
     BaseModel,
+    ConfigDict,
     Field,
     InstanceOf,
     PrivateAttr,
@@ -19,7 +19,6 @@ from crewai.agents.agent_builder.utilities.base_token_process import TokenProces
 from crewai.agents.cache.cache_handler import CacheHandler
 from crewai.agents.tools_handler import ToolsHandler
 from crewai.utilities import I18N, Logger, RPMController
-from crewai.utilities.config import process_config
 
 T = TypeVar("T", bound="BaseAgent")
 
@@ -45,7 +44,6 @@ class BaseAgent(ABC, BaseModel):
         i18n (I18N): Internationalization settings.
         cache_handler (InstanceOf[CacheHandler]): An instance of the CacheHandler class.
         tools_handler (InstanceOf[ToolsHandler]): An instance of the ToolsHandler class.
-        max_tokens: Maximum number of tokens for the agent to generate in a response.
 
 
     Methods:
@@ -74,25 +72,20 @@ class BaseAgent(ABC, BaseModel):
     """
 
     __hash__ = object.__hash__  # type: ignore
-    _logger: Logger = PrivateAttr(default_factory=lambda: Logger(verbose=False))
-    _rpm_controller: Optional[RPMController] = PrivateAttr(default=None)
+    _logger: Logger = PrivateAttr()
+    _rpm_controller: RPMController = PrivateAttr(default=None)
     _request_within_rpm_limit: Any = PrivateAttr(default=None)
-    _original_role: Optional[str] = PrivateAttr(default=None)
-    _original_goal: Optional[str] = PrivateAttr(default=None)
-    _original_backstory: Optional[str] = PrivateAttr(default=None)
-    _token_process: TokenProcess = PrivateAttr(default_factory=TokenProcess)
+    formatting_errors: int = 0
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     id: UUID4 = Field(default_factory=uuid.uuid4, frozen=True)
-    formatting_errors: int = Field(
-        default=0, description="Number of formatting errors."
-    )
     role: str = Field(description="Role of the agent")
     goal: str = Field(description="Objective of the agent")
     backstory: str = Field(description="Backstory of the agent")
-    config: Optional[Dict[str, Any]] = Field(
-        description="Configuration for the agent", default=None, exclude=True
-    )
     cache: bool = Field(
         default=True, description="Whether the agent should use a cache for tool usage."
+    )
+    config: Optional[Dict[str, Any]] = Field(
+        description="Configuration for the agent", default=None
     )
     verbose: bool = Field(
         default=False, description="Verbose mode for the Agent Execution"
@@ -102,8 +95,7 @@ class BaseAgent(ABC, BaseModel):
         description="Maximum number of requests per minute for the agent execution to be respected.",
     )
     allow_delegation: bool = Field(
-        default=False,
-        description="Enable agent to delegate and ask questions among each other.",
+        default=True, description="Allow delegation of tasks to agents"
     )
     tools: Optional[List[Any]] = Field(
         default_factory=list, description="Tools at agents' disposal"
@@ -125,33 +117,21 @@ class BaseAgent(ABC, BaseModel):
     tools_handler: InstanceOf[ToolsHandler] = Field(
         default=None, description="An instance of the ToolsHandler class."
     )
-    max_tokens: Optional[int] = Field(
-        default=None, description="Maximum number of tokens for the agent's execution."
-    )
 
-    @model_validator(mode="before")
-    @classmethod
-    def process_model_config(cls, values):
-        return process_config(values, cls)
+    _original_role: str | None = None
+    _original_goal: str | None = None
+    _original_backstory: str | None = None
+    _token_process: TokenProcess = TokenProcess()
+
+    def __init__(__pydantic_self__, **data):
+        config = data.pop("config", {})
+        super().__init__(**config, **data)
 
     @model_validator(mode="after")
-    def validate_and_set_attributes(self):
-        # Validate required fields
-        for field in ["role", "goal", "backstory"]:
-            if getattr(self, field) is None:
-                raise ValueError(
-                    f"{field} must be provided either directly or through config"
-                )
-
-        # Set private attributes
-        self._logger = Logger(verbose=self.verbose)
-        if self.max_rpm and not self._rpm_controller:
-            self._rpm_controller = RPMController(
-                max_rpm=self.max_rpm, logger=self._logger
-            )
-        if not self._token_process:
-            self._token_process = TokenProcess()
-
+    def set_config_attributes(self):
+        if self.config:
+            for key, value in self.config.items():
+                setattr(self, key, value)
         return self
 
     @field_validator("id", mode="before")
@@ -163,9 +143,17 @@ class BaseAgent(ABC, BaseModel):
             )
 
     @model_validator(mode="after")
+    def set_attributes_based_on_config(self) -> "BaseAgent":
+        """Set attributes based on the agent configuration."""
+        if self.config:
+            for key, value in self.config.items():
+                setattr(self, key, value)
+        return self
+
+    @model_validator(mode="after")
     def set_private_attrs(self):
         """Set private attributes."""
-        self._logger = Logger(verbose=self.verbose)
+        self._logger = Logger(self.verbose)
         if self.max_rpm and not self._rpm_controller:
             self._rpm_controller = RPMController(
                 max_rpm=self.max_rpm, logger=self._logger
@@ -173,15 +161,6 @@ class BaseAgent(ABC, BaseModel):
         if not self._token_process:
             self._token_process = TokenProcess()
         return self
-
-    @property
-    def key(self):
-        source = [
-            self._original_role or self.role,
-            self._original_goal or self.goal,
-            self._original_backstory or self.backstory,
-        ]
-        return md5("|".join(source).encode(), usedforsecurity=False).hexdigest()
 
     @abstractmethod
     def execute_task(
@@ -201,7 +180,7 @@ class BaseAgent(ABC, BaseModel):
         pass
 
     @abstractmethod
-    def get_delegation_tools(self, agents: List["BaseAgent"]) -> List[Any]:
+    def get_delegation_tools(self, agents: List["BaseAgent"]):
         """Set the task tools that init BaseAgenTools class."""
         pass
 
@@ -212,7 +191,7 @@ class BaseAgent(ABC, BaseModel):
         """Get the converter class for the agent to create json/pydantic outputs."""
         pass
 
-    def copy(self: T) -> T:  # type: ignore # Signature of "copy" incompatible with supertype "BaseModel"
+    def copy(self: T) -> T:
         """Create a deep copy of the Agent."""
         exclude = {
             "id",
@@ -229,8 +208,10 @@ class BaseAgent(ABC, BaseModel):
 
         # Copy llm and clear callbacks
         existing_llm = shallow_copy(self.llm)
+        existing_llm.callbacks = []
         copied_data = self.model_dump(exclude=exclude)
         copied_data = {k: v for k, v in copied_data.items() if v is not None}
+
         copied_agent = type(self)(**copied_data, llm=existing_llm, tools=self.tools)
 
         return copied_agent

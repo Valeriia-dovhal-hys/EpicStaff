@@ -179,3 +179,4 @@ config.yaml
 /credentials
 oauth2_credentials.json
 token.json
+django_app/sqlite3.db

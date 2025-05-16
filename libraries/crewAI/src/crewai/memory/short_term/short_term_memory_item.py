@@ -3,10 +3,7 @@ from typing import Any, Dict, Optional
 
 class ShortTermMemoryItem:
     def __init__(
-        self,
-        data: Any,
-        agent: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        self, data: Any, agent: str, metadata: Optional[Dict[str, Any]] = None
     ):
         self.data = data
         self.agent = agent

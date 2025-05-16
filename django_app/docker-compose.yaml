@@ -1,0 +1,35 @@
+services:
+  django_app:
+    build:
+      context: .
+    command: python manage.py runserver 0.0.0.0:8000
+    container_name: django_app
+    ports:
+      - "8000:8000"
+    networks:
+      - postgres-network
+    depends_on:
+      - crewdb
+  
+
+  crewdb:
+    image: postgres
+    container_name: crewdb
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=crew
+      - POSTGRES_PASSWORD=admin
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - pgdata:/var/lib/postgresql/data/pgdata
+    networks:
+      - postgres-network
+
+volumes:
+  pgdata:
+
+networks:
+  postgres-network:
+    driver: bridge
+

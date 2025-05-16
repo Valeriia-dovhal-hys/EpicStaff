@@ -74,17 +74,15 @@ task2 = Task(
         "Aim for a narrative that captures the essence of these breakthroughs and their implications for the future."
     ),
     expected_output='A compelling 3 paragraphs blog post formatted as markdown about the latest AI advancements in 2024',
-    agent=writer,
-    human_input=True
+    agent=writer
 )
 
 # Instantiate your crew with a sequential process
 crew = Crew(
     agents=[researcher, writer],
     tasks=[task1, task2],
-    verbose=True,
+    verbose=2,
     memory=True,
-    planning=True  # Enable planning feature for the crew
 )
 
 # Get your crew to work!
