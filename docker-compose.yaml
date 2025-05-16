@@ -1,36 +1,18 @@
 version: '3.8' 
 
 services:
-  main_crewai_script:
+  crewai-sheets:
     environment:
       - HAYSTACK_TELEMETRY_ENABLED=False
       - ANONYMIZED_TELEMETRY=False
       - EC_TELEMETRY=False
       - MONITORING_MODE=local
     build:
-      context: .
       dockerfile: Dockerfile.ci
-    container_name: main_crewai_script
-    ports:
-      - "8000:8000"
-    networks:
-      - fastapi_network
-    depends_on:
-      - tools_registry
-  
-
-  tools_registry:
-    build: 
-      context: ./tools_registry/image_files
-      dockerfile: ./tools_registry/Dockerfile.reg
-    container_name: tools_registry
-    ports:
-      - "8001:8001"
-    networks:
-      - fastapi_network
-
-
-networks:
-  fastapi_network:
-    driver: bridge
-
+      context: .
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    
+    volumes:
+      - ./config:/home/user/root/crewai-sheets-ui/config/
+      
