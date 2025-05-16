@@ -2,10 +2,13 @@ FROM python:3.12.3-slim
 
 WORKDIR /usr/src/app
 
-COPY requirements.txt ./
+COPY ./registry/requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY ./registry .
+COPY ./tool ./tool
+COPY ./crew ./crew
+
 
 CMD [ "python", "app.py" ]
