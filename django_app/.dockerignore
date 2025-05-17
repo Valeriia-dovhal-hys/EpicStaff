@@ -1,5 +1,0 @@
-ENV
-.env
-./config
-venv
-.venv

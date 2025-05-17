@@ -19,7 +19,8 @@ ENV PATH="/root/.local/bin:$PATH"
 WORKDIR /home/user/root/crewai-sheets-ui
 
 # Copy pyproject.toml and poetry.lock first to avoid rebuilding on code changes
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml .
+COPY poetry.lock .
 COPY libraries/ ./libraries
 
 ENV PEP517_BUILD_BACKEND=setuptools.build_meta
@@ -28,10 +29,10 @@ ENV PEP517_BUILD_BACKEND=setuptools.build_meta
 RUN poetry install --no-root --no-dev
 RUN rm -rf /root/.cache
 
-#Coping file to workdir
+#Copying file to workdir
 COPY . .
 
-CMD ["poetry", "run", "python3", "/home/user/root/crewai-sheets-ui/src/main.py"]
+CMD ["poetry", "run", "python3", "/home/user/root/crewai-sheets-ui/main.py"]
 
 
 # CMD if [ -z "$OPENAI_API_KEY" ]; then \
