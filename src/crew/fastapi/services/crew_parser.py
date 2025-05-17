@@ -4,11 +4,12 @@ from textwrap import dedent
 from typing import Any
 
 from crewai import Agent, Crew, Task
+
 from langchain_core.tools import BaseTool
 
 
-from src.fastapi.services.proxy_tool_factory import ProxyToolFactory
-from src.utils import get_llm
+from src.crew.fastapi.services.proxy_tool_factory import ProxyToolFactory
+from src.crew.utils import get_llm
 
 
 class CrewParser:

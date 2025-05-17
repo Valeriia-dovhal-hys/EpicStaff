@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from src.fastapi.services.crew_parser import CrewParser
+from src.crew.fastapi.services.crew_parser import CrewParser
 
 
 with open(Path("tests/main_crew_parser/test_json.json"), "r") as f:
