@@ -1,12 +1,13 @@
-from typing import Any, Dict, Optional
-
-from pydantic import BaseModel, PrivateAttr
+from typing import Optional
 
 
-class CacheHandler(BaseModel):
+class CacheHandler:
     """Callback handler for tool usage."""
 
-    _cache: Dict[str, Any] = PrivateAttr(default_factory=dict)
+    _cache: dict = {}
+
+    def __init__(self):
+        self._cache = {}
 
     def add(self, tool, input, output):
         self._cache[f"{tool}-{input}"] = output

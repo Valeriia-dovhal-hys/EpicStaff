@@ -39,6 +39,6 @@ class FileLogger(AbstractLogger):
         if self.verbose_level and level_map.get(level, 0) <= self.verbose_level:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             text = f"[{timestamp}][{level.upper()}]: {message}"
-
+            # todo refactor
             with open(self._filepath, "a") as f:
                 f.write(text+"\n")

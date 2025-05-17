@@ -14,8 +14,8 @@ class LongTermMemory(Memory):
     LongTermMemoryItem instances.
     """
 
-    def __init__(self, storage=None):
-        storage = storage if storage else LTMSQLiteStorage()
+    def __init__(self):
+        storage = LTMSQLiteStorage()
         super().__init__(storage)
 
     def save(self, item: LongTermMemoryItem) -> None:  # type: ignore # BUG?: Signature of "save" incompatible with supertype "Memory"
@@ -30,6 +30,3 @@ class LongTermMemory(Memory):
 
     def search(self, task: str, latest_n: int = 3) -> Dict[str, Any]:
         return self.storage.load(task, latest_n)  # type: ignore # BUG?: "Storage" has no attribute "load"
-
-    def reset(self) -> None:
-        self.storage.reset()
