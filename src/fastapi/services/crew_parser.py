@@ -193,4 +193,4 @@ class CrewParser:
             for task_data in task_list_data
         ]
 
-        return Crew(config=crew_config)
+        return Crew(**crew_config)
