@@ -1,21 +1,31 @@
+import os
 from typing import List
 
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
 from crewai.utilities import Converter
 from crewai.utilities.pydantic_schema_parser import PydanticSchemaParser
 
-agentops = None
-try:
-    from agentops import track_agent
-except ImportError:
 
-    def track_agent(name):
+def mock_agent_ops_provider():
+    def track_agent(*args, **kwargs):
         def noop(f):
             return f
 
         return noop
+
+    return track_agent
+
+
+agentops = None
+
+if os.environ.get("AGENTOPS_API_KEY"):
+    try:
+        from agentops import track_agent
+    except ImportError:
+        track_agent = mock_agent_ops_provider()
+else:
+    track_agent = mock_agent_ops_provider()
 
 
 class Entity(BaseModel):
@@ -39,7 +49,7 @@ class TaskEvaluation(BaseModel):
 
 class TrainingTaskEvaluation(BaseModel):
     suggestions: List[str] = Field(
-        description="Based on the Human Feedbacks and the comparison between Initial Outputs and Improved outputs provide action items based on human_feedback for future tasks."
+        description="List of clear, actionable instructions derived from the Human Feedbacks to enhance the Agent's performance. Analyze the differences between Initial Outputs and Improved Outputs to generate specific action items for future tasks. Ensure all key and specific points from the human feedback are incorporated into these instructions."
     )
     quality: float = Field(
         description="A score from 0 to 10 evaluating on completion, quality, and overall performance from the improved output to the initial output based on the human feedback."
@@ -54,23 +64,23 @@ class TaskEvaluator:
     def __init__(self, original_agent):
         self.llm = original_agent.llm
 
-    def evaluate(self, task, ouput) -> TaskEvaluation:
+    def evaluate(self, task, output) -> TaskEvaluation:
         evaluation_query = (
             f"Assess the quality of the task completed based on the description, expected output, and actual results.\n\n"
             f"Task Description:\n{task.description}\n\n"
             f"Expected Output:\n{task.expected_output}\n\n"
-            f"Actual Output:\n{ouput}\n\n"
+            f"Actual Output:\n{output}\n\n"
             "Please provide:\n"
             "- Bullet points suggestions to improve future similar tasks\n"
             "- A score from 0 to 10 evaluating on completion, quality, and overall performance"
             "- Entities extracted from the task output, if any, their type, description, and relationships"
         )
 
-        instructions = "I'm gonna convert this raw text into valid JSON."
+        instructions = "Convert all responses into valid JSON output."
 
-        if not self._is_gpt(self.llm):
+        if not self.llm.supports_function_calling():
             model_schema = PydanticSchemaParser(model=TaskEvaluation).get_schema()
-            instructions = f"{instructions}\n\nThe json should have the following structure, with the following keys:\n{model_schema}"
+            instructions = f"{instructions}\n\nReturn only valid JSON with the following schema:\n```json\n{model_schema}\n```"
 
         converter = Converter(
             llm=self.llm,
@@ -80,9 +90,6 @@ class TaskEvaluator:
         )
 
         return converter.to_pydantic()
-
-    def _is_gpt(self, llm) -> bool:
-        return isinstance(llm, ChatOpenAI) and llm.openai_api_base is None
 
     def evaluate_training_data(
         self, training_data: dict, agent_id: str
@@ -109,12 +116,12 @@ class TaskEvaluator:
             "Assess the quality of the training data based on the llm output, human feedback , and llm output improved result.\n\n"
             f"{final_aggregated_data}"
             "Please provide:\n"
-            "- Based on the Human Feedbacks and the comparison between Initial Outputs and Improved outputs provide action items based on human_feedback for future tasks\n"
+            "- Provide a list of clear, actionable instructions derived from the Human Feedbacks to enhance the Agent's performance. Analyze the differences between Initial Outputs and Improved Outputs to generate specific action items for future tasks. Ensure all key and specificpoints from the human feedback are incorporated into these instructions.\n"
             "- A score from 0 to 10 evaluating on completion, quality, and overall performance from the improved output to the initial output based on the human feedback\n"
         )
         instructions = "I'm gonna convert this raw text into valid JSON."
 
-        if not self._is_gpt(self.llm):
+        if not self.llm.supports_function_calling():
             model_schema = PydanticSchemaParser(
                 model=TrainingTaskEvaluation
             ).get_schema()
