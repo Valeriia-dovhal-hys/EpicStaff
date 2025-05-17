@@ -46,13 +46,19 @@ class ToolSerializer(serializers.ModelSerializer):
 
 
 class AgentSerializer(serializers.ModelSerializer):
+    tools = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Tool.objects.all(), default=[]
+    )
+
     class Meta:
         model = Agent
         fields = "__all__"
 
 
 class TemplateAgentSerializer(serializers.ModelSerializer):
-
+    tools = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Tool.objects.all(), default=[]
+    )
     class Meta:
         model = TemplateAgent
         fields = "__all__"
