@@ -98,7 +98,44 @@ class Agent(models.Model):
 
 
 class TemplateAgent(models.Model):
-    agent = models.ForeignKey(Agent, on_delete=models.PROTECT)
+    role = models.TextField()
+    goal = models.TextField()
+    backstory = models.TextField()
+    tools = models.ManyToManyField(Tool, blank=True, default=[])
+    allow_delegation = models.BooleanField(default=False)
+    memory = models.TextField(null=True, blank=True)
+    max_iter = models.IntegerField(default=25)
+    llm_model = models.ForeignKey(
+        LLMModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="llm_template_agents",
+        default=None,
+    )
+    fcm_llm_model = models.ForeignKey(
+        LLMModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="fcm_template_agents",
+        default=None,
+    )
+    llm_config = models.ForeignKey(
+        ConfigLLM,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="llm_template_agents_config",
+        default=None,
+    )
+    fcm_llm_config = models.ForeignKey(
+        ConfigLLM,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="fcm_template_agents_config",
+        default=None,
+    )
+
+    def __str__(self):
+        return self.role
 
 
 class Crew(models.Model):
