@@ -28,13 +28,11 @@ class ConfigLLM(models.Model):
 class EmbeddingModel(models.Model):
     name = models.TextField()
     embedding_provider = models.ForeignKey(
-        Provider, on_delete=models.SET_NULL, null=True
+        Provider, on_delete=models.SET_NULL, null=True, default=None
     )
 
-
-class ManagerLLMModel(models.Model):
-    llm_model = models.ForeignKey(LLMModel, on_delete=models.CASCADE)
-    llm_config = models.ForeignKey(ConfigLLM, on_delete=models.SET_NULL, null=True)
+    deployment = models.TextField(null=True, blank=True)
+    base_url = models.URLField(null=True, blank=True, default=None)
 
 
 class Tool(models.Model):
@@ -42,46 +40,57 @@ class Tool(models.Model):
     description = models.TextField()
     requires_model = models.BooleanField()
 
-    llm_model = models.ForeignKey(LLMModel, on_delete=models.SET_NULL, null=True)
-    llm_config = models.ForeignKey(ConfigLLM, on_delete=models.SET_NULL, null=True)
+    llm_model = models.ForeignKey(
+        LLMModel, on_delete=models.SET_NULL, null=True, default=None
+    )
+    llm_config = models.ForeignKey(
+        ConfigLLM, on_delete=models.SET_NULL, null=True, default=None
+    )
 
     embedding_model = models.ForeignKey(
-        EmbeddingModel, on_delete=models.SET_NULL, null=True
+        EmbeddingModel, on_delete=models.SET_NULL, null=True, default=None
     )
+    enabled = models.BooleanField(default=True)
 
     def __str__(self):
         return self.description
-
-
-class EnabledTools(models.Model):
-    tools = models.ManyToManyField(Tool)
 
 
 class Agent(models.Model):
     role = models.TextField()
     goal = models.TextField()
     backstory = models.TextField()
-    tools = models.ManyToManyField(Tool)
+    tools = models.ManyToManyField(Tool, blank=True, default=[])
     allow_delegation = models.BooleanField(default=False)
     memory = models.TextField(null=True, blank=True)
     max_iter = models.IntegerField(default=25)
     llm_model = models.ForeignKey(
-        LLMModel, on_delete=models.SET_NULL, null=True, related_name="llm_agents"
+        LLMModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="llm_agents",
+        default=None,
     )
     fcm_llm_model = models.ForeignKey(
-        LLMModel, on_delete=models.SET_NULL, null=True, related_name="fcm_agents"
+        LLMModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="fcm_agents",
+        default=None,
     )
     llm_config = models.ForeignKey(
         ConfigLLM,
         on_delete=models.SET_NULL,
         null=True,
         related_name="llm_agents_config",
+        default=None,
     )
     fcm_llm_config = models.ForeignKey(
         ConfigLLM,
         on_delete=models.SET_NULL,
         null=True,
         related_name="fcm_agents_config",
+        default=None,
     )
 
     def __str__(self):
@@ -100,22 +109,20 @@ class Crew(models.Model):
     comments = models.TextField(null=True, blank=True)
     name = models.TextField()
     assignment = models.TextField()
-    agents = models.ManyToManyField(Agent)
+    agents = models.ManyToManyField(Agent, blank=True)
     process = models.CharField(
         max_length=255, choices=Process, default=Process.SEQUENTIAL
     )
     verbose = models.BooleanField(default=False)
     memory = models.BooleanField(default=False)
     embedding_model = models.ForeignKey(
-        EmbeddingModel, on_delete=models.SET_NULL, null=True
+        EmbeddingModel, on_delete=models.SET_NULL, null=True, default=None
     )
     manager_llm_model = models.ForeignKey(
-        ManagerLLMModel, on_delete=models.SET_NULL, null=True
+        LLMModel, null=True, on_delete=models.SET_NULL, default=None
     )
     manager_llm_config = models.ForeignKey(
-        ConfigLLM,
-        on_delete=models.SET_NULL,
-        null=True,
+        ConfigLLM, null=True, on_delete=models.SET_NULL, default=None
     )
 
     def __str__(self):
@@ -123,12 +130,12 @@ class Crew(models.Model):
 
 
 class Task(models.Model):
-    crew = models.ForeignKey(Crew, on_delete=models.SET_NULL, null=True)
+    crew = models.ForeignKey(Crew, on_delete=models.SET_NULL, null=True, default=None)
     name = models.TextField()
-    agent = models.ForeignKey(Agent, on_delete=models.SET_NULL, null=True)
+    agent = models.ForeignKey(Agent, on_delete=models.SET_NULL, null=True, default=None)
     instructions = models.TextField()
     expected_output = models.TextField()
-    order = models.IntegerField()
+    order = models.IntegerField(default=1)
 
     def __str__(self):
         return self.name
@@ -152,11 +159,12 @@ class SessionMessage(models.Model):
     class MessageFrom(models.TextChoices):
         USER = "user"
         CREW = "crew"
+
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
 
     text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True) 
-    
+    created_at = models.DateTimeField(auto_now_add=True)
+
     message_from = models.CharField(
         choices=MessageFrom.choices, max_length=255, blank=False, null=False
     )

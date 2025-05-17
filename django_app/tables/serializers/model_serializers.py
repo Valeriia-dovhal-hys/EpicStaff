@@ -1,24 +1,16 @@
 from rest_framework import serializers
-from .models import (
+from ..models import (
     TemplateAgent,
     ConfigLLM,
     Provider,
     LLMModel,
     EmbeddingModel,
-    ManagerLLMModel,
     Tool,
-    EnabledTools,
     Agent,
     Crew,
     Task,
     Session,
 )
-
-
-class TemplateAgentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TemplateAgent
-        fields = "__all__"
 
 
 class ConfigLLMSerializer(serializers.ModelSerializer):
@@ -34,20 +26,16 @@ class ProviderSerializer(serializers.ModelSerializer):
 
 
 class LLMModelSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = LLMModel
         fields = "__all__"
 
 
 class EmbeddingModelSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = EmbeddingModel
-        fields = "__all__"
-
-
-class ManagerLLMModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ManagerLLMModel
         fields = "__all__"
 
 
@@ -57,31 +45,45 @@ class ToolSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class EnabledToolsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EnabledTools
-        fields = "__all__"
-
-
 class AgentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Agent
         fields = "__all__"
 
 
+class TemplateAgentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TemplateAgent
+        fields = "__all__"
+
+
 class CrewSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Crew
         fields = "__all__"
 
 
 class TaskSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Task
-        fields = "__all__"
+
+        fields = [
+            "crew",
+            "name",
+            "agent",
+            "instructions",
+            "expected_output",
+            "order",
+        ]
 
 
 class SessionSerializer(serializers.ModelSerializer):
+    crew = CrewSerializer(read_only=True)
+    agent = AgentSerializer(read_only=True)
+
     class Meta:
         model = Session
         fields = ["crew", "status"]
