@@ -179,4 +179,3 @@ config.yaml
 /credentials
 oauth2_credentials.json
 token.json
-*.db
