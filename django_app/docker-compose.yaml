@@ -2,10 +2,7 @@ services:
   django_app:
     build:
       context: .
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
-
+    command: python manage.py runserver 0.0.0.0:8000
     container_name: django_app
     ports:
       - "8000:8000"
@@ -13,7 +10,7 @@ services:
       - postgres-network
     depends_on:
       - crewdb
-    
+  
 
   crewdb:
     image: postgres
