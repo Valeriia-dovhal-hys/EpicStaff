@@ -11,7 +11,6 @@ class Provider(models.Model):
 class LLMModel(models.Model):
     name = models.TextField()
     comments = models.TextField(null=True, blank=True)
-    context_size = models.IntegerField(default=0)
     llm_provider = models.ForeignKey(Provider, on_delete=models.PROTECT)
     base_url = models.URLField(null=True, blank=True)
     deployment = models.TextField(null=True, blank=True)
