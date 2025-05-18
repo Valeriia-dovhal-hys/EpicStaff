@@ -1,13 +1,11 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, override
 import asyncio
 import json
 import os
 import platform
 import warnings
-
-from crewai.crew import Crew
-from crewai.task import Task
 
 from contextlib import contextmanager
 

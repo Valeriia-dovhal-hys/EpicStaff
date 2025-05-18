@@ -1,14 +1,12 @@
+from __future__ import annotations
+
 import pkg_resources
 import json
-from __future__ import annotations
 from typing import TYPE_CHECKING, Any, override
 
-from crewai.crew import Crew
-from crewai.task import Task
 from opentelemetry.trace import Span
 from crewai.telemetry.abstract_telemetry_strategy import AbstractTelemetryStrategy
 
-from crewai.utilities import Logger
 from crewai.utilities.logger import FileLogger
 
 if TYPE_CHECKING:
