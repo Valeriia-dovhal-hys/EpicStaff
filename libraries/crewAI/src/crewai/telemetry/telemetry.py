@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import os
-import warnings
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 
 from crewai.telemetry.logger_strategy import LoggerStrategy
 from crewai.telemetry.server_strategy import ServerStrategy
-from crewai.utilities import Logger
 from crewai.telemetry.abstract_telemetry_strategy import AbstractTelemetryStrategy
 from crewai.utilities.logger import FileLogger
 
