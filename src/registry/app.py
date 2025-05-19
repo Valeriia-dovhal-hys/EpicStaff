@@ -1,8 +1,3 @@
-import json
-import os
-import time
-
-from dotenv import load_dotenv
 from fastapi import FastAPI
 import uvicorn
 from fastapi.responses import JSONResponse
@@ -14,17 +9,17 @@ from models.models import (
     RunToolResponseModel,
     RunCrewResponseModel,
 )
+
+
 from repositories.import_tool_data_repository import ImportToolDataRepository
 from services.tool_image_service import ToolImageService
 from services.tool_container_service import ToolContainerService
 from services.crew_container_service import CrewContainerService
+from helpers.yaml_parser import load_env_from_yaml_config
 
-
-import docker
-
-docker.from_env()
 
 app = FastAPI()
+
 import_tool_data_repository = ImportToolDataRepository()
 
 tool_image_service = ToolImageService(
@@ -35,6 +30,8 @@ tool_container_service = ToolContainerService(
     import_tool_data_repository=import_tool_data_repository,
 )
 crew_container_service = CrewContainerService()
+
+
 # TODO ADD LOGGER
 # TODO add error handlers (if error in important request -send to some service)
 
@@ -81,4 +78,5 @@ def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
 
 
 if __name__ == "__main__":
+    load_env_from_yaml_config('./registry_config.yaml')
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True, workers=1)
