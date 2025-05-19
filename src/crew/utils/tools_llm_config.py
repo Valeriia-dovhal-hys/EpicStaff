@@ -1,7 +1,7 @@
 import os
 import logging
 import pandas as pd
-from src.crew.utils.helpers import load_env
+from utils.helpers import load_env
 
 logger = logging.getLogger(__name__)
 # load_env("../../ENV/.env", ["OPENAI_API_KEY",])

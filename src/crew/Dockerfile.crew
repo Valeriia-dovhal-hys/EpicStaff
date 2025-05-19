@@ -32,6 +32,6 @@ RUN rm -rf /root/.cache
 #Copying file to workdir
 COPY . .
 
-CMD ["poetry", "run", "python3", "/home/user/root/crewai-sheets-ui/fastapi/app.py"]
+CMD ["poetry", "run", "python3", "/home/user/root/crewai-sheets-ui/fastapi_app/app.py"]
 
 

@@ -7,7 +7,7 @@ from typing import Optional, Type, Any, List
 from pydantic.v1 import BaseModel, Field, validator
 from crewai_tools import BaseTool
 
-from src.tools.route_tool import RouteTool
+from tools.route_tool import RouteTool
 
 
 class LineReadFileToolSchema(BaseModel):
@@ -51,7 +51,7 @@ class LineReadFileTool(RouteTool):
                 num_lines = None  # Normalize zero to None to indicate "read all lines"
             elif num_lines < 1:
                 return f"Number of lines argument has to be positive, num_lines = {num_lines} given instead."
-            
+
         # Ensure line_number starts at least from 1
         if line_number < 1:
             return f"Line number should be at least 1, because it's 1-based, but {line_number} was given instead."
@@ -66,7 +66,7 @@ class LineReadFileTool(RouteTool):
         # Calculate the end index for slicing lines; handle case where num_lines is None
         end_index = (line_number - 1) + num_lines if num_lines else len(lines)
         selected_lines = lines[
-            line_number - 1: end_index
+            line_number - 1 : end_index
         ]  # Adjust for zero-based index
 
         if not selected_lines:

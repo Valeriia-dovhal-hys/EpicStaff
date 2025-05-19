@@ -3,15 +3,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 # from langchain_community.llms  import Ollama
-from src.crew.utils.ollama_loader import OllamaLoader
-import src.crew.config.config as config
+from utils.ollama_loader import OllamaLoader
+import config.config as config
 from langchain_community.llms import HuggingFaceEndpoint
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI, AzureOpenAI, AzureChatOpenAI
 
 # from langchain_groq import ChatGroq
-from src.crew.utils.groq import TokenThrottledChatGroq
-from src.crew.utils.helpers import load_env
+from utils.groq import TokenThrottledChatGroq
+from utils.helpers import load_env
 from ollama import pull, list
 import os
 from tqdm import tqdm
