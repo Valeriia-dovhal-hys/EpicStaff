@@ -15,4 +15,4 @@ rc-tests/*
 *.pkl
 temp/*
 .vscode/*
-log.txt
+crew_tasks_output.json

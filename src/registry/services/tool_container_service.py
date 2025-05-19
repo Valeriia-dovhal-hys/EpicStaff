@@ -85,7 +85,7 @@ class ToolContainerService:
         self, image: Image, container_name=None, port: int = 0
     ) -> Container:
         if container_name is None:
-            container_name = image.tags[-1].split(":")[0]
+            container_name = image.tags[0].split(":")[0]
 
         container_tool = self.docker_client.containers.run(
             image=image,

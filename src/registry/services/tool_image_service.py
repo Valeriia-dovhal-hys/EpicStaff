@@ -1,5 +1,3 @@
-import os
-
 from services.build_tool import ToolDockerImageBuilder
 from repositories.import_tool_data_repository import ImportToolDataRepository
 
@@ -10,7 +8,7 @@ from docker.client import DockerClient
 
 
 class ToolImageService:
-    client: DockerClient = docker.from_env()
+    docker_client: DockerClient = docker.from_env()
 
     def __init__(
         self, import_tool_data_repository: ImportToolDataRepository
@@ -35,17 +33,8 @@ class ToolImageService:
         image_name = self.import_tool_data_repository.find_image_name_by_tool_alias(
             tool_alias=tool_alias
         )
-        image_list = self.client.images.list(filters={"label": image_name})
+        image_list = self.docker_client.images.list(filters={"label": image_name})
         if image_list:
             return image_list[0]
-        
-        repo_host = os.getenv("DOCKERHUB_PROFILE_NAME")
-        dockerhub_image_name = f"{repo_host}/{image_name}:latest"
-        pulled_image = self.client.images.pull(dockerhub_image_name)
-        if pulled_image:
-            pulled_image.tag(image_name, force=True)
-            pulled_image = self.client.images.get(image_name)
-            self.client.images.remove(image=dockerhub_image_name)
-            return pulled_image
 
         return self.build_image(image_name=image_name)
