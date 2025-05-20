@@ -45,22 +45,32 @@ class CrewParser:
         tool_alias: str = tool_data.name
         tool_config = dict()
 
-        llm_data = tool_data.llm_model
+        llm_model_data = tool_data.llm_model
         llm_config_data = tool_data.llm_config
-        if llm_data is not None and llm_config_data is not None:
-            tool_config["llm"] = self.parse_llm(
-                llm_data=llm_data, llm_config_data=llm_config_data
-            )
+        if llm_model_data is not None and llm_config_data is not None:
+            tool_config["llm"] = dict(
+                provider=llm_model_data.llm_provider.name,
+                config=dict(
+                    model=llm_model_data.name,
+                    temperature=llm_config_data.temperature,
+                    # top_p=1,
+                    # stream=true,
+                ))
+            
 
-        embedding_data = tool_data.embedding_model
+        embedding_model_data = tool_data.embedding_model
 
-        if embedding_data is not None:
-            tool_config["embedder"] = self.parse_embedder(
-                embedding_model_data=embedding_data
-            )
+        if embedding_model_data is not None:
+            tool_config["embedder"] = dict(
+                provider=embedding_model_data.embedding_provider.name,
+                config=dict(
+                    model=embedding_model_data.name,
+                    # task_type="retrieval_document",
+                    # title="Embeddings",
+            ))
 
         proxy_tool_class = self.proxy_tool_factory.create_proxy_class(
-            tool_alias, tool_config=None # TODO: fix tool_config
+            tool_alias, tool_config=tool_config
         )
 
         return proxy_tool_class()
