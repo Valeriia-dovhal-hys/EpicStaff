@@ -41,7 +41,7 @@ class ProxyToolFactory:
         data["_run"] = lambda *args, **kwargs: self.run_tool_in_container(
             tool_alias=tool_alias,
             tool_config=tool_config,
-            run_params=(args[1:], kwargs),  # remove self
+            run_params=(kwargs.get("args", []), kwargs.get("kwargs", {})),
         )
 
         return type("ProxyTool", (BaseTool,), {**data})  # TODO: Change ProxyTool name
@@ -49,7 +49,7 @@ class ProxyToolFactory:
     def run_tool_in_container(
         self,
         tool_alias: str,
-        tool_config: str,
+        tool_config: dict[str, Any],
         run_params: tuple[tuple, dict[str, Any]],
     ) -> str:
 
