@@ -24,7 +24,7 @@ from utils import get_llm
 class CrewParser:
 
     def __init__(
-        self, tool_registry_host="tool_registry_container", tool_registry_port=8000
+        self, tool_registry_host="tools_registry_container", tool_registry_port=8000
     ):
         self.proxy_tool_factory = ProxyToolFactory(
             host=tool_registry_host, port=tool_registry_port
