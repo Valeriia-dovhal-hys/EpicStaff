@@ -9,7 +9,6 @@ from drf_yasg.utils import swagger_auto_schema
 from django.core.paginator import Paginator, EmptyPage
 
 from tables.services.session_manager_service import SessionManagerService
-from tables.services.registry_container_service import RegistryContainerService
 from tables.services.crew_runner_service import CrewRunnerService
 
 
@@ -25,11 +24,7 @@ from tables.serializers.nested_model_serializers import NestedSessionSerializer,
 
 
 session_manager_service = SessionManagerService()
-registry_container_service = RegistryContainerService(base_url="http://localhost:8001")
-crew_runner_service = CrewRunnerService(
-    session_manager_service=session_manager_service,
-    registry_container_service=registry_container_service,
-)
+crew_runner_service = CrewRunnerService(session_manager_service=session_manager_service)
 
 
 class SessionViewSet(viewsets.ReadOnlyModelViewSet):

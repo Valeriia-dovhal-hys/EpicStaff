@@ -14,7 +14,7 @@ class CrewContainerService:
     def __init__(self):
         self.crew_image_service = CrewImageService()
 
-        tr_container = self.client.containers.get('registry')
+        tr_container = self.client.containers.get('tools_registry_container')
         network_settings = tr_container.attrs['NetworkSettings']
         self.network_name = list(network_settings['Networks'].keys())[0]
 

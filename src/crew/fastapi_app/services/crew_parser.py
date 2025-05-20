@@ -8,7 +8,7 @@ from crewai import Agent, Crew, Task
 from langchain_core.tools import BaseTool
 
 
-from src.crew.fastapi.models.request_models import (
+from fastapi_app.models.request_models import (
     AgentData,
     ConfigLLMData,
     CrewData,
@@ -17,14 +17,14 @@ from src.crew.fastapi.models.request_models import (
     TaskData,
     ToolData,
 )
-from src.crew.fastapi.services.proxy_tool_factory import ProxyToolFactory
-from src.crew.utils import get_llm
+from fastapi_app.services.proxy_tool_factory import ProxyToolFactory
+from utils import get_llm
 
 
 class CrewParser:
 
     def __init__(
-        self, tool_registry_host="tool_registry_container", tool_registry_port=8000
+        self, tool_registry_host="tools_registry_container", tool_registry_port=8000
     ):
         self.proxy_tool_factory = ProxyToolFactory(
             host=tool_registry_host, port=tool_registry_port
@@ -147,7 +147,9 @@ class CrewParser:
 
         return Agent(config=agent_config)
 
-    def parse_task(self, task_data: TaskData, assignment: str, agents: list[Agent]) -> Task:
+    def parse_task(
+        self, task_data: TaskData, assignment: str, agents: list[Agent]
+    ) -> Task:
         description = task_data.instructions.replace("{assignment}", assignment)
         agent = None
         for a in agents:

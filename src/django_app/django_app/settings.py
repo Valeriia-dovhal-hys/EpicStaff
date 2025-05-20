@@ -88,8 +88,7 @@ DATABASES = {
         "NAME": "crew",
         "USER": "postgres",
         "PASSWORD": "admin",
-        "HOST": "crewdb",
-        "PORT": "5432",
+        "HOST": "crewdb"
     }
 }
 
