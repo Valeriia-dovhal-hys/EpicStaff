@@ -1,21 +1,28 @@
 import os
 import time
 
-from crewai import Crew
 from dotenv import load_dotenv
 from fastapi import FastAPI
 import uvicorn
-from fastapi_app.celery_tasks.tasks import kickoff
-from fastapi_app.models.request_models import RunCrewModel
+import requests
 
+import docker
+from docker.models.containers import Container
+
+from .models.request_models import RunCrewModel
+
+docker.from_env()
+client: Container = docker.client
 
 app = FastAPI()
 
 
 @app.post("/crew/run", status_code=200)
 def run_crew(run_crew_model: RunCrewModel):
-    result = kickoff.delay(run_crew_model.data.model_dump_json())
-    return {"result": result.get(timeout=180)}
+    return 
+
+
+
 
 
 if __name__ == "__main__":

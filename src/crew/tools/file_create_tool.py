@@ -7,18 +7,15 @@ logger = logging.getLogger(__name__)
 from pydantic.v1 import BaseModel, Field
 from crewai_tools import BaseTool
 
-from tools.route_tool import RouteTool
+from src.tools.route_tool import RouteTool
 from pathlib import Path
 
 
 class CreateFileSchema(BaseModel):
     """Input for CreateFileTool."""
 
-    file_path: Optional[str] = Field(
-        ...,
-        description=f"""The relative path where the file 
-                                     should be created, including the file name itself""",
-    )
+    file_path: Optional[str] = Field(..., description=f"""The relative path where the file 
+                                     should be created, including the file name itself""")
 
 
 class CreateFileTool(RouteTool):
