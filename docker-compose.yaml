@@ -3,26 +3,46 @@ version: '3.8'
 services:
   main_crewai_script:
     build:
-      context: .
-      dockerfile: Dockerfile.ci
+      context: ./src/crew
+      dockerfile: Dockerfile.crew
     container_name: main_crewai_script
     environment:
-      - HAYSTACK_TELEMETRY_ENABLED=False
-      - ANONYMIZED_TELEMETRY=False
-      - EC_TELEMETRY=False
-      - MONITORING_MODE=local
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     ports:
       - "8000:8000"
     networks:
       - crewai_network
     depends_on:
+      - redis
       - tools_registry
+
+  worker:
+    build:
+      context: ./src/crew
+      dockerfile: Dockerfile.crew
+
+    command: poetry run celery -A fastapi_app.celery_tasks worker --loglevel=info
+    environment:
+      - HAYSTACK_TELEMETRY_ENABLED=False
+      - ANONYMIZED_TELEMETRY=False
+      - EC_TELEMETRY=False
+      - MONITORING_MODE=local
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - crewai_network
+
+    depends_on:
+      - redis
+      - tools_registry
+
 
   tools_registry:
     build:
-      context: ./tools_registry/image_files
-      dockerfile: Dockerfile.reg
-    container_name: tools_registry
+      context: ./src
+      dockerfile: ./registry/Dockerfile.reg
+    container_name: tools_registry_container
     ports:
       - "8001:8001"
     networks:
@@ -32,6 +52,13 @@ services:
       - /usr/bin/docker:/usr/bin/docker
     tty: true
     stdin_open: true
+  
+  
+  redis:
+    image: redis
+    container_name: redis
+    networks:
+      - crewai_network
 
 networks:
   crewai_network:
