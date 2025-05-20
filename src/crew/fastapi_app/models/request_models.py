@@ -70,6 +70,7 @@ class TemplateAgentData(BaseModel):
 
 
 class CrewData(BaseModel):
+    id: int
     comments: Optional[str] = None
     name: str
     assignment: str
