@@ -60,7 +60,7 @@ class CrewParser:
             )
 
         proxy_tool_class = self.proxy_tool_factory.create_proxy_class(
-            tool_alias, tool_config=tool_config
+            tool_alias, tool_config=None # TODO: fix tool_config
         )
 
         return proxy_tool_class()
