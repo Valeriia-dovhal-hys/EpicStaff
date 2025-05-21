@@ -1,8 +1,16 @@
+from __future__ import annotations
 from typing import Optional
+from crewai.utilities.logger import Logger
 
 
 class Printer:
+    def __init__(self):
+        self._logger: Logger = Logger()
+
     def print(self, content: str, color: Optional[str] = None):
+
+        self._logger.log(level="info", message=content)
+
         if color == "purple":
             self._print_purple(content)
         elif color == "red":
