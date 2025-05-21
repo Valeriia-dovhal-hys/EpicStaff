@@ -9,27 +9,9 @@ import os
 
 
 class Logger(BaseModel):
-    verbose: bool
-    redis_host: str
-    redis_port: int
-
-    def __init__(
-        self,
-        verbose: bool = True,
-        redis_host: str | None = None,
-        redis_port: int = 6379,
-        **data,
-    ):
-        super().__init__(**data)
-        
-        self.verbose = verbose
-        self.redis_host = (
-            redis_host
-            if redis_host is not None
-            else os.environ("PROCESS_REDIS_HOST", "redis")
-        )
-        self.redis_port = redis_port 
-        
+    verbose: bool = Field(default=True)
+    redis_host: str | int = Field(default=os.environ.get("PROCESS_REDIS_HOST", "redis"))
+    redis_port: int = Field(default=6379)
 
     def get_crew_id(self) -> int:
         return int(os.environ.get("CREW_ID", 0))
