@@ -5,8 +5,11 @@ services:
       dockerfile: Dockerfile.crew
     container_name: main_crewai_script
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - HAYSTACK_TELEMETRY_ENABLED=False
+      - ANONYMIZED_TELEMETRY=False
+      - EC_TELEMETRY=False
+      - MONITORING_MODE=local
+      - PROCESS_REDIS_HOST=redis
     ports:
       - "8000:8000"
     networks:
@@ -14,30 +17,8 @@ services:
     depends_on:
       - redis
       - tools_registry
-
-  worker:
-    build:
-      context: ./src/crew
-      dockerfile: Dockerfile.crew
-
-    command: poetry run celery -A fastapi_app.celery_tasks worker --loglevel=info
-    environment:
-      - HAYSTACK_TELEMETRY_ENABLED=False
-      - ANONYMIZED_TELEMETRY=False
-      - EC_TELEMETRY=False
-      - MONITORING_MODE=local
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    networks:
-      - crewai_network
-
     volumes:
       - ./config:/home/user/root/crewai-sheets-ui/env_config
-
-    depends_on:
-      - redis
-      - tools_registry
-
 
   tools_registry:
     build:
