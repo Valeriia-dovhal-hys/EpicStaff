@@ -8,7 +8,7 @@ from crewai import Agent, Crew, Task
 from langchain_core.tools import BaseTool
 
 
-from fastapi_app.models.request_models import (
+from models.request_models import (
     AgentData,
     ConfigLLMData,
     CrewData,
@@ -17,7 +17,7 @@ from fastapi_app.models.request_models import (
     TaskData,
     ToolData,
 )
-from fastapi_app.services.proxy_tool_factory import ProxyToolFactory
+from services.proxy_tool_factory import ProxyToolFactory
 from utils import get_llm
 
 

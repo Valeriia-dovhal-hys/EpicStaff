@@ -1,9 +1,10 @@
 import os
-from redis import Redis
-from enum import Enum
+
+
 
 
 class ContainerManagerService:
+    
     def set_env(self, key: str, value: str) -> None:
         os.environ[key] = value
 

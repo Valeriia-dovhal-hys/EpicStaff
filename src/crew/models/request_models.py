@@ -2,10 +2,6 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, HttpUrl
 
 
-class RunCrewModel(BaseModel):
-    # data: dict[str, Any]
-    data: "CrewData"
-
 
 class ProviderData(BaseModel):
     name: str
