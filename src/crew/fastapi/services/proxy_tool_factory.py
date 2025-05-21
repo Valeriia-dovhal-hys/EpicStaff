@@ -5,8 +5,8 @@ from pydantic import BaseModel as V2BaseModel
 from langchain_core.tools import BaseTool
 import requests
 
-from services.schema_converter.converter import generate_model_from_schema
-from services.pickle_encode import txt_to_obj, obj_to_txt
+from src.crew.fastapi.services.schema_converter.converter import generate_model_from_schema
+from src.crew.fastapi.services.pickle_encode import txt_to_obj, obj_to_txt
 from docker import client
 from docker.models.images import Image
 
@@ -41,7 +41,7 @@ class ProxyToolFactory:
         data["_run"] = lambda *args, **kwargs: self.run_tool_in_container(
             tool_alias=tool_alias,
             tool_config=tool_config,
-            run_params=(kwargs.get("args", []), kwargs.get("kwargs", {})),
+            run_params=(args[1:], kwargs),  # remove self
         )
 
         return type("ProxyTool", (BaseTool,), {**data})  # TODO: Change ProxyTool name
@@ -49,7 +49,7 @@ class ProxyToolFactory:
     def run_tool_in_container(
         self,
         tool_alias: str,
-        tool_config: dict[str, Any],
+        tool_config: str,
         run_params: tuple[tuple, dict[str, Any]],
     ) -> str:
 

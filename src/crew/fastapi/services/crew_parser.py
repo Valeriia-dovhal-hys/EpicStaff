@@ -8,7 +8,7 @@ from crewai import Agent, Crew, Task
 from langchain_core.tools import BaseTool
 
 
-from models.request_models import (
+from src.crew.fastapi.models.request_models import (
     AgentData,
     ConfigLLMData,
     CrewData,
@@ -17,14 +17,14 @@ from models.request_models import (
     TaskData,
     ToolData,
 )
-from services.proxy_tool_factory import ProxyToolFactory
-from utils import get_llm
+from src.crew.fastapi.services.proxy_tool_factory import ProxyToolFactory
+from src.crew.utils import get_llm
 
 
 class CrewParser:
 
     def __init__(
-        self, tool_registry_host="tools_registry_container", tool_registry_port=8000
+        self, tool_registry_host="tool_registry_container", tool_registry_port=8000
     ):
         self.proxy_tool_factory = ProxyToolFactory(
             host=tool_registry_host, port=tool_registry_port
@@ -45,29 +45,19 @@ class CrewParser:
         tool_alias: str = tool_data.name
         tool_config = dict()
 
-        llm_model_data = tool_data.llm_model
+        llm_data = tool_data.llm_model
         llm_config_data = tool_data.llm_config
-        if llm_model_data is not None and llm_config_data is not None:
-            tool_config["llm"] = dict(
-                provider=llm_model_data.llm_provider.name,
-                config=dict(
-                    model=llm_model_data.name,
-                    temperature=llm_config_data.temperature,
-                    # top_p=1,
-                    # stream=true,
-                ))
-            
+        if llm_data is not None and llm_config_data is not None:
+            tool_config["llm"] = self.parse_llm(
+                llm_data=llm_data, llm_config_data=llm_config_data
+            )
 
-        embedding_model_data = tool_data.embedding_model
+        embedding_data = tool_data.embedding_model
 
-        if embedding_model_data is not None:
-            tool_config["embedder"] = dict(
-                provider=embedding_model_data.embedding_provider.name,
-                config=dict(
-                    model=embedding_model_data.name,
-                    # task_type="retrieval_document",
-                    # title="Embeddings",
-            ))
+        if embedding_data is not None:
+            tool_config["embedder"] = self.parse_embedder(
+                embedding_model_data=embedding_data
+            )
 
         proxy_tool_class = self.proxy_tool_factory.create_proxy_class(
             tool_alias, tool_config=tool_config
@@ -157,9 +147,7 @@ class CrewParser:
 
         return Agent(config=agent_config)
 
-    def parse_task(
-        self, task_data: TaskData, assignment: str, agents: list[Agent]
-    ) -> Task:
+    def parse_task(self, task_data: TaskData, assignment: str, agents: list[Agent]) -> Task:
         description = task_data.instructions.replace("{assignment}", assignment)
         agent = None
         for a in agents:

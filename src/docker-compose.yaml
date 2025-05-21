@@ -1,19 +1,33 @@
 services:
   django_app:
     build:
-      context: .
+      context: ./django_app
     command: >
       sh -c "python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
-
     container_name: django_app
     ports:
       - "8000:8000"
     networks:
-      - postgres-network
+      - backend-network
     depends_on:
       - crewdb
-    
+      - registry
+
+  registry:
+    build:
+      context: .
+      dockerfile: ./registry/Dockerfile.reg
+    container_name: registry
+    ports:
+      - "8001:8001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - /usr/bin/docker:/usr/bin/docker
+    networks:
+      - backend-network
+    tty: true
+    stdin_open: true
 
   crewdb:
     image: postgres
@@ -27,12 +41,11 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data/pgdata
     networks:
-      - postgres-network
+      - backend-network
 
 volumes:
   pgdata:
 
 networks:
-  postgres-network:
+  backend-network:
     driver: bridge
-

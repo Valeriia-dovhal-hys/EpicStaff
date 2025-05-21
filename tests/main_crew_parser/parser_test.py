@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
-from src.crew.fastapi_app.services.crew_parser import CrewParser
-from src.crew.fastapi_app.models.request_models import CrewData
+from src.crew.fastapi.services.crew_parser import CrewParser
+from src.crew.fastapi.models.request_models import CrewData
 from src.crew.utils.helpers import load_env
 with open(Path("tests/main_crew_parser/test_json.json"), "r") as f:
     test_json = f.read()
