@@ -6,16 +6,16 @@ from pathlib import Path
 
 
 # TODO IF NEEDED
-class ToolsRegistryContainerBuilder:
+class ManagerContainerBuilder:
 
     client = docker.client.from_env()
-    image_name = "tools_registry"
+    image_name = "manager"
     port = 8001
-    dockerfile = Path("./registry/Dockerfile.reg").as_posix()
+    dockerfile = Path("./manager/Dockerfile.reg").as_posix()
     path = Path("./src").as_posix()
-    container_name = "tools_registry_container"
+    container_name = "manager_container"
 
-    def __init__(self, *, image_name="tools_registry", port=8001, force_build=False):
+    def __init__(self, *, image_name="manager", port=8001, force_build=False):
         self.image_name = image_name
         self.port = port
         self.force_build = force_build
@@ -75,5 +75,5 @@ class ToolsRegistryContainerBuilder:
 
 
 if __name__ == "__main__":
-    builder = ToolsRegistryContainerBuilder(force_build=True)
+    builder = ManagerContainerBuilder(force_build=True)
     container = builder.run_container()

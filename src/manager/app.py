@@ -78,5 +78,5 @@ def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
 
 
 if __name__ == "__main__":
-    load_env_from_yaml_config('./registry_config.yaml')
+    load_env_from_yaml_config('./manager_config.yaml')
     uvicorn.run("app:app", host="0.0.0.0", port=8001, reload=True, workers=1)

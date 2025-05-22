@@ -5,16 +5,16 @@ from docker.errors import ImageNotFound, NotFound
 from pathlib import Path
 
 # TODO IF NEEDED
-class ToolsRegistryContainerBuilder:
+class ManagerContainerBuilder:
 
     client = docker.client.from_env()
-    image_name = "tools_registry"
+    image_name = "manager"
     port = 8001
-    dockerfile = Path('./tools_registry/image_files/Dockerfile.reg').resolve().as_posix()
-    path = Path('./tools_registry/image_files').resolve().as_posix()
-    container_name = "tools_registry_container"
+    dockerfile = Path('./manager/image_files/Dockerfile.reg').resolve().as_posix()
+    path = Path('./manager/image_files').resolve().as_posix()
+    container_name = "manager_container"
 
-    def __init__(self, *, image_name="tools_registry", port=8001, force_build=False):
+    def __init__(self, *, image_name="manager", port=8001, force_build=False):
         self.image_name = image_name
         self.port = port
         self.force_build = force_build
@@ -82,6 +82,6 @@ class ToolsRegistryContainerBuilder:
     
 
 if __name__ == "__main__":
-    builder = ToolsRegistryContainerBuilder(force_build=True)
+    builder = ManagerContainerBuilder(force_build=True)
     container = builder.run_container()
 

@@ -12,13 +12,13 @@ services:
       - backend-network
     depends_on:
       - crewdb
-      - registry
+      - manager
 
-  registry:
+  manager:
     build:
       context: .
-      dockerfile: ./registry/Dockerfile.reg
-    container_name: registry
+      dockerfile: ./manager/Dockerfile.man
+    container_name: manager
     ports:
       - "8001:8001"
     volumes:
@@ -40,6 +40,12 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - pgdata:/var/lib/postgresql/data/pgdata
+    networks:
+      - backend-network
+
+  redis:
+    image: redis
+    container_name: redis
     networks:
       - backend-network
 

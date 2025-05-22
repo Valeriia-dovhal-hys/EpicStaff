@@ -1,7 +1,7 @@
 import requests
 from tables.serializers.nested_model_serializers import NestedCrewSerializer
 
-class RegistryContainerService:
+class ManagerContainerService:
     def __init__(self, base_url: str):
         self.base_url = base_url
 
