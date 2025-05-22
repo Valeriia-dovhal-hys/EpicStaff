@@ -25,7 +25,7 @@ from tables.serializers.nested_model_serializers import NestedSessionSerializer,
 
 
 session_manager_service = SessionManagerService()
-registry_container_service = RegistryContainerService(base_url="http://localhost:8001")
+registry_container_service = RegistryContainerService(base_url="http://registry:8001")
 crew_runner_service = CrewRunnerService(
     session_manager_service=session_manager_service,
     registry_container_service=registry_container_service,
