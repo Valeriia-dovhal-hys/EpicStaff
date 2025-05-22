@@ -3,26 +3,55 @@ from datetime import datetime
 from pathlib import Path
 from pydantic import BaseModel, Field, PrivateAttr
 
-from crewai.utilities.printer import Printer
+from redis import Redis
+import json
+import os
 
 
 class Logger(BaseModel):
-    verbose: bool = Field(default=False)
-    _printer: Printer = PrivateAttr(default_factory=Printer)
+    verbose: bool = Field(default=True)
+    redis_host: str | int = Field(default=os.environ.get("PROCESS_REDIS_HOST", "redis"))
+    redis_port: int = Field(default=6379)
 
-    def log(self, level, message, color="bold_yellow"):
-        if self.verbose:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self._printer.print(
-                f"\n[{timestamp}][{level.upper()}]: {message}", color=color
-            )
+    def get_crew_id(self) -> int:
+        return int(os.environ.get("CREW_ID", 0))
+
+    def get_crew_data(self, redis_client: Redis, crew_id: int) -> dict:
+        redis_data = redis_client.get(crew_id)
+
+        if redis_data is None:
+            return dict()
+
+        return json.loads(redis_data)
+
+    def add_message(
+        self, redis_client: Redis, crew_id: int, crew_message: dict
+    ) -> None:
+        crew_data = self.get_crew_data(redis_client=redis_client, crew_id=crew_id)
+        msg_list: list = crew_data.get("messages", [])
+        msg_list.append(crew_message)
+        crew_data["messages"] = msg_list
+        redis_client.set(crew_id, json.dumps(crew_data))
+
+    def log(self, level: str, message: str) -> None:
+        redis_client = Redis(
+            host=self.redis_host, port=self.redis_port, decode_responses=True
+        )
+        crew_id = self.get_crew_id()
+        msg = {
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "level": level,
+            "text": message,
+        }
+
+        self.add_message(redis_client=redis_client, crew_id=crew_id, crew_message=msg)
 
 
-class FileLogger():
+class FileLogger:
     def __init__(self, filepath: Path, verbose_level=0):
         self._filepath = filepath
         self.verbose_level = verbose_level
-        
+
     def log(self, level, message):
         level_map = {"debug": 1, "info": 2}
         if self.verbose_level and level_map.get(level, 0) <= self.verbose_level:
@@ -30,4 +59,4 @@ class FileLogger():
             text = f"[{timestamp}][{level.upper()}]: {message}"
 
             with open(self._filepath, "a") as f:
-                f.write(text+"\n")
+                f.write(text + "\n")
