@@ -32,7 +32,7 @@ RUN rm -rf /root/.cache
 #Copying file to workdir
 COPY . .
 
-CMD ["poetry", "run", "python3", "/home/user/root/crewai-sheets-ui/main.py"]
+CMD ["poetry", "run", "python3", "/home/user/root/crewai-sheets-ui/app.py"]
 
 
 # CMD if [ -z "$OPENAI_API_KEY" ]; then \
