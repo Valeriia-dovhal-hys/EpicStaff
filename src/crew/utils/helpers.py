@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from .envpy import load_env_from_yaml_config
+from utils.envpy import load_env_from_yaml_config
 
 logger = logging.getLogger(__name__)
 logger.debug(f"Entered {__file__}")
