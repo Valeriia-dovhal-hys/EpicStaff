@@ -2,13 +2,13 @@ FROM python:3.12.3-slim
 
 WORKDIR /usr/src/app
 
-COPY ./manager/requirements.txt ./
+COPY ./registry/requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./manager .
+COPY ./registry .
 COPY ./tool ./tool
 COPY ./crew ./crew
 
 
-CMD ["sh", "-c", "python load_config_to_redis.py && python app.py"]
+CMD [ "python", "app.py" ]

@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     "tables",
     "rest_framework",
     "drf_yasg",
-    "django_filters",
 ]
 
 MIDDLEWARE = [
@@ -56,7 +55,6 @@ MIDDLEWARE = [
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 50,
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 
@@ -90,8 +88,7 @@ DATABASES = {
         "NAME": "crew",
         "USER": "postgres",
         "PASSWORD": "admin",
-        "HOST": "crewdb",
-        "PORT": "5432",
+        "HOST": "crewdb"
     }
 }
 

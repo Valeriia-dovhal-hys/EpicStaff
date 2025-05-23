@@ -1,7 +1,6 @@
 from rest_framework import viewsets
 from rest_framework import mixins, viewsets
 from rest_framework.viewsets import ModelViewSet
-from django_filters.rest_framework import DjangoFilterBackend
 
 from tables.models import (
     TemplateAgent,
@@ -14,7 +13,17 @@ from tables.models import (
     Crew,
     Task,
 )
-
+from tables.serializers.nested_model_serializers import (
+    NestedTemplateAgentSerializer,
+    NestedConfigLLMSerializer,
+    NestedProviderSerializer,
+    NestedLLMModelSerializer,
+    NestedEmbeddingModelSerializer,
+    NestedToolSerializer,
+    NestedAgentSerializer,
+    NestedCrewSerializer,
+    NestedTaskSerializer,
+)
 from tables.serializers.model_serializers import (
     TemplateAgentSerializer,
     ConfigLLMSerializer,
@@ -28,52 +37,74 @@ from tables.serializers.model_serializers import (
 )
 
 
-class TemplateAgentReadWriteViewSet(ModelViewSet):
+class ReadWriteModelViewSet(ModelViewSet):
+
+    read_serializer_class = NestedTemplateAgentSerializer
+    write_serializer_class = TemplateAgentSerializer
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            return self.write_serializer_class
+        return self.read_serializer_class
+
+
+class TemplateAgentReadWriteViewSet(ReadWriteModelViewSet):
     queryset = TemplateAgent.objects.all()
-    serializer_class = TemplateAgentSerializer
+
+    read_serializer_class = NestedTemplateAgentSerializer
+    write_serializer_class = TemplateAgentSerializer
 
 
-class ConfigLLMReadWriteViewSet(ModelViewSet):
+class ConfigLLMReadWriteViewSet(ReadWriteModelViewSet):
     queryset = ConfigLLM.objects.all()
-    serializer_class = ConfigLLMSerializer
+
+    read_serializer_class = NestedConfigLLMSerializer
+    write_serializer_class = ConfigLLMSerializer
 
 
-class ProviderReadWriteViewSet(ModelViewSet):
+class ProviderReadWriteViewSet(ReadWriteModelViewSet):
     queryset = Provider.objects.all()
-    serializer_class = ProviderSerializer
+
+    read_serializer_class = NestedProviderSerializer
+    write_serializer_class = ProviderSerializer
 
 
-class LLMModelReadWriteViewSet(ModelViewSet):
+class LLMModelReadWriteViewSet(ReadWriteModelViewSet):
     queryset = LLMModel.objects.all()
-    serializer_class = LLMModelSerializer
+
+    read_serializer_class = NestedLLMModelSerializer
+    write_serializer_class = LLMModelSerializer
 
 
-class EmbeddingModelReadWriteViewSet(ModelViewSet):
+class EmbeddingModelReadWriteViewSet(ReadWriteModelViewSet):
     queryset = EmbeddingModel.objects.all()
-    serializer_class = EmbeddingModelSerializer
+    read_serializer_class = NestedEmbeddingModelSerializer
+    write_serializer_class = EmbeddingModelSerializer
 
 
-class ToolReadWriteViewSet(ModelViewSet):
+class ToolReadWriteViewSet(ReadWriteModelViewSet):
     queryset = Tool.objects.all()
-    serializer_class = ToolSerializer
+
+    read_serializer_class = NestedToolSerializer
+    write_serializer_class = ToolSerializer
 
 
-class AgentReadWriteViewSet(ModelViewSet):
+class AgentReadWriteViewSet(ReadWriteModelViewSet):
     queryset = Agent.objects.all()
-    serializer_class = AgentSerializer
 
-    filter_backends = [DjangoFilterBackend]
-    filterset_flelds = ['crew__id']
+    read_serializer_class = NestedAgentSerializer
+    write_serializer_class = AgentSerializer
 
 
-class CrewReadWriteViewSet(ModelViewSet):
+class CrewReadWriteViewSet(ReadWriteModelViewSet):
     queryset = Crew.objects.all()
-    serializer_class = CrewSerializer
+
+    read_serializer_class = NestedCrewSerializer
+    write_serializer_class = CrewSerializer
 
 
-class TaskReadWriteViewSet(ModelViewSet):
+class TaskReadWriteViewSet(ReadWriteModelViewSet):
     queryset = Task.objects.all()
-    serializer_class = TaskSerializer
 
-    filter_backends = [DjangoFilterBackend]
-    filterset_flelds = ['crew__id']
+    read_serializer_class = NestedTaskSerializer
+    write_serializer_class = TaskSerializer

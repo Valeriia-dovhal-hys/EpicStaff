@@ -3,4 +3,3 @@ ENV
 ./config
 venv
 .venv
-.django_venv

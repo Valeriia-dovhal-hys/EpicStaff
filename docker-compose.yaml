@@ -16,15 +16,15 @@ services:
       - crewai_network
     depends_on:
       - redis
-      - manager
+      - tools_registry
     volumes:
       - ./config:/home/user/root/crewai-sheets-ui/env_config
 
-  manager:
+  tools_registry:
     build:
       context: ./src
-      dockerfile: ./manager/Dockerfile.man
-    container_name: manager_container
+      dockerfile: ./registry/Dockerfile.reg
+    container_name: tools_registry_container
     networks:
       - crewai_network
     volumes:

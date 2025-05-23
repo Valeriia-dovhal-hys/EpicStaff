@@ -15,8 +15,7 @@ class SessionManagerService:
         session.save()
 
     def get_session_status(self, session_id: int) -> Session.SessionStatus:
-        session: Session = self.get_session(session_id=session_id)
-        return session.status
+        return self.get_session(session_id=session_id)
 
     def create_session(self, crew_id: int) -> Session:
         return Session.objects.create(crew_id=crew_id, status=Session.SessionStatus.RUN)
