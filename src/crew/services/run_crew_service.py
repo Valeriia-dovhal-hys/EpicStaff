@@ -23,6 +23,8 @@ class RunCrewService:
         self.container_manager_service = container_manager_service
         self.crew_parser = CrewParser()
 
+
+
     def run(self):
         crew_id = self.container_manager_service.get_crew_id()
 
@@ -34,14 +36,8 @@ class RunCrewService:
 
         crew: Crew = self.crew_parser.parse_crew(crew_data=crew_data)
 
-        # delete crew_data:
-        self.redis_service.clear_crew_output_data(crew_id=crew_data.id)
-
         kickoff_result = crew.kickoff()
 
-        crew_output_data = self.redis_service.get_crew_output_data(crew_id=crew_data.id)
-        crew_output_data["result"] = kickoff_result.raw
+        result = kickoff_result.to_dict()
 
-        self.redis_service.set_crew_output_data(
-            crew_id=crew_data.id, data=crew_output_data
-        )
+        self.redis_service.publish("final_result", result)
