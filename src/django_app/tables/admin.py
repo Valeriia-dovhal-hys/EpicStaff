@@ -7,6 +7,7 @@ from .models import (
     Agent,
     Crew,
     Task,
+    ConfigLLM,
 )
 
 admin.site.register(Provider)
@@ -16,3 +17,4 @@ admin.site.register(Tool)
 admin.site.register(Agent)
 admin.site.register(Crew)
 admin.site.register(Task)
+admin.site.register(ConfigLLM)

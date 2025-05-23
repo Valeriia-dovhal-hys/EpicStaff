@@ -15,7 +15,7 @@ class ProxyToolFactory:
 
     def __init__(
         self,
-        host: str = "tool_registry_container",
+        host: str = "manager_container",
         port: int = 8000,
     ):
         self.host = host

@@ -24,10 +24,10 @@ from utils import get_llm
 class CrewParser:
 
     def __init__(
-        self, tool_registry_host="tools_registry_container", tool_registry_port=8000
+        self, manager_host="manager_container", manager_port=8000
     ):
         self.proxy_tool_factory = ProxyToolFactory(
-            host=tool_registry_host, port=tool_registry_port
+            host=manager_host, port=manager_port
         )
 
     def parse_llm(self, llm_data: LLMModelData, llm_config_data: ConfigLLMData):

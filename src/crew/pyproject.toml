@@ -26,15 +26,10 @@ open-interpreter = "*"
 langgraph = "*"
 typing-extensions = "^4.12.2"
 pyyaml = "^6.0.2"
+python-dotenv = "*"
 datamodel-code-generator = "^0.26.0"
-google-auth-oauthlib = "^1.2.1"
-google-auth = "^2.34.0"
-google-auth-httplib2 = "^0.2.0"
-google-api-python-client = "^2.142.0"
-django = "^5.1.1"
-djangorestframework = "^3.15.2"
-drf-yasg = {extras = ["validation"], version = "^1.21.7"}
-psycopg2 = "^2.9.9"
+fastapi = "*"
+uvicorn = "*"
 celery = {extras = ["redis"], version = "^5.4.0"}
 
 [tool.poetry.group.dev.dependencies]
