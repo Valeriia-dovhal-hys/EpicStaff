@@ -2,4 +2,3 @@ python-dotenv
 fastapi[all]
 uvicorn
 docker
-redis

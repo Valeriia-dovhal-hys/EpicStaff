@@ -13,12 +13,10 @@ class GetUpdatesSerializer(serializers.Serializer):
     session_id = serializers.IntegerField(required=True)
 
 
+
+
 class AnswerToLLMSerializer(serializers.Serializer):
     session_id = serializers.IntegerField(required=True)
     answer = serializers.CharField()
 
 
-class ToolAliasSerializer(serializers.Serializer):
-    tool = serializers.CharField()
-    alias = serializers.CharField()
-    

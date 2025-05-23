@@ -21,7 +21,6 @@ from .views.views import (
     RunCrew,
     GetUpdates,
     StopSession,
-    getToolAliases,
 )
 
 router = DefaultRouter()
@@ -43,7 +42,6 @@ router.register(r"sessions", SessionViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path("run-crew/", RunCrew.as_view(), name="run-crew"),
-    path("tool-aliases/", getToolAliases, name="tool-aliases"),
     path("answer-to-llm/", AnswerToLLM.as_view(), name="answer-to-llm"),
     path(
         "sessions/<int:session_id>/get-updates/",
