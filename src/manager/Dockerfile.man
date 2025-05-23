@@ -11,4 +11,4 @@ COPY ./tool ./tool
 COPY ./crew ./crew
 
 
-CMD [ "python", "app.py" ]
+CMD ["sh", "-c", "python load_config_to_redis.py && python app.py"]

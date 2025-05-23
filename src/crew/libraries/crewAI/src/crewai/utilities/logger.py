@@ -1,7 +1,6 @@
 from abc import ABC
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 from pydantic import BaseModel, Field, PrivateAttr
 
 from redis import Redis
@@ -10,22 +9,42 @@ import os
 
 
 class Logger(BaseModel):
-    verbose: bool = Field(default=True, allow_mutation=False)
-    redis_host: str | int = Field(default=os.environ.get("PROCESS_REDIS_HOST", "redis"), allow_mutation=False)
-    redis_port: int = Field(default=6379, allow_mutation=False)
-    crew_id: int = Field(default=os.environ.get("CREW_ID", 0), allow_mutation=False)
+    verbose: bool = Field(default=True)
+    redis_host: str | int = Field(default=os.environ.get("PROCESS_REDIS_HOST", "redis"))
+    redis_port: int = Field(default=6379)
 
-    def model_post_init(self, __context: Any) -> None:
-        self.redis_client = Redis(host=self.redis_host, port=self.redis_port, decode_responses=True)
+    def get_crew_id(self) -> int:
+        return int(os.environ.get("CREW_ID", 0))
+
+    def get_crew_data(self, redis_client: Redis, crew_id: int) -> dict:
+        redis_data = redis_client.get(crew_id)
+
+        if redis_data is None:
+            return dict()
+
+        return json.loads(redis_data)
+
+    def add_message(
+        self, redis_client: Redis, crew_id: int, crew_message: dict
+    ) -> None:
+        crew_data = self.get_crew_data(redis_client=redis_client, crew_id=crew_id)
+        msg_list: list = crew_data.get("messages", [])
+        msg_list.append(crew_message)
+        crew_data["messages"] = msg_list
+        redis_client.set(crew_id, json.dumps(crew_data))
 
     def log(self, level: str, message: str) -> None:
-        
+        redis_client = Redis(
+            host=self.redis_host, port=self.redis_port, decode_responses=True
+        )
+        crew_id = self.get_crew_id()
         msg = {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "level": level,
             "text": message,
         }
-        self.redis_client.publish(channel=f"{self.crew_id}:messages", message=json.dumps(msg))
+
+        self.add_message(redis_client=redis_client, crew_id=crew_id, crew_message=msg)
 
 
 class FileLogger:
