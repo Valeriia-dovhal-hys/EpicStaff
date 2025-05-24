@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: ./manager/Dockerfile.man
-    container_name: manager
+    container_name: manager_container
     ports:
       - "8001:8001"
     environment:
