@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_yasg",
     "django_filters",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -51,14 +52,20 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
 ]
 
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 50,
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200",
+]
 
 ROOT_URLCONF = "django_app.urls"
 

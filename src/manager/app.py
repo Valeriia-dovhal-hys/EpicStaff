@@ -1,6 +1,4 @@
 from fastapi import FastAPI
-import asyncio
-import redis.asyncio as aioredis
 import uvicorn
 from fastapi.responses import JSONResponse
 from models.models import (
@@ -38,6 +36,16 @@ crew_container_service = CrewContainerService()
 # TODO add error handlers (if error in important request -send to some service)
 
 
+@app.post(
+    "/crew/run", status_code=200
+)
+def run(run_crew_model: RunCrewModel):
+    run_crew_data = crew_container_service.request_run_crew(run_crew_model)
+    return RunCrewResponseModel(
+        data=run_crew_data
+    )
+
+
 @app.get("/tool/list", status_code=200, response_model=ToolListResponseModel)
 def get_all_tool_aliases():
 
@@ -67,26 +75,6 @@ def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
         tool_alias=tool_alias, run_tool_params_model=run_tool_params_model
     )["data"]
     return RunToolResponseModel(data=run_tool_data)
-
-
-async def subscribe_to_redis():
-    # TODO: remove hardcode
-    r = await aioredis.from_url('redis://redis:6379')
-    pubsub = r.pubsub()
-    await pubsub.subscribe('run_crew_updates')
-
-    async for message in pubsub.listen():
-        if message['type'] == 'message':
-            crew_id = message['data'].decode('utf-8')
-            # TODO: add to logger
-            print(f"Got update for crew_id: {crew_id}")
-
-            crew_container_service.request_run_crew(crew_id)
-
-
-@app.on_event("startup")
-async def start_redis_subscription():
-    asyncio.create_task(subscribe_to_redis())
 
 
 if __name__ == "__main__":
