@@ -28,7 +28,7 @@ class RedisService:
         )
 
     def publish(self, channel: str, message: str):
-        channel_name = f"{self.crew_id}:{channel}"
+        channel_name = f"crews:{self.crew_id}:{channel}"
         self.redis_client.publish(channel=channel_name, message=json.dumps(message))
 
     def read(self, channel: str):
