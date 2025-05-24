@@ -2,7 +2,7 @@ from abc import ABC
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from pydantic import BaseModel, Field, PrivateAttr
+from pydantic import BaseModel, Field, PrivateAttr, model_validator
 
 from redis import Redis
 import json
@@ -11,21 +11,30 @@ import os
 
 class Logger(BaseModel):
     verbose: bool = Field(default=True, allow_mutation=False)
-    redis_host: str | int = Field(default=os.environ.get("PROCESS_REDIS_HOST", "redis"), allow_mutation=False)
+    redis_host: str | int = Field(
+        default=os.environ.get("PROCESS_REDIS_HOST", "redis"), allow_mutation=False
+    )
     redis_port: int = Field(default=6379, allow_mutation=False)
     crew_id: int = Field(default=os.environ.get("CREW_ID", 0), allow_mutation=False)
+    _redis_client: Redis = PrivateAttr()
 
-    def model_post_init(self, __context: Any) -> None:
-        self.redis_client = Redis(host=self.redis_host, port=self.redis_port, decode_responses=True)
+    @model_validator(mode="after")
+    def set_private_attrs(self) -> "Logger":
+        self._redis_client = Redis(
+            host=self.redis_host, port=self.redis_port, decode_responses=True
+        )
+        return self
 
     def log(self, level: str, message: str) -> None:
-        
+
         msg = {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "level": level,
             "text": message,
         }
-        self.redis_client.publish(channel=f"{self.crew_id}:messages", message=json.dumps(msg))
+        self._redis_client.publish(
+            channel=f"crews:{self.crew_id}:messages", message=json.dumps(msg)
+        )
 
 
 class FileLogger:
