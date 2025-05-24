@@ -2,12 +2,12 @@ from services.redis_service import RedisService
 from services.container_manager_service import ContainerManagerService
 from services.run_crew_service import RunCrewService
 
-
-redis_service = RedisService()
 container_manager_service = ContainerManagerService()
 
+redis_service = RedisService(container_manager_service=container_manager_service)
+
 run_crew_service = RunCrewService(
-    redis_service=RedisService, container_manager_service=container_manager_service
+    redis_service=redis_service,
 )
 
 
