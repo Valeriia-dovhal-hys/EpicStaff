@@ -1,16 +1,18 @@
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+
+from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework import generics
-
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
-from drf_yasg.utils import swagger_auto_schema
 from django.core.paginator import Paginator, EmptyPage
 
 from tables.services.session_manager_service import SessionManagerService
 from tables.services.manager_container_service import ManagerContainerService
 from tables.services.crew_runner_service import CrewRunnerService
+from tables.services.redis_service import RedisService
 
 
 from tables.models import (
@@ -20,6 +22,7 @@ from tables.models import (
 from tables.serializers.serializers import (
     AnswerToLLMSerializer,
     RunCrewSerializer,
+    ToolAliasSerializer,
 )
 from tables.serializers.nested_model_serializers import NestedSessionSerializer, SessionMessageSerializer
 
@@ -159,3 +162,13 @@ class AnswerToLLM(APIView):
         # TODO: business logic
 
         return Response(data={"status": session.status}, status=status.HTTP_200_OK)
+    
+
+@swagger_auto_schema(
+    method='get',
+    responses={200: ToolAliasSerializer(many=True)}
+)
+@api_view(['GET'])
+def getToolAliases(request):
+    json_data = RedisService.loadToolAliases()
+    return Response(json_data)

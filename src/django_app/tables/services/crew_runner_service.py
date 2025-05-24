@@ -6,6 +6,7 @@ from tables.serializers.nested_model_serializers import (
     NestedCrewSerializer,
     NestedTaskSerializer,
 )
+from tables.services.redis_service import RedisService
 
 
 class CrewRunnerService:
@@ -26,7 +27,7 @@ class CrewRunnerService:
         serialized_task_list = NestedTaskSerializer(tasks, many=True).data
 
         serialized_crew["tasks"] = serialized_task_list
-        response = self.manager_container_service.run_crew(serialized_crew)
+        RedisService.putCrewSchemaOnRedis(crew_id, serialized_crew)
 
         session = self.session_manager_service.create_session(crew_id=crew_id)
         return session.pk
