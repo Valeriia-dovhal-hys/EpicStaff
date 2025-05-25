@@ -87,7 +87,10 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class SessionSerializer(serializers.ModelSerializer):
-    crew = CrewSerializer(read_only=True)
+    crew = serializers.PrimaryKeyRelatedField(
+        queryset=Crew.objects.all(),
+        default=[],
+    )
 
     class Meta:
         model = Session
