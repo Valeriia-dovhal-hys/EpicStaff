@@ -29,7 +29,6 @@ class EmbeddingModelData(BaseModel):
 
 class ToolData(BaseModel):
     name: str
-    name_alias: str
     description: str
     requires_model: bool
     llm_model: Optional[LLMModelData] = None
