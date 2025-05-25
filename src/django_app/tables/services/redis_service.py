@@ -8,6 +8,7 @@ class RedisService():
 
     redis_client = redis.Redis(host=redis_host, port=redis_port)
 
+
     @classmethod
     def loadToolAliases(cls) -> str:
         keys = [key.decode('utf-8') for key in cls.redis_client.hkeys("tools")]
@@ -16,5 +17,5 @@ class RedisService():
 
     @classmethod
     def putCrewSchemaOnRedis(cls, crew_id, crew_schema):
-        cls.redis_client.hset("crews:schema", crew_id, json.dumps(crew_schema))
-        cls.redis_client.publish("run_crew_updates", crew_id)
+        cls.redis_client.set(f"crews:{crew_id}:schema", json.dumps(crew_schema))
+        cls.redis_client.publish("crews:schemas", crew_id)
