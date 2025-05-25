@@ -39,17 +39,14 @@ class CrewContainerService:
         image = self.crew_image_service.get_image()
 
         container_name = f"crew_{crew_id}" 
-        container = self.run_container(image, container_name)
-
-        response = self.fetch_data_with_retry(
-            url=f'http://{container.name}:7000/crew/run',
-        )
+        self.run_container(image, container_name, crew_id)
 
 
     def run_container(
             self, 
             image: Image,
             container_name: str,
+            crew_id: int,
             port: int = 0
     ) -> Container:
         
@@ -68,6 +65,7 @@ class CrewContainerService:
             image=image,
             ports={"7000/tcp": port},
             network=self.network_name,
+            environment={"CREW_ID": str(crew_id)},
             detach=True,
             name=container_name
         )
