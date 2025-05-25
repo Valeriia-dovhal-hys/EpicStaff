@@ -28,7 +28,7 @@ typing-extensions = "^4.12.2"
 pyyaml = "^6.0.2"
 python-dotenv = "*"
 datamodel-code-generator = "^0.26.0"
-celery = {extras = ["redis"], version = "^5.4.0"}
+redis = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
