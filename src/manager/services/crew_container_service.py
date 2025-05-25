@@ -20,11 +20,11 @@ class CrewContainerService:
         self.network_name = list(network_settings['Networks'].keys())[0]
 
 
-    def fetch_data_with_retry(self, url, retries=10, delay=3):
+    def fetch_data_with_retry(self, url, json, retries=10, delay=3):
         for attempt in range(retries):
             try:
                 print(f"Attempt {attempt + 1} to fetch data...")
-                resp = requests.post(url)
+                resp = requests.post(url, json=json)
                 if resp.status_code == 200:
                     return resp
             except requests.exceptions.RequestException as e:
@@ -35,18 +35,25 @@ class CrewContainerService:
         raise Exception(f"Failed to fetch data after {retries} attempts.")
 
 
-    def request_run_crew(self, crew_id):
+    def request_run_crew(self, run_crew_model: RunCrewModel):
         image = self.crew_image_service.get_image()
 
-        container_name = f"crew_{crew_id}" 
-        self.run_container(image, container_name, crew_id)
+        unique_id = run_crew_model.data["id"]
+        container_name = f"crew_{unique_id}" 
+        container = self.run_container(image, container_name)
+
+        response = self.fetch_data_with_retry(
+            url=f'http://{container.name}:7000/crew/run',
+            json=run_crew_model.model_dump()
+        )
+
+        return response.json()
 
 
     def run_container(
             self, 
             image: Image,
             container_name: str,
-            crew_id: int,
             port: int = 0
     ) -> Container:
         
@@ -65,7 +72,6 @@ class CrewContainerService:
             image=image,
             ports={"7000/tcp": port},
             network=self.network_name,
-            environment={"CREW_ID": str(crew_id)},
             detach=True,
             name=container_name
         )

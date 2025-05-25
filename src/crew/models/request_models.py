@@ -77,7 +77,7 @@ class CrewData(BaseModel):
     embedding_model: Optional[EmbeddingModelData] = None
     manager_llm_model: Optional[LLMModelData] = None
     manager_llm_config: Optional[ConfigLLMData] = None
-    tasks: List["TaskData"] | None = None
+    tasks: List["TaskData"] | None
 
 
 class TaskData(BaseModel):
