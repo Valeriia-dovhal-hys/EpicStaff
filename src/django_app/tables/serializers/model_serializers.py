@@ -88,7 +88,6 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class SessionSerializer(serializers.ModelSerializer):
     crew = CrewSerializer(read_only=True)
-    agent = AgentSerializer(read_only=True)
 
     class Meta:
         model = Session
