@@ -7,7 +7,6 @@ from services.crew_parser import CrewParser
 from utils.helpers import load_env
 
 
-
 class RunCrewService:
     def __init__(
         self,
@@ -30,4 +29,6 @@ class RunCrewService:
 
         result = kickoff_result.to_dict()
 
-        self.redis_service.publish("final_result", result)
+        self.redis_service.publish(
+            "final_result", {"crew_id": crew_data.id, "result": result}
+        )
