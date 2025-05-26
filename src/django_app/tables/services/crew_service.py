@@ -21,4 +21,4 @@ class CrewService:
 
         serialized_crew["tasks"] = serialized_task_list
 
-        return json.loads(serialized_crew)
+        return json.dumps(serialized_crew)
