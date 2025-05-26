@@ -31,10 +31,6 @@ class RedisService:
         channel_name = f"crews:{channel}"
         self.redis_client.publish(channel=channel_name, message=json.dumps(message))
 
-    def read(self, channel: str):
-        channel_name = f"crews:{channel}"
-        # TODO: GET BY CREW ID
-        return self.redis_client.get(channel_name)
-
     def get_json_crew_schema(self) -> str | None:
-        return self.read("schema")
+        channel_name = f"crews:{self.crew_id}:schema"
+        return self.redis_client.get(channel_name)
