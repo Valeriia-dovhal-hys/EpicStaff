@@ -73,7 +73,7 @@ async def subscribe_to_redis():
     # TODO: remove hardcode
     r = await aioredis.from_url('redis://redis:6379')
     pubsub = r.pubsub()
-    await pubsub.subscribe("crews:schemas")
+    await pubsub.subscribe("crews:start")
 
     async for message in pubsub.listen():
         if message['type'] == 'message':
