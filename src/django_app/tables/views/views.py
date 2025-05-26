@@ -18,6 +18,7 @@ from tables.models import (
     SessionMessage,
     Session,
 )
+from tables.serializers.model_serializers import SessionSerializer
 from tables.serializers.serializers import (
     AnswerToLLMSerializer,
     RunCrewSerializer,
@@ -38,7 +39,7 @@ session_manager_service = SessionManagerService(
 
 class SessionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Session.objects.all()
-    serializer_class = NestedSessionSerializer
+    serializer_class = SessionSerializer
 
 
 class SessionMessageListView(generics.ListAPIView):
