@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -85,8 +86,6 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "django_app.wsgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -97,8 +96,8 @@ DATABASES = {
         "NAME": "crew",
         "USER": "postgres",
         "PASSWORD": "admin",
-        "HOST": "crewdb",
-        "PORT": "5432",
+        "HOST": os.environ.get("POSTGRESQL_HOST", "localhost"),
+        "PORT": os.environ.get("POSTGRESQL_PORT", "5432"),
     }
 }
 
