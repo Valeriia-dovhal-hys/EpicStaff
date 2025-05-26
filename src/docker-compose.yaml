@@ -12,6 +12,9 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - POSTGRESQL_HOST=crewdb
+    volumes:
+      - crew_config:/home/user/root/django/env_config # TODO: change it to another location
+
     networks:
       - backend-network
     depends_on:
@@ -62,6 +65,8 @@ services:
 
 volumes:
   pgdata:
+  crew_config:
+    external: true
 
 networks:
   backend-network:
