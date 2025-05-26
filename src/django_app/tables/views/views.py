@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.core.paginator import Paginator, EmptyPage
 
-from tables.services.message_service import MessageService
 from tables.services.session_manager_service import SessionManagerService
 from tables.services.crew_service import CrewService
 from tables.services.redis_service import RedisService
@@ -31,11 +30,9 @@ from tables.serializers.nested_model_serializers import (
 
 redis_service = RedisService()
 crew_service = CrewService()
-message_service = MessageService(redis_service=redis_service)
 session_manager_service = SessionManagerService(
     redis_service=redis_service,
     crew_service=crew_service,
-    message_service=message_service,
 )
 
 

@@ -1,4 +1,3 @@
-from tables.services.message_service import MessageService
 from tables.services.crew_service import CrewService
 from tables.services.redis_service import RedisService
 from tables.models import Session
@@ -10,9 +9,7 @@ class SessionManagerService:
         self,
         redis_service: RedisService,
         crew_service: CrewService,
-        message_service: MessageService,
     ) -> None:
-        self.message_service = message_service
         self.redis_service = redis_service
         self.crew_service = crew_service
 
@@ -21,7 +18,6 @@ class SessionManagerService:
 
     def stop_session(self, session_id: int) -> None:
         session: Session = self.get_session(session_id=session_id)
-        self.message_service.unsubscribe_for_messages(crew_id=session.crew.pk)
         # TODO: Send notify to redis channel to stop container
 
         session.status = Session.SessionStatus.END
@@ -45,6 +41,6 @@ class SessionManagerService:
         self.redis_service.set_crew_data(
             crew_id=session.crew.pk, crew_json_schema=crew_json_schema
         )
-        self.redis_service.publish_start_crew(session=session)
+        self.redis_service.publish_start_crew(crew_id=session.crew.pk)
 
-        self.message_service.subscribe_for_messages(session=session)
+        
