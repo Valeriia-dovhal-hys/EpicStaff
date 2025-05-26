@@ -36,6 +36,7 @@ class EmbeddingModel(models.Model):
 
 class Tool(models.Model):
     name = models.TextField()
+    name_alias = models.TextField()
     description = models.TextField()
     requires_model = models.BooleanField()
 
@@ -189,10 +190,6 @@ class Session(models.Model):
         choices=SessionStatus.choices, max_length=255, blank=False, null=False
     )
     conversation = models.TextField(blank=True)
-
-    class Meta:
-
-        get_latest_by = ["id"]
 
 
 class SessionMessage(models.Model):

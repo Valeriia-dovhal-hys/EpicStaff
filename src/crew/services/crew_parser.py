@@ -42,7 +42,7 @@ class CrewParser:
         )
 
     def parse_tool(self, tool_data: ToolData) -> BaseTool:
-        tool_alias: str = tool_data.name
+        tool_alias: str = tool_data.name_alias
         tool_config = dict()
 
         llm_model_data = tool_data.llm_model

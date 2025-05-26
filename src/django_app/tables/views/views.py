@@ -10,7 +10,8 @@ from rest_framework import status
 from django.core.paginator import Paginator, EmptyPage
 
 from tables.services.session_manager_service import SessionManagerService
-from tables.services.crew_service import CrewService
+from tables.services.manager_container_service import ManagerContainerService
+from tables.services.crew_runner_service import CrewRunnerService
 from tables.services.redis_service import RedisService
 
 
@@ -18,27 +19,26 @@ from tables.models import (
     SessionMessage,
     Session,
 )
+from tables.serializers.model_serializers import SessionSerializer
 from tables.serializers.serializers import (
     AnswerToLLMSerializer,
     RunCrewSerializer,
     ToolAliasSerializer,
 )
-from tables.serializers.nested_model_serializers import (
-    NestedSessionSerializer,
-    SessionMessageSerializer,
-)
+from tables.serializers.nested_model_serializers import SessionMessageSerializer
 
-redis_service = RedisService()
-crew_service = CrewService()
-session_manager_service = SessionManagerService(
-    redis_service=redis_service,
-    crew_service=crew_service,
+
+session_manager_service = SessionManagerService()
+manager_container_service = ManagerContainerService(base_url="http://manager:8001")
+crew_runner_service = CrewRunnerService(
+    session_manager_service=session_manager_service,
+    manager_container_service=manager_container_service,
 )
 
 
 class SessionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Session.objects.all()
-    serializer_class = NestedSessionSerializer
+    serializer_class = SessionSerializer
 
 
 class SessionMessageListView(generics.ListAPIView):
@@ -67,9 +67,7 @@ class RunCrew(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         crew_id = serializer.validated_data["crew_id"]
 
-        session_id = session_manager_service.create_session(crew_id=crew_id)
-
-        session_manager_service.session_run_crew(session_id=session_id)
+        session_id = crew_runner_service.run_crew(crew_id=crew_id)
 
         return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
 
@@ -165,10 +163,13 @@ class AnswerToLLM(APIView):
         # TODO: business logic
 
         return Response(data={"status": session.status}, status=status.HTTP_200_OK)
+    
 
-
-@swagger_auto_schema(method="get", responses={200: ToolAliasSerializer(many=True)})
-@api_view(["GET"])
+@swagger_auto_schema(
+    method='get',
+    responses={200: ToolAliasSerializer(many=True)}
+)
+@api_view(['GET'])
 def getToolAliases(request):
-    json_data = redis_service.loadToolAliases()
+    json_data = RedisService.loadToolAliases()
     return Response(json_data)
