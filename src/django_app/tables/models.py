@@ -191,10 +191,6 @@ class Session(models.Model):
     )
     conversation = models.TextField(blank=True)
 
-    class Meta:
-
-        get_latest_by = ["id"]
-
 
 class SessionMessage(models.Model):
     class MessageFrom(models.TextChoices):
