@@ -22,7 +22,6 @@ from tables.serializers.model_serializers import SessionSerializer
 from tables.serializers.serializers import (
     AnswerToLLMSerializer,
     RunCrewSerializer,
-    RunSessionSerializer,
     ToolAliasSerializer,
 )
 from tables.serializers.nested_model_serializers import (
@@ -74,32 +73,6 @@ class RunCrew(APIView):
         session_manager_service.session_run_crew(session_id=session_id)
 
         return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
-    
-
-class RunSession(APIView):
-
-    @swagger_auto_schema(
-        request_body=RunSessionSerializer,
-        responses={
-            201: openapi.Response(
-
-                description="Session Started",
-                examples={"application/json": {"session_id": 123}},
-            ),
-            400: "Bad Request - Invalid Input",
-        }
-    )
-    def post(self, request):
-        serializer = RunSessionSerializer(data=request.data)
-
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        session_id = serializer.validated_data["session_id"]
-        
-        session_runner_service.run_session(session_id=session_id)
-
-        return Response(status=status.HTTP_201_CREATED)
 
 
 class GetUpdates(APIView):
