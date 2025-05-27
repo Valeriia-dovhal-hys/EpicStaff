@@ -21,4 +21,7 @@ class AnswerToLLMSerializer(serializers.Serializer):
 class ToolAliasSerializer(serializers.Serializer):
     tool = serializers.CharField()
     alias = serializers.CharField()
-    
+
+
+class EnviromentConfigSerializer(serializers.Serializer):
+    data = serializers.DictField(required=True)
