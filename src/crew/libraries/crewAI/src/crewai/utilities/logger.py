@@ -28,12 +28,13 @@ class Logger(BaseModel):
     def log(self, level: str, message: str) -> None:
 
         msg = {
-            "crew_id": self.crew_id,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "level": level,
             "text": message,
         }
-        self._redis_client.publish(channel=f"crews:messages", message=json.dumps(msg))
+        self._redis_client.publish(
+            channel=f"crews:{self.crew_id}:messages", message=json.dumps(msg)
+        )
 
 
 class FileLogger:
