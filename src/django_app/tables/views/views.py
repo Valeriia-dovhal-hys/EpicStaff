@@ -12,6 +12,7 @@ from django.core.paginator import Paginator, EmptyPage
 from tables.services.session_manager_service import SessionManagerService
 from tables.services.manager_container_service import ManagerContainerService
 from tables.services.crew_runner_service import CrewRunnerService
+from tables.services.session_runner_service import SessionRunnerService
 from tables.services.redis_service import RedisService
 
 
@@ -23,6 +24,7 @@ from tables.serializers.model_serializers import SessionSerializer
 from tables.serializers.serializers import (
     AnswerToLLMSerializer,
     RunCrewSerializer,
+    RunSessionSerializer,
     ToolAliasSerializer,
 )
 from tables.serializers.nested_model_serializers import SessionMessageSerializer
@@ -33,7 +35,9 @@ manager_container_service = ManagerContainerService(base_url="http://manager:800
 crew_runner_service = CrewRunnerService(
     session_manager_service=session_manager_service,
     manager_container_service=manager_container_service,
+
 )
+session_runner_service = SessionRunnerService()
 
 
 class SessionViewSet(viewsets.ReadOnlyModelViewSet):
@@ -70,6 +74,32 @@ class RunCrew(APIView):
         session_id = crew_runner_service.run_crew(crew_id=crew_id)
 
         return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
+    
+
+class RunSession(APIView):
+
+    @swagger_auto_schema(
+        request_body=RunSessionSerializer,
+        responses={
+            201: openapi.Response(
+
+                description="Session Started",
+                examples={"application/json": {"session_id": 123}},
+            ),
+            400: "Bad Request - Invalid Input",
+        }
+    )
+    def post(self, request):
+        serializer = RunSessionSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        session_id = serializer.validated_data["session_id"]
+        
+        session_runner_service.run_session(session_id=session_id)
+
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class GetUpdates(APIView):
