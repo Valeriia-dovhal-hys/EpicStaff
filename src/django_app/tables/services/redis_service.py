@@ -19,3 +19,9 @@ class RedisService():
     def putCrewSchemaOnRedis(cls, crew_id, crew_schema):
         cls.redis_client.set(f"crews:{crew_id}:schema", json.dumps(crew_schema))
         cls.redis_client.publish("crews:start", crew_id)
+
+    
+    @classmethod
+    def putSessionSchemaOnRedis(cls, session_id, session_schema):
+        cls.redis_client.set(f"sessions:{session_id}:schema", json.dumps(session_schema))
+        cls.redis_client.publish("sessions:start", session_id)
