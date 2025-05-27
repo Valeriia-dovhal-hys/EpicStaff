@@ -4,14 +4,17 @@ services:
       context: ./django_app
       dockerfile: Dockerfile.dj
     command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py migrate && python manage.py listen_redis & python manage.py runserver 0.0.0.0:8000" 
     container_name: django_app
     ports:
       - "8000:8000"
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - POSTGRESQL_HOST=crewdb
+    volumes:
+      - crew_config:/home/user/root/django/env_config # TODO: change it to another location
+
     networks:
       - backend-network
     depends_on:
@@ -62,6 +65,8 @@ services:
 
 volumes:
   pgdata:
+  crew_config:
+    external: true
 
 networks:
   backend-network:
