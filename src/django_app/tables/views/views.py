@@ -22,7 +22,7 @@ from tables.models import (
 from tables.serializers.model_serializers import SessionSerializer
 from tables.serializers.serializers import (
     AnswerToLLMSerializer,
-    EnviromentConfigSerializer,
+    EnvironmentConfigSerializer,
     RunCrewSerializer,
     ToolAliasSerializer,
 )
@@ -153,7 +153,7 @@ class EnviromentConfig(APIView):
         return Response(status=status.HTTP_200_OK, data={"data": config_dict})
 
     @swagger_auto_schema(
-        request_body=EnviromentConfigSerializer,
+        request_body=EnvironmentConfigSerializer,
         responses={
             200: openapi.Response(
                 description="Config updated successfully",
@@ -163,7 +163,7 @@ class EnviromentConfig(APIView):
         },
     )
     def post(self, request, *args, **kwargs):
-        serializer = EnviromentConfigSerializer(data=request.data)
+        serializer = EnvironmentConfigSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -182,7 +182,7 @@ class EnviromentConfig(APIView):
     },
 )
 @api_view(["DELETE"])
-def delete_enviroment_config(request, *args, **kwargs):
+def delete_environment_config(request, *args, **kwargs):
     key: str | None = kwargs.get("key", None)
     if key is None:
         return Response("Key not found", status=status.HTTP_404_NOT_FOUND)

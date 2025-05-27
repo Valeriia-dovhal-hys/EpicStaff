@@ -23,5 +23,5 @@ class ToolAliasSerializer(serializers.Serializer):
     alias = serializers.CharField()
 
 
-class EnviromentConfigSerializer(serializers.Serializer):
+class EnvironmentConfigSerializer(serializers.Serializer):
     data = serializers.DictField(required=True)
