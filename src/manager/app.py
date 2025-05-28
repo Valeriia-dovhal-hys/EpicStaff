@@ -73,15 +73,15 @@ async def subscribe_to_redis():
     # TODO: remove hardcode
     r = await aioredis.from_url('redis://redis:6379')
     pubsub = r.pubsub()
-    await pubsub.subscribe("crews:start")
+    await pubsub.subscribe("sessions:start")
 
     async for message in pubsub.listen():
         if message['type'] == 'message':
-            crew_id = message['data'].decode('utf-8')
+            session_id = message['data'].decode('utf-8')
             # TODO: add to logger
-            print(f"Got update for crew_id: {crew_id}")
+            print(f"Got update for session_id: {session_id}")
 
-            crew_container_service.request_run_crew(crew_id)
+            crew_container_service.request_run_crew(session_id)
 
 
 @app.on_event("startup")
