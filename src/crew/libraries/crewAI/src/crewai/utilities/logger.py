@@ -15,7 +15,7 @@ class Logger(BaseModel):
         default=os.environ.get("PROCESS_REDIS_HOST", "redis"), allow_mutation=False
     )
     redis_port: int = Field(default=6379, allow_mutation=False)
-    crew_id: int = Field(default=os.environ.get("CREW_ID", 0), allow_mutation=False)
+    session_id: int = Field(default=os.environ.get("SESSION_ID", 0), allow_mutation=False)
     _redis_client: Redis = PrivateAttr()
 
     @model_validator(mode="after")
@@ -28,12 +28,12 @@ class Logger(BaseModel):
     def log(self, level: str, message: str) -> None:
 
         msg = {
-            "crew_id": self.crew_id,
+            "session_id": self.session_id,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "level": level,
             "text": message,
         }
-        self._redis_client.publish(channel=f"crews:messages", message=json.dumps(msg))
+        self._redis_client.publish(channel=f"sessions:messages", message=json.dumps(msg))
 
 
 class FileLogger:
