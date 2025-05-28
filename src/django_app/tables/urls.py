@@ -16,12 +16,13 @@ from tables.views.model_view_sets import (
 
 from .views.views import (
     AnswerToLLM,
+    EnviromentConfig,
     SessionMessageListView,
     SessionViewSet,
     RunCrew,
-    RunSession,
     GetUpdates,
     StopSession,
+    delete_environment_config,
     getToolAliases,
 )
 
@@ -44,7 +45,6 @@ router.register(r"sessions", SessionViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path("run-crew/", RunCrew.as_view(), name="run-crew"),
-    path("run-session/", RunSession.as_view(), name="run-session"),
     path("tool-aliases/", getToolAliases, name="tool-aliases"),
     path("answer-to-llm/", AnswerToLLM.as_view(), name="answer-to-llm"),
     path(
@@ -57,5 +57,15 @@ urlpatterns = [
         "sessions/<int:session_id>/messages",
         SessionMessageListView.as_view(),
         name="messages",
+    ),
+    path(
+        "environment/config",
+        EnviromentConfig.as_view(),
+        name="environment_config",
+    ),
+    path(
+        "environment/config/<str:key>/",
+        delete_environment_config,
+        name="delete_environment_config",
     ),
 ]

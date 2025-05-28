@@ -8,7 +8,7 @@ from tables.models import Session, SessionMessage
 
 class RedisPubSub:
 
-    def __init__(self, message_channel_name="sessions:messages"):
+    def __init__(self, message_channel_name="crews:messages"):
         self.message_channel_name = message_channel_name
         redis_host = os.getenv("REDIS_HOST", "localhost")
         redis_port = int(os.getenv("REDIS_PORT", 6379))
@@ -19,7 +19,9 @@ class RedisPubSub:
     def handler(self, redis_message: dict):
         message = json.loads(redis_message["data"])
 
-        session = Session.objects.get(id=message["session_id"])
+        # TODO: FIX GET LAST SESSION BY CREW ID
+
+        session = Session.objects.filter(crew_id=message["crew_id"]).latest()
 
         session_message = SessionMessage(
             session=session,

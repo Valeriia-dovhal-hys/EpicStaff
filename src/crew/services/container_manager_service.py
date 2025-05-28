@@ -8,6 +8,6 @@ class ContainerManagerService:
     def set_env(self, key: str, value: str) -> None:
         os.environ[key] = value
 
-    def get_session_id(self):
-        return int(os.environ.get("SESSION_ID", 0))
+    def get_crew_id(self):
+        return int(os.environ.get("CREW_ID", 0))
 

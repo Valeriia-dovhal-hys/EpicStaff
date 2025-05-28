@@ -108,7 +108,7 @@ class NestedSessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Session
-        fields = "__all__"
+        fields = ["crew", "status"]
 
 
 class SessionMessageSerializer(serializers.ModelSerializer):
