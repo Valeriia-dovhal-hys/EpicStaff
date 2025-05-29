@@ -1,8 +1,5 @@
-import json
-
 from tables.services.crew_service import CrewService
 from tables.services.redis_service import RedisService
-from tables.serializers.nested_model_serializers import NestedSessionSerializer
 from tables.models import Session
 
 
@@ -16,10 +13,8 @@ class SessionManagerService:
         self.redis_service = redis_service
         self.crew_service = crew_service
 
-
     def get_session(self, session_id: int) -> Session:
         return Session.objects.get(id=session_id)
-
 
     def stop_session(self, session_id: int) -> None:
         session: Session = self.get_session(session_id=session_id)
@@ -28,37 +23,24 @@ class SessionManagerService:
         session.status = Session.SessionStatus.END
         session.save()
 
-
     def get_session_status(self, session_id: int) -> Session.SessionStatus:
         session: Session = self.get_session(session_id=session_id)
         return session.status
 
-
     def create_session(self, crew_id: int) -> int:
         session = Session.objects.create(crew_id=crew_id, status=Session.SessionStatus.RUN)
         return session.pk
-    
-
-    def create_session_schema_json(self, session_id: int) -> str:
-
-        session = self.get_session(session_id=session_id)
-
-        serialized_session = NestedSessionSerializer(session).data
-
-        serialized_crew = serialized_session["crew"]
-        serialized_session["crew"] = self.crew_service.inject_tasks(serialized_crew)
-
-        return json.dumps(serialized_session)
 
 
-    def run_session(self, session_id: int) -> None:
-        session_schema_json = self.create_session_schema_json(session_id=session_id)
-
-        # CheckStatus
-        self.redis_service.set_session_data(
-            session_id=session_id, 
-            session_json_schema=session_schema_json,
+    def session_run_crew(self, session_id: int) -> None:
+        session: Session = self.get_session(session_id=session_id)
+        crew_json_schema = self.crew_service.create_crew_schema_json(
+            crew_id=session.crew.pk
         )
-        self.redis_service.publish_start_session(session_id=session_id)
+        # CheckStatus
+        self.redis_service.set_crew_data(
+            crew_id=session.crew.pk, crew_json_schema=crew_json_schema
+        )
+        self.redis_service.publish_start_crew(crew_id=session.crew.pk)
 
         

@@ -9,10 +9,6 @@ class RunCrewSerializer(serializers.Serializer):
     crew_id = serializers.IntegerField(required=True)
 
 
-class RunSessionSerializer(serializers.Serializer):
-    crew_id = serializers.IntegerField(required=True)
-
-
 class GetUpdatesSerializer(serializers.Serializer):
     session_id = serializers.IntegerField(required=True)
 

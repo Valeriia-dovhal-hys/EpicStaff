@@ -6,4 +6,4 @@ class Command(BaseCommand):
     help = "Listen for messages on a Redis channel"
 
     def handle(self, *args, **kwargs):
-        RedisPubSub("sessions:messages").listen_for_messages()
+        RedisPubSub("crews:messages").listen_for_messages()

@@ -1,6 +1,6 @@
 FROM python:3.12.3-slim
 
-WORKDIR /usr/src/app
+WORKDIR /home/user/root/app
 
 RUN pip install --upgrade --no-cache-dir pip setuptools wheel
 

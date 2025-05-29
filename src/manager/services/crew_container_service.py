@@ -22,15 +22,28 @@ class CrewContainerService:
         self.network_name = list(network_settings['Networks'].keys())[0]
 
 
-    def request_run_crew(self, session_id):
+    def fetch_data_with_retry(self, url, retries=10, delay=3):
+        for attempt in range(retries):
+            try:
+                print(f"Attempt {attempt + 1} to fetch data...")
+                resp = requests.post(url)
+                if resp.status_code == 200:
+                    return resp
+            except requests.exceptions.RequestException as e:
+                print(f"Request failed: {e}")
+            # Wait before retrying
+            if attempt < retries - 1:
+                time.sleep(delay)
+        raise Exception(f"Failed to fetch data after {retries} attempts.")
+
+    def request_run_crew(self, crew_id):
         image = self.crew_image_service.get_image()
 
-        container_name = f"crew_session-{session_id}"
-        self.run_container(image, container_name, session_id)
-
+        container_name = f"crew_{crew_id}"
+        self.run_container(image, container_name, crew_id)
 
     def run_container(
-        self, image: Image, container_name: str, session_id: int, port: int = 0
+        self, image: Image, container_name: str, crew_id: int, port: int = 0
     ) -> Container:
         # Check if a container with the given name already exists
         existing_container: Container | None = None
@@ -49,7 +62,7 @@ class CrewContainerService:
             ports={"7000/tcp": port},
             network=self.network_name,
             environment={
-                "SESSION_ID": str(session_id),
+                "CREW_ID": str(crew_id),
                 "HAYSTACK_TELEMETRY_ENABLED": False,
                 "ANONYMIZED_TELEMETRY": False,
                 "EC_TELEMETRY": False,
@@ -59,7 +72,7 @@ class CrewContainerService:
             mounts=[
                 Mount(
                     source="crew_config",
-                    target="/home/user/root/crewai-sheets-ui/env_config/",
+                    target="/home/user/root/app/env_config/",
                 )
             ],
             detach=True,

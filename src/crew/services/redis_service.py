@@ -15,7 +15,7 @@ class RedisService:
     def __init__(
         self,
         container_manager_service: ContainerManagerService,
-        session_id: int | None = None,
+        crew_id: int | None = None,
         redis_host: str | None = None,
     ):
         if redis_host is None:
@@ -23,14 +23,14 @@ class RedisService:
         self.redis_host = redis_host
         self.redis_client = Redis(host=redis_host, decode_responses=True)
         self.container_manager_service = container_manager_service
-        self.session_id = (
-            session_id if session_id is not None else container_manager_service.get_session_id()
+        self.crew_id = (
+            crew_id if crew_id is not None else container_manager_service.get_crew_id()
         )
 
     def publish(self, channel: str, message: str):
-        channel_name = f"sessions:{channel}"
+        channel_name = f"crews:{channel}"
         self.redis_client.publish(channel=channel_name, message=json.dumps(message))
 
-    def get_json_session_schema(self) -> str | None:
-        channel_name = f"sessions:{self.session_id}:schema"
+    def get_json_crew_schema(self) -> str | None:
+        channel_name = f"crews:{self.crew_id}:schema"
         return self.redis_client.get(channel_name)
