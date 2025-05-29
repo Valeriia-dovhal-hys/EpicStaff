@@ -2,9 +2,13 @@ FROM python:3.12.3-slim
 
 WORKDIR /usr/src/app
 
-COPY ./manager/requirements.txt ./
+# RUN pip install --upgrade pip setuptools wheel
+RUN pip install poetry
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY ./manager/pyproject.toml .
+COPY ./manager/poetry.lock .
+
+RUN poetry config virtualenvs.create false && poetry install && rm -rf /root/.cache
 
 COPY ./manager .
 COPY ./tool ./tool
