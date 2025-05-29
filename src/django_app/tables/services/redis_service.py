@@ -18,8 +18,8 @@ class RedisService:
         keys = [key.decode("utf-8") for key in self.redis_client.hkeys("tools")]
         return json.dumps(keys)
 
-    def set_crew_data(self, crew_id: int, crew_json_schema: str) -> None:
-        self.redis_client.set(f"crews:{crew_id}:schema", crew_json_schema)
+    def set_session_data(self, session_id: int, session_json_schema: str) -> None:
+        self.redis_client.set(f"sessions:{session_id}:schema", session_json_schema)
 
-    def publish_start_crew(self, crew_id: int) -> None:
-        self.redis_client.publish("crews:start", crew_id)
+    def publish_start_session(self, session_id: int) -> None:
+        self.redis_client.publish("sessions:start", session_id)

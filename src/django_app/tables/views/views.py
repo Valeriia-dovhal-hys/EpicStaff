@@ -12,6 +12,7 @@ from django.core.paginator import Paginator, EmptyPage
 from tables.services.config_service import YamlConfigService
 from tables.services.session_manager_service import SessionManagerService
 from tables.services.crew_service import CrewService
+from tables.services.session_runner_service import SessionRunnerService
 from tables.services.redis_service import RedisService
 
 
@@ -24,6 +25,7 @@ from tables.serializers.serializers import (
     AnswerToLLMSerializer,
     EnvironmentConfigSerializer,
     RunCrewSerializer,
+    RunSessionSerializer,
     ToolAliasSerializer,
 )
 from tables.serializers.nested_model_serializers import (
@@ -33,6 +35,7 @@ from tables.serializers.nested_model_serializers import (
 
 redis_service = RedisService()
 crew_service = CrewService()
+session_runner_service = SessionRunnerService()
 session_manager_service = SessionManagerService(
     redis_service=redis_service,
     crew_service=crew_service,
@@ -51,29 +54,31 @@ class SessionMessageListView(generics.ListAPIView):
     def get_queryset(self):
         session_id = self.kwargs["session_id"]
         return SessionMessage.objects.filter(session_id=session_id)
+    
 
-
-class RunCrew(APIView):
+class RunSession(APIView):
 
     @swagger_auto_schema(
-        request_body=RunCrewSerializer,
+        request_body=RunSessionSerializer,
         responses={
             201: openapi.Response(
-                description="Session Created",
+
+                description="Session Started",
                 examples={"application/json": {"session_id": 123}},
             ),
             400: "Bad Request - Invalid Input",
-        },
+        }
     )
     def post(self, request):
-        serializer = RunCrewSerializer(data=request.data)
+        serializer = RunSessionSerializer(data=request.data)
+
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         crew_id = serializer.validated_data["crew_id"]
-
+        
         session_id = session_manager_service.create_session(crew_id=crew_id)
-
-        session_manager_service.session_run_crew(session_id=session_id)
+        
+        session_manager_service.run_session(session_id=session_id)
 
         return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
 
