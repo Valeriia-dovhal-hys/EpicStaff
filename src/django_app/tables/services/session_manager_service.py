@@ -39,13 +39,9 @@ class SessionManagerService:
         return session.pk
     
 
-    def create_session_schema_json(self, session_id: int | None = None, session: Session | None = None) -> str:
+    def create_session_schema_json(self, session_id: int) -> str:
 
-        if session_id is None and session is None:
-            raise ValueError("Either 'session_id' or 'session' must be provided.")
-        
-        if not session:
-            session = self.get_session(session_id=session_id)
+        session = self.get_session(session_id=session_id)
 
         serialized_session = NestedSessionSerializer(session).data
 
@@ -56,8 +52,7 @@ class SessionManagerService:
 
 
     def run_session(self, session_id: int) -> None:
-        session: Session = self.get_session(session_id=session_id)
-        session_schema_json = self.create_session_schema_json(session=session)
+        session_schema_json = self.create_session_schema_json(session_id=session_id)
 
         # CheckStatus
         self.redis_service.set_session_data(
