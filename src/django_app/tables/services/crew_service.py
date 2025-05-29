@@ -1,6 +1,5 @@
 from tables.models import Crew, Task
 
-from django.forms.models import model_to_dict
 from tables.serializers.nested_model_serializers import (
     NestedCrewSerializer,
     NestedTaskSerializer,
