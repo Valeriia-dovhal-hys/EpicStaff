@@ -22,25 +22,12 @@ class CrewContainerService:
         self.network_name = list(network_settings['Networks'].keys())[0]
 
 
-    def fetch_data_with_retry(self, url, retries=10, delay=3):
-        for attempt in range(retries):
-            try:
-                print(f"Attempt {attempt + 1} to fetch data...")
-                resp = requests.post(url)
-                if resp.status_code == 200:
-                    return resp
-            except requests.exceptions.RequestException as e:
-                print(f"Request failed: {e}")
-            # Wait before retrying
-            if attempt < retries - 1:
-                time.sleep(delay)
-        raise Exception(f"Failed to fetch data after {retries} attempts.")
-
     def request_run_crew(self, session_id):
         image = self.crew_image_service.get_image()
 
         container_name = f"crew_session-{session_id}"
         self.run_container(image, container_name, session_id)
+
 
     def run_container(
         self, image: Image, container_name: str, session_id: int, port: int = 0
