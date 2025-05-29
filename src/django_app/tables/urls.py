@@ -16,11 +16,13 @@ from tables.views.model_view_sets import (
 
 from .views.views import (
     AnswerToLLM,
+    EnviromentConfig,
     SessionMessageListView,
     SessionViewSet,
     RunSession,
     GetUpdates,
     StopSession,
+    delete_environment_config,
     getToolAliases,
 )
 
@@ -55,5 +57,15 @@ urlpatterns = [
         "sessions/<int:session_id>/messages",
         SessionMessageListView.as_view(),
         name="messages",
+    ),
+    path(
+        "environment/config",
+        EnviromentConfig.as_view(),
+        name="environment_config",
+    ),
+    path(
+        "environment/config/<str:key>/",
+        delete_environment_config,
+        name="delete_environment_config",
     ),
 ]
