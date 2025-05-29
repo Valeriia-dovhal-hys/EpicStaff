@@ -36,14 +36,14 @@ class CrewContainerService:
                 time.sleep(delay)
         raise Exception(f"Failed to fetch data after {retries} attempts.")
 
-    def request_run_crew(self, crew_id):
+    def request_run_crew(self, session_id):
         image = self.crew_image_service.get_image()
 
-        container_name = f"crew_{crew_id}"
-        self.run_container(image, container_name, crew_id)
+        container_name = f"crew_session-{session_id}"
+        self.run_container(image, container_name, session_id)
 
     def run_container(
-        self, image: Image, container_name: str, crew_id: int, port: int = 0
+        self, image: Image, container_name: str, session_id: int, port: int = 0
     ) -> Container:
         # Check if a container with the given name already exists
         existing_container: Container | None = None
@@ -62,7 +62,7 @@ class CrewContainerService:
             ports={"7000/tcp": port},
             network=self.network_name,
             environment={
-                "CREW_ID": str(crew_id),
+                "SESSION_ID": str(session_id),
                 "HAYSTACK_TELEMETRY_ENABLED": False,
                 "ANONYMIZED_TELEMETRY": False,
                 "EC_TELEMETRY": False,

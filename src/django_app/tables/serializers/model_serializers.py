@@ -47,7 +47,7 @@ class ToolSerializer(serializers.ModelSerializer):
 
 class AgentSerializer(serializers.ModelSerializer):
     tools = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Tool.objects.all(),
+        many=True, queryset=Tool.objects.all(), default=[]
     )
 
     class Meta:
@@ -57,7 +57,7 @@ class AgentSerializer(serializers.ModelSerializer):
 
 class TemplateAgentSerializer(serializers.ModelSerializer):
     tools = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Tool.objects.all()
+        many=True, queryset=Tool.objects.all(), default=[]
     )
     class Meta:
         model = TemplateAgent
@@ -76,11 +76,20 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
 
-        fields = "__all__"
+        fields = [
+            "crew",
+            "name",
+            "agent",
+            "instructions",
+            "expected_output",
+            "order",
+        ]
+
 
 class SessionSerializer(serializers.ModelSerializer):
     crew = serializers.PrimaryKeyRelatedField(
         queryset=Crew.objects.all(),
+        default=[],
     )
 
     class Meta:

@@ -9,6 +9,10 @@ class RunCrewSerializer(serializers.Serializer):
     crew_id = serializers.IntegerField(required=True)
 
 
+class RunSessionSerializer(serializers.Serializer):
+    crew_id = serializers.IntegerField(required=True)
+
+
 class GetUpdatesSerializer(serializers.Serializer):
     session_id = serializers.IntegerField(required=True)
 
@@ -21,7 +25,4 @@ class AnswerToLLMSerializer(serializers.Serializer):
 class ToolAliasSerializer(serializers.Serializer):
     tool = serializers.CharField()
     alias = serializers.CharField()
-
-
-class EnvironmentConfigSerializer(serializers.Serializer):
-    data = serializers.DictField(required=True)
+    

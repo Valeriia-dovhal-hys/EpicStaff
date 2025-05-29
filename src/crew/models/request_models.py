@@ -91,6 +91,7 @@ class TaskData(BaseModel):
 
 
 class SessionData(BaseModel):
+    id: int
     crew: Optional[CrewData] = None
     status: str
     conversation: Optional[str] = None
