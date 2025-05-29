@@ -2,7 +2,7 @@
 name = "django-app"
 version = "0.1.0"
 description = "backend server"
-authors = ["Maksym Yevstratiev <maksym.yevstratiev@hys-enterprise.com>"]
+authors = ["Ihor Orlenko", "Maksym Yevstratiev"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
