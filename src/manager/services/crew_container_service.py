@@ -59,7 +59,7 @@ class CrewContainerService:
             mounts=[
                 Mount(
                     source="crew_config",
-                    target="/home/user/root/crewai-sheets-ui/env_config/",
+                    target="/home/user/root/app/env_config/",
                 )
             ],
             detach=True,
