@@ -1,3 +1,4 @@
+import json
 from fastapi import FastAPI
 import asyncio
 import redis.asyncio as aioredis
@@ -80,8 +81,15 @@ async def subscribe_to_redis():
             session_id = message['data'].decode('utf-8')
             # TODO: add to logger
             print(f"Got update for session_id: {session_id}")
-
-            crew_container_service.request_run_crew(session_id)
+            
+            try:
+                crew_container_service.request_run_crew(session_id)
+            except:
+                message = {
+                    'session_id': session_id,
+                    'status': 'ERROR',
+                }
+                r.publish("sessions:session_status", json.dumps(message))
 
 
 @app.on_event("startup")
