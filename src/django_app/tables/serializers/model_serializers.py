@@ -76,7 +76,15 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
 
-        fields = "__all__"
+        fields = [
+            "crew",
+            "name",
+            "agent",
+            "instructions",
+            "expected_output",
+            "order",
+        ]
+
 
 class SessionSerializer(serializers.ModelSerializer):
     crew = serializers.PrimaryKeyRelatedField(

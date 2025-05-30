@@ -13,7 +13,7 @@ services:
       - REDIS_PORT=6379
       - POSTGRESQL_HOST=crewdb
     volumes:
-      - crew_config:/home/user/root/app/env_config
+      - crew_config:/home/user/root/django/env_config
 
     networks:
       - backend-network

@@ -16,7 +16,7 @@ RUN apt-get update && \
 ENV PATH="/root/.local/bin:$PATH"
 
 # Set the working directory in the Docker image
-WORKDIR /home/user/root/app
+WORKDIR /home/user/root/crewai-sheets-ui
 
 # Copy pyproject.toml and poetry.lock first to avoid rebuilding on code changes
 COPY pyproject.toml .
@@ -32,6 +32,6 @@ RUN rm -rf /root/.cache
 #Copying file to workdir
 COPY . .
 
-CMD ["poetry", "run", "python3", "/home/user/root/app/main.py"]
+CMD ["poetry", "run", "python3", "/home/user/root/crewai-sheets-ui/main.py"]
 
 

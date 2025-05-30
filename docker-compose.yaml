@@ -1,0 +1,47 @@
+services:
+  main_crewai_script:
+    build:
+      context: ./src/crew
+      dockerfile: Dockerfile.crew
+    container_name: main_crewai_script
+    environment:
+      - HAYSTACK_TELEMETRY_ENABLED=False
+      - ANONYMIZED_TELEMETRY=False
+      - EC_TELEMETRY=False
+      - MONITORING_MODE=local
+      - PROCESS_REDIS_HOST=redis
+    ports:
+      - "8000:8000"
+    networks:
+      - crewai_network
+    depends_on:
+      - redis
+      - manager
+    volumes:
+      - ./config:/home/user/root/crewai-sheets-ui/env_config
+
+  manager:
+    build:
+      context: ./src
+      dockerfile: ./manager/Dockerfile.man
+    container_name: manager_container
+    networks:
+      - crewai_network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - /usr/bin/docker:/usr/bin/docker
+    tty: true
+    stdin_open: true
+  
+  
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    container_name: redis
+    networks:
+      - crewai_network
+
+networks:
+  crewai_network:
+    driver: bridge

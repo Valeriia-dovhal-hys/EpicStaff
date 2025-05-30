@@ -1,0 +1,7 @@
+{
+    "google_api": {
+      "scopes": [
+        "https://www.googleapis.com/auth/spreadsheets"
+      ]
+    }
+}
