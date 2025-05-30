@@ -1,12 +1,4 @@
 from rest_framework import serializers
-from ..models import (
-    SessionMessage,
-    Session,
-)
-
-
-class RunCrewSerializer(serializers.Serializer):
-    crew_id = serializers.IntegerField(required=True)
 
 
 class RunSessionSerializer(serializers.Serializer):
@@ -21,10 +13,6 @@ class AnswerToLLMSerializer(serializers.Serializer):
     session_id = serializers.IntegerField(required=True)
     answer = serializers.CharField()
 
-
-class ToolAliasSerializer(serializers.Serializer):
-    tool = serializers.CharField()
-    alias = serializers.CharField()
 
 
 class EnvironmentConfigSerializer(serializers.Serializer):
