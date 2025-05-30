@@ -33,7 +33,7 @@ class Logger(BaseModel):
             "level": level,
             "text": message,
         }
-        self._redis_client.publish(channel=f"sessions:messages", message=json.dumps(msg))
+        self._redis_client.publish(channel=f"sessions:crewai_output", message=json.dumps(msg))
 
 
 class FileLogger:
