@@ -104,7 +104,7 @@ class TemplateAgent(models.Model):
     backstory = models.TextField()
     tools = models.ManyToManyField(Tool, blank=True, default=[])
     allow_delegation = models.BooleanField(default=False)
-    memory = models.TextField(null=True, blank=True)
+    memory = models.BooleanField(default=False)
     max_iter = models.IntegerField(default=25)
     llm_model = models.ForeignKey(
         LLMModel,
@@ -192,7 +192,6 @@ class Session(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
-
         get_latest_by = ["id"]
 
 
