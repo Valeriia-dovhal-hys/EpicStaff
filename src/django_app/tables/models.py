@@ -144,7 +144,7 @@ class Crew(models.Model):
         SEQUENTIAL = "sequential"
         HIERARCHICAL = "hierarchical"
 
-    comments = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     name = models.TextField()
     assignment = models.TextField(null=True, blank=True)
     agents = models.ManyToManyField(Agent, blank=True)
