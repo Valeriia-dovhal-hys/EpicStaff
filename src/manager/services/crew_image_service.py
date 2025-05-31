@@ -1,5 +1,4 @@
 from pathlib import Path
-from venv import logger
 
 import docker
 from docker.models.images import Image
