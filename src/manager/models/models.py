@@ -1,13 +1,5 @@
 from typing import Any
-from enum import Enum
 from pydantic import BaseModel
-
-
-class SessionStatus(Enum):
-        END = "end"
-        RUN = "run"
-        WAIT_FOR_USER = "wait_for_user"
-        ERROR = "error"
 
 
 class RunToolParamsModel(BaseModel):

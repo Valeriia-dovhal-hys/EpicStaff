@@ -1,10 +1,6 @@
-import os
-import json
-
 from services.redis_service import RedisService
 from services.container_manager_service import ContainerManagerService
 from services.run_crew_service import RunCrewService
-from models.response_models import SessionStatus
 
 container_manager_service = ContainerManagerService()
 
@@ -16,11 +12,4 @@ run_crew_service = RunCrewService(
 
 
 if __name__ == "__main__":
-    try:
-        run_crew_service.run()
-    except:
-        redis_service.publish_session_status(SessionStatus.ERROR)
-    else:
-        redis_service.publish_session_status(SessionStatus.END)
-
-
+    run_crew_service.run()

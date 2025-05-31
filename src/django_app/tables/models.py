@@ -1,4 +1,3 @@
-from django.utils import timezone
 from django.db import models
 
 
@@ -11,7 +10,7 @@ class Provider(models.Model):
 
 class LLMModel(models.Model):
     name = models.TextField()
-    description = models.TextField(null=True, blank=True)
+    comments = models.TextField(null=True, blank=True)
     llm_provider = models.ForeignKey(Provider, on_delete=models.PROTECT)
     base_url = models.URLField(null=True, blank=True)
     deployment = models.TextField(null=True, blank=True)
@@ -63,7 +62,7 @@ class Agent(models.Model):
     backstory = models.TextField()
     tools = models.ManyToManyField(Tool, blank=True, default=[])
     allow_delegation = models.BooleanField(default=False)
-    memory = models.BooleanField(default=False)
+    memory = models.TextField(null=True, blank=True)
     max_iter = models.IntegerField(default=25)
     llm_model = models.ForeignKey(
         LLMModel,
@@ -104,7 +103,7 @@ class TemplateAgent(models.Model):
     backstory = models.TextField()
     tools = models.ManyToManyField(Tool, blank=True, default=[])
     allow_delegation = models.BooleanField(default=False)
-    memory = models.BooleanField(default=False)
+    memory = models.TextField(null=True, blank=True)
     max_iter = models.IntegerField(default=25)
     llm_model = models.ForeignKey(
         LLMModel,
@@ -144,13 +143,14 @@ class Crew(models.Model):
         SEQUENTIAL = "sequential"
         HIERARCHICAL = "hierarchical"
 
-    description = models.TextField(null=True, blank=True)
+    comments = models.TextField(null=True, blank=True)
     name = models.TextField()
-    assignment = models.TextField(null=True, blank=True)
+    assignment = models.TextField()
     agents = models.ManyToManyField(Agent, blank=True)
     process = models.CharField(
         max_length=255, choices=Process, default=Process.SEQUENTIAL
     )
+    verbose = models.BooleanField(default=False)
     memory = models.BooleanField(default=False)
     embedding_model = models.ForeignKey(
         EmbeddingModel, on_delete=models.SET_NULL, null=True, default=None
@@ -189,9 +189,10 @@ class Session(models.Model):
     status = models.CharField(
         choices=SessionStatus.choices, max_length=255, blank=False, null=False
     )
-    created_at = models.DateTimeField(default=timezone.now)
+    conversation = models.TextField(blank=True)
 
     class Meta:
+
         get_latest_by = ["id"]
 
 

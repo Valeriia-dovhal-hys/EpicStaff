@@ -24,9 +24,12 @@ from tables.serializers.model_serializers import SessionSerializer
 from tables.serializers.serializers import (
     AnswerToLLMSerializer,
     EnvironmentConfigSerializer,
+    RunCrewSerializer,
     RunSessionSerializer,
+    ToolAliasSerializer,
 )
 from tables.serializers.nested_model_serializers import (
+    NestedSessionSerializer,
     SessionMessageSerializer,
 )
 
@@ -225,3 +228,10 @@ class AnswerToLLM(APIView):
         # TODO: business logic
 
         return Response(data={"status": session.status}, status=status.HTTP_200_OK)
+
+
+@swagger_auto_schema(method="get", responses={200: ToolAliasSerializer(many=True)})
+@api_view(["GET"])
+def getToolAliases(request):
+    json_data = redis_service.loadToolAliases()
+    return Response(json_data)

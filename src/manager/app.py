@@ -1,4 +1,3 @@
-import json
 from fastapi import FastAPI
 import asyncio
 import redis.asyncio as aioredis
@@ -18,7 +17,6 @@ from repositories.import_tool_data_repository import ImportToolDataRepository
 from services.tool_image_service import ToolImageService
 from services.tool_container_service import ToolContainerService
 from services.crew_container_service import CrewContainerService
-from services.redis_service import RedisService
 from helpers.yaml_parser import load_env_from_yaml_config
 
 
@@ -34,7 +32,6 @@ tool_container_service = ToolContainerService(
     import_tool_data_repository=import_tool_data_repository,
 )
 crew_container_service = CrewContainerService()
-redis_service = RedisService()
 
 
 # TODO ADD LOGGER
@@ -72,10 +69,24 @@ def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
     return RunToolResponseModel(data=run_tool_data)
 
 
+async def subscribe_to_redis():
+    # TODO: remove hardcode
+    r = await aioredis.from_url('redis://redis:6379')
+    pubsub = r.pubsub()
+    await pubsub.subscribe("sessions:start")
+
+    async for message in pubsub.listen():
+        if message['type'] == 'message':
+            session_id = message['data'].decode('utf-8')
+            # TODO: add to logger
+            print(f"Got update for session_id: {session_id}")
+
+            crew_container_service.request_run_crew(session_id)
+
+
 @app.on_event("startup")
 async def start_redis_subscription():
-    await redis_service.init_redis()
-    asyncio.create_task(redis_service.subscribe_to_start_session())
+    asyncio.create_task(subscribe_to_redis())
 
 
 if __name__ == "__main__":

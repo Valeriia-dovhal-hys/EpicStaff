@@ -33,11 +33,15 @@ class CrewContainerService:
         self, image: Image, container_name: str, session_id: int, port: int = 0
     ) -> Container:
         # Check if a container with the given name already exists
+        existing_container: Container | None = None
         for container in self.client.containers.list(all=True):
             if container.name == container_name:
-                container.remove(force=True)
+                existing_container = container
                 break
 
+        if existing_container is not None:
+            existing_container.remove(force=True)
+            
 
         # Create one of not exists
         container_crew = self.client.containers.run(
