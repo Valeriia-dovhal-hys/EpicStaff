@@ -23,7 +23,6 @@ from .views.views import (
     GetUpdates,
     StopSession,
     delete_environment_config,
-    getToolAliases,
 )
 
 router = DefaultRouter()
@@ -45,7 +44,6 @@ router.register(r"sessions", SessionViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path("run-session/", RunSession.as_view(), name="run-session"),
-    path("tool-aliases/", getToolAliases, name="tool-aliases"),
     path("answer-to-llm/", AnswerToLLM.as_view(), name="answer-to-llm"),
     path(
         "sessions/<int:session_id>/get-updates/",

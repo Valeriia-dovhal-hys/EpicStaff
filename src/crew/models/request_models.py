@@ -2,14 +2,12 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, HttpUrl
 
 
-
 class ProviderData(BaseModel):
     name: str
 
 
 class LLMModelData(BaseModel):
     name: str
-    comments: Optional[str] = None
     llm_provider: ProviderData
     base_url: Optional[HttpUrl] = None
     deployment: Optional[str] = None
@@ -44,7 +42,7 @@ class AgentData(BaseModel):
     backstory: str
     tools: List[ToolData] = []
     allow_delegation: bool = False
-    memory: Optional[str] = None
+    memory: bool = False
     max_iter: int = 25
     llm_model: Optional[LLMModelData] = None
     fcm_llm_model: Optional[LLMModelData] = None
@@ -58,7 +56,7 @@ class TemplateAgentData(BaseModel):
     backstory: str
     tools: List[ToolData] = []
     allow_delegation: bool = False
-    memory: Optional[str] = None
+    memory: bool = False
     max_iter: int = 25
     llm_model: Optional[LLMModelData] = None
     fcm_llm_model: Optional[LLMModelData] = None
@@ -68,12 +66,10 @@ class TemplateAgentData(BaseModel):
 
 class CrewData(BaseModel):
     id: int
-    comments: Optional[str] = None
     name: str
-    assignment: str
+    assignment: str = ""
     agents: List[AgentData] = []
     process: str = "sequential"
-    verbose: bool = False
     memory: bool = False
     embedding_model: Optional[EmbeddingModelData] = None
     manager_llm_model: Optional[LLMModelData] = None
@@ -94,7 +90,6 @@ class SessionData(BaseModel):
     id: int
     crew: Optional[CrewData] = None
     status: str
-    conversation: Optional[str] = None
 
 
 class SessionMessageData(BaseModel):

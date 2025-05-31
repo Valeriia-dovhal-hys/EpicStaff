@@ -30,6 +30,4 @@ class RunCrewService:
 
         result = kickoff_result.to_dict()
 
-        self.redis_service.publish(
-            "final_result", {"session_id": session_data.id, "result": result}
-        )
+        self.redis_service.publish_final_result(result)
