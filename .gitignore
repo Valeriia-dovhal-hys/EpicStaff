@@ -183,3 +183,6 @@ config.yaml
 oauth2_credentials.json
 token.json
 *.db
+
+# Additional tool
+push_dockerhub.bat
