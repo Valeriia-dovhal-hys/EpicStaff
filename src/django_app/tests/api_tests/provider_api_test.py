@@ -1,8 +1,5 @@
-from rest_framework.test import APITestCase
+import pytest
 
+from tables.models import Provider
+from tests.api_tests.fixtures import *
 
-
-class TestProviderAPI(APITestCase):
-
-    def test_create_provider(self):
-        pass
