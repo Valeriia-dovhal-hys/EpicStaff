@@ -1,0 +1,105 @@
+/* Main container sizing */
+.main-container {
+  height: 300px; // Adjust height as needed
+  width: 500px; // Smaller width
+}
+/* Main container styling */
+.dialog-header {
+  background-color: #3f51b5;
+  height: 20%;
+
+  h1 {
+    color: #ffffff;
+    font-size: 1rem;
+    margin: 0;
+  }
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: row;
+  padding: 16px;
+  height: 60%;
+  overflow: hidden;
+}
+
+.available-tools,
+.selected-tools {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-right: 16px;
+}
+
+.selected-tools {
+  margin-right: 0;
+  max-width: 200px;
+}
+
+.available-tools h2,
+.selected-tools h2 {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+
+.tools-list {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.selected-tools-list {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.tool-item {
+  padding: 8px;
+  margin-bottom: 4px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.tool-item:hover {
+  background-color: #f5f5f5;
+}
+
+.tool-item.selected {
+  background-color: #e3f2fd;
+  border-color: #90caf9;
+}
+
+.tool-name {
+  flex-grow: 1;
+  font-size: 14px;
+  color: #333;
+}
+
+.selected-icon {
+  color: #3f51b5;
+}
+
+.selected-tool-item {
+  padding: 8px;
+  margin-bottom: 4px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.remove-icon {
+  color: #f44336;
+  cursor: pointer;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-top: 1px solid #e0e0e0;
+  height: 20%;
+}
