@@ -29,8 +29,9 @@ class RedisService:
                 
                 try:
                     self.crew_container_service.request_run_crew(session_id)
-                except:
-                    self.publish_session_status(session_id, SessionStatus.END)
+                except Exception as e:
+                    print(e)
+                    await self.publish_session_status(session_id, SessionStatus.ERROR)
 
 
     async def _publish(self, channel: str, message):
@@ -45,4 +46,4 @@ class RedisService:
             'session_id': session_id,
             'status': session_status.value,
         }
-        self._publish("session_status", message)
+        await self._publish("session_status", message)
