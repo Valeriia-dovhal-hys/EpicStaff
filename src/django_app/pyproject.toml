@@ -21,6 +21,7 @@ DJANGO_SETTINGS_MODULE = "tests.settings"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
+pytest-mock = "^3.14.0"
 
 [build-system]
 requires = ["poetry-core"]
