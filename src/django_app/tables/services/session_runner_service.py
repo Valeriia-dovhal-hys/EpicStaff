@@ -1,3 +1,4 @@
+from utils.singleton_meta import SingletonMeta
 from tables.models import Session, Task, Crew
 from tables.serializers.nested_model_serializers import (
     NestedSessionSerializer,
@@ -6,8 +7,8 @@ from tables.serializers.nested_model_serializers import (
 
 from tables.services.redis_service import RedisService
 
-class SessionRunnerService:
 
+class SessionRunnerService(metaclass=SingletonMeta):
 
     def run_session(self, session_id):
 
