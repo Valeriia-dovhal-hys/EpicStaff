@@ -3,6 +3,9 @@ from pytest_mock import MockFixture
 from pytest_mock import mocker
 from unittest.mock import MagicMock
 
+from fixtures import crew_image
+
+from docker.models.images import Image
 
 class TestCrewSetup:
 
@@ -66,3 +69,18 @@ class TestCrewSetup:
             detach=True,
             name=container_name,
         )
+
+
+    def test_get_image_existing(self, mocker: MockFixture, crew_image):
+
+        from services.crew_image_service import CrewImageService
+        service = CrewImageService()
+
+        mock_build_image = mocker.patch.object(service, 'build_image')
+
+        image = service.get_image()
+
+        assert image is not None
+        assert "crew:latest" in image.tags
+
+        mock_build_image.assert_not_called()
