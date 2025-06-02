@@ -23,8 +23,8 @@ class ToolContainerService:
         self.tool_image_service = tool_image_service
         self.import_tool_data_repository = import_tool_data_repository
         
-        tr_container = self.docker_client.containers.get('manager_container')
-        network_settings = tr_container.attrs['NetworkSettings']
+        manager_container = self.docker_client.containers.get('manager_container')
+        network_settings = manager_container.attrs['NetworkSettings']
         self.network_name = list(network_settings['Networks'].keys())[0]
 
     def fetch_data_with_retry(self, url, retries=10, delay=3):
