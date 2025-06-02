@@ -1,10 +1,9 @@
 // custom-agent-llm-select-renderer.ts
 
 import Handsontable from 'handsontable';
-import { LLM } from '../../../../shared/models/agent.model';
 
 export function createCustomAgentLlmSelectRenderer(
-  llmOptions: LLM[],
+  llmOptions: any[],
   eventListenerRefs: Array<() => void>
 ) {
   return function customAgentLlmSelectRenderer(

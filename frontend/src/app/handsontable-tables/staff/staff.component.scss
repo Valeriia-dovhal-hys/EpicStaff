@@ -260,6 +260,7 @@
   color: rgb(34, 34, 34) !important;
   text-align: center !important;
   vertical-align: middle !important;
+  z-index: -1000 !important;
   // .relative {
   //   .rowHeader {
   //     // font-weight: bold;
@@ -277,6 +278,7 @@
   }
 }
 
+// THIS SHOULD BE DONT IN HOT SETINGS NOT PLAIN CSS
 // .staff-table-row-header-class:hover {
 //   background-color: #c4eed0 !important;
 // }

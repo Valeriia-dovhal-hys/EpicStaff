@@ -25,7 +25,7 @@ import { TasksService } from '../../services/tasks.service';
 import { Task } from '../../shared/models/task.model';
 import { ProjectTasksTableComponent } from '../../handsontable-tables/project-tasks-table/project-tasks-table.component';
 import { MatIconModule } from '@angular/material/icon';
-import { CreateTaskDialogComponent } from '../create-task-dialog/create-task-dialog.component';
+import { CreateTaskFormDialogComponent } from '../../components/form-dialogs/create-task-form-dialog/create-task-form-dialog.component';
 import { switchMap } from 'rxjs/operators';
 import {
   RunCrewSessionResponse,
@@ -215,8 +215,7 @@ export class ProjectDetailsComponent implements OnInit {
   }
 
   openCreateTaskDialog(): void {
-    const dialogRef = this.dialog.open(CreateTaskDialogComponent, {
-      width: '600px', // Adjust the width as needed
+    const dialogRef = this.dialog.open(CreateTaskFormDialogComponent, {
       data: { agents: this.agents, projectId: this.project.id },
     });
 

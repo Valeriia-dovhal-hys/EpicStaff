@@ -10,7 +10,7 @@ import { ProjectListItemCardComponent } from './project-list-item-card/project-l
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { ProjectFormComponent } from './project-form/project-form.component';
+import { CreateProjectFormDialogComponent } from '../components/form-dialogs/create-project-form-dialog/create-project-form-dialog.component';
 import { SharedSnackbarService } from '../services/snackbar/shared-snackbar.service';
 
 @Component({
@@ -56,8 +56,8 @@ export class ProjectsListComponent implements OnInit {
     this.subscriptions.add(projectsSubscription);
   }
 
-  public openCreateProjectDialog(): void {
-    const dialogRef = this.dialog.open(ProjectFormComponent, {});
+  public openCreateProjectFormDialog(): void {
+    const dialogRef = this.dialog.open(CreateProjectFormDialogComponent, {});
 
     dialogRef.afterClosed().subscribe((result: Project | undefined) => {
       if (result) {

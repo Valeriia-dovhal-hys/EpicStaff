@@ -18,7 +18,7 @@ import {
   ChangeSource,
   isRowValid,
 } from '../table-utils/universal_handsontable_utils';
-import { Agent, getAgentsRequest, LLM } from '../../shared/models/agent.model';
+import { Agent, CreateAgentRequest } from '../../shared/models/agent.model';
 
 import { AgentsService } from '../../services/staff.service';
 import {
@@ -56,10 +56,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
-import { CreateAgentFormComponent } from './create-agent-form/create-agent-form.component';
+import { CreateAgentFormComponent } from '../../components/form-dialogs/create-agent-form-dialog/create-agent-form-dialog.component';
 import { ToolSelectorComponent } from '../../main/tools-selector-dialog/tool-selector-dialog.component';
 import { RangeType } from 'handsontable/plugins/copyPaste';
 import { beforeChangeHandler } from './staff-table-utils/staff-table-event-handlers/before-change-handler';
+import { LLM_Model } from '../../shared/models/LLM.model';
+import { LLM_Models_Service } from '../../services/LLM_models.service';
 
 @Component({
   selector: 'app-agents-table-2',
@@ -109,7 +111,8 @@ export class StaffComponent implements OnInit, OnDestroy {
   private readonly targetColumnName: string = 'Tools';
 
   //SELECT RENDERER LOGIC
-  public llmOptions: LLM[] = Object.values(LLM);
+  private llmModels: LLM_Model[] = [];
+  public llmOptions: string[] = [];
   private eventListenerRefs: Array<() => void> = [];
 
   private llmCellRenderer = createCustomAgentLlmSelectRenderer(
@@ -259,6 +262,7 @@ export class StaffComponent implements OnInit, OnDestroy {
     @Inject(DOCUMENT) private document: Document,
     private agentsService: AgentsService,
     private toolsService: ToolsService,
+    private llmModelsService: LLM_Models_Service,
     private dialog: MatDialog,
     private snackbarService: SharedSnackbarService,
     private cdr: ChangeDetectorRef
@@ -276,6 +280,7 @@ export class StaffComponent implements OnInit, OnDestroy {
       rowHeights: 93,
       wordWrap: true,
 
+      selectionMode: 'range',
       //undoredo
       undo: true,
 
@@ -297,18 +302,17 @@ export class StaffComponent implements OnInit, OnDestroy {
       // end optimization
 
       dataSchema: {
-        id: '',
         comments: '',
         role: '',
         goal: '',
         backstory: '',
-        toolTitles: '',
+        memory: false,
         allow_delegation: true,
-        max_iter: 5,
+        max_iter: 15,
         // memory: false,
         // temperature: 0.5,
-        llm_model: LLM.GPT3,
-        fcm_llm_model: LLM.GPT3,
+        llm_model: null,
+        fcm_llm_model: null,
       },
 
       licenseKey: 'non-commercial-and-evaluation',
@@ -337,7 +341,7 @@ export class StaffComponent implements OnInit, OnDestroy {
         const columnName = colHeaders[column];
 
         if (columnName === this.targetColumnName) {
-          this.openDialogAtCell(row, column);
+          this.onOpenToolSelectorDialog(row, column);
           return false; // Prevent the default editor from opening
         }
       },
@@ -361,41 +365,6 @@ export class StaffComponent implements OnInit, OnDestroy {
         },
       },
     };
-  }
-
-  openDialogAtCell(row: number, column: number) {
-    const cellValue = this.hotInstance.getDataAtCell(row, column) as string;
-
-    const toolNames = cellValue
-      ? cellValue.split(',').map((name) => name.trim())
-      : [];
-
-    const selectedTools = this.toolsData.filter((tool) =>
-      toolNames.includes(tool.name)
-    );
-
-    // Open the dialog with toolsData and selectedTools
-    const dialogRef = this.dialog.open(ToolSelectorComponent, {
-      maxWidth: 'none',
-      data: {
-        toolsData: this.toolsData,
-        selectedTools: selectedTools,
-      },
-
-      autoFocus: false,
-    });
-
-    dialogRef.afterClosed().subscribe((selectedTools: Tool[] | undefined) => {
-      if (selectedTools) {
-        // Convert selected Tools back to a string of tool names
-        const selectedToolNames = selectedTools
-          .map((tool) => tool.name)
-          .join(', ');
-
-        // Update the cell value with the new tool names
-        this.hotInstance.setDataAtCell(row, column, selectedToolNames);
-      }
-    });
   }
 
   private handleDeleteRows(
@@ -524,7 +493,6 @@ export class StaffComponent implements OnInit, OnDestroy {
         if (this.isViewInitialized) {
           this.initializeHandsontable();
         }
-        this.openCreateAgentForm();
       },
       error: (error) => {
         console.error('Error fetching agents or tools:', error);
@@ -542,24 +510,20 @@ export class StaffComponent implements OnInit, OnDestroy {
     this.applyFilter();
   }
 
-  private createEmptyAgent(): Agent {
+  private createEmptyAgent(): CreateAgentRequest {
     return {
-      id: 0,
       tools: [],
       role: '',
       goal: '',
       backstory: '',
-      toolTitles: '',
       allow_delegation: false,
-
-      memory: 'false',
+      memory: false,
       max_iter: 5,
-      temperature: 0.5,
-      llm_model: LLM.GPT3,
-      fcm_llm_model: LLM.GPT3,
+      llm_model: null,
+      fcm_llm_model: null,
       llm_config: null,
       fcm_llm_config: null,
-      comments: '',
+      // comments: '',
     };
   }
 
@@ -637,26 +601,10 @@ export class StaffComponent implements OnInit, OnDestroy {
     ) as Agent;
     console.log(agentData);
 
-    const agentUpdatePayload = {
-      tools: [],
-      role: 'test',
-      goal: 'test',
-      backstory: 'string',
-      // comments: '',
-      allow_delegation: true,
-      memory: 'string',
-      max_iter: 2147483647,
-      llm_model: null,
-      fcm_llm_model: null,
-      llm_config: null,
-      fcm_llm_config: null,
-      // toolTitles: '12321321,213213',
-    };
-
     // STEP 1: Check if row is valid
     const isRowValidResult = isRowValid(rowIndex, this.hotInstance);
 
-    // // STEP 2: If row is valid then update agent tools
+    // STEP 2: If row is valid then update agent tools
     // agentData.tools = this.updateAgentTools(agentData.toolTitles);
 
     if (!isRowValidResult) {
@@ -778,7 +726,6 @@ export class StaffComponent implements OnInit, OnDestroy {
     this.hotInstance.render();
   }
 
-  //CAN BE REFACTORED INTO SERVICE
   public canDeactivate(): Observable<boolean> | Promise<boolean> | boolean {
     const invalidRows: number[] = getInvalidRows(this.hotInstance);
 
@@ -788,6 +735,7 @@ export class StaffComponent implements OnInit, OnDestroy {
 
     return true;
   }
+
   private showConfirmationDialog(invalidRows: number[]): Observable<boolean> {
     const rowNumbers: number[] = invalidRows.map((row) => row + 1);
     const rowsString: string = rowNumbers.join(', ');
@@ -805,57 +753,92 @@ export class StaffComponent implements OnInit, OnDestroy {
     return dialogRef.afterClosed();
   }
 
-  openCreateAgentForm(): void {
-    console.log(this.toolsData);
+  onOpenToolSelectorDialog(row: number, column: number) {
+    const cellValue: string = this.hotInstance.getDataAtCell(
+      row,
+      column
+    ) as string;
 
+    const toolNames: string[] = cellValue
+      ? cellValue.split(',').map((name) => name.trim())
+      : [];
+
+    const selectedTools: Tool[] = this.toolsData.filter((tool) =>
+      toolNames.includes(tool.name)
+    );
+
+    // Open the dialog with toolsData and selectedTools
+    const dialogRef = this.dialog.open(ToolSelectorComponent, {
+      maxWidth: 'none',
+      data: {
+        toolsData: this.toolsData,
+        selectedTools: selectedTools,
+      },
+
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe((selectedTools: Tool[] | undefined) => {
+      if (selectedTools) {
+        // Convert selected Tools back to a string of tool names
+        const selectedToolNames = selectedTools
+          .map((tool) => tool.name)
+          .join(', ');
+
+        // Update the cell value with the new tool names
+        this.hotInstance.setDataAtCell(row, column, selectedToolNames);
+      }
+    });
+  }
+
+  onOpenCreateAgentFormDialog(): void {
     const dialogRef = this.dialog.open(CreateAgentFormComponent, {
       data: { toolsData: this.toolsData },
       autoFocus: false,
     });
 
-    dialogRef.afterClosed().subscribe((agentData: Agent | undefined) => {
-      if (agentData) {
-        // Handle the result from the form (e.g., create the agent)
-        console.log('Agent data received from form:', agentData);
+    dialogRef
+      .afterClosed()
+      .subscribe((agentData: CreateAgentRequest | undefined) => {
+        if (agentData) {
+          // Handle the result from the form (e.g., create the agent)
+          console.log('Agent data received from form:', agentData);
 
-        this.addNewAgent(agentData);
-      }
-    });
-  }
-
-  private addNewAgent(agentData: Agent): void {
-    // Update toolTitles
-    // agentData.toolTitles = this.getToolTitlesFromTools(agentData.tools);
-
-    // Send the agent data to the backend
-    this.agentsService.createAgent(agentData).subscribe({
-      next: () => {
-        this.originalAgentsTableData.push(agentData);
-
-        this.applyFilter();
-
-        const newRowIndex = this.agentsTableData.findIndex(
-          (agent) => agent.id === agentData.id
-        );
-        if (newRowIndex >= 0) {
-          this.hotInstance.selectCell(newRowIndex, 1);
+          // this.addNewAgent(agentData);
         }
-
-        // Show a success message
-        this.snackbarService.showSnackbar(
-          `Agent "${agentData.role}" created successfully.`,
-          'success'
-        );
-      },
-      error: (error) => {
-        console.error(`Error creating agent:`, error);
-        this.snackbarService.showSnackbar(
-          `Failed to create agent. Please try again.`,
-          'error'
-        );
-      },
-    });
+      });
   }
+
+  // private addNewAgent(agentData: CreateAgentRequest): void {
+  //   // Send the agent data to the backend
+  //   this.agentsService.createAgent(agentData).subscribe({
+  //     next: () => {
+  //       this.originalAgentsTableData.push(agentData);
+
+  //       this.applyFilter();
+
+  //       const newRowIndex = this.agentsTableData.findIndex(
+  //         (agent) => agent.id === agentData.id
+  //       );
+  //       if (newRowIndex >= 0) {
+  //         this.hotInstance.selectCell(newRowIndex, 1);
+  //       }
+
+  //       // Show a success message
+  //       this.snackbarService.showSnackbar(
+  //         `Agent "${agentData.role}" created successfully.`,
+  //         'success'
+  //       );
+  //     },
+  //     error: (error) => {
+  //       console.error(`Error creating agent:`, error);
+  //       this.snackbarService.showSnackbar(
+  //         `Failed to create agent. Please try again.`,
+  //         'error'
+  //       );
+  //     },
+  //   });
+  // }
 
   ngOnDestroy(): void {
     // Unsubscribe from all subscriptions
