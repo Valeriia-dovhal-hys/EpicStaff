@@ -1,0 +1,192 @@
+.page-container {
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+}
+.content {
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+}
+
+.project-details-section {
+  height: 100%;
+  width: 15%;
+  min-width: 200px;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.project-details-header {
+  width: 100%;
+  height: 70px;
+  padding: 15px 20px;
+  // border-bottom: 1px solid #000000;
+  .project-header {
+    margin-top: 3px;
+    color: #000000;
+    font-size: 1.5rem;
+    font-weight: 500;
+  }
+}
+
+.project-details-content {
+  width: 100%;
+  height: 100%;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+}
+.run-section {
+  width: 100%;
+  height: 10%;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.run {
+  width: 80px;
+}
+
+.crew-runs-results {
+  height: 50%;
+  width: 100%;
+
+  .crew-run-results-header {
+    font-size: 1rem;
+    color: #3f51b5;
+    font-weight: 500;
+  }
+}
+.view {
+  width: auto; /* You can set the width as needed */
+  white-space: nowrap; /* Prevent text from wrapping */
+  overflow: hidden; /* Hide overflowed text */
+  text-overflow: ellipsis; /* Display ellipsis when text is truncated */
+  display: block; /* Ensure the element takes up its own space */
+  text-align: center; /* Center the text */
+}
+
+//Agents Section
+.agents-tasks-container {
+  width: 85%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.agents-section,
+.tasks-section {
+  height: 50%;
+  width: 100%;
+  border-left: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+
+  .header-container {
+    display: flex;
+    padding: 15px 20px;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #3f51b5;
+    .header {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 200;
+    }
+  }
+  .agents-header-container {
+    border-top-right-radius: 10px;
+  }
+  .agents-section-content {
+    width: 100%;
+    height: 100%;
+  }
+
+  .tasks-section-content {
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.loading-tasks {
+  padding: 15px 20px;
+}
+
+.no-agents {
+  padding: 15px 20px;
+}
+//agentslist
+.agents-list {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1rem;
+  overflow-y: auto;
+}
+
+.agent-item {
+  border: 1px solid #000000;
+  border-radius: 10px;
+  height: 45px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.agent-arrow-role-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.agent-role-container {
+  height: 100%;
+  background-color: #3f51b5;
+}
+.agent-role {
+  height: 100%;
+  display: flex;
+  align-items: center;
+
+  font-weight: bold;
+}
+.agent-expand {
+  margin-right: 1rem;
+}
+
+.agent-goal-llm-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 70%;
+}
+
+.agent-goal {
+  color: #000000;
+
+  overflow: hidden; /* Hide overflowed content */
+  white-space: nowrap; /* Prevent text from wrapping to a new line */
+  text-overflow: ellipsis; /* Display ellipsis when text overflows */
+}
+
+.agent-llm {
+  color: #3f51b5;
+  font-weight: 500;
+}
+
+//diloag run
