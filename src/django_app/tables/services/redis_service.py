@@ -1,22 +1,42 @@
 import os
 import json
 import redis
+from threading import Lock
+
+from utils.singleton_meta import SingletonMeta
 
 
-# TODO: singleton maybe?
-class RedisService:
+class RedisService(metaclass=SingletonMeta):
+    _lock: Lock = Lock()
 
     def __init__(self):
 
-        redis_host = os.getenv("REDIS_HOST", "localhost")
-        redis_port = int(os.getenv("REDIS_PORT", 6379))
+        self._redis_client = None
+        self._pubsub = None
+        self._redis_host = os.getenv("REDIS_HOST", "localhost")
+        self._redis_port = int(os.getenv("REDIS_PORT", 6379))
 
-        self.redis_client = redis.Redis(host=redis_host, port=redis_port)
-        self.pubsub = self.redis_client.pubsub()
+    def _initialize_redis(self):
+        with self._lock:
+            if self._redis_client is None:
+                self._redis_client = redis.Redis(
+                    host=self._redis_host, port=self._redis_port
+                )
+                self._pubsub = self._redis_client.pubsub()
 
-    def loadToolAliases(self) -> str:
-        keys = [key.decode("utf-8") for key in self.redis_client.hkeys("tools")]
-        return json.dumps(keys)
+    @property
+    def redis_client(self):
+        """Lazy initialize redis_client"""
+        if self._redis_client is None:
+            self._initialize_redis()
+        return self._redis_client
+
+    @property
+    def pubsub(self):
+        """Lazy initialize pubsub"""
+        if self._pubsub is None:
+            self._initialize_redis()
+        return self._pubsub
 
     def set_session_data(self, session_id: int, session_json_schema: str) -> None:
         self.redis_client.set(f"sessions:{session_id}:schema", session_json_schema)
