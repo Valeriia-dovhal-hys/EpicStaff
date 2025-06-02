@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 import pytest
 from django.urls import reverse
@@ -110,3 +111,13 @@ def redis_client_mock():
     mock_instance = MagicMock()
     with patch.object(redis_service, "_redis_client", mock_instance):
         yield mock_instance
+
+
+@pytest.fixture
+def session_schema_json():
+    path = Path("./tests/resources/session_schema.json").resolve()
+
+    with open(path, "r") as f:
+        schema_json = f.read()
+    
+    yield schema_json
