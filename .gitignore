@@ -166,6 +166,7 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
+.DS_Store
 
 # VSCode
 /.vscode
@@ -184,47 +185,4 @@ token.json
 *.db
 
 # Additional tool
-additional_tools/
-
-
-# FRONTEND GIT ignore
-# Compiled output
-frontend/dist
-frontend/tmp
-frontend/out-tsc
-frontend/bazel-out
-
-# Node
-frontend/node_modules
-frontend/npm-debug.log
-frontend/yarn-error.log
-
-# IDEs and editors
-frontend/.idea/
-frontend/.project
-frontend/.classpath
-frontend/.c9/
-*.launch
-frontend/.settings/
-*.sublime-workspace
-
-# Visual Studio Code
-frontend/.vscode/*
-!frontend/.vscode/settings.json
-!frontend/.vscode/tasks.json
-!frontend/.vscode/launch.json
-!frontend/.vscode/extensions.json
-frontend/.history/*
-
-# Miscellaneous
-frontend/.angular/cache
-frontend/.sass-cache/
-frontend/connect.lock
-frontend/coverage
-frontend/libpeerconnection.log
-frontend/testem.log
-frontend/typings
-
-# System files
-frontend/.DS_Store
-Thumbs.db
+push_dockerhub.bat
