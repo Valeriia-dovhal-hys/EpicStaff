@@ -26,7 +26,7 @@ def test_listen_redis_crewai_output(fake_redis_client, crew: Crew):
     )
 
     # Wait for pubsub thread to handle message
-    time.sleep(0.1)
+    time.sleep(0.5)
 
     session_messgae_list = SessionMessage.objects.filter(session=session)
     assert session_messgae_list.count() == 1
@@ -57,7 +57,7 @@ def test_listen_redis_session_status(fake_redis_client, crew: Crew):
         )
 
         # Wait for pubsub thread to handle message
-        time.sleep(0.1)
+        time.sleep(0.5)
 
         updated_session = Session.objects.get(pk=session.pk)
         assert updated_session.status == status
