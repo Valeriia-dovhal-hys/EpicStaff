@@ -23,8 +23,8 @@ class ToolContainerService:
         self.tool_image_service = tool_image_service
         self.import_tool_data_repository = import_tool_data_repository
         
-        tr_container = self.docker_client.containers.get('manager_container')
-        network_settings = tr_container.attrs['NetworkSettings']
+        manager_container = self.docker_client.containers.get('manager_container')
+        network_settings = manager_container.attrs['NetworkSettings']
         self.network_name = list(network_settings['Networks'].keys())[0]
 
     def fetch_data_with_retry(self, url, retries=10, delay=3):
@@ -86,6 +86,11 @@ class ToolContainerService:
     ) -> Container:
         if container_name is None:
             container_name = image.tags[-1].split(":")[0]
+
+        for container in self.docker_client.containers.list(all=True):
+            if container.name == container_name:
+                container.remove(force=True)
+                break
 
         container_tool = self.docker_client.containers.run(
             image=image,
