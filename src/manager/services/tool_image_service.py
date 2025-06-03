@@ -10,7 +10,7 @@ from docker.client import DockerClient
 
 
 class ToolImageService:
-    client: DockerClient = docker.from_env()
+    client: DockerClient = docker.client.from_env()
 
     def __init__(
         self, import_tool_data_repository: ImportToolDataRepository
@@ -49,3 +49,4 @@ class ToolImageService:
             return pulled_image
 
         return self.build_image(image_name=image_name)
+    
