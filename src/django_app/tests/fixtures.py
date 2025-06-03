@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Generator
 from unittest.mock import MagicMock, patch
 import pytest
 from django.urls import reverse
@@ -14,29 +15,30 @@ from tables.models import (
     Tool,
 )
 from rest_framework.test import APIClient
+import fakeredis
 
 
 @pytest.fixture
-def api_client():
+def api_client() -> APIClient:
     return APIClient()
 
 
 @pytest.fixture
-def openai_provider():
+def openai_provider() -> Provider:
     openai_provider = Provider(name="openai")
     openai_provider.save()
     return openai_provider
 
 
 @pytest.fixture
-def gpt_4o_llm(openai_provider):
+def gpt_4o_llm(openai_provider: Provider) -> LLMModel:
     openai_provider = LLMModel(name="gpt-4o", llm_provider=openai_provider)
     openai_provider.save()
     return openai_provider
 
 
 @pytest.fixture
-def llm_config():
+def llm_config() -> ConfigLLM:
 
     llm_config = ConfigLLM(temperature=0.5, num_ctx=25)
     llm_config.save()
@@ -44,7 +46,7 @@ def llm_config():
 
 
 @pytest.fixture
-def wikipedia_tool():
+def wikipedia_tool() -> Tool:
 
     wikipedia = Tool(
         name="Wikipedia",
@@ -57,7 +59,9 @@ def wikipedia_tool():
 
 
 @pytest.fixture
-def wikipedia_agent(gpt_4o_llm, llm_config, wikipedia_tool):
+def wikipedia_agent(
+    gpt_4o_llm: LLMModel, llm_config: ConfigLLM, wikipedia_tool: Tool
+) -> Agent:
     agent = Agent(
         role="Wikipedia searcher",
         goal="Search in wikipedia and give short summary on what you found",
@@ -77,7 +81,7 @@ def wikipedia_agent(gpt_4o_llm, llm_config, wikipedia_tool):
 
 
 @pytest.fixture
-def embedding_model(openai_provider):
+def embedding_model(openai_provider: Provider) -> EmbeddingModel:
     embedding = EmbeddingModel(
         name="text-embedding-3-small", embedding_provider=openai_provider
     )
@@ -86,7 +90,12 @@ def embedding_model(openai_provider):
 
 
 @pytest.fixture
-def crew(wikipedia_agent, embedding_model, gpt_4o_llm, llm_config):
+def crew(
+    wikipedia_agent: Agent,
+    embedding_model: EmbeddingModel,
+    gpt_4o_llm: LLMModel,
+    llm_config: ConfigLLM,
+) -> Crew:
     crew = Crew(
         name="Test Crew",
         description="crew for tests",
@@ -106,7 +115,7 @@ def crew(wikipedia_agent, embedding_model, gpt_4o_llm, llm_config):
 
 
 @pytest.fixture
-def redis_client_mock():
+def redis_client_mock() -> Generator[MagicMock, None, None]:
     redis_service = RedisService()
     mock_instance = MagicMock()
     with patch.object(redis_service, "_redis_client", mock_instance):
@@ -114,18 +123,19 @@ def redis_client_mock():
 
 
 @pytest.fixture
-def session_schema_json():
+def session_schema_json() -> str:
     path = Path("./tests/resources/session_schema.json").resolve()
 
     with open(path, "r") as f:
         schema_json = f.read()
 
-    yield schema_json
-
+    return schema_json
 
 
 @pytest.fixture
-def fake_redis_client():
-    import fakeredis
-    yield fakeredis.FakeRedis(server=fakeredis.FakeServer())
-
+def fake_redis_client() -> Generator[MagicMock, None, None]:
+    redis_mock = MagicMock()
+    fake_redis_client = fakeredis.FakeRedis(server=fakeredis.FakeServer())
+    with patch("redis.Redis", redis_mock):
+        redis_mock.return_value = fake_redis_client
+        yield fake_redis_client
