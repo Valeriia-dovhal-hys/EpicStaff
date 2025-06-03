@@ -87,6 +87,11 @@ class ToolContainerService:
         if container_name is None:
             container_name = image.tags[-1].split(":")[0]
 
+        for container in self.docker_client.containers.list(all=True):
+            if container.name == container_name:
+                container.remove(force=True)
+                break
+
         container_tool = self.docker_client.containers.run(
             image=image,
             ports={"8000/tcp": port},
