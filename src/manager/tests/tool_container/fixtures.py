@@ -12,7 +12,7 @@ tool_data_repo = ImportToolDataRepository()
 
 @pytest.fixture(scope="module")
 def docker_client():
-    return docker.from_env()
+    return docker.client.from_env()
 
 
 @pytest.fixture(scope="module")
@@ -91,8 +91,6 @@ def tool_container_service(docker_client):
 
     from services.tool_image_service import ToolImageService
     from services.tool_container_service import ToolContainerService
-    mock_pull = patch("services.tool_image_service.ToolImageService.client.images.pull", return_value=[])
-    mock_pull.start()
     tool_image_service = ToolImageService(import_tool_data_repository)
     tool_image_service.client = docker_client
 
