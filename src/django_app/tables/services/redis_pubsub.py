@@ -53,5 +53,4 @@ class RedisPubSub:
                 self.session_status_channel_name: self.session_status_handler,
             }
         )
-        self.pubsub.run_in_thread(0.01, daemon=True)
-
+        self.pubsub.run_in_thread(0.001, daemon=True)
