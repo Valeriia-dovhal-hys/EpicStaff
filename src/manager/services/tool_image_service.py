@@ -29,6 +29,18 @@ class ToolImageService:
         )
 
         return tdib.build_tool_image(image_name=import_tool_data.image_name)
+    
+
+    def pull_from_dockerhub(self, image_name) -> Image | None:
+        repo_host = os.getenv("DOCKERHUB_PROFILE_NAME")
+        dockerhub_image_name = f"{repo_host}/{image_name}:latest"
+        pulled_image = self.client.images.pull(dockerhub_image_name)
+        if pulled_image:
+            pulled_image.tag(image_name, force=True)
+            pulled_image = self.client.images.get(image_name)
+            self.client.images.remove(image=dockerhub_image_name)
+            return pulled_image
+        
 
     def get_or_build_tool_alias(self, tool_alias: str) -> Image:
 
@@ -39,14 +51,8 @@ class ToolImageService:
         if image_list:
             return image_list[0]
         
-        repo_host = os.getenv("DOCKERHUB_PROFILE_NAME")
-        dockerhub_image_name = f"{repo_host}/{image_name}:latest"
-        pulled_image = self.client.images.pull(dockerhub_image_name)
-        if pulled_image:
-            pulled_image.tag(image_name, force=True)
-            pulled_image = self.client.images.get(image_name)
-            self.client.images.remove(image=dockerhub_image_name)
-            return pulled_image
+        image = self.pull_from_dockerhub(image_name)
+        if image: return image
 
         return self.build_image(image_name=image_name)
     
