@@ -1,0 +1,119 @@
+.main-container {
+  height: 90vh;
+  width: 100%;
+}
+
+.header-container {
+  height: 10%;
+  background-color: #3f51b5;
+  padding: 1.5rem 2rem;
+
+  .header {
+    color: white;
+
+    font-size: 1.5rem;
+    font-weight: 500;
+  }
+}
+
+.content {
+  height: 80%;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.bottom {
+  height: 10%;
+  background-color: #3f51b5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+}
+
+.bottom .close {
+  color: white; /* Ensure text color is white for visibility */
+  border: 1px solid white;
+}
+.full-width {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.variable-inputs {
+  display: flex;
+  gap: 25px;
+}
+
+//process-temperature
+.process-temperature-inline {
+  display: flex;
+  justify-content: space-between;
+
+  gap: 18px;
+}
+
+.process-select,
+.temperature-field {
+  flex: 1;
+}
+/* Temperature field takes 50% width */
+.temperature-field {
+  margin-top: 0.9rem;
+  max-width: 48.4%;
+}
+// Verbose and Memory
+.verbose-memory-inline {
+  display: flex;
+  justify-content: space-between;
+
+  gap: 18px;
+}
+
+// .verbose-select,
+// .memory-select {
+//   flex: 1;
+// }
+
+.llm-defaults-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  // margin-top: 16px;
+}
+
+.llm-select-field {
+  flex: 1;
+}
+
+.card-actions {
+  justify-content: flex-end;
+}
+
+.mat-button {
+  margin-bottom: 16px;
+}
+
+.button-variables-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  margin-top: -15px;
+}
+
+.show-hide-button {
+  margin-right: auto; /* This keeps the show/hide button on the left */
+}
+
+.add-variable-button {
+  margin-left: auto; /* This ensures the add button stays on the right */
+}
+
+.show_defaults {
+  margin-bottom: 15px;
+}
+
+.provider {
+  margin-bottom: 0rem;
+}

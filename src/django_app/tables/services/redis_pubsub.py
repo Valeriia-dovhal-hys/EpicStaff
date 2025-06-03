@@ -10,9 +10,9 @@ from tables.models import Session, SessionMessage
 class RedisPubSub:
 
     def __init__(
-        self,
-        crewai_output_channel_name="sessions:crewai_output",
-        session_status_channel_name="sessions:session_status",
+            self,
+            crewai_output_channel_name="sessions:crewai_output",
+            session_status_channel_name="sessions:session_status",
     ):
         self.crewai_output_channel_name = crewai_output_channel_name
         self.session_status_channel_name = session_status_channel_name
@@ -23,8 +23,10 @@ class RedisPubSub:
         self.redis_client = redis.Redis(host=redis_host, port=redis_port)
         self.pubsub = self.redis_client.pubsub()
 
+
     def crewai_output_handler(self, redis_message: dict):
         message = json.loads(redis_message["data"])
+
         session = Session.objects.get(id=message["session_id"])
 
         with transaction.atomic():
@@ -36,8 +38,10 @@ class RedisPubSub:
             )
             session_message.save()
 
+    
     def session_status_handler(self, redis_message: dict):
         message = json.loads(redis_message["data"])
+
         session_id = message["session_id"]
         new_status = message["status"]
 
@@ -46,6 +50,7 @@ class RedisPubSub:
             session.status = new_status
             session.save()
 
+
     def listen_for_messages(self):
         self.pubsub.subscribe(
             **{
@@ -53,5 +58,4 @@ class RedisPubSub:
                 self.session_status_channel_name: self.session_status_handler,
             }
         )
-        self.pubsub.run_in_thread(0.01, daemon=True)
-
+        self.pubsub.run_in_thread(sleep_time=0.1)

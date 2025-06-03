@@ -1,10 +1,10 @@
 // custom-agent-llm-select-renderer.ts
 
 import Handsontable from 'handsontable';
-import { LLM } from '../../../../shared/models/agent.model';
+import { LLM_Model } from '../../../../shared/models/LLM.model';
 
 export function createCustomAgentLlmSelectRenderer(
-  llmOptions: LLM[],
+  llmModels: LLM_Model[],
   eventListenerRefs: Array<() => void>
 ) {
   return function customAgentLlmSelectRenderer(
@@ -73,14 +73,15 @@ export function createCustomAgentLlmSelectRenderer(
     optionsList.classList.add('options-list');
     optionsList.style.display = 'none';
 
-    // **Populate the options list**
-    llmOptions.forEach((option) => {
+    // **Populate the options list using llmModels**
+    llmModels.forEach((model) => {
       const optionDiv = document.createElement('div');
       optionDiv.classList.add('option-item');
-      optionDiv.textContent = option;
+      optionDiv.textContent = model.name;
+      optionDiv.dataset['modelId'] = model.id.toString(); // Store the ID
 
       // Highlight if this option is the currently selected value
-      if (option === value) {
+      if (model.name === value) {
         optionDiv.classList.add('selected');
       }
 
@@ -121,10 +122,10 @@ export function createCustomAgentLlmSelectRenderer(
       if (target && target.classList.contains('option-item')) {
         event.stopPropagation();
 
-        const option = target.textContent || '';
+        const selectedModelName = target.textContent || '';
 
         // Update the selected value display
-        selectedTextSpan.textContent = option;
+        selectedTextSpan.textContent = selectedModelName;
 
         // Close the dropdown
         optionsList.style.display = 'none';
@@ -133,19 +134,18 @@ export function createCustomAgentLlmSelectRenderer(
         document.removeEventListener('mousedown', documentClickListener);
         cellProperties.documentClickListener = null;
 
-        // **Remove the 'open' class and reset the arrow**
+        // Remove the 'open' class and reset the arrow
         selectedValueDiv.classList.remove('open');
         iconSpan.textContent = '▼';
 
-        // Update the Handsontable data
-        instance.setDataAtCell(row, col, option, 'customDropdown');
+        instance.setDataAtCell(row, col, selectedModelName, 'LMM_Dropdown');
       }
     };
 
     const handleSelectedValueClick = (event: Event) => {
       event.stopPropagation();
 
-      const isVisible = optionsList.style.display === 'block';
+      const isVisible: boolean = optionsList.style.display === 'block';
 
       if (isVisible) {
         // Close the dropdown
@@ -159,14 +159,9 @@ export function createCustomAgentLlmSelectRenderer(
         selectedValueDiv.classList.remove('open');
         iconSpan.textContent = '▼';
       } else {
-        // **Determine dropdown position based on available space**
-
-        // First, reset any inline styles that might affect the calculation
         optionsList.style.left = '';
         optionsList.style.right = '';
         optionsList.style.transform = '';
-
-        // Temporarily display the optionsList to measure dimensions
         optionsList.style.visibility = 'hidden';
         optionsList.style.display = 'block';
 
@@ -176,21 +171,15 @@ export function createCustomAgentLlmSelectRenderer(
         optionsList.style.display = 'none';
         optionsList.style.visibility = 'visible';
 
-        const spaceRight = window.innerWidth - selectRect.left;
-        const spaceLeft = selectRect.right;
-
-        // **Check if options list overflows the viewport**
-        let positionAdjusted = false;
+        let positionAdjusted: boolean = false;
 
         if (selectRect.left + optionsRect.width > window.innerWidth) {
-          // Not enough space on the right, align to the right
           optionsList.style.left = 'auto';
           optionsList.style.right = '0';
           positionAdjusted = true;
         }
 
         if (positionAdjusted && optionsList.getBoundingClientRect().left < 0) {
-          // Still overflowing on the left, align to the left edge of the viewport
           optionsList.style.left = '0';
           optionsList.style.right = 'auto';
         }

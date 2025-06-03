@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { MainComponent } from './main/main.component';
 
 import { UnsavedChangesGuard } from './shared/guards/unsaved-changes.guard';
-import { ProjectFormComponent } from './projects-list/project-form/project-form.component';
+
 import { ProjectsListComponent } from './projects-list/projects-list.component';
 import { ProjectDetailsComponent } from './projects-list/project-details-page/project-details.component';
 import { TesttableComponent } from './main/testtable/testtable.component';
@@ -15,17 +15,10 @@ import { CrewRunPageComponent } from './crew-run-page/crew-run-page.component';
 export const routes: Routes = [
   {
     path: '',
-    // component: MainComponent,
     component: ProjectsListComponent,
     pathMatch: 'full',
-
-    // canDeactivate: [UnsavedChangesGuard],
   },
 
-  {
-    path: 'project-creation',
-    component: ProjectFormComponent,
-  },
   { path: 'projects-list', component: ProjectsListComponent },
   {
     path: 'project/:projectId',
