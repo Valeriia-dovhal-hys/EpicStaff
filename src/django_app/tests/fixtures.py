@@ -119,5 +119,13 @@ def session_schema_json():
 
     with open(path, "r") as f:
         schema_json = f.read()
-    
+
     yield schema_json
+
+
+
+@pytest.fixture
+def fake_redis_client():
+    import fakeredis
+    yield fakeredis.FakeRedis(server=fakeredis.FakeServer())
+
