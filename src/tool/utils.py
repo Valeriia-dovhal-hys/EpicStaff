@@ -51,4 +51,4 @@ def get_tool_data(tool) -> dict:
     tool_dict["args_schema_json_schema"] = json.dumps(schema.schema())
     tool_dict.pop("args_schema")
 
-    return tool_dict  # tool.my_run
+    return tool_dict
