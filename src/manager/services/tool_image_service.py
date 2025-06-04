@@ -1,5 +1,7 @@
 import os
 
+import docker.errors
+
 from services.build_tool import ToolDockerImageBuilder
 from repositories.import_tool_data_repository import ImportToolDataRepository
 
@@ -41,7 +43,14 @@ class ToolImageService:
         
         repo_host = os.getenv("DOCKERHUB_PROFILE_NAME")
         dockerhub_image_name = f"{repo_host}/{image_name}:latest"
-        pulled_image = self.client.images.pull(dockerhub_image_name)
+
+        pulled_image = None
+        try:
+            pulled_image = self.client.images.pull(dockerhub_image_name)
+
+        except docker.errors.ImageNotFound as e:
+            print(f"Image {dockerhub_image_name} not found")
+
         if pulled_image:
             pulled_image.tag(image_name, force=True)
             pulled_image = self.client.images.get(image_name)
