@@ -4,14 +4,11 @@ WORKDIR /home/user/root/app
 
 RUN pip install --upgrade --no-cache-dir pip setuptools wheel
 
-RUN pip install poetry
-
-COPY ./pyproject.toml .
-COPY ./poetry.lock .
-
 ARG PIP_REQUIREMENTS
+#RUN if [ -n "$PIP_REQUIREMENTS" ]; then pip install $PIP_REQUIREMENTS; fi
 
-RUN poetry config virtualenvs.create false && poetry add $PIP_REQUIREMENTS && poetry install && rm -rf /root/.cache
+RUN pip install --no-cache-dir $PIP_REQUIREMENTS
+
 
 ARG ALIAS_CALLABLE
 

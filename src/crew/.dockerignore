@@ -1,4 +1,6 @@
-ENV
-.env
-*/venv
-*/.venv
+./ENV
+./.env
+./config.yaml
+./.venv
+./venv
+./.crew_venv

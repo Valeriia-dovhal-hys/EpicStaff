@@ -7,12 +7,10 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
-from django.core.paginator import Paginator, EmptyPage
 
 from tables.services.config_service import YamlConfigService
 from tables.services.session_manager_service import SessionManagerService
 from tables.services.crew_service import CrewService
-from tables.services.session_runner_service import SessionRunnerService
 from tables.services.redis_service import RedisService
 
 
@@ -32,11 +30,7 @@ from tables.serializers.nested_model_serializers import (
 
 redis_service = RedisService()
 crew_service = CrewService()
-session_runner_service = SessionRunnerService()
-session_manager_service = SessionManagerService(
-    redis_service=redis_service,
-    crew_service=crew_service,
-)
+session_manager_service = SessionManagerService()
 config_service = YamlConfigService()
 
 
