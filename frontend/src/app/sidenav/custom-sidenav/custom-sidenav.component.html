@@ -1,0 +1,32 @@
+<div class="sidenav-header">
+  <!-- <img src="" alt="" [width]="profilePicSize()" [height]="profilePicSize()" /> -->
+  <h4>UI</h4>
+  <!-- <div class="header-text" [class.show-header-text]="!sideNavCollapsed()">
+    <h2>Your profile</h2>
+    <p>Edward Pas</p>
+  </div> -->
+</div>
+<mat-nav-list>
+  @for (item of menuItems(); track item){
+  <a
+    mat-list-item
+    class="menu-item"
+    [routerLink]="item.route"
+    routerLinkActive="selected-menu-item"
+    #routerActive="routerLinkActive"
+    [activated]="routerActive.isActive"
+    [routerLinkActiveOptions]="{ exact: true }"
+  >
+    <mat-icon
+      [fontSet]="
+        routerActive.isActive ? 'material-icons' : 'material-icons-outlined'
+      "
+      matListItemIcon
+      >{{ item.icon }}</mat-icon
+    >
+    @if(!sideNavCollapsed()){
+    <span matListItemTitle>{{ item.label }}</span>
+    }
+  </a>
+  }
+</mat-nav-list>

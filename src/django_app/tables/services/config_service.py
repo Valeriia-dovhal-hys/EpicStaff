@@ -2,8 +2,10 @@ from pathlib import Path
 
 import yaml
 
+from utils.singleton_meta import SingletonMeta
 
-class YamlConfigService:
+
+class YamlConfigService(metaclass=SingletonMeta):
 
     _CONFIG_PATH = Path("/home/user/root/django/env_config/config.yaml").resolve()
 

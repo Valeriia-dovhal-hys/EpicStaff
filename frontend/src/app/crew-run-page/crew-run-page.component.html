@@ -1,0 +1,15 @@
+<div class="main-container">
+  <!-- Use a regular div instead of ng-template -->
+  @if(isDataLoaded){
+  <div class="project-info-container">
+    <app-project-info
+      [project]="project"
+      [agents]="agents"
+      [tasks]="tasks"
+    ></app-project-info>
+  </div>
+  <div class="chat-container">
+    <app-run-chat [sessionId]="sessionId"></app-run-chat>
+  </div>
+  }
+</div>

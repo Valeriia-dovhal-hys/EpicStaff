@@ -1,0 +1,85 @@
+/* Parent container styling */
+.parent-container {
+  display: flex;
+  flex-direction: column; /* Align children vertically */
+  height: 100%; /* The parent will take up the full height available */
+  gap: 1rem; /* Space between sections */
+  max-width: 100%;
+}
+
+hr {
+  margin: 0.5rem 0;
+}
+
+.project {
+  padding: 1rem;
+  border-radius: 10px;
+  background-color: rgb(255, 255, 255) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow */
+}
+
+.info {
+  height: 20%;
+}
+
+.project-name {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.project-assignment {
+  font-size: 0.9rem;
+}
+
+.agents-tasks-title {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Agents section (4/10 of the total height) */
+.agents,
+.tasks {
+  height: 40%; /* 4/10 of the height */
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Enable scrolling if content overflows */
+}
+
+.agent {
+  // height: 40%;
+  max-height: 7.7rem;
+  // background-color: blue;
+  padding: 0.8rem;
+  border: 1px solid black;
+  border-radius: 10px;
+  margin-top: 0.5rem;
+
+  /* Add these properties to hide overflow */
+  overflow: hidden; /* Hides overflowing content */
+  text-overflow: ellipsis; /* Optional: Adds '...' for clipped text */
+  .agent-role {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .agent-goal {
+    font-weight: 300;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.8rem;
+  }
+}
+
+.task-assigned-to {
+  font-size: 0.8rem;
+}
+
+.assigned-agent {
+  color: #3f51b5;
+  font-weight: 500;
+}
