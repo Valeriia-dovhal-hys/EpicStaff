@@ -1,0 +1,140 @@
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  font-size: 1.2em;
+  color: #555;
+}
+
+#table-wrapper {
+  height: 100%;
+  width: 100%;
+  // border-bottom: 10px solid black;
+}
+
+#hotContainer .wtHolder {
+  overflow-x: hidden !important;
+}
+
+.options-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* For Firefox */
+.options-list {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+
+/* For IE and Edge Legacy */
+.options-list {
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
+.custom-dropdown-container {
+  position: relative;
+  width: 80%;
+  margin: 0 auto;
+  margin-top: 8%;
+}
+
+.selected-value {
+  padding: 5px;
+  border: 1px solid #000000;
+  border-radius: 4px;
+  background-color: #ffffff;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  white-space: nowrap;
+  color: #000000;
+  cursor: pointer;
+}
+
+.option-item {
+  padding: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.options-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  border: 1px solid #2b97c9;
+  background-color: #ffffff;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 150px;
+}
+
+.option-item:hover,
+.option-item.selected {
+  background-color: #6d9eeb;
+  color: white;
+}
+
+.selected-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-icon {
+  margin-left: 5px;
+  font-size: 12px;
+}
+
+.selected-value.open {
+  border-color: #251581;
+  box-shadow: 0 0 5px rgba(24, 17, 90, 0.5);
+}
+
+/* Highlighted Variable Renderer */
+.highlight-variable-renderer {
+  color: #007bff !important;
+}
+
+.manual-row-resize-renderer {
+  position: absolute;
+  overflow: hidden;
+  /* word-break: break-word; */
+  height: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+  color: #000000;
+  font-family: Helvetica, sans-serif;
+  line-height: 1.5;
+}
+
+#hotContainer .htCore thead th {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  font-weight: bold !important;
+}
+
+#hotContainer.htCore thead th.ht__highlight {
+  background-color: #005cbb !important;
+  color: #ffffff !important;
+}
+#hotContainer .htCore thead th:first-child {
+  background-color: #ffffff !important;
+  color: #333 !important;
+}
+
+//rowheader{
+.project-tasks-table-row-header-class {
+  background-color: rgb(255, 255, 255) !important;
+}
+
+.htLeft {
+  padding-left: 0.5rem !important;
+}
