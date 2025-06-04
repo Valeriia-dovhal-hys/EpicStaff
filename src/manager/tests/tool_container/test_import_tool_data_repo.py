@@ -5,7 +5,8 @@ from pytest_mock import mocker
 from unittest.mock import MagicMock, mock_open
 from repositories.import_tool_data_repository import ImportToolDataRepository
 from base_models import Callable, ImportToolData
-from fixtures import tools_config_file, tools_paths_file
+
+from tests.tool_container.fixtures import tools_config_file, tools_paths_file
 
 
 class TestToolContainerHandling:

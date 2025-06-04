@@ -2,7 +2,7 @@ import pytest
 from pytest_mock import MockerFixture
 from models.models import SessionStatus
 
-from fixtures import ( 
+from tests.redis.fixtures import ( 
     redis_service,
     mock_crew_container_service,
     mock_docker_client,

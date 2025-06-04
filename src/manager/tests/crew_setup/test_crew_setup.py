@@ -3,7 +3,7 @@ from pytest_mock import MockFixture
 from pytest_mock import mocker
 from unittest.mock import MagicMock
 
-from fixtures import crew_image, crew_container_service
+from tests.crew_setup.fixtures import crew_image, crew_container_service
 
 class TestCrewSetup:
 
@@ -34,7 +34,7 @@ class TestCrewSetup:
             name=f"crew_session-{session_id}",
         )
 
-    @pytest.mark.skip
+
     def test_get_image_existing(self, mocker: MockFixture, crew_image):
 
         from services.crew_image_service import CrewImageService
