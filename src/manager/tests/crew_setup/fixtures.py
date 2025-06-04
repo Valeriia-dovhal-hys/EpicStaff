@@ -1,11 +1,20 @@
+from __future__ import annotations
+
 import pytest
-from pytest_mock import mocker
-from unittest.mock import MagicMock
 import docker
 import io
+from typing import Tuple, Generator, TYPE_CHECKING
+from docker.client import DockerClient
+from docker.models.images import Image
+from pytest_mock import mocker
+from unittest.mock import MagicMock
+
+if TYPE_CHECKING:
+    from services.crew_container_service import CrewContainerService
+
 
 @pytest.fixture
-def crew_container_service(mocker):
+def mocked_crew_service_bundle(mocker) -> Tuple[int, CrewContainerService, MagicMock, MagicMock, MagicMock]:
         
         mock_docker_from_env = mocker.patch("docker.client.from_env")
         mock_client = MagicMock()
@@ -47,12 +56,12 @@ def crew_container_service(mocker):
 
 
 @pytest.fixture(scope="module")
-def docker_client():
+def docker_client() -> DockerClient:
     return docker.from_env()
 
 
 @pytest.fixture(scope="function")
-def crew_image():
+def crew_image() -> Generator[Image, None, None]:
     docker_client = docker.from_env()
 
     dockerfile = """

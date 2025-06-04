@@ -1,22 +1,34 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import io
 import os
 import pytest
 import json
 import docker
 from unittest.mock import MagicMock, Mock, patch
-
 from repositories.import_tool_data_repository import ImportToolDataRepository
+
+if TYPE_CHECKING:
+    from typing import Generator
+    from docker.models.images import Image
+    from docker.models.containers import Container
+    from docker.models.networks import Network
+    from docker.client import DockerClient
+    from services.tool_image_service import ToolImageService
+    from services.tool_container_service import ToolContainerService
+
 
 tool_data_repo = ImportToolDataRepository()
 
 
 @pytest.fixture(scope="module")
-def docker_client():
-    return docker.client.from_env()
+def docker_client() -> Generator[DockerClient, None, None]:
+    yield docker.client.from_env()
 
 
 @pytest.fixture(scope="module")
-def test_network(docker_client):
+def test_network(docker_client: DockerClient) -> Generator[Network, None, None]:
     network = docker_client.networks.create('test_network', driver='bridge')
     yield network
     
@@ -28,7 +40,7 @@ def test_network(docker_client):
 
 
 @pytest.fixture(scope="module")
-def manager_container(docker_client, test_network):
+def manager_container(docker_client: DockerClient, test_network: Network) -> Generator[Container, None, None]:
     container = docker_client.containers.run(
         'alpine:latest',
         name='manager_container',
@@ -40,10 +52,10 @@ def manager_container(docker_client, test_network):
     
     container.stop()
     container.remove()
-    
+
 
 @pytest.fixture(scope="module")
-def wikipedia_image(docker_client):
+def wikipedia_image(docker_client: DockerClient) -> Generator[Image, None, None]:
     os.environ['DOCKERHUB_PROFILE_NAME'] = ''
 
     image_name = 'wikipedia_tool'
@@ -84,7 +96,7 @@ def wikipedia_image(docker_client):
 
 
 @pytest.fixture
-def tool_container_service(docker_client):
+def tool_container_service(docker_client: DockerClient) -> Generator[ToolContainerService, None, None]:
     import_tool_data_repository = Mock()
     import_tool_data_repository.find_image_name_by_tool_alias.return_value = 'wikipedia_tool'
 
@@ -105,7 +117,7 @@ def tool_container_service(docker_client):
 
 
 @pytest.fixture
-def mock_tool_image_service(mocker):
+def mock_tool_image_service(mocker) -> ToolImageService:
     mock_docker_from_env = mocker.patch("docker.client.from_env")
     mock_client = MagicMock()
     mock_docker_from_env.return_value = mock_client
@@ -117,7 +129,7 @@ def mock_tool_image_service(mocker):
 
 
 @pytest.fixture
-def mock_tool_container_service(mocker, mock_tool_image_service):
+def mock_tool_container_service(mocker, mock_tool_image_service: ToolImageService) -> ToolContainerService:
     mock_docker_from_env = mocker.patch("docker.client.from_env")
     mock_client = MagicMock()
     mock_docker_from_env.return_value = mock_client
@@ -141,8 +153,7 @@ def mock_tool_container_service(mocker, mock_tool_image_service):
 
 
 @pytest.fixture
-def tools_config_file(tmpdir):
-
+def tools_config_file(tmpdir) -> str:
     tools_config_content = [
         {
             "image_name": "wolfram_alpha",
@@ -175,7 +186,7 @@ def tools_config_file(tmpdir):
 
 
 @pytest.fixture
-def tools_paths_file(tmpdir):
+def tools_paths_file(tmpdir) -> str:
     tools_paths_content = {
         "WolframAlphaQueryRun": "langchain_community.tools.wolfram_alpha.tool",
         "WolframAlphaAPIWrapper": "langchain_community.utilities.wolfram_alpha"
