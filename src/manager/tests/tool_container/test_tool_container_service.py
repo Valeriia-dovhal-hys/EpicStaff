@@ -8,6 +8,11 @@ from tests.tool_container.fixtures import test_network, docker_client
 
 
 def test_request_class_data_image_exist(tool_container_service, wikipedia_image, manager_container):
+    """
+        - Given an existing container image for 'wikipedia_tool',
+        - When `request_class_data` is called with the alias 'wikipedia',
+        - Then a container for 'wikipedia_tool' should be running, and a request should be sent to its endpoint.
+    """
 
     with patch('requests.get') as mock_requests_get:
         mock_response = Mock()

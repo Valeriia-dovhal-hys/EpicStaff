@@ -12,6 +12,11 @@ from tests.tool_container.fixtures import tools_config_file, tools_paths_file
 class TestToolContainerHandling:
 
     def test_get_import_class_data(self, tools_config_file, tools_paths_file):
+        """
+            - Given tool configuration and paths files with a specific setup for 'wolfram_alpha',
+            - When `get_import_class_data` is called with the image name 'wolfram_alpha',
+            - Then it should return an `ImportToolData` instance with the expected configuration and dependencies.
+        """
         
         repository = ImportToolDataRepository(
             tools_config_path=tools_config_file,

@@ -13,6 +13,11 @@ class TestRedis:
 
     @pytest.mark.asyncio
     async def test_start_session(self, mocker: MockerFixture, redis_service):
+        """
+            - Given a Redis service with a pubsub setup to listen for start session messages,
+            - When a start session message with session ID `123` is received,
+            - Then `request_run_crew` should be called once with the session ID `123`.
+        """
 
         redis_service.redis_client = mocker.Mock()
         mock_pubsub = mocker.Mock()
@@ -40,6 +45,11 @@ class TestRedis:
 
     @pytest.mark.asyncio
     async def test_publish_session_status(self, mocker: MockerFixture, redis_service):
+        """
+            - Given a session ID and status,
+            - When `publish_session_status` is called,
+            - Then the status message should be published to the `session_status` channel with the correct session ID and status.
+        """
 
         redis_service._publish = mocker.AsyncMock()
 
