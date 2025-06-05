@@ -184,7 +184,7 @@ token.json
 *.db
 
 # Additional tool
-additional_tools/
+push_dockerhub.bat
 
 
 # FRONTEND GIT ignore

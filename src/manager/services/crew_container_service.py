@@ -17,12 +17,12 @@ class CrewContainerService:
     def __init__(self):
         self.crew_image_service = CrewImageService()
 
-        manager_container = self.client.containers.get('manager_container')
-        network_settings = manager_container.attrs['NetworkSettings']
+        tr_container = self.client.containers.get('manager_container')
+        network_settings = tr_container.attrs['NetworkSettings']
         self.network_name = list(network_settings['Networks'].keys())[0]
 
 
-    def request_run_crew(self, session_id: int):
+    def request_run_crew(self, session_id):
         image = self.crew_image_service.get_image()
 
         container_name = f"crew_session-{session_id}"
