@@ -1,8 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generator
 
 if TYPE_CHECKING:
-    from typing import Generator
+    from models.request_models import AgentData, TaskData, CrewData
 
 import pytest
 import fakeredis
@@ -31,7 +31,6 @@ class AgentDataFactory(ModelFactory[AgentData]):
     __model__ = AgentData
 
 
-
 gpt_4o_data = {
     "name": "gpt-4o",
     "llm_provider": {
@@ -53,8 +52,9 @@ gpt_4o_model_validated = LLMModelData.model_validate(gpt_4o_data)
 llm_config_validated_model = ConfigLLMData.model_validate(llm_config_data)
 embedding_validated_model = EmbeddingModelData.model_validate(embedding_model_data)
 
+
 @pytest.fixture
-def fake_agent_data():
+def fake_agent_data() -> Generator[AgentData, None, None]:
     fake_agent_data = AgentDataFactory.build()
 
     fake_agent_data.tools = []
@@ -62,13 +62,12 @@ def fake_agent_data():
     fake_agent_data.fcm_llm_model = gpt_4o_model_validated
     fake_agent_data.llm_config = llm_config_validated_model
     fake_agent_data.fcm_llm_config = llm_config_validated_model
-    fake_crew_data.agents = [fake_agent_data]
 
     yield fake_agent_data
 
 
 @pytest.fixture
-def fake_task_data(fake_agent_data):
+def fake_task_data(fake_agent_data: AgentData) -> Generator[TaskData, None, None]:
     fake_task_data = TaskDataFactory.build()
     fake_task_data.agent = fake_agent_data
 
@@ -76,7 +75,7 @@ def fake_task_data(fake_agent_data):
 
 
 @pytest.fixture
-def fake_crew_data(fake_agent_data, fake_task_data):
+def fake_crew_data(fake_agent_data: AgentData, fake_task_data: TaskData) -> Generator[CrewData, None, None]:
     fake_crew_data = CrewDataFactory.build(
         process='sequential'
     )
