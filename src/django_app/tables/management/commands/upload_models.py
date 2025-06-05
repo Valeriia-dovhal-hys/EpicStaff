@@ -94,11 +94,11 @@ def upload_embedding_models():
 
     EmbeddingModel.objects.get_or_create(
         name="text-embedding-3-small",
-        llm_provider=openai_provider,
+        embedding_provider=openai_provider,
     )
     EmbeddingModel.objects.get_or_create(
         name="text-embedding-ada-002",
-        llm_provider=azure_provider,
+        embedding_provider=azure_provider,
         base_url="https://yuriw-sweden.openai.azure.com/",
         deployment="text-embedding-ada-002",
     )
