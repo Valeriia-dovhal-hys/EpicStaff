@@ -13,7 +13,13 @@ from parse_model_data import CallableParser
 cp: CallableParser = CallableParser()
 
 
-def init_tools():
+def init_tools() -> dict:
+    """
+    Initialize all tools using ALIAS_CALLABLE variable from dotenv file
+
+    Returns:
+        A dict with all tools in ALIAS_CALLABLE env variable
+    """
     load_dotenv()
     tool_alias_callable_dict_txt = os.environ.get("ALIAS_CALLABLE")
     tool_alias_callable_dict: dict[str, Callable] = txt_to_obj(
@@ -27,16 +33,25 @@ def init_tools():
 
 
 def run_tool(tool, run_args: list[str], run_kwargs: dict[str, Any]):
-
+    """
+    Run tool with args and kwargs
+    """
     return tool._run(*run_args, **run_kwargs)
 
 
 def create_tool(callable: Callable) -> BaseTool:
-
+    """
+    Create BaseTool using `base_models.Callable`, evaluating nested callables
+    """
     return cp.eval_callable(callable=callable)
 
 
 def get_tool_data(tool) -> dict:
+    """
+    Creates tool dict schema from tool using it's name, description and args_schema.
+
+    If args_schema doesn't exist, creates it from `_run` method.
+    """
     tool_dict = tool.dict(include={"name", "description", "args_schema"})
 
     if "args_schema" in tool_dict.keys():
