@@ -1,6 +1,7 @@
 from django.forms.models import model_to_dict
 from rest_framework.utils.serializer_helpers import ReturnDict
 
+from utils.singleton_meta import SingletonMeta
 from tables.models import Crew, Task
 from tables.serializers.nested_model_serializers import (
     NestedCrewSerializer,
@@ -9,7 +10,7 @@ from tables.serializers.nested_model_serializers import (
 import json
 
 
-class CrewService:
+class CrewService(metaclass=SingletonMeta):
 
     def __init__(self): ...
 
