@@ -13,7 +13,7 @@ def test_find_tool_class_found(create_temporary_package_structure):
     scanner = ToolsScanner()
     result = scanner.find_tool("TestClass", package)
     assert result is not None
-    assert result.__name__, "TestClass"
+    assert result.__name__ == "TestClass"
 
 def test_find_tool_class_not_found(create_temporary_package_structure):
     """
