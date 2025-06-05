@@ -2,3 +2,4 @@ ENV
 .env
 */venv
 */.venv
+*/.django_venv
