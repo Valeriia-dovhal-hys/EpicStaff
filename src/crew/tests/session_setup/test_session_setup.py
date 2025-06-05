@@ -23,6 +23,12 @@ class TestSessionSetup():
             mocker: MockerFixture,
             fake_redis_service
     ):
+        """
+        - Set a mock Redis key with expected channel name and JSON value.
+        - Call get_json_session_schema() to retrieve the value from Redis.
+        - Assert that the retrieved value matches the expected JSON string.
+        """
+
         expected_channel = 'sessions:123:schema'
         expected_value = '{"key": "value"}'
         fake_redis_service.redis_client.set(expected_channel, expected_value)
@@ -32,6 +38,12 @@ class TestSessionSetup():
 
     
     def test_parse_crew(self, mocker, fake_crew_data):
+        """
+        - Set a mock environment variable 'SECRET_OPENAI_API_KEY' required for parsing.
+        - Prepare mock crew data using a factory.
+        - Use CrewParser to parse the mock data.
+        - Assert that the output is a valid Crew object.
+        """
         
         with patch.dict(os.environ, {'SECRET_OPENAI_API_KEY': '123'}, clear=False):
             crew_parser = CrewParser()

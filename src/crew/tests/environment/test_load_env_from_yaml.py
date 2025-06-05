@@ -8,6 +8,14 @@ from utils.helpers import load_env_from_yaml_config
 
 
 def test_load_env_from_yaml():
+    """
+    Scenario: Verify that `load_env_from_yaml_config` correctly loads environment variables from a YAML file.
+    - Mock the `open` function to simulate reading a YAML configuration file with predefined content.
+    - Clear the `os.environ` dictionary to ensure a clean environment.
+    - Call `load_env_from_yaml_config` with the path to the mocked YAML file.
+    - Assert that the specific environment variables are set in `os.environ` with the expected values.
+    """
+
     mocked_open = mock_open(read_data=mock_yaml_content)
 
     with patch("builtins.open", mocked_open):

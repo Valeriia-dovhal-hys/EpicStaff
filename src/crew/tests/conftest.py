@@ -20,3 +20,4 @@ def fake_redis_service() -> Generator[RedisService, None, None]:
             session_id=123
         )
         yield service
+        

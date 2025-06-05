@@ -16,6 +16,9 @@ class TestSessionResult:
         target_channel: str,
         timeout: int = 5,
     ) -> Optional[dict]:
+        """
+        Helper method to listen for a specific message on a Redis channel.
+        """
         
         start_time = time.time()
         for message in pubsub.listen():
@@ -29,6 +32,15 @@ class TestSessionResult:
 
 
     def test_publish_final_result(self, fake_redis_service):
+        """
+        Verify that the `publish_final_result` method correctly publishes the result to Redis.
+        - Subscribe to the target Redis channel using pubsub.
+        - Set up a listener thread to capture the published message.
+        - Call `publish_final_result` on `fake_redis_service` with a mock result.
+        - Assert that a message was received on the target channel.
+        - Verify the message data matches the expected result.
+        """
+
         mock_final_result = 'OK'
         target_channel = 'sessions:final_result'
 
@@ -53,6 +65,16 @@ class TestSessionResult:
 
 
     def test_logger(self):
+        """
+        Verify that `Logger.log` correctly publishes log messages to Redis.
+        - Mock Redis with `fakeredis`.
+        - Initialize a `Logger` instance and subscribe to the target pubsub channel.
+        - Set up a listener thread to capture the published log message.
+        - Call `log` on the `Logger` instance with a mock log level and message.
+        - Assert that a message is received on the target channel.
+        - Verify that the logged message matches the expected content, excluding the timestamp.
+        """
+
         with patch('libraries.crewAI.src.crewai.utilities.logger.Redis', fakeredis.FakeStrictRedis):
             logger = Logger()
 
