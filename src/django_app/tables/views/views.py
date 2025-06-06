@@ -7,10 +7,12 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
+from django.core.paginator import Paginator, EmptyPage
 
 from tables.services.config_service import YamlConfigService
 from tables.services.session_manager_service import SessionManagerService
 from tables.services.crew_service import CrewService
+from tables.services.session_runner_service import SessionRunnerService
 from tables.services.redis_service import RedisService
 
 
@@ -30,7 +32,11 @@ from tables.serializers.nested_model_serializers import (
 
 redis_service = RedisService()
 crew_service = CrewService()
-session_manager_service = SessionManagerService()
+session_runner_service = SessionRunnerService()
+session_manager_service = SessionManagerService(
+    redis_service=redis_service,
+    crew_service=crew_service,
+)
 config_service = YamlConfigService()
 
 
@@ -69,14 +75,9 @@ class RunSession(APIView):
         
         session_id = session_manager_service.create_session(crew_id=crew_id)
         
-        try:
-            session_manager_service.run_session(session_id=session_id)
-        except ValueError as e:
-            print(e)
-            Session.objects.get(id=session_id).status = Session.SessionStatus.ERROR
-            return Response(data={"session_id": session_id}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
+        session_manager_service.run_session(session_id=session_id)
+
+        return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
 
 
 class GetUpdates(APIView):

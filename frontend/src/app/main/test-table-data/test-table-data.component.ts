@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
-import Handsontable from 'handsontable';
-import { HotTableModule } from '@handsontable/angular';
+import Handsontable from 'handsontable/base';
 
 @Component({
   selector: 'app-test-table-data',
   standalone: true,
-  imports: [HotTableModule],
+  imports: [],
   templateUrl: './test-table-data.component.html',
   styleUrls: ['./test-table-data.component.scss'],
 })

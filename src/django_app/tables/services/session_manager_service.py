@@ -1,13 +1,12 @@
 import json
 
-from utils.singleton_meta import SingletonMeta
 from tables.services.crew_service import CrewService
 from tables.services.redis_service import RedisService
 from tables.serializers.nested_model_serializers import NestedSessionSerializer
 from tables.models import Session
 
 
-class SessionManagerService(metaclass=SingletonMeta):
+class SessionManagerService:
 
     def __init__(
         self,
@@ -36,27 +35,9 @@ class SessionManagerService(metaclass=SingletonMeta):
 
 
     def create_session(self, crew_id: int) -> int:
-        session = Session.objects.create(
-            crew_id=crew_id, status=Session.SessionStatus.RUN
-        )
+        session = Session.objects.create(crew_id=crew_id, status=Session.SessionStatus.RUN)
         return session.pk
     
-
-    def validate_session(self, schema: dict):
-        
-        crew_name = schema["crew"]["name"]
-        tasks = schema["crew"]["tasks"]
-        agents = schema["crew"]["agents"]
-        
-        if len(tasks) == 0: raise ValueError(f"No tasks provided for {crew_name}")
-        if len(agents) == 0: raise ValueError(f"No agents provided {crew_name}")
-
-        for task in tasks:
-            if task["agent"] not in agents: 
-                task_name = task["name"]
-                agent_role = task["agent"]["role"]
-                raise ValueError(f"Agent {agent_role} assigned for task {task_name} not found in crew {crew_name}")
-
 
     def create_session_schema_json(self, session_id: int) -> str:
 
@@ -66,7 +47,6 @@ class SessionManagerService(metaclass=SingletonMeta):
 
         serialized_crew = serialized_session["crew"]
         serialized_session["crew"] = self.crew_service.inject_tasks(serialized_crew)
-        self.validate_session(serialized_session)
 
         return json.dumps(serialized_session)
 
@@ -76,7 +56,9 @@ class SessionManagerService(metaclass=SingletonMeta):
 
         # CheckStatus
         self.redis_service.set_session_data(
-            session_id=session_id,
+            session_id=session_id, 
             session_json_schema=session_schema_json,
         )
         self.redis_service.publish_start_session(session_id=session_id)
+
+        

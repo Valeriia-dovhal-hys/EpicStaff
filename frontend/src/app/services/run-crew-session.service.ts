@@ -1,28 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-// Interface for the createSession response
-export interface RunCrewSessionResponse {
-  session_id: number;
-}
-
-// Interface for individual messages
-export interface Message {
-  id: number;
-  text: string;
-  created_at: string;
-  message_from: string;
-  session: number;
-}
-
-// Interface for the getMessages response
-export interface GetMessagesResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Message[];
-}
+import { map, Observable } from 'rxjs';
+import { ApiRequest } from '../shared/models/api-request.model';
+import { RunCrewSessionRequest } from '../shared/models/RunCrewSession.model';
+import { CrewRunMessage } from '../shared/models/crew_run_message.model';
 
 @Injectable({
   providedIn: 'root',
@@ -30,22 +11,18 @@ export interface GetMessagesResponse {
 export class RunCrewSessionService {
   private apiBaseUrl = 'http://127.0.0.1:8000/api';
 
-  private headers = new HttpHeaders({
-    'Content-Type': 'application/json',
-  });
-
   constructor(private http: HttpClient) {}
 
-  createSession(crewId: number): Observable<RunCrewSessionResponse> {
+  createSession(crewId: number): Observable<RunCrewSessionRequest> {
     const payload = { crew_id: crewId };
     const url = `${this.apiBaseUrl}/run-session/`;
-    return this.http.post<RunCrewSessionResponse>(url, payload, {
-      headers: this.headers,
-    });
+    return this.http.post<RunCrewSessionRequest>(url, payload);
   }
 
-  getMessages(sessionId: number): Observable<GetMessagesResponse> {
+  getMessages(sessionId: number): Observable<CrewRunMessage[]> {
     const url = `${this.apiBaseUrl}/sessions/${sessionId}/messages`;
-    return this.http.get<GetMessagesResponse>(url, { headers: this.headers });
+    return this.http
+      .get<ApiRequest<CrewRunMessage>>(url)
+      .pipe(map((response: ApiRequest<CrewRunMessage>) => response.results));
   }
 }

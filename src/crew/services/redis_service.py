@@ -21,7 +21,6 @@ class RedisService:
     ):
         if redis_host is None:
             redis_host = os.environ.get("PROCESS_REDIS_HOST", "localhost")
-            
         self.redis_host = redis_host
         self.redis_client = Redis(host=redis_host, decode_responses=True)
         self.container_manager_service = container_manager_service

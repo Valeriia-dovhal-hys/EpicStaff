@@ -25,12 +25,10 @@ import { TasksService } from '../../services/tasks.service';
 import { Task } from '../../shared/models/task.model';
 import { ProjectTasksTableComponent } from '../../handsontable-tables/project-tasks-table/project-tasks-table.component';
 import { MatIconModule } from '@angular/material/icon';
-import { CreateTaskDialogComponent } from '../create-task-dialog/create-task-dialog.component';
+import { CreateTaskFormDialogComponent } from '../../forms/create-task-form-dialog/create-task-form-dialog.component';
 import { switchMap } from 'rxjs/operators';
-import {
-  RunCrewSessionResponse,
-  RunCrewSessionService,
-} from '../../services/run-crew-session.service';
+import { RunCrewSessionService } from '../../services/run-crew-session.service';
+import { RunCrewSessionRequest } from '../../shared/models/RunCrewSession.model';
 
 @Component({
   selector: 'app-project-details',
@@ -61,8 +59,13 @@ export class ProjectDetailsComponent implements OnInit {
   isDataLoaded: boolean = false;
   projectLoaded: boolean = false;
 
-  sessionId: number | null = null; // Add this property
+  sessionId: number | null = null;
 
+  expandedAgents: { [agentId: number]: boolean } = {};
+  toggleAgentDetails(agentId: number): void {
+    this.expandedAgents[agentId] = !this.expandedAgents[agentId];
+    this.cdr.markForCheck();
+  }
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -110,15 +113,16 @@ export class ProjectDetailsComponent implements OnInit {
 
           return forkJoin({
             agents: agentsObservable,
-            tasks: tasksObservable,
+            AllTasks: tasksObservable,
           });
         })
       )
       .subscribe({
-        next: ({ agents, tasks }) => {
+        next: ({ agents, AllTasks }) => {
           this.agents = agents;
 
-          this.tasks = tasks.filter((task) => task.crew === this.project.id);
+          this.tasks = AllTasks.filter((task) => task.crew === this.project.id);
+          console.log(this.tasks);
 
           this.isDataLoaded = true;
           this.cdr.detectChanges(); // Trigger change detection
@@ -145,8 +149,8 @@ export class ProjectDetailsComponent implements OnInit {
         // User clicked 'Yes'
         // Proceed to create session
         this.runCrewSessionService.createSession(this.project.id).subscribe({
-          next: (response: RunCrewSessionResponse) => {
-            this.sessionId = response.session_id; // Store the session ID
+          next: (response: RunCrewSessionRequest) => {
+            this.sessionId = response.session_id;
             console.log('Session ID:', this.sessionId);
 
             // this.project.sessionStatus = 'running';
@@ -215,8 +219,7 @@ export class ProjectDetailsComponent implements OnInit {
   }
 
   openCreateTaskDialog(): void {
-    const dialogRef = this.dialog.open(CreateTaskDialogComponent, {
-      width: '600px', // Adjust the width as needed
+    const dialogRef = this.dialog.open(CreateTaskFormDialogComponent, {
       data: { agents: this.agents, projectId: this.project.id },
     });
 
@@ -238,6 +241,39 @@ export class ProjectDetailsComponent implements OnInit {
             console.error('Error creating task:', err);
             this.sharedSnackbarService.showSnackbar(
               'Error creating task',
+              'error'
+            );
+          },
+        });
+      }
+    });
+  }
+
+  openAgentsModal(): void {
+    const dialogRef = this.dialog.open(AgentsDialogComponent, {
+      data: { selectedAgentIds: this.project.agents || [] },
+      width: '600px',
+      height: '600px',
+    });
+
+    dialogRef.afterClosed().subscribe((selectedAgents: Agent[] | undefined) => {
+      if (selectedAgents) {
+        this.project.agents = selectedAgents.map((agent) => agent.id);
+
+        this.agents = selectedAgents;
+        this.cdr.markForCheck();
+
+        this.projectsService.updateProject(this.project).subscribe({
+          next: () => {
+            this.sharedSnackbarService.showSnackbar(
+              'Agents updated successfully',
+              'success'
+            );
+          },
+          error: (error) => {
+            console.error('Error updating project:', error);
+            this.sharedSnackbarService.showSnackbar(
+              'Failed to update agents.',
               'error'
             );
           },

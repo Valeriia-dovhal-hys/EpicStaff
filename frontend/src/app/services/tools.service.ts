@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { ApiRequest } from '../shared/models/api-response.model';
+import { ApiRequest } from '../shared/models/api-request.model';
 import { Tool } from '../shared/models/tool.model';
 
 @Injectable({

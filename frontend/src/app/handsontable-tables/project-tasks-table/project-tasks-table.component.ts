@@ -12,7 +12,7 @@ import {
   AfterViewInit,
   Inject,
 } from '@angular/core';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { Task } from '../../shared/models/task.model';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import {
@@ -105,6 +105,7 @@ export class ProjectTasksTableComponent
       stretchH: 'all',
       width: '100%',
       height: '100%',
+      colWidths: [50, 200, 300, 50, 150],
       colHeaders: this.colHeaders,
       columns: this.columns,
       autoRowSize: true,

@@ -41,7 +41,28 @@
   padding: 15px 20px;
   display: flex;
   justify-content: space-between;
+  flex-direction: column;
+
+  .project-details-label {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #3f51b5; /* Accent color */
+    margin-bottom: 0.3rem;
+  }
+
+  .details-divider {
+    margin: 0.2rem 0;
+    border: none;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .project-details-text {
+    color: #333333;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
 }
+
 .run-section {
   width: 100%;
   height: 10%;
@@ -60,9 +81,10 @@
   width: 100%;
 
   .crew-run-results-header {
-    font-size: 1rem;
+    font-size: 1.2rem;
     color: #3f51b5;
     font-weight: 500;
+    margin: 0;
   }
 }
 .view {
@@ -102,13 +124,6 @@
       font-weight: 200;
     }
   }
-  .agents-header-container {
-    border-top-right-radius: 10px;
-  }
-  .agents-section-content {
-    width: 100%;
-    height: 100%;
-  }
 
   .tasks-section-content {
     padding: 0;
@@ -124,69 +139,127 @@
 .no-agents {
   padding: 15px 20px;
 }
-//agentslist
+
+//diloag run
+
+/* Agents Section */
+.agents-section {
+  width: 100%;
+  border-left: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+
+  .header-container {
+    display: flex;
+    padding: 15px 20px;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #3f51b5;
+
+    .header {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 200;
+    }
+  }
+
+  .agents-header-container {
+    border-top-right-radius: 10px;
+  }
+
+  .agents-section-content {
+    width: 100%;
+    /* Optional: Set a max-height if needed */
+    /* max-height: 500px; */
+    overflow-y: auto;
+  }
+}
+
+/* Agents List */
 .agents-list {
   display: flex;
   flex-direction: column;
   padding: 1rem;
   gap: 1rem;
-  overflow-y: auto;
 }
 
+/* Agent Item */
 .agent-item {
   border: 1px solid #000000;
-  border-radius: 10px;
-  height: 45px;
   padding: 0 1rem;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  height: 3rem;
+}
+
+/* Agent Item Header */
+.agent-item-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 
+/* Agent Role and Goal with Ellipsis in Header */
 .agent-arrow-role-container {
-  height: 100%;
   display: flex;
   align-items: center;
 
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
+  overflow: hidden; /* Prevents overflow */
 }
 
-.agent-role-container {
-  height: 100%;
-  background-color: #3f51b5;
-}
 .agent-role {
-  height: 100%;
-  display: flex;
-  align-items: center;
-
   font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis; /* Show ellipsis for overflowed text */
+  max-width: 10rem; /* Adjust as needed for layout */
 }
+
+/* Expand Icon */
 .agent-expand {
   margin-right: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+
+  &:hover {
+    transform: scale(1.2);
+    color: #3f51b5;
+  }
 }
 
+/* Goal Section */
 .agent-goal-llm-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   max-width: 70%;
+  overflow: hidden;
 }
 
 .agent-goal {
   color: #000000;
-
   overflow: hidden; /* Hide overflowed content */
   white-space: nowrap; /* Prevent text from wrapping to a new line */
   text-overflow: ellipsis; /* Display ellipsis when text overflows */
 }
 
-.agent-llm {
-  color: #3f51b5;
-  font-weight: 500;
+/* Agent Details */
+.agent-details {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid #ccc;
+  background-color: #f9f9f9;
+  max-height: 200px; /* Adjust this value to the desired max height */
+  overflow-y: auto; /* Enable vertical scrolling */
 }
 
-//diloag run
+.agent-detail-item {
+  margin-bottom: 0.5rem;
+}
+
+.agent-detail-item strong {
+  color: #3f51b5;
+}

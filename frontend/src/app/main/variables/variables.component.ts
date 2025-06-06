@@ -12,8 +12,7 @@ import {
   OnChanges,
 } from '@angular/core';
 
-import { HotTableModule } from '@handsontable/angular';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { mutual_Variables_RowResize_Renderer } from '../../handsontable-tables/table-utils/cell-renderers/variables-cell-renderer/mutual_variables-manualresize-renderer-utility';
@@ -39,7 +38,7 @@ interface PopupConfig {
 @Component({
   selector: 'app-variables',
   standalone: true,
-  imports: [HotTableModule, CommonModule, FormsModule, VariablePopupComponent],
+  imports: [CommonModule, FormsModule, VariablePopupComponent],
   templateUrl: './variables.component.html',
   styleUrls: ['./variables.component.scss'],
   encapsulation: ViewEncapsulation.None,

@@ -5,6 +5,16 @@
         <p class="project-header">{{ project.name }}</p>
       </div>
       <div class="project-details-content">
+        <div class="project-details-item">
+          <div class="project-details-label">Assignment</div>
+          <hr class="details-divider" />
+          <div class="project-details-text">{{ project.assignment }}</div>
+        </div>
+        <div class="project-details-item">
+          <div class="project-details-label">Description</div>
+          <hr class="details-divider" />
+          <div class="project-details-text">{{ project.description }}</div>
+        </div>
         <div class="crew-runs-results">
           <p class="crew-run-results-header">Crew Run Results:</p>
         </div>
@@ -41,28 +51,93 @@
     </div>
 
     <div class="agents-tasks-container">
+      <!-- Agents Section -->
       <div class="agents-section">
         <div class="header-container agents-header-container">
           <div class="header">Agents</div>
-          <!-- <button mat-raised-button color="primary" (click)="openAgentsModal()">
-            Use from Staff
-          </button> -->
+          <button mat-raised-button color="primary" (click)="openAgentsModal()">
+            Add from Staff
+          </button>
         </div>
 
         <div class="agents-section-content">
           <ng-container *ngIf="isDataLoaded; else loadingAgents">
             <ng-container *ngIf="agents.length > 0; else noAgents">
               <div class="agents-list">
-                <div class="agent-item" *ngFor="let agent of agents">
-                  <div class="agent-arrow-role-container">
-                    <mat-icon class="agent-expand">expand_more</mat-icon>
-
-                    <span class="agent-role">{{ agent.role }}</span>
+                <div *ngFor="let agent of agents">
+                  <div class="agent-item">
+                    <!-- Agent Header -->
+                    <div class="agent-item-header">
+                      <div class="agent-arrow-role-container">
+                        <mat-icon
+                          class="agent-expand"
+                          (click)="toggleAgentDetails(agent.id)"
+                          [attr.aria-expanded]="
+                            expandedAgents[agent.id] ? 'true' : 'false'
+                          "
+                          aria-label="Toggle agent details"
+                        >
+                          {{
+                            expandedAgents[agent.id]
+                              ? "expand_less"
+                              : "expand_more"
+                          }}
+                        </mat-icon>
+                        <span class="agent-role">{{ agent.role }}</span>
+                      </div>
+                      <div class="agent-goal-llm-section">
+                        <span class="agent-goal">{{ agent.goal }}</span>
+                      </div>
+                    </div>
+                    <!-- Expanded Agent Details -->
                   </div>
-                  <div class="agent-goal-llm-section">
-                    <span class="agent-goal">{{ agent.goal }}</span>
-                    <div class="agent-llm-container">
-                      <span class="agent-llm">{{ agent.llm_model }}</span>
+                  <div class="agent-details" *ngIf="expandedAgents[agent.id]">
+                    <div class="agent-detail-item">
+                      <strong>Role:</strong> {{ agent.role }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Goal:</strong> {{ agent.goal }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Backstory:</strong> {{ agent.backstory }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Allow Delegation:</strong>
+                      {{ agent.allow_delegation ? "Yes" : "No" }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Memory:</strong> {{ agent.memory ? "Yes" : "No" }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Max Iterations:</strong> {{ agent.max_iter }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Tools:</strong> {{ agent.tools.join(", ") }}
+                    </div>
+                    <div
+                      class="agent-detail-item"
+                      *ngIf="agent.llm_model !== null"
+                    >
+                      <strong>LLM Model:</strong> {{ agent.llm_model }}
+                    </div>
+                    <div
+                      class="agent-detail-item"
+                      *ngIf="agent.fcm_llm_model !== null"
+                    >
+                      <strong>FCM LLM Model:</strong> {{ agent.fcm_llm_model }}
+                    </div>
+                    <div
+                      class="agent-detail-item"
+                      *ngIf="agent.llm_config !== null"
+                    >
+                      <strong>LLM Config:</strong> {{ agent.llm_config }}
+                    </div>
+                    <div
+                      class="agent-detail-item"
+                      *ngIf="agent.fcm_llm_config !== null"
+                    >
+                      <strong>FCM LLM Config:</strong>
+                      {{ agent.fcm_llm_config }}
                     </div>
                   </div>
                 </div>
@@ -101,7 +176,6 @@
           <app-project-tasks-table
             [tasksTableData]="tasks"
             [agentsData]="agents"
-            [variables]="project.variables"
             [projectId]="project.id"
           ></app-project-tasks-table>
         </div>

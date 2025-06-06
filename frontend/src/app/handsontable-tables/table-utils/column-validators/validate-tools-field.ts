@@ -10,20 +10,37 @@ export function validateToolsField(
 ) {
   return function (
     this: Handsontable.CellProperties,
-    value: string,
+    value: string | null | undefined,
     callback: Function
   ): void {
-    // const isFieldEmpty: boolean = value.trim() === '';
+    if (value == null) {
+      callback(true);
+      return;
+    }
 
-    // if (isFieldEmpty) {
-    //   callback(true);
-    //   return;
-    // }
+    const isFieldEmpty: boolean = value.trim() === '';
 
-    const toolTitles = value.split(',').map((title: string) => title.trim());
+    if (isFieldEmpty) {
+      snackbarService.showSnackbar(`Tools field cannot be empty.`, 'error');
+      callback(true);
+      return;
+    }
 
-    // Check for extra comma
-    const hasEmptyTitle = toolTitles.includes('');
+    const toolTitles: string[] = value
+      .split(',')
+      .map((title: string) => title.trim());
+
+    // Check for extra comma resulting in an empty title
+    const hasEmptyTitle: boolean = toolTitles.includes('');
+
+    if (hasEmptyTitle) {
+      snackbarService.showSnackbar(
+        `Tools field contains invalid format.`,
+        'error'
+      );
+      callback(false);
+      return;
+    }
 
     const invalidTitles: string[] = toolTitles.filter(
       (title) => !toolsData.some((tool: Tool) => tool.name === title)
