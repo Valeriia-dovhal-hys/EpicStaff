@@ -2,6 +2,7 @@ import importlib
 import pkgutil
 import typing
 from base_models import Callable
+from tools_scanner import ToolsScanner
 
 
 class CallableParser:
@@ -10,12 +11,9 @@ class CallableParser:
         module = importlib.import_module(module_path)
         return getattr(module, class_name)
 
-    def find_tool(self, class_name: str, package_name: str) -> typing.Type | None:
+    def find_tool(self, class_name, package_name):
         """
         Recursively search through the target packages for the tool classes and their paths.
-
-        Returns:
-            Found tool class or `None` if not found
         """
 
         try:

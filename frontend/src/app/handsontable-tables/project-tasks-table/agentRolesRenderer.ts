@@ -1,11 +1,10 @@
 // assigned-agent-role-renderer.ts
 
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 
 export function createAssignedAgentRoleRenderer(
   agentRoles: string[],
-  eventListenerRefs: Array<() => void>,
-  document: Document
+  eventListenerRefs: Array<() => void>
 ) {
   return function assignedAgentRoleRenderer(
     instance: Handsontable.Core,
@@ -124,44 +123,34 @@ export function createAssignedAgentRoleRenderer(
 
         const selectedRole = target.textContent || '';
 
-        // Update the selected value display
         selectedTextSpan.textContent = selectedRole;
 
-        // Close the dropdown
         optionsList.style.display = 'none';
 
-        // Remove event listeners and clear references
         document.removeEventListener('mousedown', documentClickListener);
         cellProperties.documentClickListener = null;
 
-        // **Remove the 'open' class and reset the arrow**
         selectedValueDiv.classList.remove('open');
         iconSpan.textContent = '▼';
 
-        // Update the Handsontable data
         instance.setDataAtCell(row, col, selectedRole, 'customDropdown');
       }
     };
 
-    // **Event listener for opening/closing the dropdown when clicking the selected value**
     const handleSelectedValueClick = (event: Event) => {
       event.stopPropagation();
 
       const isVisible = optionsList.style.display === 'block';
 
       if (isVisible) {
-        // Close the dropdown
         optionsList.style.display = 'none';
 
-        // Remove event listeners and clear references
         document.removeEventListener('mousedown', documentClickListener);
         cellProperties.documentClickListener = null;
 
-        // **Remove the 'open' class and reset the arrow**
         selectedValueDiv.classList.remove('open');
         iconSpan.textContent = '▼';
       } else {
-        // **Temporarily display the optionsList to measure requiredHeight**
         optionsList.style.visibility = 'hidden';
         optionsList.style.display = 'block';
 
@@ -170,7 +159,7 @@ export function createAssignedAgentRoleRenderer(
         optionsList.style.display = 'none';
         optionsList.style.visibility = 'visible';
 
-        const extraSpace = 30; // Additional space required
+        const extraSpace = 30;
 
         const selectRect = selectedValueDiv.getBoundingClientRect();
 
@@ -181,15 +170,12 @@ export function createAssignedAgentRoleRenderer(
         let availableHeight: number;
 
         if (spaceBelow >= requiredHeight + extraSpace) {
-          // Enough space below
           openDirection = 'down';
           availableHeight = requiredHeight;
         } else if (spaceAbove >= requiredHeight + extraSpace) {
-          // Enough space above
           openDirection = 'up';
           availableHeight = requiredHeight;
         } else {
-          // Not enough space either way with extra space
           if (spaceBelow >= spaceAbove) {
             openDirection = 'down';
             availableHeight = spaceBelow - extraSpace;
@@ -197,46 +183,38 @@ export function createAssignedAgentRoleRenderer(
             openDirection = 'up';
             availableHeight = spaceAbove - extraSpace;
           }
-          // Ensure availableHeight is not more than requiredHeight
+
           availableHeight = Math.min(availableHeight, requiredHeight);
-          // Ensure availableHeight is at least a minimum height
-          availableHeight = Math.max(availableHeight, 50); // Minimum dropdown height
+
+          availableHeight = Math.max(availableHeight, 50);
         }
 
-        // **Position the dropdown and adjust its max-height**
         if (openDirection === 'up') {
           optionsList.style.bottom = '100%';
           optionsList.style.top = 'auto';
-          iconSpan.textContent = '▲'; // Arrow pointing up
+          iconSpan.textContent = '▲';
         } else {
           optionsList.style.top = '100%';
           optionsList.style.bottom = 'auto';
-          iconSpan.textContent = '▼'; // Arrow pointing down
+          iconSpan.textContent = '▼';
         }
 
-        // Open the dropdown
         optionsList.style.display = 'block';
 
-        // Attach event listeners and store references
         document.addEventListener('mousedown', documentClickListener);
         cellProperties.documentClickListener = documentClickListener;
 
-        // **Add the 'open' class**
         selectedValueDiv.classList.add('open');
       }
     };
 
-    // **Attach the event listener to the selected value display**
     selectedValueDiv.addEventListener('click', handleSelectedValueClick);
     cellProperties.selectedValueClickListener = handleSelectedValueClick;
 
-    // **Attach the event listener to the options list**
     optionsList.addEventListener('click', handleOptionClick);
     cellProperties.optionsListClickListener = handleOptionClick;
 
-    // **Store a cleanup function in eventListenerRefs**
     eventListenerRefs.push(() => {
-      // Remove event listeners
       if (
         cellProperties.selectedValueClickListener &&
         cellProperties.selectedValueDiv
@@ -264,7 +242,6 @@ export function createAssignedAgentRoleRenderer(
         );
       }
 
-      // Clear stored references
       cellProperties.selectedValueClickListener = null;
       cellProperties.optionsListClickListener = null;
       cellProperties.documentClickListener = null;

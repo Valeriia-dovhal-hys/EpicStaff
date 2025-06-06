@@ -8,13 +8,9 @@ import {
   ElementRef,
   Inject,
 } from '@angular/core';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  handleBeforeKeyDown,
-  handleAfterOnCellMouseDown,
-  handleEnterMoves,
-} from '../../handsontable-tables/table-utils/cell-renderers/tools-selector-dialog-utility/tools-selector-dialog-utility';
+
 import { DOCUMENT } from '@angular/common';
 import { Tool } from '../../shared/models/tool.model';
 import { ToolSelectorComponent } from '../tools-selector-dialog/tool-selector-dialog.component';

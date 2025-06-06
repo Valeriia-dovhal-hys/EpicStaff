@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { ApiRequest } from '../shared/models/api-response.model';
+import { ApiGetRequest } from '../shared/models/api-request.model';
 import { Tool } from '../shared/models/tool.model';
 
 @Injectable({
@@ -15,7 +15,7 @@ export class ToolsService {
 
   getTools(): Observable<Tool[]> {
     return this.http
-      .get<ApiRequest<Tool>>(this.apiUrl)
-      .pipe(map((response: ApiRequest<Tool>) => response.results));
+      .get<ApiGetRequest<Tool>>(this.apiUrl)
+      .pipe(map((response: ApiGetRequest<Tool>) => response.results));
   }
 }

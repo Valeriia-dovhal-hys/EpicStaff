@@ -5,35 +5,24 @@
         <p class="project-header">{{ project.name }}</p>
       </div>
       <div class="project-details-content">
+        <div class="project-details-item">
+          <div class="project-details-label">Assignment</div>
+          <hr class="details-divider" />
+          <div class="project-details-text">{{ project.assignment }}</div>
+        </div>
+        <div class="project-details-item">
+          <div class="project-details-label">Description</div>
+          <hr class="details-divider" />
+          <div class="project-details-text">{{ project.description }}</div>
+        </div>
         <div class="crew-runs-results">
           <p class="crew-run-results-header">Crew Run Results:</p>
         </div>
       </div>
       <div class="run-section">
-        <!-- Conditionally render buttons based on sessionStatus -->
         <ng-container *ngIf="projectLoaded; else loading">
-          <!-- Show "Run" button if sessionStatus is 'static' -->
           <button mat-flat-button class="run" (click)="startRun()">Run</button>
-
-          <!-- Show "Stop" and "View Run Page" buttons if sessionStatus is 'running' -->
-          <!-- <ng-container *ngIf="project.sessionStatus === 'running'">
-            <button mat-flat-button class="stop" (click)="stopRun()">
-              Stop
-            </button>
-            <button mat-stroked-button class="view" (click)="viewRunPage()">
-              View Run Page
-            </button>
-          </ng-container> -->
-
-          <!-- Show only "View Run Page" button if sessionStatus is 'finished' -->
-          <!-- <ng-container *ngIf="project.sessionStatus === 'finished'">
-            <button mat-stroked-button class="view" (click)="viewRunPage()">
-              View Run Page
-            </button>
-          </ng-container> -->
         </ng-container>
-
-        <!-- Loading state when project is not loaded yet -->
         <ng-template #loading>
           <p>Loading project details...</p>
         </ng-template>
@@ -44,25 +33,84 @@
       <div class="agents-section">
         <div class="header-container agents-header-container">
           <div class="header">Agents</div>
-          <!-- <button mat-raised-button color="primary" (click)="openAgentsModal()">
-            Use from Staff
-          </button> -->
+          <button mat-raised-button color="primary" (click)="openAgentsModal()">
+            Add from Staff
+          </button>
         </div>
 
         <div class="agents-section-content">
           <ng-container *ngIf="isDataLoaded; else loadingAgents">
             <ng-container *ngIf="agents.length > 0; else noAgents">
               <div class="agents-list">
-                <div class="agent-item" *ngFor="let agent of agents">
-                  <div class="agent-arrow-role-container">
-                    <mat-icon class="agent-expand">expand_more</mat-icon>
-
-                    <span class="agent-role">{{ agent.role }}</span>
+                <div *ngFor="let agent of agents">
+                  <div class="agent-item">
+                    <div class="agent-item-header">
+                      <div class="agent-arrow-role-container">
+                        <mat-icon
+                          class="agent-expand"
+                          (click)="toggleAgentDetails(agent.id)"
+                        >
+                          {{
+                            expandedAgents[agent.id]
+                              ? "expand_less"
+                              : "expand_more"
+                          }}
+                        </mat-icon>
+                        <span class="agent-role">{{ agent.role }}</span>
+                      </div>
+                      <div class="agent-goal-llm-section">
+                        <span class="agent-goal">{{ agent.goal }}</span>
+                      </div>
+                    </div>
+                    <!-- Expanded Agent Details -->
                   </div>
-                  <div class="agent-goal-llm-section">
-                    <span class="agent-goal">{{ agent.goal }}</span>
-                    <div class="agent-llm-container">
-                      <span class="agent-llm">{{ agent.llm_model }}</span>
+                  <div class="agent-details" *ngIf="expandedAgents[agent.id]">
+                    <div class="agent-detail-item">
+                      <strong>Role:</strong> {{ agent.role }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Goal:</strong> {{ agent.goal }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Backstory:</strong> {{ agent.backstory }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Allow Delegation:</strong>
+                      {{ agent.allow_delegation ? "Yes" : "No" }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Memory:</strong> {{ agent.memory ? "Yes" : "No" }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Max Iterations:</strong> {{ agent.max_iter }}
+                    </div>
+                    <div class="agent-detail-item">
+                      <strong>Tools:</strong> {{ agent.tools.join(", ") }}
+                    </div>
+                    <div
+                      class="agent-detail-item"
+                      *ngIf="agent.llm_model !== null"
+                    >
+                      <strong>LLM Model:</strong> {{ agent.llm_model }}
+                    </div>
+                    <div
+                      class="agent-detail-item"
+                      *ngIf="agent.fcm_llm_model !== null"
+                    >
+                      <strong>FCM LLM Model:</strong> {{ agent.fcm_llm_model }}
+                    </div>
+                    <div
+                      class="agent-detail-item"
+                      *ngIf="agent.llm_config !== null"
+                    >
+                      <strong>LLM Config:</strong> {{ agent.llm_config }}
+                    </div>
+                    <div
+                      class="agent-detail-item"
+                      *ngIf="agent.fcm_llm_config !== null"
+                    >
+                      <strong>FCM LLM Config:</strong>
+                      {{ agent.fcm_llm_config }}
                     </div>
                   </div>
                 </div>
@@ -99,10 +147,10 @@
         <p class="loading-tasks" *ngIf="!isDataLoaded">Loading tasks...</p>
         <div *ngIf="isDataLoaded" class="tasks-section-content">
           <app-project-tasks-table
-            [tasksTableData]="tasks"
-            [agentsData]="agents"
-            [variables]="project.variables"
+            [tasks]="tasks"
+            [agents]="agents"
             [projectId]="project.id"
+            (taskCreated)="onTaskCreated($event)"
           ></app-project-tasks-table>
         </div>
       </div>

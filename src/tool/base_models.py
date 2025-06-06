@@ -11,6 +11,8 @@ class Callable(BaseModel):
     kwargs: dict[str, Union[str, "Callable", typing.Iterable, typing.Dict]] | None = (
         None
     )
+    # args: list[Union[str, "Callable"]] | None = None
+    # kwargs: dict[str, Union[str, "Callable"]] | None = None
 
 
 class ImportToolData(BaseModel):

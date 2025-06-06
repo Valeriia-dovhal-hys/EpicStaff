@@ -98,21 +98,12 @@
   box-shadow: 0 0 5px rgba(24, 17, 90, 0.5);
 }
 
-/* Highlighted Variable Renderer */
-.highlight-variable-renderer {
-  color: #007bff !important;
-}
-
 .manual-row-resize-renderer {
   position: absolute;
-  overflow: hidden;
-  /* word-break: break-word; */
-  height: 100%;
-  padding: 5px;
-  box-sizing: border-box;
-  color: #000000;
-  font-family: Helvetica, sans-serif;
-  line-height: 1.5;
+  padding: 4px;
+  padding-right: 6.5px;
+  padding-top: 5px;
+  word-break: break-word;
 }
 
 #hotContainer .htCore thead th {

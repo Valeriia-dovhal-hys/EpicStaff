@@ -1,9 +1,8 @@
-/* Parent container styling */
 .parent-container {
   display: flex;
-  flex-direction: column; /* Align children vertically */
-  height: 100%; /* The parent will take up the full height available */
-  gap: 1rem; /* Space between sections */
+  flex-direction: column;
+  height: 100%;
+  gap: 1rem;
   max-width: 100%;
 }
 
@@ -15,7 +14,7 @@ hr {
   padding: 1rem;
   border-radius: 10px;
   background-color: rgb(255, 255, 255) !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .info {
@@ -36,13 +35,12 @@ hr {
   font-weight: 500;
 }
 
-/* Agents section (4/10 of the total height) */
 .agents,
 .tasks {
-  height: 40%; /* 4/10 of the height */
+  height: 40%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* Enable scrolling if content overflows */
+  overflow-y: auto;
 }
 
 .agent {
@@ -54,9 +52,8 @@ hr {
   border-radius: 10px;
   margin-top: 0.5rem;
 
-  /* Add these properties to hide overflow */
-  overflow: hidden; /* Hides overflowing content */
-  text-overflow: ellipsis; /* Optional: Adds '...' for clipped text */
+  overflow: hidden;
+  text-overflow: ellipsis;
   .agent-role {
     white-space: nowrap;
     overflow: hidden;

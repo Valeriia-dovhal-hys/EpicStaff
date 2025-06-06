@@ -13,12 +13,10 @@ import { MatDividerModule } from '@angular/material/divider';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import {
-  RunCrewSessionResponse,
-  RunCrewSessionService,
-} from '../../services/run-crew-session.service';
+import { RunCrewSessionService } from '../../services/run-crew-session.service';
 import { SharedSnackbarService } from '../../services/snackbar/shared-snackbar.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { RunCrewSessionRequest } from '../../shared/models/RunCrewSession.model';
 
 @Component({
   selector: 'app-project-list-item-card',
@@ -68,7 +66,7 @@ export class ProjectListItemCardComponent {
         // User clicked 'Yes'
         // Proceed to create session and navigate to run page
         this.runCrewSessionService.createSession(this.project.id).subscribe({
-          next: (response: RunCrewSessionResponse) => {
+          next: (response: RunCrewSessionRequest) => {
             const sessionId = response.session_id;
             console.log('Session ID:', sessionId);
 
@@ -105,7 +103,7 @@ export class ProjectListItemCardComponent {
   // Existing method to run the project
   runProject(): void {
     this.runCrewSessionService.createSession(this.project.id).subscribe({
-      next: (response: RunCrewSessionResponse) => {
+      next: (response: RunCrewSessionRequest) => {
         const sessionId = response.session_id;
         console.log('Session ID:', sessionId);
 

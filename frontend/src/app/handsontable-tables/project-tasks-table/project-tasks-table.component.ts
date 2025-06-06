@@ -11,9 +11,11 @@ import {
   OnChanges,
   AfterViewInit,
   Inject,
+  EventEmitter,
+  Output,
 } from '@angular/core';
-import Handsontable from 'handsontable';
-import { Task } from '../../shared/models/task.model';
+import Handsontable from 'handsontable/base';
+import { Task, TaskTableItem } from '../../shared/models/task.model';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import {
   ChangeTask,
@@ -24,22 +26,16 @@ import {
 import { Agent } from '../../shared/models/agent.model';
 import { SharedSnackbarService } from '../../services/snackbar/shared-snackbar.service';
 import { validateNotEmpty } from '../table-utils/column-validators/validate-not-empty-validator';
-import { catchError, from, map, mergeMap, Observable, of } from 'rxjs';
+import { catchError, from, map, mergeMap, Observable, of, toArray } from 'rxjs';
 import { TasksService } from '../../services/tasks.service';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { mutual_Variables_RowResize_Renderer } from '../table-utils/cell-renderers/variables-cell-renderer/mutual_variables-manualresize-renderer-utility';
 import { createAssignedAgentRoleRenderer } from './agentRolesRenderer';
 import { VariablePopupComponent } from '../../main/variables/popup/popup.component';
-
-interface Variable {
-  title: string;
-  value: string;
-}
-
-interface TaskTableRow extends Task {
-  assignedAgentRole?: string; // For display purposes
-}
+import { manualRowResizeRenderer } from '../table-utils/cell-renderers/manual-row-resize-renderer.ts/row-resize-renderer';
+import { validateIsNumberField } from '../table-utils/column-validators/validate-is-number';
+import { createBeforeChangeHandler } from './before-change-tasks-table-handler';
 
 @Component({
   selector: 'app-project-tasks-table',
@@ -54,24 +50,21 @@ export class ProjectTasksTableComponent
   implements OnDestroy, OnChanges, AfterViewInit
 {
   @ViewChild('hotContainer', { static: true }) hotContainer!: ElementRef;
-  @ViewChild(VariablePopupComponent)
-  variablePopupComponent!: VariablePopupComponent;
-
-  @Input() tasksTableData: Task[] = [];
-  @Input() agentsData: Agent[] = [];
-  @Input() variables?: Variable[] = [];
+  @Input() tasks: Task[] = [];
+  @Input() agents: Agent[] = [];
   @Input() projectId!: number;
+  @Output() taskCreated = new EventEmitter<Task>();
 
-  private tableData: TaskTableRow[] = [];
+  private tableData: TaskTableItem[] = [];
   private agentRoles: string[] = [];
-  private eventListenerRefs: Array<() => void> = [];
-  private assignedAgentRoleRenderer: any;
 
   private hotInstance!: Handsontable.Core;
-  private columns!: Handsontable.ColumnSettings[];
   private hotSettings!: Handsontable.GridSettings;
+  private columns!: Handsontable.ColumnSettings[];
 
   private colHeaders: string[] = [
+    'ID',
+    'projectID',
     'Name',
     'Instructions',
     'Expected Output',
@@ -79,73 +72,28 @@ export class ProjectTasksTableComponent
     'Assigned To',
   ];
 
-  // Popup logic variables
-  showPopup = false;
-  popupPosition = { top: 0, left: 0 };
-  currentEditorInput: HTMLTextAreaElement | null = null;
-  isEditing = false;
-  cursorPosition: number = 0;
-  listenersAttached = false;
-
-  private pattern: RegExp = /$^/;
-  private cache: Map<string, DocumentFragment>;
-
-  private unsubscribeEditorListeners: (() => void) | null = null;
+  private assignedAgentRoleRenderer: any;
+  private eventListenerRefs: Array<() => void> = [];
 
   constructor(
-    @Inject(DOCUMENT) private document: Document,
     private cdr: ChangeDetectorRef,
     private snackbarService: SharedSnackbarService,
-    private tasksService: TasksService,
-    private dialog: MatDialog
-  ) {
-    this.cache = new Map<string, DocumentFragment>();
+    private tasksService: TasksService
+  ) {}
 
-    this.hotSettings = {
-      stretchH: 'all',
-      width: '100%',
-      height: '100%',
-      colHeaders: this.colHeaders,
-      columns: this.columns,
-      autoRowSize: true,
-      autoColumnSize: true,
-      renderAllRows: false,
-      manualColumnResize: false,
-      manualRowResize: true,
-      outsideClickDeselects: true,
-      autoWrapRow: false,
-      autoWrapCol: false,
-      minSpareRows: 0,
-      manualRowMove: true,
-      dataSchema: {
-        id: null,
-        crew: null,
-        name: '',
-        instructions: '',
-        expected_output: '',
-        order: 0,
-        agent: null,
-        assignedAgentRole: 'Not Assigned',
-      },
-      rowHeaders: true,
-      rowHeights: 100,
-      wordWrap: true,
-      licenseKey: 'non-commercial-and-evaluation',
-      contextMenu: {
-        items: {
-          row_above: { name: 'Insert row above' },
-          row_below: { name: 'Insert row below' },
-          remove_row: { name: 'Delete row(s)' },
-        },
-      },
-      afterGetRowHeader: (row: number, TH: HTMLTableCellElement) => {
-        TH.classList.add('project-tasks-table-row-header-class');
-      },
-      afterCreateRow: this.afterCreateRowHandler.bind(this),
-      afterChange: (changes, source) => {
-        this.afterChangeHandler(changes, source);
-      },
-    };
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['tasks'] || changes['agents']) {
+      this.processData();
+      if (this.hotInstance) {
+        this.hotInstance.loadData(this.tableData);
+        this.hotInstance.updateSettings({
+          columns: this.columns,
+        });
+        this.hotInstance.render();
+      } else {
+        this.initializeHandsontable();
+      }
+    }
   }
 
   ngAfterViewInit() {
@@ -154,112 +102,67 @@ export class ProjectTasksTableComponent
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    let dataChanged = false;
-
-    if (changes['tasksTableData'] || changes['agentsData']) {
-      this.processData();
-      dataChanged = true;
-    }
-
-    if (this.hotInstance) {
-      if (dataChanged) {
-        this.hotInstance.loadData(this.tableData);
-      }
-      if (changes['agentsData'] || dataChanged) {
-        this.hotInstance.updateSettings({
-          columns: this.columns,
-        });
-      }
-    } else {
-      this.initializeHandsontable();
-    }
-  }
-
   private processData(): void {
-    const agents = this.agentsData || [];
-    const tasks = this.tasksTableData || [];
+    //sort by id
+    this.tasks.sort((a: Task, b: Task) => a.id - b.id);
 
-    // Map tasks to tableData, adding assignedAgentRole
-    this.tableData = tasks.map((task) => {
-      const agent = agents.find((a) => a.id === task.agent);
-      const assignedAgentRole = agent ? agent.role : 'Not Assigned';
+    this.tableData = this.tasks.map((task: Task) => {
+      const agent: Agent | undefined = this.agents.find(
+        (a) => a.id === task.agent
+      );
+      const assignedAgentRole: string = agent ? agent.role : 'Not Assigned';
+
       return {
         ...task,
         assignedAgentRole,
-      };
+      } as TaskTableItem;
     });
 
-    // Update the agent roles for the dropdown
-    this.agentRoles = Array.from(new Set(agents.map((agent) => agent.role)));
+    this.tableData.push(this.createEmptyTask());
+
+    this.agentRoles = Array.from(
+      new Set(this.agents.map((agent) => agent.role))
+    );
     this.agentRoles.push('Not Assigned');
 
-    // Initialize assignedAgentRoleRenderer
     this.assignedAgentRoleRenderer = createAssignedAgentRoleRenderer(
       this.agentRoles,
-      this.eventListenerRefs,
-      this.document
+      this.eventListenerRefs
     );
 
     this.columns = [
       {
+        data: 'id',
+        readOnly: true,
+      },
+      { data: 'crew', readOnly: true },
+      {
         data: 'name',
         type: 'text',
         validator: validateNotEmpty(this.snackbarService),
-        renderer: (instance, td, row, col, prop, value, cellProperties) =>
-          mutual_Variables_RowResize_Renderer(
-            instance,
-            td,
-            row,
-            col,
-            prop,
-            value,
-            cellProperties,
-            this.cache,
-            this.pattern
-          ),
+        renderer: manualRowResizeRenderer,
         headerClassName: 'htLeft',
       },
       {
         data: 'instructions',
         type: 'text',
         validator: validateNotEmpty(this.snackbarService),
-        renderer: (instance, td, row, col, prop, value, cellProperties) =>
-          mutual_Variables_RowResize_Renderer(
-            instance,
-            td,
-            row,
-            col,
-            prop,
-            value,
-            cellProperties,
-            this.cache,
-            this.pattern
-          ),
+        renderer: manualRowResizeRenderer,
         headerClassName: 'htLeft',
       },
       {
         data: 'expected_output',
         type: 'text',
         validator: validateNotEmpty(this.snackbarService),
-        renderer: (instance, td, row, col, prop, value, cellProperties) =>
-          mutual_Variables_RowResize_Renderer(
-            instance,
-            td,
-            row,
-            col,
-            prop,
-            value,
-            cellProperties,
-            this.cache,
-            this.pattern
-          ),
+        renderer: manualRowResizeRenderer,
         headerClassName: 'htLeft',
       },
       {
         data: 'order',
         type: 'numeric',
+        validator: validateIsNumberField(this.snackbarService),
         headerClassName: 'htLeft',
+        className: 'htBottom',
       },
       {
         data: 'assignedAgentRole',
@@ -269,23 +172,6 @@ export class ProjectTasksTableComponent
         headerClassName: 'htLeft',
       },
     ];
-
-    // Update the dropdown source
-    this.updateAssignedToColumnSource();
-
-    // Trigger change detection
-    this.cdr.markForCheck();
-  }
-
-  private updateAssignedToColumnSource(): void {
-    if (Array.isArray(this.columns)) {
-      const assignedToColumn = this.columns.find(
-        (col) => col.data === 'assignedAgentRole'
-      );
-      if (assignedToColumn) {
-        assignedToColumn.source = this.agentRoles;
-      }
-    }
   }
 
   private initializeHandsontable(): void {
@@ -293,33 +179,207 @@ export class ProjectTasksTableComponent
       if (this.hotInstance) {
         this.hotInstance.destroy();
       }
-      this.hotInstance = new Handsontable(this.hotContainer.nativeElement, {
-        ...this.hotSettings,
-        columns: this.columns,
+
+      this.hotSettings = {
+        stretchH: 'all',
+        width: '100%',
+        height: '100%',
+
         data: this.tableData,
-      });
+
+        columns: this.columns,
+        colHeaders: this.colHeaders,
+        colWidths: [0, 0, 100, 200, 300, 40, 150],
+
+        rowHeaders: true,
+        rowHeights: 100,
+        wordWrap: true,
+
+        selectionMode: 'range',
+        fillHandle: false,
+        //undoredo
+        undo: true,
+
+        hiddenColumns: {
+          columns: [0, 1], // Index of the column
+          indicators: false,
+        },
+
+        autoRowSize: false,
+        autoColumnSize: false,
+        renderAllRows: false,
+        manualColumnResize: false,
+        manualRowResize: true,
+        outsideClickDeselects: true,
+        autoWrapRow: false,
+        autoWrapCol: false,
+        minSpareRows: 0,
+        manualRowMove: true,
+
+        dataSchema: {
+          id: null,
+          crew: this.projectId,
+          name: '',
+          instructions: '',
+          expected_output: '',
+          order: 0,
+          agent: null,
+          assignedAgentRole: 'Not Assigned',
+        },
+
+        beforeChange: createBeforeChangeHandler(this.snackbarService),
+
+        licenseKey: 'non-commercial-and-evaluation',
+        contextMenu: {
+          items: {
+            row_above: { name: 'Insert row above' },
+            row_below: { name: 'Insert row below' },
+            remove_row: {
+              name: 'Delete task(s)',
+              callback: (key, selection, clickEvent) => {
+                this.handleDeleteRows(selection);
+              },
+            },
+          },
+        },
+        afterGetRowHeader: (row: number, TH: HTMLTableCellElement) => {
+          TH.classList.add('project-tasks-table-row-header-class');
+        },
+        afterCreateRow: this.afterCreateRowHandler.bind(this),
+        afterChange: this.afterChangeHandler.bind(this),
+      };
+
+      this.hotInstance = new Handsontable(
+        this.hotContainer.nativeElement,
+        this.hotSettings
+      );
       this.hotInstance.render();
     }
   }
 
-  private afterChangeHandler(
-    changes: ChangeTask[] | null,
-    source: ChangeSource
+  private handleDeleteRows(
+    selection: Array<{
+      start: Handsontable.CellCoords;
+      end: Handsontable.CellCoords;
+    }>
   ): void {
-    if (
-      !changes ||
-      !(
-        source === 'edit' ||
-        source === 'CopyPaste.paste' ||
-        source === 'customDropdown'
-      )
-    ) {
-      return;
+    const physicalRowsToDeleteSet = new Set<number>();
+    const taskIdsToDeleteSet = new Set<number>();
+
+    // Collect unique physical rows and task IDs to delete
+    selection.forEach(({ start, end }) => {
+      const startRow = Math.min(start.row, end.row);
+      const endRow = Math.max(start.row, end.row);
+
+      for (let visualRow = startRow; visualRow <= endRow; visualRow++) {
+        const physicalRow = this.hotInstance.toPhysicalRow(visualRow);
+        physicalRowsToDeleteSet.add(physicalRow);
+
+        const task = this.tableData[physicalRow] as TaskTableItem;
+        if (task?.id) {
+          taskIdsToDeleteSet.add(task.id);
+        }
+      }
+    });
+
+    const physicalRowsToDelete = Array.from(physicalRowsToDeleteSet).sort(
+      (a, b) => b - a
+    ); // Sort descending
+    const taskIdsToDelete = Array.from(taskIdsToDeleteSet);
+
+    if (taskIdsToDelete.length > 0) {
+      from(taskIdsToDelete)
+        .pipe(
+          mergeMap(
+            (taskId) =>
+              this.tasksService.deleteTask(taskId).pipe(
+                map(() => ({ taskId, success: true })),
+                catchError((error) => {
+                  console.error(`Error deleting task ${taskId}:`, error);
+                  return of({ taskId, success: false });
+                })
+              ),
+            100 // Concurrent deletions limit (adjust as needed)
+          ),
+          toArray() // Collect all results
+        )
+        .subscribe({
+          next: (results) => {
+            const failedDeletions = results
+              .filter((result) => !result.success)
+              .map((r) => r.taskId);
+
+            if (failedDeletions.length > 0) {
+              this.snackbarService.showSnackbar(
+                `Failed to delete some tasks. Please try again.`,
+                'error'
+              );
+            } else {
+              this.snackbarService.showSnackbar(
+                `Selected task(s) deleted successfully.`,
+                'success'
+              );
+            }
+
+            // Remove all selected physical rows from tableData
+            physicalRowsToDelete.forEach((physicalRowIndex) => {
+              this.tableData.splice(physicalRowIndex, 1);
+            });
+
+            // Update the grid with the new data
+            this.hotInstance.loadData(this.tableData);
+
+            // Re-render the Handsontable grid
+            this.hotInstance.render();
+          },
+          error: (error) => {
+            console.error('Error deleting tasks:', error);
+            this.snackbarService.showSnackbar(
+              `Failed to delete tasks. Please try again.`,
+              'error'
+            );
+
+            // Re-render the Handsontable grid in case of error
+            this.hotInstance.render();
+          },
+        });
+    } else {
+      // No tasks to delete from server, remove unsaved rows
+      physicalRowsToDelete.forEach((physicalRowIndex) => {
+        this.tableData.splice(physicalRowIndex, 1);
+      });
+
+      this.snackbarService.showSnackbar(
+        `Selected row(s) deleted successfully.`,
+        'success'
+      );
+
+      // Update the grid with the new data
+      this.hotInstance.loadData(this.tableData);
+
+      // Re-render the Handsontable grid
+      this.hotInstance.render();
     }
+  }
+  private createEmptyTask() {
+    return {
+      id: null,
+      crew: this.projectId,
+      name: '',
+      instructions: '',
+      expected_output: '',
+      order: 0,
+      agent: null,
+      assignedAgentRole: 'Not Assigned',
+    };
+  }
+
+  private afterChangeHandler(changes: any, source: string): void {
+    if (changes === null) return;
 
     const modifiedRows = new Set<number>();
 
-    changes.forEach(([row, prop, oldValue, newValue]) => {
+    changes.forEach(([row, prop, oldValue, newValue]: any) => {
       if (oldValue === newValue) return;
       modifiedRows.add(row);
     });
@@ -329,51 +389,59 @@ export class ProjectTasksTableComponent
     });
   }
 
-  private sendRowUpdate(row: number): void {
-    const taskData: TaskTableRow = this.hotInstance.getSourceDataAtRow(
-      row
-    ) as TaskTableRow;
+  private sendRowUpdate(rowIndex: number): void {
+    const taskData: TaskTableItem = this.hotInstance.getSourceDataAtRow(
+      rowIndex
+    ) as TaskTableItem;
 
-    // Check if row is valid
-    const isRowValidResult = isRowValid(row, this.hotInstance);
+    // STEP 1: Check if row is valid
+    const isRowValidResult: boolean = isRowValid(rowIndex, this.hotInstance);
     if (!isRowValidResult) {
-      console.log(`Row ${row} contains invalid data. Skipping update.`);
+      console.log(`Row ${rowIndex} contains invalid data. Skipping update.`);
       return;
     }
 
-    // Update task's agent based on assignedAgentRole
-    const selectedAgent = this.agentsData.find(
-      (agent) => agent.role === taskData.assignedAgentRole
-    );
-    taskData.agent = selectedAgent ? selectedAgent.id : null;
+    // STEP 2: Check if all required fields are filled
+    if (!this.allRequiredFieldsFilled(taskData)) {
+      console.log(
+        `Row ${rowIndex} does not have all required fields filled. Skipping update.`
+      );
+      return;
+    }
 
-    // Prepare task data to send to backend
-    const taskToSend: Task = {
-      id: taskData.id,
-      crew: this.projectId,
-      name: taskData.name,
-      instructions: taskData.instructions,
-      expected_output: taskData.expected_output,
-      order: taskData.order,
-      agent: taskData.agent,
-    };
+    // STEP 3: Prepare the task data to send
+    const taskToSend: any = { ...taskData };
+
+    if (taskData.assignedAgentRole) {
+      const agent = this.agents.find(
+        (a) => a.role === taskData.assignedAgentRole
+      );
+      if (agent) {
+        taskToSend.agent = agent.id;
+      } else if (taskData.assignedAgentRole === 'Not Assigned') {
+        taskToSend.agent = null;
+      }
+    }
+
+    delete (taskToSend as any).assignedAgentRole;
+
+    taskToSend.crew = this.projectId;
 
     if (!taskData.id) {
-      // Create a new task via the service
       this.tasksService.createTask(taskToSend).subscribe({
-        next: (createdTask) => {
+        next: (createdTask: Task) => {
           console.log(`Task created successfully:`, createdTask);
-          // Update the task in tableData with new id and any other changes from backend
-          this.tableData[row] = {
-            ...createdTask,
-            assignedAgentRole: taskData.assignedAgentRole,
-          };
-          this.hotInstance.render();
+
+          this.tableData[rowIndex].id = createdTask.id;
+
+          this.insertRowAtTheEnd();
 
           this.snackbarService.showSnackbar(
-            `Task ${createdTask.id} created successfully.`,
+            `Task ${createdTask.name} created successfully.`,
             'success'
           );
+
+          this.taskCreated.emit(createdTask);
         },
         error: (error) => {
           console.error(`Error creating task:`, error);
@@ -384,16 +452,14 @@ export class ProjectTasksTableComponent
         },
       });
     } else {
-      // Update existing task via the service
       this.tasksService.updateTask(taskToSend).subscribe({
-        next: (updatedTask) => {
+        next: (updatedTask: Task) => {
           console.log(`Task updated successfully:`, updatedTask);
-          // Update the task in tableData with any changes from backend
-          this.tableData[row] = {
-            ...updatedTask,
-            assignedAgentRole: taskData.assignedAgentRole,
-          };
-          this.hotInstance.render();
+
+          this.snackbarService.showSnackbar(
+            `Task ${updatedTask.name} updated successfully.`,
+            'success'
+          );
         },
         error: (error) => {
           console.error(`Error updating task ${taskData.id}:`, error);
@@ -404,6 +470,49 @@ export class ProjectTasksTableComponent
         },
       });
     }
+  }
+
+  private allRequiredFieldsFilled(taskData: TaskTableItem): boolean {
+    if (!taskData) {
+      return false;
+    }
+    const nameFilled = taskData.name != null && taskData.name.trim() !== '';
+    const instructionsFilled =
+      taskData.instructions != null && taskData.instructions.trim() !== '';
+    const expectedOutputFilled =
+      taskData.expected_output != null &&
+      taskData.expected_output.trim() !== '';
+    const assignedAgentFilled =
+      taskData.assignedAgentRole != null &&
+      taskData.assignedAgentRole.trim() !== '' &&
+      taskData.assignedAgentRole !== 'Not Assigned';
+
+    return (
+      nameFilled &&
+      instructionsFilled &&
+      expectedOutputFilled &&
+      assignedAgentFilled
+    );
+  }
+
+  private insertRowAtTheEnd(): void {
+    if (!this.hasEmptyRowAtEnd()) {
+      const totalRows = this.hotInstance.countRows();
+      const lastRowIndex = totalRows - 1;
+
+      // Insert a new row below the last row
+      this.hotInstance.alter('insert_row_below', lastRowIndex, 1);
+    }
+  }
+  private hasEmptyRowAtEnd(): boolean {
+    const totalRows = this.hotInstance.countRows();
+    const lastRowIndex = totalRows - 1;
+    const lastRowData = this.hotInstance.getSourceDataAtRow(
+      lastRowIndex
+    ) as TaskTableItem;
+
+    // Check if the last row is empty (no id and required fields are empty)
+    return !lastRowData.id && !this.allRequiredFieldsFilled(lastRowData);
   }
 
   private afterCreateRowHandler(
@@ -417,15 +526,12 @@ export class ProjectTasksTableComponent
       }`
     );
 
-    // Scroll the viewport to the newly added row
-    this.hotInstance.scrollViewportTo(index, undefined);
+    setTimeout(() => {
+      this.hotInstance.selectCell(index, 2);
+    }, 0);
 
-    // Re-render the table
     this.hotInstance.render();
   }
-
-  // Popup logic methods remain unchanged
-  // ...
 
   ngOnDestroy(): void {
     // this.removeEditorListeners();

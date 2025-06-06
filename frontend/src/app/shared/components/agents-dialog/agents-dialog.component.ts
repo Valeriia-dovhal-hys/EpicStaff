@@ -36,9 +36,7 @@ import { AgentsService } from '../../../services/staff.service';
 })
 export class AgentsDialogComponent implements OnInit {
   agents: Agent[] = [];
-
   isLoading: boolean = true;
-
   selectedAgents: Set<Agent> = new Set();
 
   constructor(
@@ -55,13 +53,12 @@ export class AgentsDialogComponent implements OnInit {
   loadAgents(): void {
     this.isLoading = true;
     this.agentsService.getAgents().subscribe({
-      next: (data: any) => {
-        this.agents = data;
+      next: (agents: Agent[]) => {
+        this.agents = agents;
 
+        // Pre-select agents if provided
         this.data.selectedAgentIds.forEach((id) => {
-          const agent: Agent | undefined = this.agents.find(
-            (agent) => agent.id === id
-          );
+          const agent = this.agents.find((agent) => agent.id === id);
           if (agent) {
             this.selectedAgents.add(agent);
           }

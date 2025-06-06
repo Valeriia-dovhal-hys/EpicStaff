@@ -8,23 +8,16 @@ export interface Task {
   agent: number | null;
 }
 
-//GET TASKS
-export interface GetTasksRequest {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Task[];
+export interface CreateTaskRequest {
+  crew: number | null;
+  name: string;
+  instructions: string;
+  expected_output: string;
+  order: number; //required
+  agent: number | null;
 }
 
-// POST-PUT TASK
-export interface TaskPostPut {
-  id: string;
-  project_name?: string;
-  title: string;
-  instructions: string;
-  expectedOutput: string;
-  order: number;
-  task_project_id?: string;
-  task_agent_id?: string;
-  asyncExecution?: boolean;
-}
+export type TaskTableItem = Omit<Task, 'id'> & {
+  id: number | null;
+  assignedAgentRole: string;
+};

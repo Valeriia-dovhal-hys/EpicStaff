@@ -34,16 +34,5 @@
       "dependencies": [
         "wikipedia", "langchain_community"
       ]
-    },
-    {
-      "image_name": "duckduckgo_tool",
-      "tool_dict": {
-          "ddg_search": {
-            "class_name": "DuckDuckGoSearchRun"
-          }
-      },
-      "dependencies": [
-        "langchain_community", "duckduckgo-search"
-      ]
     }
 ]
