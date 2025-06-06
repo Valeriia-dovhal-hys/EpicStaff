@@ -1,17 +1,13 @@
-// src/app/services/projects.service.ts
-
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators'; // Import the map operator
-import { Project, CreateProjectRequest } from '../shared/models/project.model';
-import { ApiRequest } from '../shared/models/api-request.model';
+import { getProjectsRequest, Project } from '../shared/models/project.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectsService {
-  private apiUrl = 'http://127.0.0.1:8000/api/crews/';
+  private apiUrl: string = 'http://127.0.0.1:8000/api/crews';
 
   private headers = new HttpHeaders({
     'Content-Type': 'application/json',
@@ -19,36 +15,32 @@ export class ProjectsService {
 
   constructor(private http: HttpClient) {}
 
-  // GET all projects
-  getProjects(): Observable<Project[]> {
-    return this.http
-      .get<ApiRequest<Project>>(this.apiUrl)
-      .pipe(map((response: ApiRequest<Project>) => response.results));
+  // GET: fetch all projects
+  getProjects(): Observable<getProjectsRequest> {
+    return this.http.get<getProjectsRequest>(this.apiUrl);
   }
 
-  // GET project by ID
+  // GET: fetch a project by ID
   getProjectById(id: number): Observable<Project> {
-    return this.http.get<Project>(`${this.apiUrl}${id}/`);
+    return this.http.get<Project>(`${this.apiUrl}/${id}/`);
   }
 
-  // POST create project
-  createProject(project: CreateProjectRequest): Observable<Project> {
-    return this.http.post<Project>(this.apiUrl, project, {
+  // POST: create a new project
+  createProject(project: Project): Observable<Project> {
+    return this.http.post<Project>(`${this.apiUrl}/`, project, {
       headers: this.headers,
     });
   }
 
-  // PUT update project
+  // PUT: update an existing project
   updateProject(project: Project): Observable<Project> {
-    return this.http.put<Project>(`${this.apiUrl}${project.id}/`, project, {
+    return this.http.put<Project>(`${this.apiUrl}/${project.id}`, project, {
       headers: this.headers,
     });
   }
 
-  // DELETE project
+  // DELETE: delete a project by ID
   deleteProject(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}${id}/`, {
-      headers: this.headers,
-    });
+    return this.http.delete<void>(`${this.apiUrl}/${id}/`);
   }
 }

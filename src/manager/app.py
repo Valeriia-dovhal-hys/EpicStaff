@@ -75,7 +75,7 @@ def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
 @app.on_event("startup")
 async def start_redis_subscription():
     await redis_service.init_redis()
-    asyncio.create_task(redis_service.subscribe_to_start_session())
+    asyncio.create_task(redis_service.listen_redis())
 
 
 if __name__ == "__main__":

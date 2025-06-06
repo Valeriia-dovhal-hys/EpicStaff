@@ -8,11 +8,23 @@ export interface Task {
   agent: number | null;
 }
 
-export interface CreateTaskRequest {
-  crew: number | null;
-  name: string;
+//GET TASKS
+export interface GetTasksRequest {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Task[];
+}
+
+// POST-PUT TASK
+export interface TaskPostPut {
+  id: string;
+  project_name?: string;
+  title: string;
   instructions: string;
-  expected_output: string;
+  expectedOutput: string;
   order: number;
-  agent: number | null;
+  task_project_id?: string;
+  task_agent_id?: string;
+  asyncExecution?: boolean;
 }

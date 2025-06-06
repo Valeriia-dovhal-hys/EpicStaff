@@ -1,0 +1,223 @@
+<div class="main-container">
+  <!-- Form Title with Background -->
+  <div class="header-container">
+    <p class="header">Create your project</p>
+  </div>
+  <div class="content">
+    <form [formGroup]="projectForm" (ngSubmit)="onSubmitForm()">
+      <!-- Name Field -->
+      <mat-form-field
+        appearance="outline"
+        class="full-width"
+        floatLabel="always"
+      >
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="name" />
+        <mat-error *ngIf="projectForm.get('name')?.hasError('required')">
+          Title is required
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Assignment Field (Textarea) -->
+      <mat-form-field
+        appearance="outline"
+        class="full-width"
+        floatLabel="always"
+      >
+        <mat-label>Assignment</mat-label>
+        <textarea matInput formControlName="assignment" rows="3"></textarea>
+        <mat-error *ngIf="projectForm.get('assignment')?.hasError('required')">
+          Description is required
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Description Field (Textarea) -->
+      <mat-form-field
+        appearance="outline"
+        class="full-width"
+        floatLabel="always"
+      >
+        <mat-label>Description(optional)</mat-label>
+        <textarea matInput formControlName="description" rows="3"></textarea>
+      </mat-form-field>
+
+      <!-- Process Type Field -->
+      <mat-form-field appearance="outline" class="process-select full-width">
+        <mat-label>Process Type</mat-label>
+        <mat-select formControlName="process">
+          <mat-option *ngFor="let process of processes" [value]="process.value">
+            {{ process.viewValue }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- <div class="button-variables-container">
+        <button
+          *ngIf="variables.length > 0"
+          mat-raised-button
+          color="accent"
+          type="button"
+          (click)="toggleVariablesVisibility()"
+          class="show-hide-button"
+        >
+          <mat-icon>{{
+            variablesVisible ? "expand_less" : "expand_more"
+          }}</mat-icon>
+          {{ variablesVisible ? "Hide Variables" : "Show Variables" }}
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="onAddVariable()"
+          class="add-variable-button"
+        >
+          <mat-icon>add</mat-icon>
+          Add Variable
+        </button>
+      </div> -->
+
+      <!-- Variable Inputs (Title and Value) -->
+      <!-- <div *ngIf="variablesVisible">
+        <div
+          formArrayName="variables"
+          *ngFor="let variable of variables.controls; let i = index"
+        >
+          <div [formGroupName]="i" class="variable-inputs">
+          
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Title</mat-label>
+              <input matInput formControlName="title" />
+              <mat-error
+                *ngIf="variables.at(i).get('title')?.hasError('required')"
+              >
+                Title is required
+              </mat-error>
+            </mat-form-field>
+
+      
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Value</mat-label>
+              <input
+                matInput
+                formControlName="value"
+                placeholder="Enter value"
+              />
+              <mat-error
+                *ngIf="variables.at(i).get('value')?.hasError('required')"
+              >
+                Value is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+      </div> -->
+      <!-- Show LLM Defaults Button -->
+      <button
+        mat-button
+        color="primary"
+        (click)="toggleAdvancedSettings()"
+        type="button"
+        class="show_defaults"
+      >
+        <mat-icon>{{
+          advancedSettingsVisible ? "expand_less" : "expand_more"
+        }}</mat-icon>
+        Advanced Settings
+      </button>
+
+      <div *ngIf="advancedSettingsVisible">
+        <!-- Verbose and Memory Fields as Select Dropdowns -->
+        <div class="verbose-memory-inline">
+          <!-- <mat-form-field appearance="outline" class="verbose-select">
+            <mat-label>Verbose</mat-label>
+            <mat-select formControlName="verbose">
+              <mat-option [value]="true">True</mat-option>
+              <mat-option [value]="false">False</mat-option>
+            </mat-select>
+          </mat-form-field> -->
+
+          <!-- <mat-form-field appearance="outline" class="memory-select">
+            <mat-label>Memory</mat-label>
+            <mat-select formControlName="memory">
+              <mat-option [value]="true">True</mat-option>
+              <mat-option [value]="false">False</mat-option>
+            </mat-select>
+          </mat-form-field> -->
+        </div>
+
+        <div class="llm-defaults-container">
+          <mat-form-field
+            appearance="outline"
+            class="llm-select-field"
+            floatLabel="always"
+          >
+            <mat-label>Embedding Model</mat-label>
+            <mat-select formControlName="embedding_model">
+              <mat-option
+                *ngFor="let model of embeddingModels"
+                [value]="model.id"
+              >
+                {{ model.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            class="llm-select-field"
+            floatLabel="always"
+          >
+            <mat-label>Project LLM</mat-label>
+            <mat-select formControlName="manager_llm_model">
+              <mat-option *ngFor="let llm of manageLLMs" [value]="llm.id">
+                {{ llm.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Process and Temperature Inline -->
+        <!-- <div class="verbose-memory-inline"> -->
+        <!-- Temperature Field (50% width) -->
+        <!-- <mat-form-field
+            appearance="outline"
+            floatLabel="always"
+            class="temperature-field"
+          >
+            <mat-label>Temperature</mat-label>
+            <input
+              matInput
+              formControlName="temperature"
+              type="number"
+              min="0"
+              max="1"
+              step="0.1"
+            />
+            <mat-error
+              *ngIf="projectForm.get('temperature')?.hasError('required')"
+            >
+              Temperature is required
+            </mat-error>
+            <mat-error
+              *ngIf="projectForm.get('temperature')?.hasError('pattern')"
+            >
+              Temperature must be between 0 and 1
+            </mat-error>
+          </mat-form-field> -->
+        <!-- </div> -->
+      </div>
+    </form>
+  </div>
+
+  <!-- Submit Button -->
+  <div class="bottom">
+    <button mat-stroked-button (click)="onCancelForm()" class="close">
+      Close
+    </button>
+
+    <button mat-raised-button type="submit" (click)="onSubmitForm()">
+      Create
+    </button>
+  </div>
+</div>

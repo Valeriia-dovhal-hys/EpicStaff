@@ -1,15 +1,13 @@
-// src/app/services/agents.service.ts
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
-import { Agent, CreateAgentRequest } from '../shared/models/agent.model';
-import { ApiRequest } from '../shared/models/api-request.model';
+import { Observable } from 'rxjs';
+import { Agent, getAgentsRequest } from '../shared/models/agent.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AgentsService {
-  private apiUrl = 'http://127.0.0.1:8000/api/agents/';
+  private apiUrl = 'http://127.0.0.1:8000/api/agents';
 
   private headers = new HttpHeaders({
     'Content-Type': 'application/json',
@@ -17,35 +15,32 @@ export class AgentsService {
 
   constructor(private http: HttpClient) {}
 
-  // GET all agents
-  getAgents(): Observable<Agent[]> {
-    return this.http
-      .get<ApiRequest<Agent>>(this.apiUrl)
-      .pipe(map((response: ApiRequest<Agent>) => response.results));
+  // GET
+  getAgents(): Observable<getAgentsRequest> {
+    return this.http.get<getAgentsRequest>(this.apiUrl);
   }
 
   // GET agent by ID
   getAgentById(agentId: number): Observable<Agent> {
-    return this.http.get<Agent>(`${this.apiUrl}${agentId}/`);
+    return this.http.get<Agent>(`${this.apiUrl}/${agentId}`);
   }
 
-  // POST create agent
-  createAgent(agent: CreateAgentRequest): Observable<Agent> {
-    return this.http.post<Agent>(this.apiUrl, agent, {
+  // POST
+  createAgent(agent: Agent): Observable<Agent> {
+    return this.http.post<Agent>(`${this.apiUrl}/`, agent, {
       headers: this.headers,
     });
   }
 
-  // PUT update agent
+  // PUT
   updateAgent(agent: Agent): Observable<Agent> {
-    return this.http.put<Agent>(`${this.apiUrl}${agent.id}/`, agent, {
+    return this.http.put<Agent>(`${this.apiUrl}/${agent.id}/`, agent, {
       headers: this.headers,
     });
   }
-
-  // DELETE agent
+  // DELETE
   deleteAgent(agentId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}${agentId}/`, {
+    return this.http.delete<void>(`${this.apiUrl}/${agentId}/`, {
       headers: this.headers,
     });
   }

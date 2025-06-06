@@ -5,11 +5,10 @@ import { SharedSnackbarService } from '../../../services/snackbar/shared-snackba
 export function validateNotEmpty(snackbarService: SharedSnackbarService) {
   return function (
     this: Handsontable.CellProperties,
-    value: any,
+    value: string,
     callback: Function
   ): void {
-    const isFieldNotEmpty: boolean =
-      typeof value === 'string' && value.trim() !== '';
+    const isFieldNotEmpty: boolean = value.trim() !== '';
 
     if (isFieldNotEmpty) {
       callback(true);

@@ -68,11 +68,11 @@ export class CustomSidenavComponent {
     //   label: 'Main Page',
     //   route: 'right-init',
     // },
-    {
-      icon: 'folder_open',
-      label: 'popup',
-      route: 'popup',
-    },
+    // {
+    //   icon: 'folder_open',
+    //   label: 'popup',
+    //   route: 'popup',
+    // },
 
     // {
     //   icon: 'table_chart',

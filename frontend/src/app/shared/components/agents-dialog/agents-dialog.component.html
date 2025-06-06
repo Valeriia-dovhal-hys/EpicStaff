@@ -1,29 +1,24 @@
 <div class="main-container">
   <div class="dialog-header">
-    <h1>Choose the needed agents from your Staff:</h1>
+    <h1 mat-dialog-title>Choose the needed agents from your Staff:</h1>
   </div>
-  <div class="dialog-content">
+  <div mat-dialog-content class="dialog-content">
     <ng-container *ngIf="!isLoading; else loading">
-      <div class="agents-grid">
-        <div
-          class="agent-card"
+      <mat-list>
+        <mat-list-item
           *ngFor="let agent of agents"
           (click)="toggleSelection(agent)"
           [class.selected]="isSelected(agent)"
         >
           <div class="agent-info">
             <div class="agent-details">
-              <div class="agent-role">{{ agent.role }}</div>
-              <!-- <div class="agent-goal">{{ agent.goal }}</div> -->
+              <span class="agent-role">{{ agent.role }}: </span>
+              <span class="agent-goal">{{ agent.goal }}</span>
             </div>
-            <mat-checkbox
-              [checked]="isSelected(agent)"
-              (click)="$event.stopPropagation()"
-              (change)="toggleSelection(agent)"
-            ></mat-checkbox>
+            <mat-checkbox [checked]="isSelected(agent)"></mat-checkbox>
           </div>
-        </div>
-      </div>
+        </mat-list-item>
+      </mat-list>
     </ng-container>
     <ng-template #loading>
       <div class="loading-container">
@@ -32,10 +27,10 @@
       </div>
     </ng-template>
   </div>
-  <div class="dialog-actions">
+  <div mat-dialog-actions class="dialog-actions">
     <button mat-stroked-button (click)="closeDialog()">Close</button>
     <button mat-flat-button color="primary" (click)="addSelectedAgents()">
-      Add Selected Agents
+      Update Agents
     </button>
   </div>
 </div>

@@ -12,11 +12,11 @@ class ToolsScanner:
         """
         Recursively search through the target packages for the tool classes and their paths.
         """
-
         try:
             package = importlib.import_module(package_name)
             pkg_name = package.__name__
             pkg_path = package.__path__
+
             for module_info in pkgutil.walk_packages(pkg_path, pkg_name + "."):
                 try:
                     module = importlib.import_module(module_info.name)
@@ -36,14 +36,3 @@ class ToolsScanner:
         return None
 
 
-if __name__ == "__main__":
-
-    scanner = ToolsScanner()
-    # TODO: Add logging
-
-    if os.environ.get("IN_DOCKER"):
-        tools_paths = scanner.load_tools_paths()
-    else:
-        tools_paths = scanner.perform_scanning()
-
-    print(tools_paths)

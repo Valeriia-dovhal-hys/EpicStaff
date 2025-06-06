@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "tool"
+version = "0.1.0"
+description = "Tools that run in containers"
+authors = ["\"Ihor Orlenko\", \"Maksym Yevstratiev\""]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+python-dotenv = "^1.0.1"
+pydantic = "^2.9.2"
+fastapi = {extras = ["all"], version = "^0.115.4"}
+langchain-core = "^0.3.13"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

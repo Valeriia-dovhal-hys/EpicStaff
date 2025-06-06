@@ -13,10 +13,8 @@
         }"
       >
         <div class="message-bubble">
-          <!-- Render the segments -->
-          <ng-container *ngFor="let segment of message.segments">
-            <span [ngClass]="segment.cssClass">{{ segment.text }}</span>
-          </ng-container>
+          <!-- Use [innerHTML] to display the HTML content -->
+          <span [innerHTML]="message.htmlText"></span>
         </div>
         <div class="message-timestamp">
           {{ message.created_at | date : "shortTime" }}
@@ -24,6 +22,7 @@
       </div>
     </ng-container>
     <!-- Loading template -->
+
     <ng-template #loading>
       <div class="loading-container">
         <div class="custom-loader"></div>

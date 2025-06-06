@@ -2,14 +2,22 @@
   <div class="staff-table-header-container">
     <div class="staff-table-title-search-header-section">
       <span class="staff-table-title">Staff</span>
-      <input type="text" placeholder="Search agents..." />
+      <input
+        type="text"
+        placeholder="Search agents..."
+        (input)="onSearchInput($event)"
+      />
     </div>
     <div class="staff-table-header-actions">
-      <button
-        mat-flat-button
-        color="primary"
-        (click)="onOpenCreateAgentFormDialog()"
-      >
+      <!-- <div class="staff-table-column-settings">
+        <p>Show only main columns</p>
+        <mat-checkbox
+          [(ngModel)]="hideDefaultColumns"
+          (change)="onHideDefaultColumnsChange()"
+        ></mat-checkbox>
+      </div> -->
+
+      <button mat-flat-button color="primary" (click)="openCreateAgentForm()">
         Create an agent via form
       </button>
     </div>
@@ -17,39 +25,11 @@
 
   <div class="staff-table-content-wrapper">
     <!-- Loading Indicator -->
-    <div *ngIf="!isTableInitialized" class="staff-table-loading-container">
+    <div *ngIf="!isLoading" class="staff-table-loading-container">
       <p>Loading agents, please wait...</p>
     </div>
 
     <!-- Handsontable -->
-
     <div #staffTableContainer id="staffTableContainer"></div>
-  </div>
-</div>
-<!-- Popup Template -->
-<div
-  *ngIf="showPopup"
-  class="popup-container"
-  [ngStyle]="popupStyles"
-  (click)="onPopupClick($event)"
-  (mousedown)="$event.stopPropagation()"
->
-  <select (change)="onProviderChange($event)" [value]="selectedProviderId">
-    <option *ngFor="let provider of providers" [value]="provider.id">
-      {{ provider.name }}
-    </option>
-  </select>
-  <div class="llm-list">
-    <div
-      *ngFor="let llm of llmsForProvider"
-      [class.selected]="llm.name === selectedLlmName"
-      (click)="onLlmSelect(llm)"
-      class="llm-option"
-    >
-      {{ llm.name }}
-    </div>
-    <div *ngIf="llmsForProvider.length === 0">
-      No LLMs available for this provider.
-    </div>
   </div>
 </div>
