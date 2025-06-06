@@ -17,8 +17,10 @@ class SessionManagerService(metaclass=SingletonMeta):
         self.redis_service = redis_service
         self.crew_service = crew_service
 
+
     def get_session(self, session_id: int) -> Session:
         return Session.objects.get(id=session_id)
+
 
     def stop_session(self, session_id: int) -> None:
         session: Session = self.get_session(session_id=session_id)
@@ -27,15 +29,34 @@ class SessionManagerService(metaclass=SingletonMeta):
         session.status = Session.SessionStatus.END
         session.save()
 
+
     def get_session_status(self, session_id: int) -> Session.SessionStatus:
         session: Session = self.get_session(session_id=session_id)
         return session.status
+
 
     def create_session(self, crew_id: int) -> int:
         session = Session.objects.create(
             crew_id=crew_id, status=Session.SessionStatus.RUN
         )
         return session.pk
+    
+
+    def validate_session(self, schema: dict):
+        
+        crew_name = schema["crew"]["name"]
+        tasks = schema["crew"]["tasks"]
+        agents = schema["crew"]["agents"]
+        
+        if len(tasks) == 0: raise ValueError(f"No tasks provided for {crew_name}")
+        if len(agents) == 0: raise ValueError(f"No agents provided {crew_name}")
+
+        for task in tasks:
+            if task["agent"] not in agents: 
+                task_name = task["name"]
+                agent_role = task["agent"]["role"]
+                raise ValueError(f"Agent {agent_role} assigned for task {task_name} not found in crew {crew_name}")
+
 
     def create_session_schema_json(self, session_id: int) -> str:
 
@@ -45,8 +66,10 @@ class SessionManagerService(metaclass=SingletonMeta):
 
         serialized_crew = serialized_session["crew"]
         serialized_session["crew"] = self.crew_service.inject_tasks(serialized_crew)
+        self.validate_session(serialized_session)
 
         return json.dumps(serialized_session)
+
 
     def run_session(self, session_id: int) -> None:
         session_schema_json = self.create_session_schema_json(session_id=session_id)
