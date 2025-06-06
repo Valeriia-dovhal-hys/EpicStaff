@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ProjectsService } from '../services/projects.service';
-import { Project } from '../shared/models/project.model';
+import { getProjectsRequest, Project } from '../shared/models/project.model';
 
 // Angular Material Imports
 import { MatCardModule } from '@angular/material/card';
@@ -10,9 +10,8 @@ import { ProjectListItemCardComponent } from './project-list-item-card/project-l
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { CreateProjectFormDialogComponent } from '../forms/create-project-form-dialog/create-project-form-dialog.component';
+import { ProjectFormComponent } from './project-form/project-form.component';
 import { SharedSnackbarService } from '../services/snackbar/shared-snackbar.service';
-import { ApiGetRequest } from '../shared/models/api-request.model';
 
 @Component({
   selector: 'app-projects-list',
@@ -45,8 +44,8 @@ export class ProjectsListComponent implements OnInit {
     const projectsSubscription: Subscription = this.projectsService
       .getProjects()
       .subscribe({
-        next: (projects: Project[]) => {
-          this.projects = projects;
+        next: (projects: getProjectsRequest) => {
+          this.projects = projects.results;
           this.isLoading = false;
         },
         error: (error) => {
@@ -57,10 +56,8 @@ export class ProjectsListComponent implements OnInit {
     this.subscriptions.add(projectsSubscription);
   }
 
-  public openCreateProjectFormDialog(): void {
-    const dialogRef = this.dialog.open(CreateProjectFormDialogComponent, {
-      autoFocus: false,
-    });
+  public openCreateProjectDialog(): void {
+    const dialogRef = this.dialog.open(ProjectFormComponent, {});
 
     dialogRef.afterClosed().subscribe((result: Project | undefined) => {
       if (result) {
@@ -70,20 +67,11 @@ export class ProjectsListComponent implements OnInit {
           next: (response: Project) => {
             console.log('response', response);
 
-            this.snackbarService.showSnackbar(
-              `Project "${response.name}" created successfully.`,
-              'success'
-            );
-
-            // Navigate to the new project's page
             this.router.navigate(['/project', response.id]);
+            // this.projects.unshift(createdProject);
           },
           error: (error) => {
             console.error('Error creating project:', error);
-            this.snackbarService.showSnackbar(
-              'Failed to create project. Please try again.',
-              'error'
-            );
           },
         });
       }

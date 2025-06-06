@@ -18,17 +18,19 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { SharedSnackbarService } from '../../services/snackbar/shared-snackbar.service';
 import { forkJoin, Observable, of } from 'rxjs';
-import { Agent, GetAgentRequest } from '../../shared/models/agent.model';
+import { Agent } from '../../shared/models/agent.model';
 import { AgentsService } from '../../services/staff.service';
 import { MatListModule } from '@angular/material/list';
 import { TasksService } from '../../services/tasks.service';
 import { Task } from '../../shared/models/task.model';
 import { ProjectTasksTableComponent } from '../../handsontable-tables/project-tasks-table/project-tasks-table.component';
 import { MatIconModule } from '@angular/material/icon';
-import { CreateTaskFormDialogComponent } from '../../forms/create-task-form-dialog/create-task-form-dialog.component';
-import { catchError, switchMap, tap } from 'rxjs/operators';
-import { RunCrewSessionService } from '../../services/run-crew-session.service';
-import { RunCrewSessionRequest } from '../../shared/models/RunCrewSession.model';
+import { CreateTaskDialogComponent } from '../create-task-dialog/create-task-dialog.component';
+import { switchMap } from 'rxjs/operators';
+import {
+  RunCrewSessionResponse,
+  RunCrewSessionService,
+} from '../../services/run-crew-session.service';
 
 @Component({
   selector: 'app-project-details',
@@ -52,16 +54,14 @@ export class ProjectDetailsComponent implements OnInit {
   @ViewChild('confirmRunDialog') confirmRunDialog!: TemplateRef<any>;
   @ViewChild('confirmStopDialog') confirmStopDialog!: TemplateRef<any>;
 
-  project: Project = {} as Project;
+  project!: Project;
   agents: Agent[] = [];
   tasks: Task[] = [];
 
   isDataLoaded: boolean = false;
   projectLoaded: boolean = false;
 
-  sessionId: number | null = null;
-
-  expandedAgents: { [agentId: number]: boolean } = {};
+  sessionId: number | null = null; // Add this property
 
   constructor(
     private router: Router,
@@ -96,8 +96,9 @@ export class ProjectDetailsComponent implements OnInit {
           const agentIds: number[] = project.agents;
 
           if (agentIds && agentIds.length > 0) {
-            const agentObservables: Observable<Agent>[] =
-              agentIds.map((id) => this.agentsService.getAgentById(id));
+            const agentObservables: Observable<Agent>[] = agentIds.map((id) =>
+              this.agentsService.getAgentById(id)
+            );
             agentsObservable = forkJoin(agentObservables);
           } else {
             agentsObservable = of([]);
@@ -109,19 +110,18 @@ export class ProjectDetailsComponent implements OnInit {
 
           return forkJoin({
             agents: agentsObservable,
-            AllTasks: tasksObservable,
+            tasks: tasksObservable,
           });
         })
       )
       .subscribe({
-        next: ({ agents, AllTasks }) => {
+        next: ({ agents, tasks }) => {
           this.agents = agents;
 
-          this.tasks = AllTasks.filter((task) => task.crew === this.project.id);
-          console.log(this.tasks);
+          this.tasks = tasks.filter((task) => task.crew === this.project.id);
 
           this.isDataLoaded = true;
-          this.cdr.detectChanges();
+          this.cdr.detectChanges(); // Trigger change detection
         },
         error: (error) => {
           console.error('Error fetching project, agents, or tasks:', error);
@@ -133,107 +133,6 @@ export class ProjectDetailsComponent implements OnInit {
       });
   }
 
-  onTaskCreated(newTask: Task): void {
-    this.tasks = [...this.tasks, newTask];
-  }
-
-  openAgentsModal(): void {
-    const dialogRef = this.dialog.open(AgentsDialogComponent, {
-      data: { selectedAgentIds: this.project.agents || [] },
-      width: '600px',
-      height: '600px',
-    });
-
-    dialogRef.afterClosed().subscribe((selectedAgents: Agent[] | undefined) => {
-      if (selectedAgents) {
-        this.project.agents = selectedAgents.map((agent) => agent.id);
-
-        this.projectsService.updateProject(this.project).subscribe({
-          next: () => {
-            this.sharedSnackbarService.showSnackbar(
-              'Agents updated successfully',
-              'success'
-            );
-
-            this.agents = selectedAgents;
-
-            const selectedAgentIds = selectedAgents.map((agent) => agent.id);
-            const tasksToUpdate: Task[] = [];
-
-            this.tasks.forEach((task) => {
-              if (
-                task.agent !== null &&
-                !selectedAgentIds.includes(task.agent)
-              ) {
-                task.agent = null;
-                tasksToUpdate.push({ ...task });
-              }
-            });
-
-            if (tasksToUpdate.length > 0) {
-              this.updateTasksWithNullAgent(tasksToUpdate);
-            } else {
-              this.cdr.detectChanges();
-            }
-          },
-          error: (error) => {
-            console.error('Error updating project:', error);
-            this.sharedSnackbarService.showSnackbar(
-              'Failed to update agents.',
-              'error'
-            );
-          },
-        });
-      }
-    });
-  }
-  private updateTasksWithNullAgent(tasksToUpdate: Task[]): void {
-    const updateObservables = tasksToUpdate.map((task) =>
-      this.tasksService.updateTask(task).pipe(
-        tap((updatedTask) => {
-          console.log(`Task ${updatedTask.id} updated successfully.`);
-        }),
-        catchError((error) => {
-          console.error(`Error updating task ${task.id}:`, error);
-          this.sharedSnackbarService.showSnackbar(
-            `Failed to update task "${task.name}".`,
-            'error'
-          );
-          return of(null);
-        })
-      )
-    );
-
-    if (updateObservables.length > 0) {
-      forkJoin(updateObservables).subscribe((results) => {
-        const failedUpdates = results.filter((result) => result === null);
-        const successfulUpdates = results.filter(
-          (result) => result !== null
-        ) as Task[];
-
-        if (successfulUpdates.length > 0) {
-          this.tasks = this.tasks.map((task) => {
-            const updatedTask = successfulUpdates.find((t) => t.id === task.id);
-            return updatedTask ? updatedTask : task;
-          });
-          // Trigger change detection
-          this.cdr.detectChanges();
-        }
-
-        if (failedUpdates.length > 0) {
-          this.sharedSnackbarService.showSnackbar(
-            `Some tasks failed to update. Please check the console for details.`,
-            'error'
-          );
-        }
-      });
-    }
-  }
-
-  toggleAgentDetails(agentId: number): void {
-    this.expandedAgents[agentId] = !this.expandedAgents[agentId];
-    this.cdr.markForCheck();
-  }
   startRun(): void {
     const dialogRef = this.dialog.open(this.confirmRunDialog, {
       width: '400px',
@@ -246,8 +145,8 @@ export class ProjectDetailsComponent implements OnInit {
         // User clicked 'Yes'
         // Proceed to create session
         this.runCrewSessionService.createSession(this.project.id).subscribe({
-          next: (response: RunCrewSessionRequest) => {
-            this.sessionId = response.session_id;
+          next: (response: RunCrewSessionResponse) => {
+            this.sessionId = response.session_id; // Store the session ID
             console.log('Session ID:', this.sessionId);
 
             // this.project.sessionStatus = 'running';
@@ -316,7 +215,8 @@ export class ProjectDetailsComponent implements OnInit {
   }
 
   openCreateTaskDialog(): void {
-    const dialogRef = this.dialog.open(CreateTaskFormDialogComponent, {
+    const dialogRef = this.dialog.open(CreateTaskDialogComponent, {
+      width: '600px', // Adjust the width as needed
       data: { agents: this.agents, projectId: this.project.id },
     });
 

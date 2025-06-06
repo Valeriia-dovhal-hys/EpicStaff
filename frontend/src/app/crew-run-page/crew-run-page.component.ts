@@ -11,12 +11,12 @@ import { AgentsService } from '../services/staff.service';
 import { TasksService } from '../services/tasks.service';
 import { SharedSnackbarService } from '../services/snackbar/shared-snackbar.service';
 import { ProjectInfoComponent } from './run-page-components/project-info/project-info.component';
-import { RunChatComponent } from './run-page-components/run-chat/run-chat.component';
+import { ChatComponent } from './run-page-components/run-chat/run-chat.component';
 
 @Component({
   selector: 'app-crew-run-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, ProjectInfoComponent, RunChatComponent],
+  imports: [CommonModule, FormsModule, ProjectInfoComponent, ChatComponent],
   templateUrl: './crew-run-page.component.html',
   styleUrls: ['./crew-run-page.component.scss'],
 })
@@ -96,7 +96,7 @@ export class CrewRunPageComponent implements OnInit, OnDestroy {
           console.log('Tasks for project:', this.tasks);
 
           this.isDataLoaded = true;
-          this.cdr.detectChanges();
+          this.cdr.detectChanges(); // Trigger change detection
         },
         error: (error) => {
           console.error('Error fetching project, agents, or tasks:', error);

@@ -1,37 +1,17 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { RunChatHeaderComponent } from './run-chat-header/run-chat-header.component';
-import { RunCrewSessionService } from '../../../services/run-crew-session.service';
+import {
+  RunCrewSessionService,
+  Message,
+  GetMessagesResponse,
+} from '../../../services/run-crew-session.service';
 import { Subscription, timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import AnsiToHtml from 'ansi-to-html';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { CrewRunMessage } from '../../../shared/models/crew_run_message.model';
-
-interface TextSegment {
-  text: string;
-  cssClass?: string;
-}
-
-const ANSI_COLORS_REGEX: RegExp = /\u001b\[(\d{1,2})m/g;
-const ANSI_TO_CSS_CLASS: { [key: string]: string } = {
-  '30': 'ansi-black',
-  '31': 'ansi-red',
-  '32': 'ansi-green',
-  '33': 'ansi-yellow',
-  '34': 'ansi-blue',
-  '35': 'ansi-magenta',
-  '36': 'ansi-cyan',
-  '37': 'ansi-white',
-  '90': 'ansi-grey',
-  '91': 'ansi-lightcoral',
-  '92': 'ansi-black',
-  '93': 'ansi-lightyellow',
-  '94': 'ansi-lightblue',
-  '95': 'ansi-blue',
-  '96': 'ansi-lightcyan',
-  '97': 'ansi-lightgray',
-};
 
 @Component({
   selector: 'app-run-chat',
@@ -45,28 +25,46 @@ const ANSI_TO_CSS_CLASS: { [key: string]: string } = {
   templateUrl: './run-chat.component.html',
   styleUrls: ['./run-chat.component.scss'],
 })
-export class RunChatComponent implements OnInit, OnDestroy {
+export class ChatComponent implements OnInit, OnDestroy {
   @Input() sessionId!: number;
-  public chatStatus: string = 'running';
+  chatStatus: string = 'running';
 
-  public messages: Array<CrewRunMessage & { segments?: TextSegment[] }> = [];
+  pollingSubscription!: Subscription;
+  messages: Array<Message & { htmlText?: SafeHtml }> = [];
 
-  private messagesSubscription!: Subscription;
+  private ansiConvert: AnsiToHtml;
 
-  constructor(private runCrewSessionService: RunCrewSessionService) {}
+  constructor(
+    private runCrewSessionService: RunCrewSessionService,
+    private sanitizer: DomSanitizer
+  ) {
+    // Initialize AnsiToHtml with custom color mappings
+    this.ansiConvert = new AnsiToHtml({
+      colors: {
+        // Map bright magenta (ANSI code 95) to blue
+        95: '#0000FF',
+        // Map bright green (ANSI code 92) to black
+        92: '#000000',
+      },
+    });
+  }
 
   ngOnInit(): void {
-    this.messagesSubscription = timer(0, 2000)
+    this.pollingSubscription = timer(0, 2000)
       .pipe(
         switchMap(() => this.runCrewSessionService.getMessages(this.sessionId))
       )
       .subscribe({
-        next: (messages: CrewRunMessage[]) => {
-          this.messages = messages.map((msg) => {
-            const segments = this.parseAnsiText(msg.text);
+        next: (response: GetMessagesResponse) => {
+          this.messages = response.results.map((msg) => {
+            const replacedText = this.replaceAnsiColorCodes(msg.text);
+            const htmlText = this.ansiConvert.toHtml(replacedText);
+            const safeHtmlText =
+              this.sanitizer.bypassSecurityTrustHtml(htmlText);
+
             return {
               ...msg,
-              segments: segments,
+              htmlText: safeHtmlText,
             };
           });
           console.log(this.messages);
@@ -77,45 +75,24 @@ export class RunChatComponent implements OnInit, OnDestroy {
       });
   }
 
-  private parseAnsiText(text: string): TextSegment[] {
-    if (!text) return [];
-
-    text = text.replace(/^\n+/, '');
-
-    const segments: TextSegment[] = [];
-    let lastIndex: number = 0;
-    let currentClass: string | undefined;
-
-    let match: RegExpExecArray | null;
-    while ((match = ANSI_COLORS_REGEX.exec(text)) !== null) {
-      const index: number = match.index;
-      const code: string = match[1];
-
-      if (index > lastIndex) {
-        segments.push({
-          text: text.substring(lastIndex, index),
-          cssClass: currentClass,
-        });
-      }
-
-      currentClass = code === '0' ? undefined : ANSI_TO_CSS_CLASS[code];
-
-      lastIndex = ANSI_COLORS_REGEX.lastIndex;
+  ngOnDestroy(): void {
+    if (this.pollingSubscription) {
+      this.pollingSubscription.unsubscribe();
     }
-
-    if (lastIndex < text.length) {
-      segments.push({
-        text: text.substring(lastIndex),
-        cssClass: currentClass,
-      });
-    }
-
-    return segments;
   }
 
-  ngOnDestroy(): void {
-    if (this.messagesSubscription) {
-      this.messagesSubscription.unsubscribe();
-    }
+  // Method to remove leading newline characters and replace ANSI color codes
+  private replaceAnsiColorCodes(text: string): string {
+    if (!text) return text;
+
+    // Remove any leading newline characters
+    text = text.replace(/^\n+/, '');
+
+    // Replace bright magenta (ANSI code 95) with bright blue (ANSI code 94)
+    text = text.replace(/\u001b\[95m/g, '\u001b[94m');
+    // Replace bright green (ANSI code 92) with black (ANSI code 30)
+    text = text.replace(/\u001b\[92m/g, '\u001b[30m');
+
+    return text;
   }
 }
