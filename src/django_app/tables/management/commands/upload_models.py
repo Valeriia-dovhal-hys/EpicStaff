@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from tables.models import *
+from tables.models import Provider, LLMModel, EmbeddingModel
 
 
 class Command(BaseCommand):
