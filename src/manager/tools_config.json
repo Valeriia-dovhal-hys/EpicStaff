@@ -45,5 +45,18 @@
       "dependencies": [
         "langchain_community", "duckduckgo-search"
       ]
+    },
+    {
+      "image_name": "crewai_tools",
+      "tool_dict": {
+          "scrape_website": {
+            "class_name": "ScrapeWebsiteTool",
+            "package": "crewai_tools"
+          }
+          
+      },
+      "dependencies": [
+        "crewai[tools]"
+      ]
     }
 ]
