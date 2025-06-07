@@ -10,7 +10,6 @@ from models.models import (
 from utils import get_tool_data, run_tool, init_tools
 from pickle_encode import obj_to_txt
 import uvicorn
-from loguru import logger
 
 app = FastAPI()
 
@@ -32,9 +31,7 @@ def get_class_data(tool_alias: str):
     "/tool/{tool_alias}/run", status_code=200, response_model=RunToolResponseModel
 )
 def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
-    logger.debug(
-        f"tool/{tool_alias}/run \nrun_tool_params_model: {run_tool_params_model}"
-    )
+
     result = run_tool(
         tool_alias_dict[tool_alias],
         run_tool_params_model.run_args,

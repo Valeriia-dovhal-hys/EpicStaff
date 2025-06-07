@@ -18,8 +18,8 @@ class RedisService:
 
 
     async def init_redis(self):
-        host = os.environ.get("REDIS_HOST", "localhost")
-        port = os.environ.get("REDIS_PORT", 6379)
+        host = os.getenv("REDIS_HOST")
+        port = os.getenv("REDIS_PORT")
         self.redis_client = await aioredis.from_url(f'redis://{host}:{port}')
         self.pubsub = self.redis_client.pubsub()
         await self.pubsub.subscribe(self.session_start_channel)
