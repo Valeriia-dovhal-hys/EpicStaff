@@ -52,12 +52,7 @@ def upload_llm_models():
         deployment="gpt-35-turbo-instruct",
         base_url="https://yuriw-sweden.openai.azure.com/",
     )
-    LLMModel.objects.get_or_create(
-        name="gpt-4-1106-azure",
-        llm_provider=azure_provider,
-        deployment="gpt-4-1106-azure",
-        base_url="https://yuriw-sweden.openai.azure.com/",
-    )
+
     LLMModel.objects.get_or_create(
         name="gpt-4-1106-azure",
         llm_provider=azure_provider,
@@ -116,5 +111,12 @@ def upload_tools():
         name="DuckDuckGo Search",
         name_alias="ddg_search",
         description="Tool for DuckDuckGo searching",
+        requires_model=False,
+    )
+
+    Tool.objects.get_or_create(
+        name="Scrape Website Tool",
+        name_alias="scrape_website",
+        description="Tool for scraping websites",
         requires_model=False,
     )
