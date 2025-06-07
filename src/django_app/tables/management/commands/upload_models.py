@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from tables.models import Provider, LLMModel, EmbeddingModel
+from tables.models import Provider, LLMModel, EmbeddingModel, Tool
 
 
 class Command(BaseCommand):
@@ -9,6 +9,7 @@ class Command(BaseCommand):
         upload_providers()
         upload_llm_models()
         upload_embedding_models()
+        upload_tools()
 
 
 def upload_providers():
@@ -101,4 +102,19 @@ def upload_embedding_models():
         embedding_provider=azure_provider,
         base_url="https://yuriw-sweden.openai.azure.com/",
         deployment="text-embedding-ada-002",
+    )
+
+
+def upload_tools():
+    Tool.objects.get_or_create(
+        name="Wikipedia tool",
+        name_alias="wikipedia",
+        description="Tool for wikipedia searching",
+        requires_model=False,
+    )
+    Tool.objects.get_or_create(
+        name="DuckDuckGo Search",
+        name_alias="ddg_search",
+        description="Tool for DuckDuckGo searching",
+        requires_model=False,
     )

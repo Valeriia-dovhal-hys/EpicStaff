@@ -69,14 +69,9 @@ class RunSession(APIView):
         
         session_id = session_manager_service.create_session(crew_id=crew_id)
         
-        try:
-            session_manager_service.run_session(session_id=session_id)
-        except ValueError as e:
-            print(e)
-            Session.objects.get(id=session_id).status = Session.SessionStatus.ERROR
-            return Response(data={"session_id": session_id}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
+        session_manager_service.run_session(session_id=session_id)
+
+        return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
 
 
 class GetUpdates(APIView):
