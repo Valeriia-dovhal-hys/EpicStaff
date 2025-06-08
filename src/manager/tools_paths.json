@@ -3,6 +3,5 @@
     "WikipediaQueryRun": "langchain_community.tools.wikipedia.tool",
     "WikipediaAPIWrapper": "langchain_community.utilities.wikipedia",
     "WolframAlphaQueryRun": "langchain_community.tools.wolfram_alpha.tool",
-    "WolframAlphaAPIWrapper": "langchain_community.utilities.wolfram_alpha",
-    "ScrapeWebsiteTool": "crewai_tools"
+    "WolframAlphaAPIWrapper": "langchain_community.utilities.wolfram_alpha"
 }

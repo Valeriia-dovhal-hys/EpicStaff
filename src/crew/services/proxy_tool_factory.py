@@ -5,7 +5,6 @@ import requests
 
 from services.schema_converter.converter import generate_model_from_schema
 from services.pickle_encode import txt_to_obj, obj_to_txt
-from loguru import logger
 
 
 class ProxyToolFactory:
@@ -35,25 +34,11 @@ class ProxyToolFactory:
 
         data.pop("args_schema_json_schema", None)
 
-        def modified_run(*args, **kwargs):
-
-            args = kwargs.get("args", tuple())
-
-            kw: dict = kwargs.get("kwargs", dict())
-
-            exclude_keys = {"args", "kwargs"}
-
-            other_kw = {k: v for k, v in kwargs.items() if k not in exclude_keys}
-
-            kw.update(other_kw)
-
-            logger.debug(f"args = {args}\nkwargs = {kw}")
-
-            return self.run_tool_in_container(
-                tool_alias=tool_alias, tool_config=tool_config, run_params=(args, kw)
-            )
-
-        data["_run"] = modified_run
+        data["_run"] = lambda *args, **kwargs: self.run_tool_in_container(
+            tool_alias=tool_alias,
+            tool_config=tool_config,
+            run_params=(kwargs.get("args", []), kwargs.get("kwargs", {})),
+        )
 
         return type("ProxyTool", (BaseTool,), {**data})  # TODO: Change ProxyTool name
 
