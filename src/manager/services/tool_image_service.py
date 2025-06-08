@@ -35,7 +35,7 @@ class ToolImageService:
 
     def pull_from_dockerhub(self, image_name) -> Image | None:
         repo_host = os.getenv("DOCKERHUB_PROFILE_NAME")
-        dockerhub_image_name = f"{repo_host}/{image_name}:latest"
+        dockerhub_image_name = f"{repo_host}/tools:{image_name}"
         
         pulled_image = None
         try:
