@@ -17,6 +17,7 @@ django-cors-headers = "^4.5.0"
 redis = "*"
 loguru = "^0.7.2"
 
+
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.settings"
 
@@ -24,6 +25,7 @@ DJANGO_SETTINGS_MODULE = "tests.settings"
 pytest = "^8.3.3"
 pytest-mock = "^3.14.0"
 fakeredis = "^2.26.0"
+pytest-django = "^4.9.0"
 
 [build-system]
 requires = ["poetry-core"]
