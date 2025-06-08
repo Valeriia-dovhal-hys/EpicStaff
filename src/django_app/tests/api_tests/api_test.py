@@ -791,103 +791,162 @@ def test_update_llm_model_invalid_id(api_client, gpt_4o_llm):
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-# @pytest.mark.django_db
-# def test_update_embedding_model(api_client, embedding_model):
-#     url = reverse("embeddingmodel-detail", args=[embedding_model.pk])
-#     updated_data = {"name": "Updated Embedding Model"}
+@pytest.mark.django_db
+def test_update_embedding_model(api_client, embedding_model):
+    url = reverse("embeddingmodel-detail", args=[embedding_model.pk])
 
-#     response = api_client.put(url, updated_data, format="json")
+    test_provider = Provider.objects.create(name = "test embedding provider")
+    
+    updated_data = {
+        "name": "Updated Embedding Model",
+        "embedding_provider": test_provider.pk,
+        "deployment": "some test",
+        "base_url": "https://some.url",
+    }
 
-#     assert response.status_code == status.HTTP_200_OK
-#     embedding_model.refresh_from_db()
-#     assert embedding_model.name == updated_data["name"]
-
-
-# @pytest.mark.django_db
-# def test_update_embedding_model_invalid_id(api_client):
-#     url = reverse("embeddingmodel-detail", args=[999])
-#     updated_data = {"name": "Updated Embedding Model"}
-
-#     response = api_client.put(url, updated_data, format="json")
-
-#     assert response.status_code == status.HTTP_404_NOT_FOUND
+    response = api_client.put(url, updated_data, format="json")
 
 
-# @pytest.mark.django_db
-# def test_update_tool(api_client, wikipedia_tool):
-#     url = reverse("tool-detail", args=[wikipedia_tool.pk])
-#     updated_data = {"name": "Updated Tool"}
+    assert response.status_code == status.HTTP_200_OK
+    embedding_model.refresh_from_db()
+    assert embedding_model.name == updated_data["name"]
+    assert embedding_model.embedding_provider.pk == updated_data["embedding_provider"]
+    assert embedding_model.deployment == updated_data["deployment"]
+    assert embedding_model.base_url == updated_data["base_url"]
 
-#     response = api_client.put(url, updated_data, format="json")
+@pytest.mark.django_db
+def test_update_embedding_model_invalid_id(api_client):
+    url = reverse("embeddingmodel-detail", args=[999])
+    updated_data = {"name": "Updated Embedding Model"}
 
-#     assert response.status_code == status.HTTP_200_OK
-#     wikipedia_tool.refresh_from_db()
-#     assert wikipedia_tool.name == updated_data["name"]
+    response = api_client.put(url, updated_data, format="json")
 
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
-# @pytest.mark.django_db
-# def test_update_tool_invalid_id(api_client):
-#     url = reverse("tool-detail", args=[999])
-#     updated_data = {"name": "Updated Tool"}
+@pytest.mark.django_db
+def test_update_tool(api_client, wikipedia_tool):
+    url = reverse("tool-detail", args=[wikipedia_tool.pk])
 
-#     response = api_client.put(url, updated_data, format="json")
+    updated_data = {
+        "name": "Updated Tool Name",
+        "name_alias": "some alias",
+        "description": "Updated tool description",
+        "requires_model": True,
+    }
 
-#     assert response.status_code == status.HTTP_404_NOT_FOUND
+    response = api_client.put(url, updated_data, format="json")
 
+    assert response.status_code == status.HTTP_200_OK
+    wikipedia_tool.refresh_from_db()
+    assert wikipedia_tool.name == updated_data["name"]
+    assert wikipedia_tool.name_alias == updated_data["name_alias"]
+    assert wikipedia_tool.description == updated_data["description"]
+    assert wikipedia_tool.requires_model == updated_data["requires_model"]
 
-# @pytest.mark.django_db
-# def test_update_crew(api_client, crew):
-#     url = reverse("crew-detail", args=[crew.pk])
-#     updated_data = {"name": "Updated Crew"}
+@pytest.mark.django_db
+def test_update_tool_invalid_id(api_client):
+    url = reverse("tool-detail", args=[999])
+    updated_data = {
+        "name": "Updated Tool Name",
+        "name_alias": "some alias",
+        "description": "Updated tool description",
+        "requires_model": True,
+    }
 
-#     response = api_client.put(url, updated_data, format="json")
+    response = api_client.put(url, updated_data, format="json")
 
-#     assert response.status_code == status.HTTP_200_OK
-#     crew.refresh_from_db()
-#     assert crew.name == updated_data["name"]
-
-
-# @pytest.mark.django_db
-# def test_update_crew_invalid_id(api_client):
-#     url = reverse("crew-detail", args=[999])
-#     updated_data = {"name": "Updated Crew"}
-
-#     response = api_client.put(url, updated_data, format="json")
-
-#     assert response.status_code == status.HTTP_404_NOT_FOUND
-
-
-# @pytest.mark.django_db
-# def test_update_task(api_client, crew, wikipedia_agent):
-#     # First create a task to update
-#     task_url = reverse("task-list")
-#     task_data = {
-#         "name": "test_task",
-#         "crew": crew.pk,
-#         "agent": wikipedia_agent.pk,
-#         "instructions": "Complete the test task",
-#         "expected_output": "Expected output",
-#         "order": 1,
-#     }
-#     task_response = api_client.post(task_url, task_data, format="json")
-#     task_id = task_response.data["id"]
-
-#     # Now update the task
-#     url = reverse("task-detail", args=[task_id])
-#     updated_data = {"name": "Updated Task"}
-
-#     response = api_client.put(url, updated_data, format="json")
-
-#     assert response.status_code == status.HTTP_200_OK
-#     task_response.refresh_from_db()
-#     assert task_response.name == updated_data["name"]
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-# @pytest.mark.django_db
-# def test_update_task_invalid_id(api_client):
-#     url = reverse("task-detail", args=[999])
-#     updated_data = {"name": "Updated Task"}
+@pytest.mark.django_db
+def test_update_crew(api_client, crew, wikipedia_agent, embedding_model, gpt_4o_llm, llm_config):
+    url = reverse("crew-detail", args=[crew.pk])
 
-#     response = api_client.put(url, updated_data, format="json")
+    updated_data = {
+        "description": "Updated Crew Description",
+        "name": "Updated Crew Name",
+        "assignment": "Updated Assignment",
+        "agents": [wikipedia_agent.pk],
+        "process": "hierarchical",
+        "memory": True,
+        "embedding_model": embedding_model.pk,
+        "manager_llm_model": gpt_4o_llm.pk,
+        "manager_llm_config": llm_config.pk,
+    }
 
-#     assert response.status_code == status.HTTP_404_NOT_FOUND
+    response = api_client.put(url, updated_data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    crew.refresh_from_db()
+    assert crew.description == updated_data["description"]
+    assert crew.name == updated_data["name"]
+    assert crew.assignment == updated_data["assignment"]
+    assert list(crew.agents.values_list("pk", flat=True)) == updated_data["agents"]
+    assert crew.process == updated_data["process"]
+    assert crew.memory == updated_data["memory"]
+    assert crew.embedding_model.pk == updated_data["embedding_model"]
+    assert crew.manager_llm_model.pk == updated_data["manager_llm_model"]
+    assert crew.manager_llm_config.pk == updated_data["manager_llm_config"]
+
+
+@pytest.mark.django_db
+def test_update_crew_invalid_id(api_client, wikipedia_agent, embedding_model, gpt_4o_llm, llm_config):
+    url = reverse("crew-detail", args=[999])
+    updated_data = {
+        "description": "Updated Crew Description",
+        "name": "Updated Crew Name",
+        "assignment": "Updated Assignment",
+        "agents": [wikipedia_agent.pk],
+        "process": "hierarchical",
+        "memory": True,
+        "embedding_model": embedding_model.pk,
+        "manager_llm_model": gpt_4o_llm.pk,
+        "manager_llm_config": llm_config.pk,
+    }
+
+    response = api_client.put(url, updated_data, format="json")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_update_task(api_client, test_task, wikipedia_agent, crew):
+    
+    task = test_task
+    url = reverse("task-detail", args=[task.pk])
+
+    updated_data = {
+        "crew": crew.pk,
+        "name": "Updated Task Name",
+        "agent": wikipedia_agent.pk,
+        "instructions": "Updated Instructions",
+        "expected_output": "Updated Expected Output",
+        "order": 2,
+    }
+
+    response = api_client.put(url, updated_data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    task.refresh_from_db()
+    assert task.crew.pk == updated_data["crew"]
+    assert task.name == updated_data["name"]
+    assert task.agent.pk == updated_data["agent"]
+    assert task.instructions == updated_data["instructions"]
+    assert task.expected_output == updated_data["expected_output"]
+    assert task.order == updated_data["order"]
+
+@pytest.mark.django_db
+def test_update_task_invalid_id(api_client, test_task, wikipedia_agent, crew):
+    url = reverse("task-detail", args=[999])
+    updated_data = {
+        "crew": crew.pk,
+        "name": "Updated Task Name",
+        "agent": wikipedia_agent.pk,
+        "instructions": "Updated Instructions",
+        "expected_output": "Updated Expected Output",
+        "order": 2,
+    }
+
+    response = api_client.put(url, updated_data, format="json")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
