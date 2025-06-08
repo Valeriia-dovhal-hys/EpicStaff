@@ -14,6 +14,15 @@ class CrewService(metaclass=SingletonMeta):
 
     def __init__(self): ...
 
+    def create_crew_schema_json(self, crew_id: int) -> str:
+
+        crew = Crew.objects.get(pk=crew_id)
+        serialized_crew = NestedCrewSerializer(crew).data
+
+        serialized_crew = self.inject_tasks(serialized_crew)
+
+        return json.dumps(serialized_crew)
+
 
     def inject_tasks(self, crew_schema: ReturnDict) -> ReturnDict:
 
