@@ -1,3 +1,5 @@
+from utils.logger import logger
+
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
@@ -61,17 +63,26 @@ class RunSession(APIView):
         }
     )
     def post(self, request):
-        serializer = RunSessionSerializer(data=request.data)
+        logger.info("Received POST request to start a new session.")
 
+        serializer = RunSessionSerializer(data=request.data)
         if not serializer.is_valid():
+            logger.warning(f"Invalid data received in request: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         crew_id = serializer.validated_data["crew_id"]
         
-        session_id = session_manager_service.create_session(crew_id=crew_id)
-        
-        session_manager_service.run_session(session_id=session_id)
+        try:
+            session_id = session_manager_service.create_session(crew_id=crew_id)
+            logger.info(f"Session created with session_id: {session_id}")
 
-        return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
+            session_manager_service.run_session(session_id=session_id)
+            logger.info(f"Session {session_id} successfully started.")
+        except Exception as e:
+            logger.error(f"Error occurred while starting session {session_id}: {str(e)}")
+            Session.objects.get(id=session_id).status = Session.SessionStatus.ERROR
+            return Response(data={"session_id": session_id}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
 
 
 class GetUpdates(APIView):

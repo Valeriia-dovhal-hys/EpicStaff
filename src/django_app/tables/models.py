@@ -39,7 +39,7 @@ class Tool(models.Model):
     name = models.TextField()
     name_alias = models.TextField()
     description = models.TextField()
-    requires_model = models.BooleanField()
+    requires_model = models.BooleanField(default=False)
 
     llm_model = models.ForeignKey(
         LLMModel, on_delete=models.SET_NULL, null=True, default=None
