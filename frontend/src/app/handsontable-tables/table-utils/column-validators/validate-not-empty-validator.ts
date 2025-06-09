@@ -1,15 +1,14 @@
 // validators.ts
-import Handsontable from 'handsontable/base';
+import Handsontable from 'handsontable';
 import { SharedSnackbarService } from '../../../services/snackbar/shared-snackbar.service';
 
 export function validateNotEmpty(snackbarService: SharedSnackbarService) {
   return function (
     this: Handsontable.CellProperties,
-    value: any,
+    value: string,
     callback: Function
   ): void {
-    const isFieldNotEmpty: boolean =
-      typeof value === 'string' && value.trim() !== '';
+    const isFieldNotEmpty: boolean = value.trim() !== '';
 
     if (isFieldNotEmpty) {
       callback(true);

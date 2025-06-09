@@ -1,7 +1,7 @@
-import { textRenderer } from 'handsontable/renderers/textRenderer';
+import Handsontable from 'handsontable';
 
 //Makes Row Resizeable.
-//SHOULD BE USED WITH THIS CSS:
+//MUST BE USED WITH THIS CSS:
 // .manual-row-resize-renderer {
 //     position: absolute;
 //     overflow: hidden;
@@ -14,29 +14,52 @@ import { textRenderer } from 'handsontable/renderers/textRenderer';
 //     line-height: 1.4;
 //   }
 
+// export function manualRowResizeRenderer(
+//   this: any,
+//   instance: Handsontable.Core,
+//   td: HTMLTableCellElement,
+//   row: number,
+//   col: number,
+//   prop: string | number,
+//   value: any,
+//   cellProperties: Handsontable.CellProperties
+// ): void {
+//   // Call the default text renderer
+//   Handsontable.renderers.TextRenderer.apply(this, arguments as any);
+
+//   // Ensure the cell is positioned relatively
+//   td.style.position = 'relative';
+
+//   // Get the current cell content
+//   const cellContent = td.innerHTML;
+
+//   // Wrap the cell content in a div with class 'wrapper'
+//   td.innerHTML = `<div class="manual-row-resize-renderer">${cellContent}</div>`;
+// }
+
 export function manualRowResizeRenderer(
   this: any,
-  instance: any,
+  instance: Handsontable.Core,
   td: HTMLTableCellElement,
   row: number,
   col: number,
   prop: string | number,
   value: any,
-  cellProperties: any
+  cellProperties: Handsontable.CellProperties
 ): void {
   // Call the default text renderer
-  textRenderer.apply(this, arguments as any);
+  Handsontable.renderers.TextRenderer.apply(this, arguments as any);
 
   // Ensure the cell is positioned relatively
   td.style.position = 'relative';
 
-  // Clear the existing content using native DOM methods
+  // Clear the existing content
   while (td.firstChild) {
     td.removeChild(td.firstChild);
   }
 
   // Create a div with the desired class
-  const wrapper: HTMLDivElement = document.createElement('div');
+  const wrapper = document.createElement('div');
   wrapper.className = 'manual-row-resize-renderer';
 
   // Create a text node with the cell content

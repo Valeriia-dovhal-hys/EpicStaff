@@ -68,6 +68,7 @@ export class ToolSelectorComponent implements OnDestroy {
     } else {
       this.selectedTools.add(tool);
     }
+    // No need to call markForCheck() here; event handler triggers change detection
   }
 
   public isSelected(tool: Tool): boolean {
@@ -78,6 +79,9 @@ export class ToolSelectorComponent implements OnDestroy {
     return Array.from(this.selectedTools);
   }
 
+  /**
+   * Confirms the selection and closes the dialog, passing back the selected tools.
+   */
   public onConfirm(): void {
     const selectedToolsArray = this.selectedToolsArray;
     this.dialogRef.close(selectedToolsArray);
