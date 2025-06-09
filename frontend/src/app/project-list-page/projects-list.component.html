@@ -1,0 +1,27 @@
+<div class="main-container">
+  <div class="header">
+    <div class="title-search">
+      <span class="title">Projects List</span>
+      <input type="text" placeholder="Search projects..." />
+    </div>
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="openCreateProjectFormDialog()"
+    >
+      Create a Project
+    </button>
+  </div>
+  <div class="projects-container">
+    <div *ngIf="projects.length === 0">
+      <p>No projects created yet.</p>
+    </div>
+
+    <div *ngFor="let project of projects">
+      <app-project-list-item-card
+        [project]="project"
+        (deleteProject)="onDeleteProject($event)"
+      ></app-project-list-item-card>
+    </div>
+  </div>
+</div>

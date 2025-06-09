@@ -22,7 +22,7 @@ import {
   ChangeTask,
   ChangeSource,
 } from '../table-utils/universal_handsontable_utils';
-import { Agent, getAgentsRequest } from '../../shared/models/agent.model';
+import { Agent } from '../../shared/models/agent.model';
 import { AgentsService } from '../../services/staff.service';
 import { forkJoin, fromEvent, Subscription } from 'rxjs';
 import { SharedSnackbarService } from '../../services/snackbar/shared-snackbar.service';

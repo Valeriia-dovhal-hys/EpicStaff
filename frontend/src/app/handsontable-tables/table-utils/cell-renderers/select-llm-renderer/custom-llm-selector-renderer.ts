@@ -1,10 +1,8 @@
-// custom-agent-llm-select-renderer.ts
-
 import Handsontable from 'handsontable';
-import { LLM } from '../../../../shared/models/agent.model';
+import { LLM_Model } from '../../../../shared/models/LLM.model';
 
 export function createCustomAgentLlmSelectRenderer(
-  llmOptions: LLM[],
+  llmModels: LLM_Model[],
   eventListenerRefs: Array<() => void>
 ) {
   return function customAgentLlmSelectRenderer(
@@ -16,7 +14,6 @@ export function createCustomAgentLlmSelectRenderer(
     value: any,
     cellProperties: any
   ): void {
-    // **Remove existing event listeners if any**
     if (
       cellProperties.selectedValueClickListener &&
       cellProperties.selectedValueDiv
@@ -39,64 +36,52 @@ export function createCustomAgentLlmSelectRenderer(
       );
     }
 
-    // **Clear the cell content**
     Handsontable.dom.empty(td);
 
-    // **Set up the cell for the dropdown**
     td.style.position = 'relative';
     td.style.overflow = 'visible';
 
-    // **Create the main container for the custom dropdown**
     const container = document.createElement('div');
     container.classList.add('custom-dropdown-container');
 
-    // **Create the element that displays the selected value**
     const selectedValueDiv = document.createElement('div');
     selectedValueDiv.classList.add('selected-value');
 
-    // **Create a span to display the selected text**
     const selectedTextSpan = document.createElement('span');
     selectedTextSpan.classList.add('selected-text');
     selectedTextSpan.textContent = value || '';
 
-    // **Create an icon for the dropdown arrow**
     const iconSpan = document.createElement('span');
     iconSpan.classList.add('dropdown-icon');
     iconSpan.textContent = '▼';
 
-    // **Assemble the selected value display**
     selectedValueDiv.appendChild(selectedTextSpan);
     selectedValueDiv.appendChild(iconSpan);
 
-    // **Create the container for the dropdown options**
     const optionsList = document.createElement('div');
     optionsList.classList.add('options-list');
     optionsList.style.display = 'none';
 
-    // **Populate the options list**
-    llmOptions.forEach((option) => {
+    llmModels.forEach((model) => {
       const optionDiv = document.createElement('div');
       optionDiv.classList.add('option-item');
-      optionDiv.textContent = option;
+      optionDiv.textContent = model.name;
+      optionDiv.dataset['modelId'] = model.id.toString();
 
-      // Highlight if this option is the currently selected value
-      if (option === value) {
+      if (model.name === value) {
         optionDiv.classList.add('selected');
       }
 
       optionsList.appendChild(optionDiv);
     });
 
-    // **Assemble the main container**
     container.appendChild(selectedValueDiv);
     container.appendChild(optionsList);
     td.appendChild(container);
 
-    // **Store elements in cellProperties for future reference**
     cellProperties.selectedValueDiv = selectedValueDiv;
     cellProperties.optionsList = optionsList;
 
-    // **Event listener for clicks outside the dropdown (closes the dropdown)**
     const documentClickListener = (event: MouseEvent) => {
       if (
         !container.contains(event.target as Node) &&
@@ -104,69 +89,53 @@ export function createCustomAgentLlmSelectRenderer(
       ) {
         optionsList.style.display = 'none';
 
-        // Remove event listeners and clear references
         document.removeEventListener('mousedown', documentClickListener);
         cellProperties.documentClickListener = null;
 
-        // **Remove the 'open' class and reset the arrow**
         selectedValueDiv.classList.remove('open');
         iconSpan.textContent = '▼';
       }
     };
 
-    // **Event listener for selecting an option from the dropdown**
     const handleOptionClick = (event: Event) => {
       const target = event.target as HTMLElement;
 
       if (target && target.classList.contains('option-item')) {
         event.stopPropagation();
 
-        const option = target.textContent || '';
+        const selectedModelName = target.textContent || '';
 
-        // Update the selected value display
-        selectedTextSpan.textContent = option;
+        selectedTextSpan.textContent = selectedModelName;
 
-        // Close the dropdown
         optionsList.style.display = 'none';
 
-        // Remove event listeners and clear references
         document.removeEventListener('mousedown', documentClickListener);
         cellProperties.documentClickListener = null;
 
-        // **Remove the 'open' class and reset the arrow**
         selectedValueDiv.classList.remove('open');
         iconSpan.textContent = '▼';
 
-        // Update the Handsontable data
-        instance.setDataAtCell(row, col, option, 'customDropdown');
+        instance.setDataAtCell(row, col, selectedModelName, 'LMM_Dropdown');
       }
     };
 
     const handleSelectedValueClick = (event: Event) => {
       event.stopPropagation();
 
-      const isVisible = optionsList.style.display === 'block';
+      const isVisible: boolean = optionsList.style.display === 'block';
 
       if (isVisible) {
-        // Close the dropdown
         optionsList.style.display = 'none';
 
-        // Remove event listeners and clear references
         document.removeEventListener('mousedown', documentClickListener);
         cellProperties.documentClickListener = null;
 
-        // **Remove the 'open' class and reset the arrow**
         selectedValueDiv.classList.remove('open');
         iconSpan.textContent = '▼';
       } else {
-        // **Determine dropdown position based on available space**
-
-        // First, reset any inline styles that might affect the calculation
         optionsList.style.left = '';
         optionsList.style.right = '';
         optionsList.style.transform = '';
-
-        // Temporarily display the optionsList to measure dimensions
         optionsList.style.visibility = 'hidden';
         optionsList.style.display = 'block';
 
@@ -176,32 +145,24 @@ export function createCustomAgentLlmSelectRenderer(
         optionsList.style.display = 'none';
         optionsList.style.visibility = 'visible';
 
-        const spaceRight = window.innerWidth - selectRect.left;
-        const spaceLeft = selectRect.right;
-
-        // **Check if options list overflows the viewport**
-        let positionAdjusted = false;
+        let positionAdjusted: boolean = false;
 
         if (selectRect.left + optionsRect.width > window.innerWidth) {
-          // Not enough space on the right, align to the right
           optionsList.style.left = 'auto';
           optionsList.style.right = '0';
           positionAdjusted = true;
         }
 
         if (positionAdjusted && optionsList.getBoundingClientRect().left < 0) {
-          // Still overflowing on the left, align to the left edge of the viewport
           optionsList.style.left = '0';
           optionsList.style.right = 'auto';
         }
 
-        // **Determine dropdown open direction (up or down)**
         const spaceBelow = window.innerHeight - selectRect.bottom;
         const spaceAbove = selectRect.top;
 
         let openDirection: 'up' | 'down' = 'down';
 
-        // Decide whether to open upwards or downwards based on available space
         const dropdownHeight = optionsList.offsetHeight || 200; // Use fixed height or default to 200
 
         if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
@@ -212,37 +173,30 @@ export function createCustomAgentLlmSelectRenderer(
         if (openDirection === 'up') {
           optionsList.style.bottom = '100%';
           optionsList.style.top = 'auto';
-          iconSpan.textContent = '▲'; // Arrow pointing up
+          iconSpan.textContent = '▲';
         } else {
           optionsList.style.top = '100%';
           optionsList.style.bottom = 'auto';
-          iconSpan.textContent = '▼'; // Arrow pointing down
+          iconSpan.textContent = '▼';
         }
 
-        // **Remove any inline maxHeight to let CSS handle it**
         optionsList.style.maxHeight = '';
 
-        // Open the dropdown
         optionsList.style.display = 'block';
 
-        // Attach event listeners and store references
         document.addEventListener('mousedown', documentClickListener);
         cellProperties.documentClickListener = documentClickListener;
 
-        // **Add the 'open' class**
         selectedValueDiv.classList.add('open');
       }
     };
 
-    // **Attach the event listener to the selected value display**
     selectedValueDiv.addEventListener('click', handleSelectedValueClick);
     cellProperties.selectedValueClickListener = handleSelectedValueClick;
 
-    // **Attach the event listener to the options list**
     optionsList.addEventListener('click', handleOptionClick);
     cellProperties.optionsListClickListener = handleOptionClick;
 
-    // **Store a cleanup function in eventListenerRefs**
     eventListenerRefs.push(() => {
       // Remove event listeners
       if (

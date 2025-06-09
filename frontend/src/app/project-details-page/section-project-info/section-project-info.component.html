@@ -1,0 +1,80 @@
+<div class="wrapper">
+  <div class="header">
+    <span class="title">{{ project.name }}</span>
+    <button
+      mat-icon-button
+      color="accent"
+      class="edit-button"
+      (click)="openEditProjectDialog()"
+    >
+      <mat-icon>edit</mat-icon>
+    </button>
+  </div>
+
+  <hr class="separator" />
+
+  <div class="content">
+    <div *ngIf="dataLoaded" class="project-info">
+      <div class="detail-item">
+        <span class="detail-title">Assignment:</span>
+        <span class="detail-value">{{ project.assignment || "N/A" }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-title">Description:</span>
+        <span class="detail-value">{{ project.description || "N/A" }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-title">Process:</span>
+        <span class="detail-value">{{ project.process }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-title">Memory Enabled:</span>
+        <span class="detail-value">{{ project.memory ? "Yes" : "No" }}</span>
+      </div>
+      <div class="detail-item" *ngIf="modelData">
+        <span class="detail-title">Embedding Model:</span>
+        <span class="detail-value">{{ modelData.name }}</span>
+      </div>
+      <div class="detail-item" *ngIf="configData?.temperature !== undefined">
+        <span class="detail-title">Temperature:</span>
+        <span class="detail-value">{{ configData?.temperature }}</span>
+      </div>
+      <div class="detail-item" *ngIf="configData?.num_ctx !== undefined">
+        <span class="detail-title">Context:</span>
+        <span class="detail-value">{{ configData?.num_ctx }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button mat-flat-button color="primary" (click)="startRun()">Run</button>
+  </div>
+</div>
+
+<!-- Confirmation Dialog Template -->
+<ng-template #confirmRunDialog>
+  <h2 mat-dialog-title>Confirm Run</h2>
+  <mat-dialog-content>
+    <p>Are you sure you want to start the session?</p>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="confirmDialogRef.close(false)">No</button>
+    <button mat-button color="primary" (click)="confirmDialogRef.close(true)">
+      Yes
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- Confirmation Dialog Template -->
+<ng-template #confirmRunDialog>
+  <h2 mat-dialog-title>Confirm Run</h2>
+  <mat-dialog-content>
+    <p>Are you sure you want to start the session?</p>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="confirmDialogRef.close(false)">No</button>
+    <button mat-button color="primary" (click)="confirmDialogRef.close(true)">
+      Yes
+    </button>
+  </mat-dialog-actions>
+</ng-template>

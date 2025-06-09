@@ -46,7 +46,7 @@ export class CustomSidenavComponent {
     {
       icon: 'dashboard',
       label: 'Staff',
-      route: 'agents-table-2',
+      route: 'staff',
     },
     {
       icon: 'assignment',

@@ -1,0 +1,83 @@
+<div class="agent-item">
+  <div class="agent-item-header-wrapper">
+    <div class="header-role-wrapper">
+      <mat-icon class="agent-expand" (click)="toggleExpanded()">
+        {{ isExpanded ? "expand_less" : "expand_more" }}
+      </mat-icon>
+      <div class="header-agent-role">
+        <span class="span-role">Role </span>{{ agent.role }}
+      </div>
+    </div>
+    <div class="header-goal-wrapper">
+      <div class="header-agent-goal">
+        <span class="span-goal">Goal </span>{{ agent.goal }}
+      </div>
+    </div>
+    <div class="header-edit">
+      <button mat-icon-button (click)="navigateToStaff()">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="agent-details" *ngIf="isExpanded">
+  <div class="agent-main-details">
+    <!-- Agent Details -->
+    <div class="detail-item">
+      <span class="role-title"
+        >Role: <span class="agent-text">{{ agent.role }}</span></span
+      >
+    </div>
+    <div class="detail-item">
+      <span class="role-title"
+        >Goal: <span class="agent-text">{{ agent.goal }}</span></span
+      >
+    </div>
+    <div class="detail-item">
+      <span class="role-title"
+        >Backstory: <span class="agent-text">{{ agent.backstory }}</span></span
+      >
+    </div>
+  </div>
+
+  <div class="details-tools-section">
+    <!-- Tools Section -->
+    <span class="section-title">Tools:</span>
+    <div class="tools-list">
+      <div *ngFor="let tool of tools" class="tool-item">
+        {{ tool.name }}
+      </div>
+    </div>
+  </div>
+
+  <div class="details-settings-section" *ngIf="modelsLoaded">
+    <!-- Configurations Section -->
+    <span class="section-title">Configurations:</span>
+    <div class="configurations-list">
+      <div
+        class="configuration-item"
+        *ngIf="llmConfig?.temperature !== undefined"
+      >
+        <span class="config-key"
+          >Temperature:
+          <span class="config-value">{{ llmConfig!.temperature }}</span></span
+        >
+      </div>
+      <div class="configuration-item" *ngIf="llmConfig?.num_ctx !== undefined">
+        <span class="config-key"
+          >Context:
+          <span class="config-value">{{ llmConfig!.num_ctx }}</span></span
+        >
+      </div>
+      <div class="configuration-item" *ngIf="llmModelName">
+        <span class="config-key">LLM Model Name:</span>
+        <span class="config-value">{{ llmModelName }}</span>
+      </div>
+      <div class="configuration-item" *ngIf="fcmLlmModelName">
+        <span class="config-key">FCM LLM Model Name:</span>
+        <span class="config-value">{{ fcmLlmModelName }}</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -9,6 +9,7 @@
         *ngFor="let tool of tools"
         (click)="toggleSelection(tool)"
         [class.selected]="isSelected(tool)"
+        (mousedown)="$event.stopPropagation()"
         tabindex="0"
       >
         <div class="tool-name">{{ tool.name }}</div>
