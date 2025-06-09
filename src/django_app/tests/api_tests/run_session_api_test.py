@@ -7,6 +7,7 @@ from tests.fixtures import *
 @pytest.mark.django_db
 def test_run_session(crew, api_client, redis_client_mock):
 
+    
     url = reverse("run-session")
     data = {"crew_id": crew.pk}
 
@@ -21,10 +22,6 @@ def test_run_session(crew, api_client, redis_client_mock):
 @pytest.mark.django_db
 def test_publish_start_session(crew, test_task, api_client, redis_client_mock):
 
-    # add test task to crew
-    test_task.crew = crew
-    test_task.save()
-
     data = {"crew_id": crew.pk}
     url = reverse("run-session")
 
@@ -38,13 +35,11 @@ def test_publish_start_session(crew, test_task, api_client, redis_client_mock):
 
 
 @pytest.mark.django_db
-def test_session_set_session_data(crew, test_task, api_client, redis_client_mock):
+def test_session_set_session_data(crew, api_client, redis_client_mock):
     """
     Test if redis.set method called at with correct key (ignoring value)
     """
-    # add test task to crew
-    test_task.crew = crew
-    test_task.save()
+
 
     data = {"crew_id": crew.pk}
     url = reverse("run-session")
