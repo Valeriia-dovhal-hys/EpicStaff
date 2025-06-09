@@ -2,9 +2,9 @@ import { Routes } from '@angular/router';
 import { MainComponent } from './main/main.component';
 
 import { UnsavedChangesGuard } from './shared/guards/unsaved-changes.guard';
-import { ProjectFormComponent } from './projects-list/project-form/project-form.component';
-import { ProjectsListComponent } from './projects-list/projects-list.component';
-import { ProjectDetailsComponent } from './projects-list/project-details-page/project-details.component';
+
+import { ProjectsListComponent } from './project-list-page/projects-list.component';
+import { ProjectDetailsComponent } from './project-details-page/project-details.component';
 import { TesttableComponent } from './main/testtable/testtable.component';
 import { VariablesComponent } from './main/variables/variables.component';
 import { TestTableDataComponent } from './main/test-table-data/test-table-data.component';
@@ -15,17 +15,10 @@ import { CrewRunPageComponent } from './crew-run-page/crew-run-page.component';
 export const routes: Routes = [
   {
     path: '',
-    // component: MainComponent,
     component: ProjectsListComponent,
     pathMatch: 'full',
-
-    // canDeactivate: [UnsavedChangesGuard],
   },
 
-  {
-    path: 'project-creation',
-    component: ProjectFormComponent,
-  },
   { path: 'projects-list', component: ProjectsListComponent },
   {
     path: 'project/:projectId',
@@ -54,7 +47,7 @@ export const routes: Routes = [
     component: TasksTable2Component,
   },
   {
-    path: 'agents-table-2',
+    path: 'staff',
     component: StaffComponent,
     canDeactivate: [UnsavedChangesGuard],
   },

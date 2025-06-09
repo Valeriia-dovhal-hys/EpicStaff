@@ -1,0 +1,247 @@
+.agent-item {
+  width: 100%;
+  height: auto;
+  border: 1px solid #3f51b5;
+  border-radius: 15px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  .agent-item-header-wrapper {
+    height: 3rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+
+    .header-role-wrapper {
+      height: 100%;
+      width: 35%;
+      display: flex;
+      align-items: center;
+      background-color: #3f51b5;
+      padding: 0 1rem;
+
+      mat-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 5%;
+        font-weight: lighter;
+        color: white;
+        border-radius: 30px;
+        margin-right: 0.7rem;
+
+        &:hover {
+          font-weight: bold;
+          font-size: 1.5rem;
+        }
+      }
+
+      .header-agent-role {
+        flex: 1;
+        color: white;
+        font-weight: 500;
+        font-size: 0.9rem;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+
+        .span-role {
+          font-weight: lighter;
+          background-color: white;
+          color: #3f51b5;
+          border-radius: 30px;
+          padding: 3px 10px;
+          padding-left: 15px;
+          margin-right: 1.1rem;
+        }
+      }
+    }
+
+    .header-goal-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      margin: 0 1rem;
+      margin-right: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+
+      .header-agent-goal {
+        flex: 1;
+        color: #3f51b5;
+        font-weight: 500;
+        font-size: 0.9rem;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+
+        .span-goal {
+          background-color: #3f51b5;
+          color: white;
+          font-weight: lighter;
+          border-radius: 30px;
+          padding: 3px 15px;
+          margin-right: 1rem;
+        }
+      }
+    }
+
+    .header-edit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 5%;
+      height: 100%;
+      border-left: 1px solid #3f51b5;
+      color: #3f51b5;
+      background-color: transparent;
+
+      button {
+        border: none;
+        box-shadow: none;
+        background: transparent;
+        padding: 0;
+        min-width: unset; // Removes Material button default padding
+        min-height: unset;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background-color: rgba(
+            63,
+            81,
+            181,
+            0.1
+          ); // Light blue background on hover
+        }
+
+        &:focus {
+          outline: none; // Removes focus outline
+        }
+      }
+
+      mat-icon {
+        color: #3f51b5;
+        font-size: 20px; // Adjust icon size if needed
+      }
+    }
+  }
+}
+.agent-details {
+  margin: 0 auto;
+  width: 98%;
+  height: auto;
+  max-height: 12rem;
+
+  border: 1px solid #3f51b5;
+  border-top: none;
+  border-bottom-right-radius: 15px;
+  border-bottom-left-radius: 15px;
+
+  display: flex;
+
+  .agent-main-details {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    padding: 0.5rem 0.8rem;
+    border: 1px;
+    border-right: 1px solid #3f51b5;
+
+    .detail-item {
+      background-color: #f0f0f0;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-radius: 8px;
+
+      display: flex;
+      flex-direction: column;
+
+      .role-title {
+        color: #3f51b5;
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+      }
+
+      .agent-text {
+        color: #333;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .details-tools-section {
+    width: 15%;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #3f51b5;
+    overflow-y: auto;
+    .section-title {
+      font-weight: bold;
+      color: #3f51b5;
+      margin-bottom: 0.5rem;
+    }
+
+    .tools-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tool-item {
+      background-color: #e0e0e0;
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      color: #3f51b5;
+      font-weight: 500;
+    }
+  }
+
+  .details-settings-section {
+    width: 15%;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #3f51b5;
+    overflow-y: auto;
+    .section-title {
+      font-weight: bold;
+      color: #3f51b5;
+      margin-bottom: 0.5rem;
+    }
+
+    .configurations-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .configuration-item {
+      background-color: #e0e0e0;
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      color: #3f51b5;
+      font-weight: 500;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .config-key {
+      margin-right: 0.3rem;
+    }
+
+    .config-value {
+      color: #333;
+      font-weight: 500;
+    }
+  }
+}

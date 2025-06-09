@@ -1,0 +1,27 @@
+<div class="agents-section">
+  <div class="header-container agents-header-container">
+    <div class="header">Agents</div>
+    <button mat-raised-button color="primary" (click)="onAddAgentsClick()">
+      Add from Staff
+    </button>
+  </div>
+
+  <div class="agents-section-content">
+    <ng-container *ngIf="agents.length > 0; else noAgents">
+      <div class="agents-list">
+        <app-agent-item
+          *ngFor="let agent of agents"
+          [agent]="agent"
+        ></app-agent-item>
+      </div>
+    </ng-container>
+
+    <ng-template #noAgents>
+      <div class="no-agents">
+        <p>No agents assigned</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="footer">Total agents: {{ agents.length }}</div>
+</div>
