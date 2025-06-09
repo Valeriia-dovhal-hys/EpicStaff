@@ -12,7 +12,6 @@ from tables.models import (
     EmbeddingModel,
     LLMModel,
     Provider,
-    Task,
     Tool,
 )
 from rest_framework.test import APIClient
@@ -91,26 +90,11 @@ def embedding_model(openai_provider: Provider) -> EmbeddingModel:
 
 
 @pytest.fixture
-def test_task(wikipedia_agent) -> Task:
-
-    task = Task(
-        name="test task",
-        agent=wikipedia_agent,
-        instructions="some instructions",
-        expected_output="some output",
-        order=1,
-    )
-    task.save()
-    return task
-
-
-@pytest.fixture
 def crew(
     wikipedia_agent: Agent,
     embedding_model: EmbeddingModel,
     gpt_4o_llm: LLMModel,
     llm_config: ConfigLLM,
-    test_task: Task
 ) -> Crew:
     crew = Crew(
         name="Test Crew",
@@ -125,8 +109,6 @@ def crew(
 
     crew.save()
     crew.agents.set([wikipedia_agent])
-    test_task.crew = crew
-    test_task.save()
     crew.save()
 
     return crew
