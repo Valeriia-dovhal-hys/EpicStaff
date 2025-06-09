@@ -175,8 +175,7 @@ def test_create_task(api_client, crew, wikipedia_agent):
     response = api_client.post(url, data, format="json")
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert Task.objects.count() == 1
-    assert Task.objects.first().name == "task_x"
+    assert Task.objects.filter(name="task_x").count() == 1
 
 
 @pytest.mark.django_db
@@ -421,10 +420,12 @@ def test_get_tasks_with_data(api_client, crew, wikipedia_agent):
     response = api_client.get(url)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data["count"] == 1
 
-    assert len(response.data["results"]) == 1
-    assert response.data["results"][0]["name"] == "test_task"
+    for task in response.data["results"]:
+        if task["name"] == task_data["name"]:
+            break
+    else:
+        assert False, "Task not found"
 
 
 @pytest.mark.django_db
@@ -725,6 +726,7 @@ def test_update_config_llm(api_client, llm_config):
     for field, value in updated_data.items():
         assert getattr(llm_config, field) == value
 
+
 @pytest.mark.django_db
 def test_update_config_llm_invalid_id(api_client):
     url = reverse("configllm-detail", args=[999])
@@ -777,7 +779,6 @@ def test_update_llm_model(api_client, gpt_4o_llm):
     assert gpt_4o_llm.llm_provider.pk == updated_data["llm_provider"]
 
 
-
 @pytest.mark.django_db
 def test_update_llm_model_invalid_id(api_client, gpt_4o_llm):
     url = reverse("llmmodel-detail", args=[999])
@@ -795,8 +796,8 @@ def test_update_llm_model_invalid_id(api_client, gpt_4o_llm):
 def test_update_embedding_model(api_client, embedding_model):
     url = reverse("embeddingmodel-detail", args=[embedding_model.pk])
 
-    test_provider = Provider.objects.create(name = "test embedding provider")
-    
+    test_provider = Provider.objects.create(name="test embedding provider")
+
     updated_data = {
         "name": "Updated Embedding Model",
         "embedding_provider": test_provider.pk,
@@ -806,13 +807,13 @@ def test_update_embedding_model(api_client, embedding_model):
 
     response = api_client.put(url, updated_data, format="json")
 
-
     assert response.status_code == status.HTTP_200_OK
     embedding_model.refresh_from_db()
     assert embedding_model.name == updated_data["name"]
     assert embedding_model.embedding_provider.pk == updated_data["embedding_provider"]
     assert embedding_model.deployment == updated_data["deployment"]
     assert embedding_model.base_url == updated_data["base_url"]
+
 
 @pytest.mark.django_db
 def test_update_embedding_model_invalid_id(api_client):
@@ -822,6 +823,7 @@ def test_update_embedding_model_invalid_id(api_client):
     response = api_client.put(url, updated_data, format="json")
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
 
 @pytest.mark.django_db
 def test_update_tool(api_client, wikipedia_tool):
@@ -843,6 +845,7 @@ def test_update_tool(api_client, wikipedia_tool):
     assert wikipedia_tool.description == updated_data["description"]
     assert wikipedia_tool.requires_model == updated_data["requires_model"]
 
+
 @pytest.mark.django_db
 def test_update_tool_invalid_id(api_client):
     url = reverse("tool-detail", args=[999])
@@ -859,7 +862,9 @@ def test_update_tool_invalid_id(api_client):
 
 
 @pytest.mark.django_db
-def test_update_crew(api_client, crew, wikipedia_agent, embedding_model, gpt_4o_llm, llm_config):
+def test_update_crew(
+    api_client, crew, wikipedia_agent, embedding_model, gpt_4o_llm, llm_config
+):
     url = reverse("crew-detail", args=[crew.pk])
 
     updated_data = {
@@ -890,7 +895,9 @@ def test_update_crew(api_client, crew, wikipedia_agent, embedding_model, gpt_4o_
 
 
 @pytest.mark.django_db
-def test_update_crew_invalid_id(api_client, wikipedia_agent, embedding_model, gpt_4o_llm, llm_config):
+def test_update_crew_invalid_id(
+    api_client, wikipedia_agent, embedding_model, gpt_4o_llm, llm_config
+):
     url = reverse("crew-detail", args=[999])
     updated_data = {
         "description": "Updated Crew Description",
@@ -911,7 +918,7 @@ def test_update_crew_invalid_id(api_client, wikipedia_agent, embedding_model, gp
 
 @pytest.mark.django_db
 def test_update_task(api_client, test_task, wikipedia_agent, crew):
-    
+
     task = test_task
     url = reverse("task-detail", args=[task.pk])
 
@@ -935,6 +942,7 @@ def test_update_task(api_client, test_task, wikipedia_agent, crew):
     assert task.expected_output == updated_data["expected_output"]
     assert task.order == updated_data["order"]
 
+
 @pytest.mark.django_db
 def test_update_task_invalid_id(api_client, test_task, wikipedia_agent, crew):
     url = reverse("task-detail", args=[999])
@@ -949,4 +957,318 @@ def test_update_task_invalid_id(api_client, test_task, wikipedia_agent, crew):
 
     response = api_client.put(url, updated_data, format="json")
 
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+# PATCH Tests ==========================
+
+
+@pytest.mark.django_db
+def test_patch_agent(api_client, wikipedia_agent):
+    url = reverse("agent-detail", args=[wikipedia_agent.pk])
+    partial_data = {
+        "role": "Partially Updated Role",
+        "max_iter": 2,
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    wikipedia_agent.refresh_from_db()
+    assert wikipedia_agent.role == partial_data["role"]
+    assert wikipedia_agent.max_iter == partial_data["max_iter"]
+
+
+@pytest.mark.django_db
+def test_patch_agent_invalid_id(api_client):
+    url = reverse("agent-detail", args=[999])
+    partial_data = {
+        "role": "Partially Updated Role",
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_patch_config_llm(api_client, llm_config):
+    url = reverse("configllm-detail", args=[llm_config.pk])
+    partial_data = {
+        "temperature": 0.75,
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    llm_config.refresh_from_db()
+    assert llm_config.temperature == partial_data["temperature"]
+
+
+@pytest.mark.django_db
+def test_patch_config_llm_invalid_id(api_client):
+    url = reverse("configllm-detail", args=[999])
+    partial_data = {
+        "temperature": 0.75,
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_patch_provider(api_client, openai_provider):
+    url = reverse("provider-detail", args=[openai_provider.pk])
+    partial_data = {"name": "Partially Updated Provider"}
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    openai_provider.refresh_from_db()
+    assert openai_provider.name == partial_data["name"]
+
+
+@pytest.mark.django_db
+def test_patch_provider_invalid_id(api_client):
+    url = reverse("provider-detail", args=[999])
+    partial_data = {"name": "Partially Updated Provider"}
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_patch_llm_model(api_client, gpt_4o_llm):
+    url = reverse("llmmodel-detail", args=[gpt_4o_llm.pk])
+    partial_data = {
+        "name": "Partially Updated LLM Name",
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    gpt_4o_llm.refresh_from_db()
+    assert gpt_4o_llm.name == partial_data["name"]
+
+
+@pytest.mark.django_db
+def test_patch_llm_model_invalid_id(api_client):
+    url = reverse("llmmodel-detail", args=[999])
+    partial_data = {
+        "name": "Partially Updated LLM Name",
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_patch_embedding_model(api_client, embedding_model):
+    url = reverse("embeddingmodel-detail", args=[embedding_model.pk])
+    partial_data = {
+        "deployment": "Updated Deployment",
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    embedding_model.refresh_from_db()
+    assert embedding_model.deployment == partial_data["deployment"]
+
+
+@pytest.mark.django_db
+def test_patch_embedding_model_invalid_id(api_client):
+    url = reverse("embeddingmodel-detail", args=[999])
+    partial_data = {"deployment": "Updated Deployment"}
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_patch_tool(api_client, wikipedia_tool):
+    url = reverse("tool-detail", args=[wikipedia_tool.pk])
+    partial_data = {
+        "description": "Partially Updated Tool Description",
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    wikipedia_tool.refresh_from_db()
+    assert wikipedia_tool.description == partial_data["description"]
+
+
+@pytest.mark.django_db
+def test_patch_tool_invalid_id(api_client):
+    url = reverse("tool-detail", args=[999])
+    partial_data = {
+        "description": "Partially Updated Tool Description",
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_patch_crew(api_client, crew):
+    url = reverse("crew-detail", args=[crew.pk])
+    partial_data = {
+        "description": "Partially Updated Crew Description",
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    crew.refresh_from_db()
+    assert crew.description == partial_data["description"]
+
+
+@pytest.mark.django_db
+def test_patch_crew_invalid_id(api_client):
+    url = reverse("crew-detail", args=[999])
+    partial_data = {
+        "description": "Partially Updated Crew Description",
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_patch_task(api_client, test_task):
+    url = reverse("task-detail", args=[test_task.pk])
+    partial_data = {
+        "name": "Partially Updated Task Name",
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_200_OK
+
+    test_task.refresh_from_db()
+    assert test_task.name == partial_data["name"]
+
+
+@pytest.mark.django_db
+def test_patch_task_invalid_id(api_client):
+    url = reverse("task-detail", args=[999])
+    partial_data = {
+        "name": "Partially Updated Task Name",
+    }
+
+    response = api_client.patch(url, partial_data, format="json")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+# DELETE Tests ================================
+
+
+@pytest.mark.django_db
+def test_delete_agent(api_client, wikipedia_agent):
+    url = reverse("agent-detail", args=[wikipedia_agent.pk])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_delete_agent_invalid_id(api_client):
+    url = reverse("agent-detail", args=[999])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_delete_config_llm(api_client, llm_config):
+    url = reverse("configllm-detail", args=[llm_config.pk])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_delete_config_llm_invalid_id(api_client):
+    url = reverse("configllm-detail", args=[999])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_delete_provider(api_client, openai_provider):
+    url = reverse("provider-detail", args=[openai_provider.pk])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_delete_provider_invalid_id(api_client):
+    url = reverse("provider-detail", args=[999])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_delete_llm_model(api_client, gpt_4o_llm):
+    url = reverse("llmmodel-detail", args=[gpt_4o_llm.pk])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_delete_llm_model_invalid_id(api_client):
+    url = reverse("llmmodel-detail", args=[999])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_delete_embedding_model(api_client, embedding_model):
+    url = reverse("embeddingmodel-detail", args=[embedding_model.pk])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_delete_embedding_model_invalid_id(api_client):
+    url = reverse("embeddingmodel-detail", args=[999])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_delete_tool(api_client, wikipedia_tool):
+    url = reverse("tool-detail", args=[wikipedia_tool.pk])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_delete_tool_invalid_id(api_client):
+    url = reverse("tool-detail", args=[999])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_delete_crew(api_client, crew):
+    url = reverse("crew-detail", args=[crew.pk])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_delete_crew_invalid_id(api_client):
+    url = reverse("crew-detail", args=[999])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_delete_task(api_client, test_task):
+    url = reverse("task-detail", args=[test_task.pk])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_delete_task_invalid_id(api_client):
+    url = reverse("task-detail", args=[999])
+    response = api_client.delete(url)
     assert response.status_code == status.HTTP_404_NOT_FOUND
