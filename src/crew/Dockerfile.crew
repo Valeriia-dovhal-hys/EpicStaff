@@ -26,7 +26,7 @@ COPY libraries/ ./libraries
 ENV PEP517_BUILD_BACKEND=setuptools.build_meta
 
 # Install Python dependencies using Poetry, clearing cache
-RUN poetry install --no-root --no-dev -vvv > /tmp/poetry_install.log 2>&1
+RUN poetry install --no-root --no-dev
 RUN rm -rf /root/.cache
 
 #Copying file to workdir
