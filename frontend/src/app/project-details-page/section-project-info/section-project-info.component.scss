@@ -1,0 +1,94 @@
+.wrapper {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .header {
+    height: 8%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background-color: #3f51b5;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+
+    .title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      color: white;
+
+      font-size: 1.5rem;
+      font-weight: 200;
+    }
+
+    .edit-button {
+      color: white;
+
+      mat-icon {
+        font-size: 20px;
+      }
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+
+  .separator {
+    height: 1px;
+    background-color: #ddd;
+    margin: 0;
+    border: none;
+  }
+  .content {
+    height: 84%;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    overflow-y: auto;
+    .project-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      .detail-item {
+        background-color: #f0f0f0;
+        padding: 0.5rem;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column; // Stack title and value vertically
+        gap: 0.2rem;
+
+        .detail-title {
+          color: #3f51b5;
+        }
+
+        .detail-value {
+          color: #333;
+          word-break: break-word; // Ensures long words wrap within the container
+          overflow-wrap: break-word; // Additional support for breaking long words
+        }
+      }
+    }
+  }
+
+  .footer {
+    height: 8%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    padding: 1rem;
+    button {
+      min-width: 120px;
+    }
+  }
+}

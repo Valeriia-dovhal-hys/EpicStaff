@@ -8,6 +8,10 @@
   color: white !important;
 }
 
+.snackbar-warn {
+  --mdc-snackbar-container-color: rgb(209, 129, 24);
+  color: white !important;
+}
 .snackbar-success .mat-mdc-snack-bar-action,
 .snackbar-error .mat-mdc-snack-bar-action {
   color: white !important;

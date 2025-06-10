@@ -9,12 +9,16 @@ export class SharedSnackbarService {
 
   showSnackbar(
     message: string,
-    type: 'success' | 'error',
+    type: 'success' | 'error' | 'warn',
     duration: number = 3000
   ) {
     console.log(`Snackbar Message: ${message}, Type: ${type}`);
-    const panelClass =
-      type === 'success' ? ['snackbar-success'] : ['snackbar-error'];
+
+    const panelClass = {
+      success: ['snackbar-success'],
+      error: ['snackbar-error'],
+      warn: ['snackbar-warn'],
+    }[type];
 
     this.snackBar.open(message, 'Close', {
       duration: duration,
