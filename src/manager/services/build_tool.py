@@ -19,9 +19,7 @@ class ToolDockerImageBuilder:
     image_files = Path("./tool")
 
     default_imports = [
-        "python-dotenv",
-        "pydantic",
-        "fastapi[all]",
+
     ]
 
     def __init__(

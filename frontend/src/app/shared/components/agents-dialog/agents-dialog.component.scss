@@ -1,0 +1,94 @@
+.main-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dialog-header {
+  background-color: #3f51b5;
+  padding-bottom: 7px;
+}
+
+.dialog-header > h1 {
+  color: #ffffff;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.loading-container {
+  display: flex;
+}
+
+.dialog-content {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+mat-list {
+  padding-top: 0;
+  overflow-y: auto;
+}
+
+mat-list-item {
+  font-size: 1rem;
+  border: 1px solid #3f51b5;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+mat-list-item:hover {
+  background-color: rgba(59, 81, 206, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+mat-list-item.selected {
+  background-color: #3f51b5;
+}
+
+mat-list-item.selected .agent-role,
+mat-list-item.selected .agent-goal {
+  color: white;
+}
+
+.agent-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.agent-details {
+  display: flex;
+  flex-grow: 1; /* Ensure the details take up the available space */
+  align-items: center;
+  overflow: hidden;
+}
+
+.agent-role {
+  font-weight: bold;
+  white-space: nowrap; /* Prevent wrapping of role */
+  margin-right: 8px;
+}
+
+.agent-goal {
+  font-style: italic;
+  color: #757575;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 100px); /* Adjust based on checkbox size */
+}
+
+mat-checkbox {
+  flex-shrink: 0; /* Ensure the checkbox doesn't shrink or move */
+}
+
+.dialog-actions {
+  width: 100%;
+  padding: 25px;
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #3f51b5;
+}
