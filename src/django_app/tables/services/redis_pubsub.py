@@ -51,11 +51,11 @@ class RedisPubSub:
             session.status = new_status
             session.save()
 
-    def listen_for_messages(self, daemon=False):
+    def listen_for_messages(self):
         self.pubsub.subscribe(
             **{
                 self.crewai_output_channel_name: self.crewai_output_handler,
                 self.session_status_channel_name: self.session_status_handler,
             }
         )
-        self.pubsub.run_in_thread(0.001, daemon=daemon)
+        self.pubsub.run_in_thread(0.001, daemon=False)
