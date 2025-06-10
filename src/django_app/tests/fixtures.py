@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import Generator
 from unittest.mock import MagicMock, patch
 import pytest
-from django.urls import reverse
 
+from tables.services.config_service import YamlConfigService
 from tables.services.redis_service import RedisService
 from tables.models import (
     Agent,
@@ -15,13 +15,9 @@ from tables.models import (
     Task,
     Tool,
 )
-from rest_framework.test import APIClient
 import fakeredis
 
 
-@pytest.fixture
-def api_client() -> APIClient:
-    return APIClient()
 
 
 @pytest.fixture
@@ -141,19 +137,21 @@ def redis_client_mock() -> Generator[MagicMock, None, None]:
 
 
 @pytest.fixture
-def session_schema_json() -> str:
-    path = Path("./tests/resources/session_schema.json").resolve()
-
-    with open(path, "r") as f:
-        schema_json = f.read()
-
-    return schema_json
-
-
-@pytest.fixture
 def fake_redis_client() -> Generator[MagicMock, None, None]:
     redis_mock = MagicMock()
     fake_redis_client = fakeredis.FakeRedis(server=fakeredis.FakeServer())
     with patch("redis.Redis", redis_mock):
         redis_mock.return_value = fake_redis_client
         yield fake_redis_client
+
+
+
+@pytest.fixture
+def yaml_config_service_patched_config_path(tmp_path) -> Generator[MagicMock, None, None]:
+    config_path: Path = tmp_path / "config.yaml"
+    with patch.object(YamlConfigService, "_CONFIG_PATH", config_path):
+        yield config_path
+    
+    config_path.unlink()
+    
+    
