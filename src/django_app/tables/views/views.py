@@ -162,7 +162,7 @@ class EnviromentConfig(APIView):
     @swagger_auto_schema(
         request_body=EnvironmentConfigSerializer,
         responses={
-            200: openapi.Response(
+            201: openapi.Response(
                 description="Config updated successfully",
                 examples={"application/json": {"data": {"key": "value"}}},
             ),
@@ -177,7 +177,7 @@ class EnviromentConfig(APIView):
         config_service.set_all(config_dict=serializer.validated_data["data"])
 
         return Response(
-            data={"data": config_service.get_all()}, status=status.HTTP_200_OK
+            data={"data": config_service.get_all()}, status=status.HTTP_201_CREATED
         )
 
 
@@ -185,16 +185,22 @@ class EnviromentConfig(APIView):
     method="delete",
     responses={
         204: openapi.Response(description="Config deleted successfully"),
-        400: openapi.Response(description="Invalid config data provided"),
+        400: openapi.Response(description="No key provided"),
+        404: openapi.Response(description="Key not found"),
     },
 )
 @api_view(["DELETE"])
 def delete_environment_config(request, *args, **kwargs):
     key: str | None = kwargs.get("key", None)
     if key is None:
+        return Response("No key provided", status=status.HTTP_400_BAD_REQUEST)
+    
+    deleted_key = config_service.delete(key=key)
+    
+    if not deleted_key:
         return Response("Key not found", status=status.HTTP_404_NOT_FOUND)
 
-    config_service.delete(key=key)
+    
     return Response("Config deleted successfully", status=status.HTTP_204_NO_CONTENT)
 
 
