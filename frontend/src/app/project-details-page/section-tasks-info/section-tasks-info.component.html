@@ -15,6 +15,8 @@
       [tasks]="tasks"
       [agents]="agents"
       [projectId]="projectId"
+      (taskCreated)="onTaskCreated($event)"
+      (tasksDeleted)="onTasksDeleted($event)"
     ></app-project-tasks-table>
   </div>
   <div class="footer">Total tasks: {{ tasks.length }}</div>

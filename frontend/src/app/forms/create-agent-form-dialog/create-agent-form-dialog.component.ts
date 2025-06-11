@@ -27,7 +27,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInput } from '@angular/material/input';
 import { MatIcon } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
-import { ToolSelectorComponent } from '../../main/tools-selector-dialog/tool-selector-dialog.component';
+import { ToolSelectorComponent } from '../../handsontable-tables/staff/tools-selector-dialog/tool-selector-dialog.component';
 import { LLM_Model } from '../../shared/models/LLM.model';
 import { forkJoin, Subscription } from 'rxjs';
 import { LLM_Models_Service } from '../../services/LLM_models.service';
@@ -226,7 +226,7 @@ export class CreateAgentFormComponent implements OnInit, OnDestroy {
   }
 
   public onSubmitForm(): void {
-    //this shows invalid fields if they are
+    // This shows invalid fields if they are
     this.agentForm.markAllAsTouched();
 
     if (this.agentForm.valid) {
@@ -239,22 +239,26 @@ export class CreateAgentFormComponent implements OnInit, OnDestroy {
 
       this.llmConfigService.createConfig(configData).subscribe({
         next: (createdConfig: LLM_Config) => {
-          const configId: number | null = createdConfig.id;
-
           const { temperature, num_ctx, ...agentFormData } =
             this.agentForm.value;
 
           const newAgent: CreateAgentRequest = {
             ...agentFormData,
             tools: this.selectedTools.map((tool: Tool) => tool.id),
-            llm_config: configId,
-            fcm_llm_config: configId,
+            llm_config: createdConfig.id,
+            fcm_llm_config: createdConfig.id,
           };
 
-          this.agentFormDialogRef.close(newAgent);
+          // Pass both newAgent and temperature, context to the StaffComponent
+          this.agentFormDialogRef.close({
+            agentData: newAgent,
+            llm_temperature: temperature,
+            llm_context: num_ctx,
+          });
         },
         error: (error: Error) => {
           console.error('Error creating LLM config:', error);
+          this.agentForm.enable();
         },
       });
     } else {

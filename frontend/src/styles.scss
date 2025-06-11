@@ -1,3 +1,21 @@
+@import "@angular/material/theming";
 @import "./styles/reset.scss";
 @import "./styles/snackbar.style.scss";
 @import "handsontable/dist/handsontable.full.min.css";
+
+// Define a custom theme
+$custom-theme-primary: mat-palette(
+  $mat-grey,
+  900
+); // Use black or dark grey for primary
+
+$custom-theme: mat-light-theme(
+  (
+    color: (
+      primary: $custom-theme-primary,
+    ),
+  )
+);
+
+// Include theme styles
+@include angular-material-theme($custom-theme);

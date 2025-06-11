@@ -12,7 +12,6 @@ import { Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateProjectFormDialogComponent } from '../forms/create-project-form-dialog/create-project-form-dialog.component';
 import { SharedSnackbarService } from '../services/snackbar/shared-snackbar.service';
-import { ApiGetRequest } from '../shared/models/api-request.model';
 
 @Component({
   selector: 'app-projects-list',
@@ -71,7 +70,7 @@ export class ProjectsListComponent implements OnInit {
             console.log('response', response);
 
             this.snackbarService.showSnackbar(
-              `Project "${response.name}" created successfully.`,
+              `Project created successfully.`,
               'success'
             );
 

@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { ApiGetRequest } from '../shared/models/api-request.model';
 import {
   LLM_Config,
@@ -21,25 +21,11 @@ export class LLM_Config_Service {
   constructor(private http: HttpClient) {}
 
   getAllConfigsLLM(): Observable<LLM_Config[]> {
-    const fetchAllConfigs = (
-      url: string,
-      configs: LLM_Config[] = []
-    ): Observable<LLM_Config[]> => {
-      return this.http.get<ApiGetRequest<LLM_Config>>(url).pipe(
-        switchMap((response) => {
-          const combinedConfigs = configs.concat(response.results);
-          if (response.next) {
-            // Continue fetching the next page
-            return fetchAllConfigs(response.next, combinedConfigs);
-          } else {
-            // No more pages
-            return of(combinedConfigs);
-          }
-        })
-      );
-    };
-
-    return fetchAllConfigs(`${this.apiUrl}`);
+    return this.http
+      .get<ApiGetRequest<LLM_Config>>(`${this.apiUrl}?limit=2000`, {
+        headers: this.headers,
+      })
+      .pipe(map((response) => response.results));
   }
 
   getConfigById(id: number): Observable<LLM_Config> {
@@ -59,6 +45,12 @@ export class LLM_Config_Service {
     configData: CreateLLMConfigRequest
   ): Observable<LLM_Config> {
     return this.http.put<LLM_Config>(`${this.apiUrl}${id}/`, configData, {
+      headers: this.headers,
+    });
+  }
+
+  deleteConfig(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}${id}/`, {
       headers: this.headers,
     });
   }

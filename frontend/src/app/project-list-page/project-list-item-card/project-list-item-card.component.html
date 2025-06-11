@@ -1,40 +1,36 @@
 <div class="main-container">
   <!-- header -->
   <div class="header">
-    <span class="header-title">
+    <div class="header-title">
       {{ project.name }}
       <!-- <span class="project-status">(running) </span> -->
-    </span>
+    </div>
 
-    <mat-icon class="close-icon" (click)="onDeleteProject()">close</mat-icon>
+    <div class="close-icon">
+      <mat-icon (click)="onDeleteProject()">close</mat-icon>
+    </div>
   </div>
 
   <!-- content -->
   <div class="content">
-    {{ project.assignment }}
-    <div class="viewAllSessions">
-      <div class="viewAll">View all sessions</div>
-    </div>
+    <div class="assignment">{{ project.assignment }}</div>
   </div>
 
   <!-- actions -->
   <div class="actions">
-    <button
-      class="manageProject"
-      (click)="manageAgentsAndTasks()"
-      mat-stroked-button
-    >
-      Manage Project
-    </button>
     <div class="run-settings">
+      <button
+        class="manageProject"
+        (click)="manageAgentsAndTasks()"
+        mat-stroked-button
+      >
+        Manage Project
+      </button>
       <button mat-icon-button class="settings-icon">
         <mat-icon>settings</mat-icon>
       </button>
-
-      <button class="run" mat-raised-button (click)="startRun()">
-        Run new
-      </button>
     </div>
+    <button class="run" mat-raised-button (click)="startRun()">Run new</button>
   </div>
 </div>
 <!-- Confirmation Dialog Template -->

@@ -4,14 +4,13 @@ from pydantic import BaseModel
 
 
 class SessionStatus(Enum):
-    END = "end"
-    RUN = "run"
-    WAIT_FOR_USER = "wait_for_user"
-    ERROR = "error"
+        END = "end"
+        RUN = "run"
+        WAIT_FOR_USER = "wait_for_user"
+        ERROR = "error"
 
 
 class RunToolParamsModel(BaseModel):
-    tool_config: dict[str, Any] | None = None
     run_args: list[str]
     run_kwargs: dict[str, Any]
 
@@ -22,7 +21,6 @@ class RunCrewModel(BaseModel):
 
 class ToolListResponseModel(BaseModel):
     tool_list: list[str]
-
 
 class ClassDataResponseModel(BaseModel):
     classdata: str

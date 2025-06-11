@@ -1,0 +1,85 @@
+.main-container {
+  height: 90vh;
+  width: 100%;
+}
+
+.header {
+  height: 10%;
+  background-color: #3f51b5;
+  padding: 1.5rem 2rem;
+
+  span {
+    color: white;
+
+    font-size: 1.5rem;
+    font-weight: 500;
+  }
+}
+
+.form-container {
+  height: 80%;
+  overflow-y: auto;
+  padding: 2rem;
+
+  .full-width {
+    width: 100%;
+    margin-bottom: 24px;
+  }
+
+  .add-tools-container {
+    display: flex;
+    justify-content: space-between;
+
+    .no-tools-added {
+      font-size: 0.8rem;
+      font-style: italic;
+    }
+  }
+  .add-tools {
+    display: flex;
+    width: 150px;
+  }
+
+  .selected-tools {
+    margin-bottom: 1rem;
+  }
+}
+
+.bottom {
+  height: 10%;
+  background-color: #3f51b5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+}
+
+.bottom .close {
+  color: white;
+  border: 1px solid white;
+}
+
+.add-tools-button-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.advanced-settings-toggle {
+  color: #005cbb;
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.advanced-settings-field {
+  width: 50%;
+  margin-bottom: 0.8rem;
+}
+.temperature-field {
+  width: 48%;
+}
+.advanced-fields-pair {
+  display: flex;
+  justify-content: space-between;
+  gap: 5%;
+}
