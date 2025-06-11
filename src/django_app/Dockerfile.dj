@@ -7,7 +7,7 @@ RUN pip install --upgrade pip setuptools wheel
 RUN pip install poetry
 
 # Set the working directory in the Docker image
-WORKDIR /home/user/root/django
+WORKDIR /home/user/root/app
 
 ENV PEP517_BUILD_BACKEND=setuptools.build_meta
 
