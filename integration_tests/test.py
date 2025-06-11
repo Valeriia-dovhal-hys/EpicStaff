@@ -1,11 +1,16 @@
 import requests
 import pytest
+from time import sleep
+
+
 
 BASE_URL = "http://localhost:8000/api"
 
 
 @pytest.fixture
 def openai_provider():
+    sleep(180)
+
     url = f"{BASE_URL}/providers/"
     data = {"name": "openai"}
     response = requests.post(url, json=data)
