@@ -13,7 +13,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
-import { AgentsDialogComponent } from './section-agents-info/agents-dialog/agents-dialog.component';
+import { AgentsDialogComponent } from './agents-dialog/agents-dialog.component';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { SharedSnackbarService } from '../services/snackbar/shared-snackbar.service';
@@ -61,16 +61,22 @@ export class ProjectDetailsComponent implements OnInit {
 
   isDataLoaded: boolean = false;
 
+  sessionId: number | null = null;
+
+  expandedAgents: { [agentId: number]: boolean } = {};
+
   private subscriptions = new Subscription();
 
   constructor(
+    private router: Router,
     private route: ActivatedRoute,
     private projectsService: ProjectsService,
     private sharedSnackbarService: SharedSnackbarService,
     private tasksService: TasksService,
     private agentsService: AgentsService,
     private dialog: MatDialog,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private runCrewSessionService: RunCrewSessionService
   ) {}
 
   ngOnInit() {

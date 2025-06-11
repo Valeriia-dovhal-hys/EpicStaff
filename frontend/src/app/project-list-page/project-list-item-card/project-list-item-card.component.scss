@@ -1,46 +1,38 @@
 .main-container {
+  width: 23rem;
   height: 15rem;
-  width: 25rem;
-
   background-color: white;
   border-radius: 10px;
   box-shadow: 0 20px 20px rgba(0, 0, 0, 0.1);
-
+  margin-bottom: 3rem;
   overflow: hidden;
 }
 
 .header {
   height: 20%;
-  width: 100%;
-  padding: 13px 15px;
+  padding: 1rem 1rem;
   display: flex;
 
   justify-content: space-between;
   .header-title {
     font-weight: bold;
-    width: 95%;
-
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .close-icon {
-    width: 5%;
   }
 }
 
+.project-status {
+  color: #005cbb;
+  font-weight: 300;
+}
 .content {
   width: 100%;
   height: 55%;
   padding: 1rem;
-  padding-top: 0.5rem;
-  overflow-y: hidden;
-  .assignment {
-    white-space: normal;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
+
+  text-wrap: wrap;
+  // overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
   .viewAllSessions {
     margin-top: auto;
@@ -62,12 +54,13 @@
   align-items: center;
   background-color: #005cbb;
   padding: 1rem;
+  // border-bottom-left-radius: 5px;
+  // border-bottom-right-radius: 5px;
 
   .settings-sections {
     display: flex;
     align-items: center;
   }
-
   .manageProject {
     height: 2rem;
     color: white;

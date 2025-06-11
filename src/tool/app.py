@@ -7,18 +7,14 @@ from models.models import (
     ClassDataResponseModel,
     RunToolResponseModel,
 )
-from tool import get_tool_data, create_tool, run_tool
-from pickle_encode import obj_to_txt, txt_to_obj
+from utils import get_tool_data, run_tool, init_tools
+from pickle_encode import obj_to_txt
 import uvicorn
+from loguru import logger
 
 app = FastAPI()
-load_dotenv()
-tool_alias_callable_dict_txt = os.environ.get("ALIAS_CALLABLE")
-tool_alias_callable_dict: dict[str, Callable] = txt_to_obj(tool_alias_callable_dict_txt)
 
-tool_alias_dict = dict()
-for k, v in tool_alias_callable_dict.items():
-    tool_alias_dict[k] = create_tool(v)
+tool_alias_dict = init_tools()
 
 
 @app.get(
@@ -36,7 +32,9 @@ def get_class_data(tool_alias: str):
     "/tool/{tool_alias}/run", status_code=200, response_model=RunToolResponseModel
 )
 def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
-
+    logger.debug(
+        f"tool/{tool_alias}/run \nrun_tool_params_model: {run_tool_params_model}"
+    )
     result = run_tool(
         tool_alias_dict[tool_alias],
         run_tool_params_model.run_args,
@@ -47,4 +45,6 @@ def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
 
 
 if __name__ == "__main__":
+    tool_alias_dict = init_tools()
+
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True, workers=1)

@@ -22,18 +22,15 @@ import { LLM_Config } from '../../shared/models/LLM_config.model';
 import { LLM_Model } from '../../shared/models/LLM.model';
 import { NgIf } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { EditProjectFormDialogComponent } from './edit-project-form-dialog/edit-project-form-dialog.component';
+import { EditProjectFormDialogComponent } from '../edit-project-form-dialog/edit-project-form-dialog.component';
 import { MatIconModule } from '@angular/material/icon';
 import { forkJoin, of } from 'rxjs';
-import { EmbeddingModelsService } from '../../services/embeddings.service';
-import { EmbeddingModel } from '../../shared/models/embedding.model';
 
 @Component({
   selector: 'app-section-project-info',
   templateUrl: './section-project-info.component.html',
   styleUrls: ['./section-project-info.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-
   standalone: true,
   imports: [NgIf, MatButtonModule, MatDialogModule, MatIconModule],
 })
@@ -44,11 +41,8 @@ export class SectionProjectInfoComponent implements OnInit {
   confirmDialogRef!: MatDialogRef<any>;
 
   sessionId: number | null = null;
-
-  llmModelData: LLM_Model | null = null;
-  embeddingModelData: EmbeddingModel | null = null;
+  modelData: LLM_Model | null = null;
   configData: LLM_Config | null = null;
-
   dataLoaded = false;
 
   constructor(
@@ -57,7 +51,6 @@ export class SectionProjectInfoComponent implements OnInit {
     private runCrewSessionService: RunCrewSessionService,
     private llmConfigService: LLM_Config_Service,
     private llmModelsService: LLM_Models_Service,
-    private embeddingModelsService: EmbeddingModelsService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -66,24 +59,17 @@ export class SectionProjectInfoComponent implements OnInit {
   }
 
   fetchProjectDetails(): void {
-    const llmModel$ = this.project.manager_llm_model
-      ? this.llmModelsService.getLLMModelById(this.project.manager_llm_model)
-      : of(null);
-
-    const embeddingModel$ = this.project.embedding_model
-      ? this.embeddingModelsService.getEmbeddingModelById(
-          this.project.embedding_model
-        )
+    const model$ = this.project.embedding_model
+      ? this.llmModelsService.getLLMModelById(this.project.embedding_model)
       : of(null);
 
     const config$ = this.project.manager_llm_config
       ? this.llmConfigService.getConfigById(this.project.manager_llm_config)
       : of(null);
 
-    forkJoin([llmModel$, embeddingModel$, config$]).subscribe({
-      next: ([llmModel, embeddingModel, config]) => {
-        this.llmModelData = llmModel;
-        this.embeddingModelData = embeddingModel;
+    forkJoin([model$, config$]).subscribe({
+      next: ([model, config]) => {
+        this.modelData = model;
         this.configData = config;
         this.dataLoaded = true;
         this.cdr.markForCheck();
@@ -122,6 +108,7 @@ export class SectionProjectInfoComponent implements OnInit {
       }
     });
   }
+
   openEditProjectDialog(): void {
     const dialogRef = this.dialog.open(EditProjectFormDialogComponent, {
       data: { project: this.project },
@@ -130,7 +117,6 @@ export class SectionProjectInfoComponent implements OnInit {
     dialogRef.afterClosed().subscribe((updatedProject: Project | undefined) => {
       if (updatedProject) {
         this.project = updatedProject;
-        this.fetchProjectDetails(); // Fetch updated related data
         this.cdr.markForCheck();
         this.sharedSnackbarService.showSnackbar(
           'Project updated successfully.',

@@ -39,7 +39,7 @@ class Tool(models.Model):
     name = models.TextField()
     name_alias = models.TextField()
     description = models.TextField()
-    requires_model = models.BooleanField()
+    requires_model = models.BooleanField(default=False)
 
     llm_model = models.ForeignKey(
         LLMModel, on_delete=models.SET_NULL, null=True, default=None
@@ -172,7 +172,7 @@ class Task(models.Model):
     agent = models.ForeignKey(Agent, on_delete=models.SET_NULL, null=True, default=None)
     instructions = models.TextField()
     expected_output = models.TextField()
-    order = models.IntegerField(default=1)
+    order = models.IntegerField(null=True, default=None)
 
     def __str__(self):
         return self.name

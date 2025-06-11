@@ -2,7 +2,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.fe
     ports:
       - "4200:80"
     networks:

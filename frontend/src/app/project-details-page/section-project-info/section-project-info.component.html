@@ -17,33 +17,29 @@
     <div *ngIf="dataLoaded" class="project-info">
       <div class="detail-item">
         <span class="detail-title">Assignment:</span>
-        <span class="detail-value">{{ project.assignment }}</span>
+        <span class="detail-value">{{ project.assignment || "N/A" }}</span>
       </div>
       <div class="detail-item">
         <span class="detail-title">Description:</span>
-        <span class="detail-value">{{ project.description }}</span>
+        <span class="detail-value">{{ project.description || "N/A" }}</span>
       </div>
       <div class="detail-item">
         <span class="detail-title">Process:</span>
         <span class="detail-value">{{ project.process }}</span>
       </div>
-      <!-- <div class="detail-item">
+      <div class="detail-item">
         <span class="detail-title">Memory Enabled:</span>
         <span class="detail-value">{{ project.memory ? "Yes" : "No" }}</span>
-      </div> -->
-      <div class="detail-item" *ngIf="embeddingModelData">
+      </div>
+      <div class="detail-item" *ngIf="modelData">
         <span class="detail-title">Embedding Model:</span>
-        <span class="detail-value">{{ embeddingModelData.name }}</span>
+        <span class="detail-value">{{ modelData.name }}</span>
       </div>
-      <div class="detail-item" *ngIf="llmModelData">
-        <span class="detail-title">LLM Model:</span>
-        <span class="detail-value">{{ llmModelData.name }}</span>
-      </div>
-      <div class="detail-item" *ngIf="configData?.temperature != null">
+      <div class="detail-item" *ngIf="configData?.temperature !== undefined">
         <span class="detail-title">Temperature:</span>
         <span class="detail-value">{{ configData?.temperature }}</span>
       </div>
-      <div class="detail-item" *ngIf="configData?.num_ctx !== null">
+      <div class="detail-item" *ngIf="configData?.num_ctx !== undefined">
         <span class="detail-title">Context:</span>
         <span class="detail-value">{{ configData?.num_ctx }}</span>
       </div>
