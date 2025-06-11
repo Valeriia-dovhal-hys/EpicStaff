@@ -7,6 +7,7 @@ from tests.fixtures import *
 @pytest.mark.django_db
 def test_run_session(crew, api_client, redis_client_mock):
 
+    
     url = reverse("run-session")
     data = {"crew_id": crew.pk}
 
@@ -19,7 +20,7 @@ def test_run_session(crew, api_client, redis_client_mock):
 
 
 @pytest.mark.django_db
-def test_publish_start_session(crew, api_client, redis_client_mock):
+def test_publish_start_session(crew, test_task, api_client, redis_client_mock):
 
     data = {"crew_id": crew.pk}
     url = reverse("run-session")
@@ -28,7 +29,9 @@ def test_publish_start_session(crew, api_client, redis_client_mock):
 
     response_session_id: int = response.data["session_id"]
 
-    redis_client_mock.publish.assert_called_once_with("sessions:start", response_session_id)
+    redis_client_mock.publish.assert_called_once_with(
+        "sessions:start", response_session_id
+    )
 
 
 @pytest.mark.django_db
@@ -37,10 +40,14 @@ def test_session_set_session_data(crew, api_client, redis_client_mock):
     Test if redis.set method called at with correct key (ignoring value)
     """
 
+
     data = {"crew_id": crew.pk}
     url = reverse("run-session")
 
-    response = api_client.post(url, data, format="json")    
+    response = api_client.post(url, data, format="json")
     response_session_id: int = response.data["session_id"]
 
-    assert redis_client_mock.set.call_args.args[0] == f"sessions:{response_session_id}:schema"
+    assert (
+        redis_client_mock.set.call_args.args[0]
+        == f"sessions:{response_session_id}:schema"
+    )
