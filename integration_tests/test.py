@@ -4,12 +4,12 @@ from time import sleep
 
 
 
-BASE_URL = "http://localhost:8000/api"
+BASE_URL = "http://127.0.0.1:8000/api"
 
 
 @pytest.fixture
 def openai_provider():
-    sleep(180)
+    sleep(60)
 
     url = f"{BASE_URL}/providers/"
     data = {"name": "openai"}
