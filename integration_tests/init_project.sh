@@ -22,8 +22,4 @@ docker tag "$REGISTRY_DIR/frontend" frontend
 docker volume create crew_config
 docker volume create crew_pgdata
 
-# # Start services with Docker Compose
-# docker compose up
 
-# # Pause to keep the script open
-# read -p "Press [Enter] key to continue..."
