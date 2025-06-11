@@ -17,7 +17,7 @@ def test_listen_redis_crewai_output(fake_redis_client, crew: Crew):
     redis_client = fake_redis_client
 
     command = Command()
-    command.handle(daemon=True)
+    command.handle()
 
     message_text = "Some text"
     redis_client.publish(
@@ -48,7 +48,7 @@ def test_listen_redis_session_status(fake_redis_client, crew: Crew):
     redis_client = fake_redis_client
 
     command = Command()
-    command.handle(daemon=True)
+    command.handle()
     for status in Session.SessionStatus:
 
         redis_client.publish(
