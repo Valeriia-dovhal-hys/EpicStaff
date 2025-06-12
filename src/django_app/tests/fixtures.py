@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Generator
 from unittest.mock import MagicMock, patch
+import shutil
 import pytest
 
 from tables.services.config_service import YamlConfigService
@@ -153,6 +154,6 @@ def yaml_config_service_patched_config_path(tmp_path: Path) -> Generator[MagicMo
     with patch.object(YamlConfigService, "_CONFIG_PATH", config_path):
         yield config_path
     
-    config_path.unlink()
+    shutil.rmtree(tmp_path)
     
     
