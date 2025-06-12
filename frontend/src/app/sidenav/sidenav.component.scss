@@ -9,19 +9,23 @@
 // }
 
 mat-sidenav-container {
-  height: calc(100vh);
+  height: 100vh;
 }
 mat-sidenav {
   border-radius: 0;
-  box-shadow: 3px 0 6px rgba(0, 0, 0, 0.2);
+  // box-shadow: 3px 0 6px rgba(0, 0, 0, 0.2);
 }
 mat-sidenav-content {
-  background-color: #f5f5f5;
+  background-color: #ecf0f3;
 }
 
 mat-sidenav,
 mat-sidenav-content {
   transition: all 50ms ease-in-out;
+}
+mat-sidenav {
+  background-color: rgb(255, 255, 255);
+  border-right: 1px solid #e2e4e7;
 }
 
 // ::ng-deep mat-sidenav {

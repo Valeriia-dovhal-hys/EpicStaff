@@ -1,5 +1,3 @@
-from utils.logger import logger
-
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
@@ -9,10 +7,12 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
+from django.core.paginator import Paginator, EmptyPage
 
 from tables.services.config_service import YamlConfigService
 from tables.services.session_manager_service import SessionManagerService
 from tables.services.crew_service import CrewService
+from tables.services.session_runner_service import SessionRunnerService
 from tables.services.redis_service import RedisService
 
 
@@ -32,7 +32,11 @@ from tables.serializers.nested_model_serializers import (
 
 redis_service = RedisService()
 crew_service = CrewService()
-session_manager_service = SessionManagerService()
+session_runner_service = SessionRunnerService()
+session_manager_service = SessionManagerService(
+    redis_service=redis_service,
+    crew_service=crew_service,
+)
 config_service = YamlConfigService()
 
 
@@ -63,26 +67,17 @@ class RunSession(APIView):
         }
     )
     def post(self, request):
-        logger.info("Received POST request to start a new session.")
-
         serializer = RunSessionSerializer(data=request.data)
+
         if not serializer.is_valid():
-            logger.warning(f"Invalid data received in request: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         crew_id = serializer.validated_data["crew_id"]
         
-        try:
-            session_id = session_manager_service.create_session(crew_id=crew_id)
-            logger.info(f"Session created with session_id: {session_id}")
+        session_id = session_manager_service.create_session(crew_id=crew_id)
+        
+        session_manager_service.run_session(session_id=session_id)
 
-            session_manager_service.run_session(session_id=session_id)
-            logger.info(f"Session {session_id} successfully started.")
-        except Exception as e:
-            logger.error(f"Error occurred while starting session {session_id}: {str(e)}")
-            Session.objects.get(id=session_id).status = Session.SessionStatus.ERROR
-            return Response(data={"session_id": session_id}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
+        return Response(data={"session_id": session_id}, status=status.HTTP_201_CREATED)
 
 
 class GetUpdates(APIView):
@@ -162,7 +157,7 @@ class EnviromentConfig(APIView):
     @swagger_auto_schema(
         request_body=EnvironmentConfigSerializer,
         responses={
-            201: openapi.Response(
+            200: openapi.Response(
                 description="Config updated successfully",
                 examples={"application/json": {"data": {"key": "value"}}},
             ),
@@ -177,7 +172,7 @@ class EnviromentConfig(APIView):
         config_service.set_all(config_dict=serializer.validated_data["data"])
 
         return Response(
-            data={"data": config_service.get_all()}, status=status.HTTP_201_CREATED
+            data={"data": config_service.get_all()}, status=status.HTTP_200_OK
         )
 
 
@@ -185,22 +180,16 @@ class EnviromentConfig(APIView):
     method="delete",
     responses={
         204: openapi.Response(description="Config deleted successfully"),
-        400: openapi.Response(description="No key provided"),
-        404: openapi.Response(description="Key not found"),
+        400: openapi.Response(description="Invalid config data provided"),
     },
 )
 @api_view(["DELETE"])
 def delete_environment_config(request, *args, **kwargs):
     key: str | None = kwargs.get("key", None)
     if key is None:
-        return Response("No key provided", status=status.HTTP_400_BAD_REQUEST)
-    
-    deleted_key = config_service.delete(key=key)
-    
-    if not deleted_key:
         return Response("Key not found", status=status.HTTP_404_NOT_FOUND)
 
-    
+    config_service.delete(key=key)
     return Response("Config deleted successfully", status=status.HTTP_204_NO_CONTENT)
 
 

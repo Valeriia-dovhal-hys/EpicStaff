@@ -4,9 +4,7 @@ services:
       context: ./django_app
       dockerfile: Dockerfile.dj
     command: >
-      sh -c "python manage.py migrate && 
-      python manage.py upload_models &&
-      python manage.py listen_redis & python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py migrate && python manage.py listen_redis & python manage.py runserver 0.0.0.0:8000"
     container_name: django_app
     ports:
       - "8000:8000"
@@ -56,7 +54,7 @@ services:
       - POSTGRES_PASSWORD=admin
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - crew_pgdata:/var/lib/postgresql/data/pgdata
+      - pgdata:/var/lib/postgresql/data/pgdata
     networks:
       - backend-network
     healthcheck:
@@ -74,9 +72,7 @@ services:
       - "6379:6379"
 
 volumes:
-  crew_pgdata:
-    external: true
-      
+  pgdata:
   crew_config:
     external: true
 
