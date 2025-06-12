@@ -42,6 +42,11 @@ def test_network(docker_client: DockerClient) -> Generator[Network, None, None]:
 @pytest.fixture(scope="module")
 def manager_container(docker_client: DockerClient, test_network: Network) -> Generator[Container, None, None]:
 
+    existing_container = docker_client.containers.list(all=True, filters={"name": "manager_container"})
+    if existing_container:
+        existing_container[0].stop()
+        existing_container[0].remove()
+
     for container in docker_client.containers.list(all=True, filters={"ancestor": "alpine:latest"}):
         container.stop()
         container.remove()
