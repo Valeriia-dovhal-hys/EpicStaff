@@ -1,14 +1,43 @@
-# EpicStaff
+![EpicStaff Logo](logo.png)
 
-Welcome to **EpicStaff** — an innovative artificial intelligence collaboration system!
+**EpicStaff** is an open-source platform designed primarily for developers, yet fully accessible to non-developers for orchestrating high-performance, agent-driven AI workflows. It provides fine-grained, low-level control over task orchestration within a lean, asynchronous architecture.
+
+The platform includes a clean, modular backend for developers and a graphic interface for building, editing, and managing projects visually – enabling seamless experimentation and debugging whether you prefer code or clicks.
+
+EpicStaff is built for **precision, speed, and flexibility**: rather than relying on fixed templates or hidden abstractions, developers define custom workflows directly in code and can plug in any language model or AI service. This transparency and efficiency make EpicStaff ideal for building custom, event-driven agent systems.
+
+EpicStaff is designed for those who want to go **beyond generic agents** and build **production-grade AI systems** with memory, reasoning, external tools, and model flexibility.
 
 ---
 
-## About Us
+## 🔧 Key Features
 
-At **EpicStaff**, we are a dedicated team passionate about pioneering advancements in artificial intelligence. Our system is built on the core principles of **collaborative teamwork**, **modular design**, and **simplicity**.  
-We empower users with robust and flexible tools that enable different AI agents to work together seamlessly, mirroring the efficiency of human teams.
+### 🧩 Graphic Project Builder (Frontend UI)
+Create, configure, and run your own agentic projects via an intuitive web interface. Define agents, assign tools, track progress – all without touching YAML.
 
+### 🧠 Memory Persistence
+Enable agents to retain and retrieve memory across steps or workflows, improving long-term consistency and contextual reasoning.
+
+### 📚 Knowledge Injection
+Equip agents with knowledge from files, documents, or structured data sources and use it during reasoning, writing, or analysis tasks.
+
+### 🐍 Custom Python Tools
+Define and integrate your own Python tools – and manage them directly from the frontend. No need to hard-code logic or redeploy.
+
+### 🛠️ Developer-Centric Control
+Fine-grained orchestration API letting developers manage each step of AI workflows directly, without hidden abstractions or rigid templates.
+
+### ⚡ High-Performance Core
+Asynchronous, minimal-overhead architecture optimized for speed and concurrency, enabling rapid execution of complex tasks.
+
+### 🧱 Modular Backend
+Pluggable, RESTful service architecture built for flexible extension, scalable integration, and easy deployment of custom components.
+
+### 🌍 Open-Source
+Community-driven and permissively licensed, focusing on transparency and developer freedom rather than proprietary lock-in.
+
+### 🤖 LLM & Workflow Compatibility
+Designed to integrate seamlessly with any language model or AI service and to support explicit, structured multi-step workflows out of the box.
 ---
 
 ## Mission
@@ -28,15 +57,6 @@ By embracing the latest advancements in AI, we strive to create a seamless and i
 
 - **Collaborative Spirit**  
   We believe in the power of collaboration — between humans and AI, as well as within our community. This spirit drives us to build tools that facilitate seamless interaction and mutual support.
-
----
-
-## Future Outlook
-
-**EpicStaff** is dedicated to continuously enhancing the user experience by integrating cutting-edge AI models and offering flexible solutions for utilizing local models.  
-Our vision is to pioneer the future of intelligent collaboration alongside our users, crafting even more powerful tools to tackle complex challenges and drive innovation.
-
----
 
 ## Join Us
 
