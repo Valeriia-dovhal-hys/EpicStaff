@@ -147,7 +147,8 @@ def fake_redis_client() -> Generator[MagicMock, None, None]:
 
 
 @pytest.fixture
-def yaml_config_service_patched_config_path(tmp_path) -> Generator[MagicMock, None, None]:
+def yaml_config_service_patched_config_path(tmp_path: Path) -> Generator[MagicMock, None, None]:
+    tmp_path.mkdir(exist_ok=True)
     config_path: Path = tmp_path / "config.yaml"
     with patch.object(YamlConfigService, "_CONFIG_PATH", config_path):
         yield config_path
