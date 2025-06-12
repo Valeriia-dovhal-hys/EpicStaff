@@ -46,11 +46,11 @@ def repeat_request(
 
 def test_create_and_run_crew():
 
+    set_openai_api_key_to_environment()
+
     config_id = create_config()
 
     llm_id = 1
-
-    set_openai_api_key_to_environment()
 
     wikipedia_tool_id = get_tool("wikipedia")
 
@@ -76,6 +76,19 @@ def run_session(crew_id: int):
     return run_crew_response.json()["session_id"]
 
 
+def create_task(crew_id: int, agent_id: int):
+    task_data = {
+        "name": "Test task",
+        "instructions": "Find inpormation about cars",
+        "expected_output": "What is car",
+        "order": 1,
+        "crew": crew_id,
+        "agent": agent_id,
+    }
+
+    crew_response = repeat_request("post", f"{BASE_URL}/tasks/", json=task_data)
+
+
 def create_crew(agent_id_list: list[int], llm_id: int, config_id: int) -> int:
 
     crew_data = {
@@ -89,6 +102,8 @@ def create_crew(agent_id_list: list[int], llm_id: int, config_id: int) -> int:
     }
 
     crew_response = repeat_request("post", f"{BASE_URL}/crews/", json=crew_data)
+    crew_id = crew_response.json()["id"]
+    create_task(crew_id=crew_id, agent_id=agent_id_list[0])
 
     return crew_response.json()["id"]
 
@@ -129,17 +144,17 @@ def create_config() -> int:
 
 def set_openai_api_key_to_environment() -> None:
     SECRET_OPENAI_API_KEY = os.environ.get("OPENAI_KEY", "No key")
-
+    
     environment_data = {"data": {"SECRET_OPENAI_API_KEY": SECRET_OPENAI_API_KEY}}
 
-    repeat_request("post", f"{BASE_URL}/environment/config/", json=environment_data)
+    repeat_request("post", f"{BASE_URL}/environment/config", json=environment_data)
 
 
 def get_tool(tool_alias: str) -> int:
-    response_tools = repeat_request("post", f"{BASE_URL}/tools/")
+    response_tools = repeat_request("get", f"{BASE_URL}/tools/")
 
-    tool_list = response_tools.json()["result"]
+    tool_list = response_tools.json()["results"]
 
-    wikipedia_tool = filter(lambda tool: tool.name_alias == tool_alias, tool_list)
+    wikipedia_tool = filter(lambda tool: tool["name_alias"] == tool_alias, tool_list)
 
     return next(wikipedia_tool)["id"]
