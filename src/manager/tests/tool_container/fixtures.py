@@ -41,6 +41,11 @@ def test_network(docker_client: DockerClient) -> Generator[Network, None, None]:
 
 @pytest.fixture(scope="module")
 def manager_container(docker_client: DockerClient, test_network: Network) -> Generator[Container, None, None]:
+
+    for container in docker_client.containers.list(all=True, filters={"ancestor": "alpine:latest"}):
+        container.stop()
+        container.remove()
+
     container = docker_client.containers.run(
         'alpine:latest',
         name='manager_container',
@@ -49,16 +54,16 @@ def manager_container(docker_client: DockerClient, test_network: Network) -> Gen
         network=test_network.name
     )
     yield container
-    
+
     container.stop()
     container.remove()
 
 
 @pytest.fixture(scope="module")
-def wikipedia_image(docker_client: DockerClient) -> Generator[Image, None, None]:
+def mocktool_image(docker_client: DockerClient) -> Generator[Image, None, None]:
     os.environ['DOCKERHUB_PROFILE_NAME'] = ''
 
-    image_name = 'wikipedia_tool'
+    image_name = 'mock_tool'
     tag_name = f"{image_name}:latest"
 
     images_to_remove = docker_client.images.list(filters={"reference": tag_name})
@@ -74,7 +79,7 @@ def wikipedia_image(docker_client: DockerClient) -> Generator[Image, None, None]
     else:
         dockerfile = '''
         FROM alpine:latest
-        LABEL wikipedia_tool=""
+        LABEL mock_tool=""
         CMD ["sleep", "3600"]
         '''
         image, build_logs = docker_client.images.build(
@@ -98,7 +103,7 @@ def wikipedia_image(docker_client: DockerClient) -> Generator[Image, None, None]
 @pytest.fixture
 def tool_container_service(docker_client: DockerClient) -> Generator[ToolContainerService, None, None]:
     import_tool_data_repository = Mock()
-    import_tool_data_repository.find_image_name_by_tool_alias.return_value = 'wikipedia_tool'
+    import_tool_data_repository.find_image_name_by_tool_alias.return_value = 'mock_tool'
 
     with patch("services.tool_image_service.ToolImageService.pull_from_dockerhub", return_value=None) as mock_pull:
         from services.tool_image_service import ToolImageService
