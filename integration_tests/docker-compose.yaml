@@ -1,0 +1,92 @@
+services:
+  django_app:
+    image: django_app
+    command: >
+      sh -c "python manage.py migrate && 
+      python manage.py upload_models &&
+      python manage.py listen_redis & python manage.py runserver 0.0.0.0:8000"
+    container_name: django_app
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRESQL_HOST=crewdb
+    volumes:
+      - crew_config:/home/user/root/app/env_config
+
+    networks:
+      - backend-network
+    depends_on:
+      crewdb:
+        condition: service_healthy
+      manager:
+        condition: service_started
+      
+
+  manager:
+    image: manager
+    container_name: manager_container
+    ports:
+      - "8001:8001"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - /usr/bin/docker:/usr/bin/docker
+    networks:
+      - backend-network
+    tty: true
+    stdin_open: true
+    depends_on:
+      - redis
+
+  crewdb:
+    image: postgres
+    container_name: crewdb
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=crew
+      - POSTGRES_PASSWORD=admin
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - crew_pgdata:/var/lib/postgresql/data/pgdata
+    networks:
+      - backend-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis
+    container_name: redis
+    networks:
+      - backend-network
+    ports:
+      - "6379:6379"
+
+  frontend:
+    image: frontend
+ 
+    ports:
+      - "4200:80"
+    networks:
+      - frontend-network
+
+volumes:
+  crew_pgdata:
+    external: true
+  crew_config:
+    external: true
+
+networks:
+  backend-network:
+    driver: bridge
+
+  frontend-network:
+    driver: bridge
+
