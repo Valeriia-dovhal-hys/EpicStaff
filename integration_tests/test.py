@@ -100,7 +100,7 @@ def is_container_running(container_name: str) -> bool:
 
 
 def test_create_and_run_crew():
-
+    print(list(os.environ))
     set_openai_api_key_to_environment()
 
     config_id = create_config()
