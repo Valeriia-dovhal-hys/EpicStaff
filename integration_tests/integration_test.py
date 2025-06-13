@@ -84,6 +84,8 @@ def repeat_request(
 
 def test_create_and_run_crew():
 
+    sleep(20) # sleep to make sure that predifined models uploaded
+    
     set_openai_api_key_to_environment()
 
     config_id = create_config()
