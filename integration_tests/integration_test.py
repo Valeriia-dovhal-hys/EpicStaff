@@ -15,7 +15,7 @@ container_name_list = ["manager_container", "redis", "crewdb", "django_app", "fr
 client = docker.from_env()
 
 logger.remove()
-logger.add(sink=sys.stdout, level="INFO")
+logger.add(sink=sys.stdout, level="DEBUG")
 
 
 def is_container_running(container_name: str) -> bool:
