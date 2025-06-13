@@ -233,7 +233,7 @@ def create_config() -> int:
 
 
 def set_openai_api_key_to_environment() -> None:
-    SECRET_OPENAI_API_KEY = os.environ.get("OPENAI_KEY", "No key")
+    SECRET_OPENAI_API_KEY = os.environ.get("OPENAI_KEY", None)
 
     if SECRET_OPENAI_API_KEY is None:
 
