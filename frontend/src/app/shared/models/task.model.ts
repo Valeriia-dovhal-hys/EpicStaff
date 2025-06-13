@@ -13,7 +13,7 @@ export interface CreateTaskRequest {
   name: string;
   instructions: string;
   expected_output: string;
-  order: number | null; //required
+  order: number; //required
   agent: number | null;
 }
 

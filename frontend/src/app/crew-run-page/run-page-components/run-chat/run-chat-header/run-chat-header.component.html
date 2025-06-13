@@ -2,15 +2,15 @@
   <div class="run-chat-header-title-section">
     <div class="chat-title">
       Run Logs
-      <span *ngIf="chatStatus" class="status">
+      <span class="status">
         ({{ chatStatus }})
 
         <span *ngIf="chatStatus === 'running'" class="small-loader"></span>
       </span>
     </div>
   </div>
-  <!-- <div class="timer-section">
+  <div class="timer-section">
     <span class="timer-label">Timer:</span>
     <span class="timer">{{ timer }}</span>
-  </div> -->
+  </div>
 </div>

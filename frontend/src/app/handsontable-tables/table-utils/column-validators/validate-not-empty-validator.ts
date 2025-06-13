@@ -8,13 +8,20 @@ export function validateNotEmpty(snackbarService: SharedSnackbarService) {
     value: any,
     callback: Function
   ): void {
-    if (typeof value === 'string' && value.trim() !== '') {
+    const isFieldNotEmpty: boolean =
+      typeof value === 'string' && value.trim() !== '';
+
+    if (isFieldNotEmpty) {
       callback(true);
     } else {
+      const row = this.row + 1;
+      const columnName = this.prop;
+
       snackbarService.showSnackbar(
-        `Row ${this.row + 1}, Column "${this.prop}" should not be empty!`,
+        `Row ${row}, Column "${columnName}" should not be empty!`,
         'error'
       );
+
       callback(false);
     }
   };

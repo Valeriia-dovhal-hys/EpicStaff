@@ -1,82 +1,54 @@
 <div class="wrapper">
   <div class="header">
     <span class="title">{{ project.name }}</span>
+    <button
+      mat-icon-button
+      color="accent"
+      class="edit-button"
+      (click)="openEditProjectDialog()"
+    >
+      <mat-icon>edit</mat-icon>
+    </button>
   </div>
 
   <hr class="separator" />
 
   <div class="content">
     <div *ngIf="dataLoaded" class="project-info">
-      <div class="assignment-wrapper">
-        <span class="assignment-title">Assignment: </span>
-        <hr />
-        <span class="assignment-value">{{ project.assignment }}</span>
+      <div class="detail-item">
+        <span class="detail-title">Assignment:</span>
+        <span class="detail-value">{{ project.assignment || "N/A" }}</span>
       </div>
-      <div class="assignment-wrapper">
-        <span class="assignment-title">Description: </span>
-        <hr />
-        <span class="assignment-value">{{ project.description }}</span>
+      <div class="detail-item">
+        <span class="detail-title">Description:</span>
+        <span class="detail-value">{{ project.description || "N/A" }}</span>
       </div>
-      <div class="assignment-wrapper">
-        <span class="assignment-title">Process type: </span>
-        <hr />
-        <span class="assignment-value">{{ project.process }}</span>
+      <div class="detail-item">
+        <span class="detail-title">Process:</span>
+        <span class="detail-value">{{ project.process }}</span>
       </div>
-
-      <div class="assignment-wrapper" *ngIf="embeddingModelData">
-        <span class="assignment-title">Embedding Model: </span>
-        <hr />
-        <span class="assignment-value">{{ embeddingModelData.name }}</span>
-      </div>
-      <div class="assignment-wrapper" *ngIf="llmModelData">
-        <span class="assignment-title">LLM Model: </span>
-        <hr />
-        <span class="assignment-value">{{ llmModelData.name }}</span>
-      </div>
-      <div class="assignment-wrapper" *ngIf="configData?.temperature != null">
-        <span class="assignment-title">Creativity Index: </span>
-        <hr />
-        <span class="assignment-value">{{ configData?.temperature }}</span>
-      </div>
-      <div class="assignment-wrapper" *ngIf="configData?.num_ctx !== null">
-        <span class="assignment-title">Context: </span>
-        <hr />
-        <span class="assignment-value">{{ configData?.num_ctx }}</span>
-      </div>
-      <!-- <div class="detail-item">
+      <div class="detail-item">
         <span class="detail-title">Memory Enabled:</span>
         <span class="detail-value">{{ project.memory ? "Yes" : "No" }}</span>
-      </div> -->
+      </div>
+      <div class="detail-item" *ngIf="modelData">
+        <span class="detail-title">Embedding Model:</span>
+        <span class="detail-value">{{ modelData.name }}</span>
+      </div>
+      <div class="detail-item" *ngIf="configData?.temperature !== undefined">
+        <span class="detail-title">Temperature:</span>
+        <span class="detail-value">{{ configData?.temperature }}</span>
+      </div>
+      <div class="detail-item" *ngIf="configData?.num_ctx !== undefined">
+        <span class="detail-title">Context:</span>
+        <span class="detail-value">{{ configData?.num_ctx }}</span>
+      </div>
     </div>
   </div>
 
   <div class="footer">
-    <div class="edit-project">
-      <button mat-stroked-button (click)="openEditProjectDialog()">
-        Edit Project <mat-icon>edit</mat-icon>
-      </button>
-    </div>
-    <!-- <button class="run-button" mat-flat-button color="primary">Run</button> -->
-    <ng-container *ngIf="sessionId == null; else sessionActiveTemplate">
-      <button
-        class="run-button"
-        mat-flat-button
-        color="primary"
-        (click)="startRun()"
-      >
-        Run
-      </button>
-    </ng-container>
+    <button mat-flat-button color="primary" (click)="startRun()">Run</button>
   </div>
-
-  <ng-template #sessionActiveTemplate>
-    <button mat-flat-button color="primary" (click)="viewRunSession()">
-      View
-    </button>
-    <button mat-flat-button color="primary" (click)="stopRunSession()">
-      Stop
-    </button>
-  </ng-template>
 </div>
 
 <!-- Confirmation Dialog Template -->

@@ -24,7 +24,7 @@
         class="full-width"
         floatLabel="always"
       >
-        <mat-label>Assignment(optional)</mat-label>
+        <mat-label>Assignment</mat-label>
         <textarea matInput formControlName="assignment" rows="3"></textarea>
         <mat-error *ngIf="projectForm.get('assignment')?.hasError('required')">
           Description is required
@@ -37,7 +37,7 @@
         class="full-width"
         floatLabel="always"
       >
-        <mat-label>Description(optional)</mat-label>
+        <mat-label>Description (optional)</mat-label>
         <textarea matInput formControlName="description" rows="3"></textarea>
       </mat-form-field>
 
@@ -75,7 +75,7 @@
             floatLabel="always"
             class="inline-field"
           >
-            <mat-label>Project Creativity Index</mat-label>
+            <mat-label>Temperature</mat-label>
             <input
               matInput
               formControlName="temperature"
@@ -103,7 +103,7 @@
             floatLabel="always"
             class="inline-field"
           >
-            <mat-label>Project Context</mat-label>
+            <mat-label>Context</mat-label>
             <input
               matInput
               formControlName="num_ctx"

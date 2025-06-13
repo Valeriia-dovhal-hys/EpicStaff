@@ -55,7 +55,7 @@
         floatLabel="always"
         class="full-width"
       >
-        <mat-label>Order(optional)</mat-label>
+        <mat-label>Order</mat-label>
         <input matInput type="number" formControlName="order" />
         <mat-error *ngIf="taskForm.get('order')?.hasError('required')">
           Order is required
@@ -63,12 +63,8 @@
       </mat-form-field>
 
       <!-- Agent Selection Field -->
-      <mat-form-field
-        appearance="outline"
-        floatLabel="always"
-        class="full-width"
-      >
-        <mat-label>Select Agent(optional)</mat-label>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Select Agent</mat-label>
         <mat-select formControlName="agent">
           <mat-option [value]="null">None</mat-option>
           <mat-option *ngFor="let agent of agents" [value]="agent">

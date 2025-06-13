@@ -1,6 +1,5 @@
 ENV
 .env
-./config
-venv
-.venv
-.django_venv
+*/venv
+*/.venv
+*/.django_venv

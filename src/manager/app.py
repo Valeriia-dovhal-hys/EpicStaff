@@ -66,16 +66,18 @@ def get_class_data(tool_alias: str):
 )
 def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
     # logger.debug(f"run tool {tool_alias} with params {run_tool_params_model.dict()}")
-    run_tool_data = tool_container_service.request_run_tool(
+
+    run_tool_response = tool_container_service.request_run_tool(
         tool_alias=tool_alias, run_tool_params_model=run_tool_params_model
-    )["data"]
-    return RunToolResponseModel(data=run_tool_data)
+    )
+    
+    return RunToolResponseModel(data=run_tool_response["data"])
 
 
 @app.on_event("startup")
 async def start_redis_subscription():
     await redis_service.init_redis()
-    asyncio.create_task(redis_service.subscribe_to_start_session())
+    asyncio.create_task(redis_service.listen_redis())
 
 
 if __name__ == "__main__":

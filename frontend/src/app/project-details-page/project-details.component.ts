@@ -3,29 +3,32 @@ import {
   ChangeDetectorRef,
   Component,
   OnInit,
+  TemplateRef,
+  ViewChild,
 } from '@angular/core';
-import { Project } from '../shared/models/project.model';
-import { ActivatedRoute } from '@angular/router';
+import { Project, Variable } from '../shared/models/project.model';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectsService } from '../services/projects.service';
-import { NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
-import { AgentsDialogComponent } from './section-agents-info/agents-dialog/agents-dialog.component';
+import { AgentsDialogComponent } from './agents-dialog/agents-dialog.component';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { SharedSnackbarService } from '../services/snackbar/shared-snackbar.service';
 import { forkJoin, Observable, of, Subscription } from 'rxjs';
-import { Agent } from '../shared/models/agent.model';
+import { Agent, GetAgentRequest } from '../shared/models/agent.model';
 import { AgentsService } from '../services/staff.service';
 import { MatListModule } from '@angular/material/list';
 import { TasksService } from '../services/tasks.service';
 import { Task } from '../shared/models/task.model';
-
+import { ProjectTasksTableComponent } from '../handsontable-tables/project-tasks-table/project-tasks-table.component';
 import { MatIconModule } from '@angular/material/icon';
 import { CreateTaskFormDialogComponent } from '../forms/create-task-form-dialog/create-task-form-dialog.component';
-import { switchMap } from 'rxjs/operators';
-
+import { catchError, switchMap, tap } from 'rxjs/operators';
+import { RunCrewSessionService } from '../services/run-crew-session.service';
+import { RunCrewSessionRequest } from '../shared/models/RunCrewSession.model';
 import { SectionProjectInfoComponent } from './section-project-info/section-project-info.component';
 import { SectionAgentsInfoComponent } from './section-agents-info/section-agents-info.component';
 import { SectionTasksInfoComponent } from './section-tasks-info/section-tasks-info.component';
@@ -35,13 +38,13 @@ import { SectionTasksInfoComponent } from './section-tasks-info/section-tasks-in
   standalone: true,
   imports: [
     NgIf,
-
+    NgFor,
     MatCardModule,
     MatButtonModule,
     MatDividerModule,
     MatDialogModule,
     MatListModule,
-
+    ProjectTasksTableComponent,
     MatIconModule,
     SectionProjectInfoComponent,
     SectionAgentsInfoComponent,
@@ -58,16 +61,22 @@ export class ProjectDetailsComponent implements OnInit {
 
   isDataLoaded: boolean = false;
 
+  sessionId: number | null = null;
+
+  expandedAgents: { [agentId: number]: boolean } = {};
+
   private subscriptions = new Subscription();
 
   constructor(
+    private router: Router,
     private route: ActivatedRoute,
     private projectsService: ProjectsService,
     private sharedSnackbarService: SharedSnackbarService,
     private tasksService: TasksService,
     private agentsService: AgentsService,
     private dialog: MatDialog,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private runCrewSessionService: RunCrewSessionService
   ) {}
 
   ngOnInit() {

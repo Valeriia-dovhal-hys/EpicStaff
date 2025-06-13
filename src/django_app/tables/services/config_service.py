@@ -2,10 +2,12 @@ from pathlib import Path
 
 import yaml
 
+from utils.singleton_meta import SingletonMeta
 
-class YamlConfigService:
 
-    _CONFIG_PATH = Path("/home/user/root/django/env_config/config.yaml").resolve()
+class YamlConfigService(metaclass=SingletonMeta):
+
+    _CONFIG_PATH = Path("/home/user/root/app/env_config/config.yaml").resolve()
 
     def get(self, key: str) -> str:
         config_dict = self.read_yaml_config(self._CONFIG_PATH)
@@ -20,10 +22,16 @@ class YamlConfigService:
     def set_all(self, config_dict: dict[str, str]) -> None:
         self.update_yaml_config(self._CONFIG_PATH, config_dict)
 
-    def delete(self, key: str) -> None:
+    def delete(self, key: str) -> bool:
         config_dict = self.get_all()
-        config_dict.pop(key)
-        self.rewrite_yaml_config(self._CONFIG_PATH, config_dict)
+
+        to_delete_key = config_dict.pop(key, None)
+        
+        if to_delete_key is not None:
+            self.rewrite_yaml_config(self._CONFIG_PATH, config_dict)
+            return True
+
+        return False
 
     @classmethod
     def read_yaml_config(cls, yaml_config_path: Path):

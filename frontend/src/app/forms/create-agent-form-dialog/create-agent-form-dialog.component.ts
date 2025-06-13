@@ -21,12 +21,13 @@ import {
 import { Tool } from '../../shared/models/tool.model';
 import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatOption, MatSelect } from '@angular/material/select';
+import { MatCheckbox } from '@angular/material/checkbox';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInput } from '@angular/material/input';
 import { MatIcon } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
-import { ToolSelectorComponent } from '../../handsontable-tables/staff/tools-selector-dialog/tool-selector-dialog.component';
+import { ToolSelectorComponent } from '../../main/tools-selector-dialog/tool-selector-dialog.component';
 import { LLM_Model } from '../../shared/models/LLM.model';
 import { forkJoin, Subscription } from 'rxjs';
 import { LLM_Models_Service } from '../../services/LLM_models.service';
@@ -46,7 +47,7 @@ import { CreateAgentRequest } from '../../shared/models/agent.model';
     MatLabel,
     MatSelect,
     MatOption,
-
+    MatCheckbox,
     CommonModule,
     MatButtonModule,
     ReactiveFormsModule,
@@ -89,7 +90,7 @@ export class CreateAgentFormComponent implements OnInit, OnDestroy {
     private llmModelsService: LLM_Models_Service,
     private providersService: LLM_Providers_Service,
     private cdr: ChangeDetectorRef,
-    private llmConfigService: LLM_Config_Service
+    private llmConfigService: LLM_Config_Service // Inject the service
   ) {
     this.toolsData = data.toolsData;
   }
@@ -114,7 +115,7 @@ export class CreateAgentFormComponent implements OnInit, OnDestroy {
       fcm_llm_config: [null],
 
       temperature: [
-        0.5,
+        0.7,
         [Validators.required, Validators.min(0), Validators.max(1)],
       ],
       num_ctx: [25, [Validators.required, Validators.min(0)]],
@@ -131,7 +132,7 @@ export class CreateAgentFormComponent implements OnInit, OnDestroy {
         this.llmModels = llmModels;
         this.providers = providers;
 
-        const openaiProvider: LLM_Provider | undefined = this.providers.find(
+        const openaiProvider = this.providers.find(
           (provider) => provider.name.toLowerCase() === 'openai'
         );
 
@@ -225,6 +226,7 @@ export class CreateAgentFormComponent implements OnInit, OnDestroy {
   }
 
   public onSubmitForm(): void {
+    //this shows invalid fields if they are
     this.agentForm.markAllAsTouched();
 
     if (this.agentForm.valid) {
@@ -235,40 +237,26 @@ export class CreateAgentFormComponent implements OnInit, OnDestroy {
         num_ctx: this.agentForm.value.num_ctx,
       };
 
-      const functionConfigData: CreateLLMConfigRequest = {
-        temperature: 0,
-        num_ctx: 25,
-      };
+      this.llmConfigService.createConfig(configData).subscribe({
+        next: (createdConfig: LLM_Config) => {
+          const configId: number | null = createdConfig.id;
 
-      const forkJoinSubscription = forkJoin({
-        createdConfig: this.llmConfigService.createConfig(configData),
-        createdFunctionConfig:
-          this.llmConfigService.createConfig(functionConfigData),
-      }).subscribe({
-        next: ({ createdConfig, createdFunctionConfig }) => {
           const { temperature, num_ctx, ...agentFormData } =
             this.agentForm.value;
 
           const newAgent: CreateAgentRequest = {
             ...agentFormData,
             tools: this.selectedTools.map((tool: Tool) => tool.id),
-            llm_config: createdConfig.id,
-            fcm_llm_config: createdFunctionConfig.id,
+            llm_config: configId,
+            fcm_llm_config: configId,
           };
 
-          // Pass both newAgent and temperature, context to the StaffComponent
-          this.agentFormDialogRef.close({
-            agentData: newAgent,
-            llm_temperature: temperature,
-            llm_context: num_ctx,
-          });
+          this.agentFormDialogRef.close(newAgent);
         },
         error: (error: Error) => {
-          console.error('Error creating LLM configs:', error);
-          this.agentForm.enable();
+          console.error('Error creating LLM config:', error);
         },
       });
-      this.subscriptions.add(forkJoinSubscription);
     } else {
       console.log('Form Invalid');
     }

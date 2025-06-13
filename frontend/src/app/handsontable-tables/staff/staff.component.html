@@ -2,20 +2,15 @@
   <div class="staff-table-header-container">
     <div class="staff-table-title-search-header-section">
       <span class="staff-table-title">Staff</span>
-      <div class="search-input-wrapper">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input type="text" placeholder="Search agents..." />
-      </div>
+      <input type="text" placeholder="Search agents..." />
     </div>
     <div class="staff-table-header-actions">
       <button
-        class="create-agent"
         mat-flat-button
         color="primary"
         (click)="onOpenCreateAgentFormDialog()"
       >
-        <mat-icon>add</mat-icon>
-        Create agent
+        Create an agent via form
       </button>
     </div>
   </div>
@@ -31,3 +26,31 @@
     <div #staffTableContainer id="staffTableContainer"></div>
   </div>
 </div>
+
+<!-- Popup LLM Selector Template
+<div
+  *ngIf="showPopup"
+  class="popup-container"
+  [ngStyle]="popupStyles"
+  (click)="onPopupClick($event)"
+  (mousedown)="$event.stopPropagation()"
+>
+  <select (change)="onProviderChange($event)" [value]="selectedProviderId">
+    <option *ngFor="let provider of providers" [value]="provider.id">
+      {{ provider.name }}
+    </option>
+  </select>
+  <div class="llm-list">
+    <div
+      *ngFor="let llm of llmsForProvider"
+      [class.selected]="llm.name === selectedLlmName"
+      (click)="onLlmSelect(llm)"
+      class="llm-option"
+    >
+      {{ llm.name }}
+    </div>
+    <div *ngIf="llmsForProvider.length === 0">
+      No LLMs available for this provider.
+    </div>
+  </div>
+</div> -->

@@ -14,7 +14,6 @@ export function createCustomAgentLlmSelectRenderer(
     value: any,
     cellProperties: any
   ): void {
-    // Clean up previous event listeners
     if (
       cellProperties.selectedValueClickListener &&
       cellProperties.selectedValueDiv
@@ -37,18 +36,14 @@ export function createCustomAgentLlmSelectRenderer(
       );
     }
 
-    // Clear the cell
     Handsontable.dom.empty(td);
 
-    // Ensure the cell is positioned relatively
     td.style.position = 'relative';
     td.style.overflow = 'visible';
 
-    // Create the container for the dropdown
     const container = document.createElement('div');
     container.classList.add('custom-dropdown-container');
 
-    // Create the selected value display
     const selectedValueDiv = document.createElement('div');
     selectedValueDiv.classList.add('selected-value');
 
@@ -63,7 +58,6 @@ export function createCustomAgentLlmSelectRenderer(
     selectedValueDiv.appendChild(selectedTextSpan);
     selectedValueDiv.appendChild(iconSpan);
 
-    // Create the options list
     const optionsList = document.createElement('div');
     optionsList.classList.add('options-list');
     optionsList.style.display = 'none';
@@ -82,17 +76,15 @@ export function createCustomAgentLlmSelectRenderer(
     });
 
     container.appendChild(selectedValueDiv);
+    container.appendChild(optionsList);
     td.appendChild(container);
-    td.appendChild(optionsList);
 
-    // Store references in cellProperties for cleanup
     cellProperties.selectedValueDiv = selectedValueDiv;
     cellProperties.optionsList = optionsList;
 
-    // Document click listener to close the dropdown
     const documentClickListener = (event: MouseEvent) => {
       if (
-        !td.contains(event.target as Node) &&
+        !container.contains(event.target as Node) &&
         optionsList.style.display === 'block'
       ) {
         optionsList.style.display = 'none';
@@ -105,7 +97,6 @@ export function createCustomAgentLlmSelectRenderer(
       }
     };
 
-    // Handle option selection
     const handleOptionClick = (event: Event) => {
       const target = event.target as HTMLElement;
 
@@ -128,7 +119,6 @@ export function createCustomAgentLlmSelectRenderer(
       }
     };
 
-    // Handle click on the selected value to toggle dropdown
     const handleSelectedValueClick = (event: Event) => {
       event.stopPropagation();
 
@@ -143,35 +133,54 @@ export function createCustomAgentLlmSelectRenderer(
         selectedValueDiv.classList.remove('open');
         iconSpan.textContent = '▼';
       } else {
-        // Reset styles
         optionsList.style.left = '';
         optionsList.style.right = '';
         optionsList.style.transform = '';
         optionsList.style.visibility = 'hidden';
         optionsList.style.display = 'block';
 
-        const tdRect = td.getBoundingClientRect();
+        const selectRect = selectedValueDiv.getBoundingClientRect();
         const optionsRect = optionsList.getBoundingClientRect();
 
         optionsList.style.display = 'none';
         optionsList.style.visibility = 'visible';
 
-        // Adjust width to be at least as wide as the cell
-        if (optionsRect.width < tdRect.width) {
-          optionsList.style.width = `${tdRect.width}px`;
+        let positionAdjusted: boolean = false;
+
+        if (selectRect.left + optionsRect.width > window.innerWidth) {
+          optionsList.style.left = 'auto';
+          optionsList.style.right = '0';
+          positionAdjusted = true;
         }
 
-        // Position the dropdown below the cell
-        optionsList.style.top = `${td.offsetHeight}px`;
-        optionsList.style.left = '0';
-
-        // Handle overflow on the right edge
-        const optionsRectAfter = optionsList.getBoundingClientRect();
-        if (optionsRectAfter.right > window.innerWidth) {
-          optionsList.style.left = `${
-            window.innerWidth - optionsRectAfter.right
-          }px`;
+        if (positionAdjusted && optionsList.getBoundingClientRect().left < 0) {
+          optionsList.style.left = '0';
+          optionsList.style.right = 'auto';
         }
+
+        const spaceBelow = window.innerHeight - selectRect.bottom;
+        const spaceAbove = selectRect.top;
+
+        let openDirection: 'up' | 'down' = 'down';
+
+        const dropdownHeight = optionsList.offsetHeight || 200; // Use fixed height or default to 200
+
+        if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+          openDirection = 'up';
+        }
+
+        // **Position the dropdown vertically**
+        if (openDirection === 'up') {
+          optionsList.style.bottom = '100%';
+          optionsList.style.top = 'auto';
+          iconSpan.textContent = '▲';
+        } else {
+          optionsList.style.top = '100%';
+          optionsList.style.bottom = 'auto';
+          iconSpan.textContent = '▼';
+        }
+
+        optionsList.style.maxHeight = '';
 
         optionsList.style.display = 'block';
 
@@ -179,18 +188,15 @@ export function createCustomAgentLlmSelectRenderer(
         cellProperties.documentClickListener = documentClickListener;
 
         selectedValueDiv.classList.add('open');
-        iconSpan.textContent = '▲';
       }
     };
 
-    // Attach event listeners
     selectedValueDiv.addEventListener('click', handleSelectedValueClick);
     cellProperties.selectedValueClickListener = handleSelectedValueClick;
 
     optionsList.addEventListener('click', handleOptionClick);
     cellProperties.optionsListClickListener = handleOptionClick;
 
-    // Store cleanup references
     eventListenerRefs.push(() => {
       // Remove event listeners
       if (
