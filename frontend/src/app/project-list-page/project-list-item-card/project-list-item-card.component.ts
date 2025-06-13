@@ -17,7 +17,6 @@ import { RunCrewSessionService } from '../../services/run-crew-session.service';
 import { SharedSnackbarService } from '../../services/snackbar/shared-snackbar.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RunCrewSessionRequest } from '../../shared/models/RunCrewSession.model';
-import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-project-list-item-card',
@@ -29,17 +28,15 @@ import { NgIf } from '@angular/common';
     MatDividerModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule,
-    NgIf,
+    MatDialogModule, // Add MatDialogModule to imports
   ],
 })
 export class ProjectListItemCardComponent {
   @Input() project!: Project;
   @Output() deleteProject = new EventEmitter<number>();
 
+  // Get a reference to the dialog template
   @ViewChild('confirmRunDialog') confirmRunDialog!: TemplateRef<any>;
-
-  runSessionId: number | null = null; // Made public to access in template
 
   constructor(
     private router: Router,
@@ -59,21 +56,30 @@ export class ProjectListItemCardComponent {
 
   startRun(): void {
     const dialogRef = this.dialog.open(this.confirmRunDialog, {
-      width: '350px',
+      width: '400px',
       height: '180px',
-      disableClose: true,
+      disableClose: true, // Optional: Prevent closing by clicking outside
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
+        // User clicked 'Yes'
+        // Proceed to create session and navigate to run page
         this.runCrewSessionService.createSession(this.project.id).subscribe({
           next: (response: RunCrewSessionRequest) => {
             const sessionId = response.session_id;
             console.log('Session ID:', sessionId);
 
-            this.runSessionId = sessionId;
+            // Update sessionStatus if needed
+            // this.project.sessionStatus = 'running';
             this.cdr.detectChanges();
 
+            // Navigate to the run page
+            this.router.navigate([
+              `/project/${this.project.id}/run-session/${sessionId}`,
+            ]);
+
+            // Show success snackbar message
             this.sharedSnackbarService.showSnackbar(
               'Session started successfully!',
               'success'
@@ -87,37 +93,38 @@ export class ProjectListItemCardComponent {
             );
           },
         });
+      } else {
+        // User clicked 'No' or dismissed the dialog
+        // Do nothing or handle accordingly
       }
     });
   }
 
-  viewRunSession() {
-    this.router.navigate([
-      `/project/${this.project.id}/run-session/${this.runSessionId}`,
-    ]);
-  }
+  // Existing method to run the project
+  runProject(): void {
+    this.runCrewSessionService.createSession(this.project.id).subscribe({
+      next: (response: RunCrewSessionRequest) => {
+        const sessionId = response.session_id;
+        console.log('Session ID:', sessionId);
 
-  stopRunSession() {
-    if (this.runSessionId != null) {
-      this.runCrewSessionService.stopSession(this.runSessionId).subscribe({
-        next: () => {
-          this.sharedSnackbarService.showSnackbar(
-            'Session stopped successfully!',
-            'success'
-          );
-          this.runSessionId = null; // Reset the session ID
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error('Error stopping session:', error);
-          this.sharedSnackbarService.showSnackbar(
-            'Failed to stop session.',
-            'error'
-          );
-        },
-      });
-    }
+        // Navigate to the run page
+        this.router.navigate([
+          `/project/${this.project.id}/run-session/${sessionId}`,
+        ]);
+
+        // Display success message
+        this.sharedSnackbarService.showSnackbar(
+          'Session started successfully!',
+          'success'
+        );
+      },
+      error: (error) => {
+        console.error('Error creating session:', error);
+        this.sharedSnackbarService.showSnackbar(
+          'Failed to start session.',
+          'error'
+        );
+      },
+    });
   }
-  copyProject() {}
-  viewRunResults() {}
 }

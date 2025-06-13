@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, computed, Input, signal } from '@angular/core';
+import { Component, computed, Input, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -16,6 +16,7 @@ export type MenuItem = {
   imports: [
     RouterLink,
     RouterLinkActive,
+    NgClass,
     MatIconModule,
     MatListModule,
     MatIconModule,
@@ -37,7 +38,7 @@ export class CustomSidenavComponent {
     //   route: '',
     // },
     {
-      icon: 'folder',
+      icon: 'folder_open',
       label: 'Projects List',
       route: 'projects-list',
     },
@@ -47,11 +48,11 @@ export class CustomSidenavComponent {
       label: 'Staff',
       route: 'staff',
     },
-    // {
-    //   icon: 'assignment',
-    //   label: 'All tasks',
-    //   route: 'tasks-templates',
-    // },
+    {
+      icon: 'assignment',
+      label: 'All tasks',
+      route: 'tasks-table-2',
+    },
     // {
     //   icon: 'dashboard',
     //   label: 'Main Page',

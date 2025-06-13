@@ -12,7 +12,7 @@ import { Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateProjectFormDialogComponent } from '../forms/create-project-form-dialog/create-project-form-dialog.component';
 import { SharedSnackbarService } from '../services/snackbar/shared-snackbar.service';
-import { MatIcon, MatIconModule } from '@angular/material/icon';
+import { ApiGetRequest } from '../shared/models/api-request.model';
 
 @Component({
   selector: 'app-projects-list',
@@ -22,7 +22,6 @@ import { MatIcon, MatIconModule } from '@angular/material/icon';
     MatCardModule,
     MatButtonModule,
     ProjectListItemCardComponent,
-    MatIconModule,
   ],
   templateUrl: './projects-list.component.html',
   styleUrls: ['./projects-list.component.scss'],
@@ -72,7 +71,7 @@ export class ProjectsListComponent implements OnInit {
             console.log('response', response);
 
             this.snackbarService.showSnackbar(
-              `Project created successfully.`,
+              `Project "${response.name}" created successfully.`,
               'success'
             );
 

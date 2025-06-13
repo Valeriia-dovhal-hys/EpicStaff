@@ -32,11 +32,4 @@ export class SectionTasksInfoComponent {
   onOpenCreateTaskDialog(): void {
     this.addTaskClicked.emit();
   }
-
-  onTaskCreated(newTask: Task): void {
-    this.tasks.push(newTask);
-  }
-  onTasksDeleted(deletedTaskIds: number[]): void {
-    this.tasks = this.tasks.filter((task) => !deletedTaskIds.includes(task.id));
-  }
 }
