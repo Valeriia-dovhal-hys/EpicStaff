@@ -146,7 +146,7 @@ def check_containers():
             assert False, f'Container "{name}" not running'
 
 
-def get_session_messages(session_id: int) -> list[dict]:
+def get_session_messages(session_id: int) -> list:
     session_response = repeat_request(
         "get", f"{BASE_URL}/sessions/{session_id}/messages"
     )
