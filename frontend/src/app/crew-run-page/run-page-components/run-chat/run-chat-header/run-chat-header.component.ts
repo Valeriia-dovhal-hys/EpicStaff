@@ -9,7 +9,7 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
   styleUrl: './run-chat-header.component.scss',
 })
 export class RunChatHeaderComponent implements OnInit, OnDestroy {
-  @Input() chatStatus: string = 'running';
+  @Input() chatStatus!: string;
   timer: string = '00:00:00';
   private intervalId: any;
   private secondsElapsed: number = 0;

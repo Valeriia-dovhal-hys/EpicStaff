@@ -5,6 +5,12 @@ export interface LLM_Config {
 }
 
 export interface CreateLLMConfigRequest {
-  temperature?: number;
-  num_ctx?: number;
+  temperature: number;
+  num_ctx: number;
+}
+
+export interface UpdateLLMConfigRequest {
+  id: number;
+  temperature: number;
+  num_ctx: number;
 }

@@ -1,15 +1,24 @@
 <div class="main-container">
   <div class="header">
     <div class="title-search">
-      <span class="title">Projects List</span>
-      <input type="text" placeholder="Search projects..." />
+      <span class="title">Projects</span>
+      <div class="search-input-wrapper">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" placeholder="Search projects..." />
+      </div>
+      <!-- <button mat-flat-button>
+        Filter by
+        <mat-icon>expand_more</mat-icon>
+      </button> -->
     </div>
+
     <button
       mat-flat-button
       color="primary"
       (click)="openCreateProjectFormDialog()"
     >
-      Create a Project
+      <mat-icon>add</mat-icon>
+      New Project
     </button>
   </div>
   <div class="projects-container">

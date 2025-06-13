@@ -28,7 +28,6 @@ import { Router } from '@angular/router';
 export class AgentItemComponent implements OnInit {
   @Input() agent!: Agent;
 
-  public isExpanded: boolean = false;
   public tools: Tool[] = [];
   public llmConfig: LLM_Config | null = null;
   public llmModelName: string | null = null;
@@ -36,6 +35,8 @@ export class AgentItemComponent implements OnInit {
 
   public configsLoaded = false;
   public modelsLoaded = false;
+
+  public isExpanded: boolean = false;
 
   constructor(
     private toolsService: ToolsService,
@@ -61,7 +62,7 @@ export class AgentItemComponent implements OnInit {
         next: (tools: Tool[]) => {
           this.tools = tools;
           console.log(this.tools);
-          this.cdr.markForCheck(); // Trigger change detection
+          this.cdr.markForCheck();
         },
         error: (error: Error) => {
           console.error('Error fetching tools:', error);
@@ -76,7 +77,7 @@ export class AgentItemComponent implements OnInit {
         next: (config: LLM_Config) => {
           this.llmConfig = config;
           this.configsLoaded = true;
-          this.cdr.markForCheck(); // Trigger change detection
+          this.cdr.markForCheck();
         },
         error: (error: Error) => {
           console.error('Error fetching LLM config:', error);

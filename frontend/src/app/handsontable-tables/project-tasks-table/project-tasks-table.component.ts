@@ -28,7 +28,7 @@ import { SharedSnackbarService } from '../../services/snackbar/shared-snackbar.s
 import { validateNotEmpty } from '../table-utils/column-validators/validate-not-empty-validator';
 import { catchError, from, map, mergeMap, Observable, of, toArray } from 'rxjs';
 import { TasksService } from '../../services/tasks.service';
-import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogComponent } from '../table-utils/confirmation-dialog/confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { mutual_Variables_RowResize_Renderer } from '../table-utils/cell-renderers/variables-cell-renderer/mutual_variables-manualresize-renderer-utility';
 import { createAssignedAgentRoleRenderer } from './agentRolesRenderer';
@@ -40,7 +40,7 @@ import { createBeforeChangeHandler } from './before-change-tasks-table-handler';
 @Component({
   selector: 'app-project-tasks-table',
   standalone: true,
-  imports: [CommonModule, VariablePopupComponent],
+  imports: [CommonModule],
   templateUrl: './project-tasks-table.component.html',
   styleUrls: ['./project-tasks-table.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +53,8 @@ export class ProjectTasksTableComponent
   @Input() tasks: Task[] = [];
   @Input() agents: Agent[] = [];
   @Input() projectId!: number;
+  @Output() taskCreated = new EventEmitter<Task>();
+  @Output() tasksDeleted = new EventEmitter<number[]>();
 
   private tableData: TaskTableItem[] = [];
   private agentRoles: string[] = [];
@@ -88,9 +90,9 @@ export class ProjectTasksTableComponent
         this.hotInstance.updateSettings({
           columns: this.columns,
         });
-        this.hotInstance.render();
       } else {
         this.initializeHandsontable();
+        // this.hotInstance.render();
       }
     }
   }
@@ -102,9 +104,6 @@ export class ProjectTasksTableComponent
   }
 
   private processData(): void {
-    //sort by id
-    this.tasks.sort((a: Task, b: Task) => a.id - b.id);
-
     this.tableData = this.tasks.map((task: Task) => {
       const agent: Agent | undefined = this.agents.find(
         (a) => a.id === task.agent
@@ -252,7 +251,17 @@ export class ProjectTasksTableComponent
         this.hotContainer.nativeElement,
         this.hotSettings
       );
+
+      //workaround to prevent visual glitches
       this.hotInstance.render();
+      const lastRowIndex = this.hotInstance.countRows() - 1;
+      if (lastRowIndex >= 0) {
+        this.hotInstance.selectCell(lastRowIndex, 0);
+
+        setTimeout(() => {
+          this.hotInstance.selectCell(0, 0);
+        }, 0);
+      }
     }
   }
 
@@ -271,10 +280,11 @@ export class ProjectTasksTableComponent
       const endRow = Math.max(start.row, end.row);
 
       for (let visualRow = startRow; visualRow <= endRow; visualRow++) {
-        const physicalRow = this.hotInstance.toPhysicalRow(visualRow);
+        const physicalRow: number = this.hotInstance.toPhysicalRow(visualRow);
         physicalRowsToDeleteSet.add(physicalRow);
 
-        const task = this.tableData[physicalRow] as TaskTableItem;
+        const task: TaskTableItem = this.tableData[physicalRow];
+
         if (task?.id) {
           taskIdsToDeleteSet.add(task.id);
         }
@@ -283,7 +293,7 @@ export class ProjectTasksTableComponent
 
     const physicalRowsToDelete = Array.from(physicalRowsToDeleteSet).sort(
       (a, b) => b - a
-    ); // Sort descending
+    );
     const taskIdsToDelete = Array.from(taskIdsToDeleteSet);
 
     if (taskIdsToDelete.length > 0) {
@@ -298,9 +308,9 @@ export class ProjectTasksTableComponent
                   return of({ taskId, success: false });
                 })
               ),
-            100 // Concurrent deletions limit (adjust as needed)
+            49
           ),
-          toArray() // Collect all results
+          toArray()
         )
         .subscribe({
           next: (results) => {
@@ -324,7 +334,7 @@ export class ProjectTasksTableComponent
               );
             }
 
-            // Remove the tasks from the tasks array
+            // Remove the tasks from the local tasks array
             successfulDeletions.forEach((taskId) => {
               const index = this.tasks.findIndex((task) => task.id === taskId);
               if (index !== -1) {
@@ -342,6 +352,11 @@ export class ProjectTasksTableComponent
 
             // Re-render the Handsontable grid
             this.hotInstance.render();
+
+            // Emit the deleted task IDs to the parent component
+            if (successfulDeletions.length > 0) {
+              this.tasksDeleted.emit(successfulDeletions);
+            }
           },
           error: (error) => {
             console.error('Error deleting tasks:', error);
@@ -355,7 +370,7 @@ export class ProjectTasksTableComponent
           },
         });
     } else {
-      // No tasks to delete from server, remove unsaved rows
+      // Handle deletion of unsaved tasks (tasks without IDs)
       physicalRowsToDelete.forEach((physicalRowIndex) => {
         this.tableData.splice(physicalRowIndex, 1);
       });
@@ -372,6 +387,7 @@ export class ProjectTasksTableComponent
       this.hotInstance.render();
     }
   }
+
   private createEmptyTask() {
     return {
       id: null,
@@ -458,7 +474,7 @@ export class ProjectTasksTableComponent
             'success'
           );
 
-          this.tasks.push(createdTask);
+          this.taskCreated.emit(createdTask);
         },
         error: (error) => {
           console.error(`Error creating task:`, error);
@@ -544,9 +560,9 @@ export class ProjectTasksTableComponent
       }`
     );
 
-    setTimeout(() => {
-      this.hotInstance.selectCell(index, 2);
-    }, 0);
+    // setTimeout(() => {
+    //   this.hotInstance.selectCell(index, 2);
+    // }, 0);
 
     this.hotInstance.render();
   }

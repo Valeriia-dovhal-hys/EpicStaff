@@ -13,11 +13,11 @@ export interface Agent {
   fcm_llm_config: number | null;
 
   //custom
-  llm_temperature?: number;
-  llm_context?: number;
+  llm_temperature?: number | null;
+  llm_context?: number | null;
 
-  llm_model_name: string | null;
-  fcm_llm_model_name: string | null;
+  llm_model_name?: string | null;
+  fcm_llm_model_name?: string | null;
   comments?: string;
   toolTitles?: string;
 }
@@ -51,3 +51,7 @@ export interface CreateAgentRequest {
   llm_config: number | null;
   fcm_llm_config: number | null;
 }
+
+export type AgentTableItem = Omit<Agent, 'id'> & {
+  id: number | null;
+};

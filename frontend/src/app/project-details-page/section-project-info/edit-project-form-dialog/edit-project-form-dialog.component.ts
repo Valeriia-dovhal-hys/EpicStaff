@@ -26,23 +26,24 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import { ProjectsService } from '../../services/projects.service';
-import { Project } from '../../shared/models/project.model';
-import { SharedSnackbarService } from '../../services/snackbar/shared-snackbar.service';
+import { ProjectsService } from '../../../services/projects.service';
+import { Project } from '../../../shared/models/project.model';
+import { SharedSnackbarService } from '../../../services/snackbar/shared-snackbar.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { EmbeddingModelsService } from '../../services/embeddings.service';
-import { LLM_Models_Service } from '../../services/LLM_models.service';
-import { EmbeddingModel } from '../../shared/models/embedding.model';
-import { LLM_Model } from '../../shared/models/LLM.model';
+import { EmbeddingModelsService } from '../../../services/embeddings.service';
+import { LLM_Models_Service } from '../../../services/LLM_models.service';
+import { EmbeddingModel } from '../../../shared/models/embedding.model';
+import { LLM_Model } from '../../../shared/models/LLM.model';
 import { forkJoin, of, Subscription } from 'rxjs';
-import { LLM_Providers_Service } from '../../services/LLM_providers.service';
-import { LLM_Provider } from '../../shared/models/LLM_provider.model';
+import { LLM_Providers_Service } from '../../../services/LLM_providers.service';
+import { LLM_Provider } from '../../../shared/models/LLM_provider.model';
 import {
   CreateLLMConfigRequest,
   LLM_Config,
-} from '../../shared/models/LLM_config.model';
-import { LLM_Config_Service } from '../../services/LLM_config.service';
+  UpdateLLMConfigRequest,
+} from '../../../shared/models/LLM_config.model';
+import { LLM_Config_Service } from '../../../services/LLM_config.service';
 
 @Component({
   selector: 'app-edit-project-form-dialog',
@@ -110,7 +111,7 @@ export class EditProjectFormDialogComponent implements OnInit, OnDestroy {
   private initializeForm(): void {
     this.projectForm = this.fb.group({
       name: ['', Validators.required],
-      assignment: ['', Validators.required],
+      assignment: [''],
       description: [''],
       process: ['sequential', Validators.required],
       memory: [false],
@@ -239,27 +240,26 @@ export class EditProjectFormDialogComponent implements OnInit, OnDestroy {
       const { temperature, num_ctx, ...projectFormData } =
         this.projectForm.value;
 
-      const configData: CreateLLMConfigRequest = {
+      const configData: UpdateLLMConfigRequest = {
+        id: this.data.project.manager_llm_config,
         temperature,
         num_ctx,
       };
 
-      this.llmConfigService
-        .updateConfig(this.data.project.manager_llm_config, configData)
-        .subscribe({
-          next: (updatedConfig: LLM_Config) => {
-            this.submitProjectUpdate(this.data.project.manager_llm_config);
-          },
-          error: (error: Error) => {
-            console.error('Error updating LLM config:', error);
+      this.llmConfigService.updateConfig(configData).subscribe({
+        next: (updatedConfig: LLM_Config) => {
+          this.submitProjectUpdate(this.data.project.manager_llm_config);
+        },
+        error: (error: Error) => {
+          console.error('Error updating LLM config:', error);
 
-            this.snackbarService.showSnackbar(
-              'Failed to update LLM configuration. Please try again.',
-              'error'
-            );
-            this.projectForm.enable();
-          },
-        });
+          this.snackbarService.showSnackbar(
+            'Failed to update LLM configuration. Please try again.',
+            'error'
+          );
+          this.projectForm.enable();
+        },
+      });
     } else {
       console.log('Form Invalid');
       this.snackbarService.showSnackbar(

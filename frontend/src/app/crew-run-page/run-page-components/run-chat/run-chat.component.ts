@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { RunChatHeaderComponent } from './run-chat-header/run-chat-header.component';
 import { RunCrewSessionService } from '../../../services/run-crew-session.service';
-import { Subscription, timer } from 'rxjs';
+import { forkJoin, Subscription, timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -47,7 +47,7 @@ const ANSI_TO_CSS_CLASS: { [key: string]: string } = {
 })
 export class RunChatComponent implements OnInit, OnDestroy {
   @Input() sessionId!: number;
-  public chatStatus: string = 'running';
+  public chatStatus!: string;
 
   public messages: Array<CrewRunMessage & { segments?: TextSegment[] }> = [];
 
@@ -58,10 +58,16 @@ export class RunChatComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.messagesSubscription = timer(0, 2000)
       .pipe(
-        switchMap(() => this.runCrewSessionService.getMessages(this.sessionId))
+        switchMap(() =>
+          forkJoin({
+            messages: this.runCrewSessionService.getMessages(this.sessionId),
+            session: this.runCrewSessionService.getSession(this.sessionId),
+          })
+        )
       )
       .subscribe({
-        next: (messages: CrewRunMessage[]) => {
+        next: ({ messages, session }) => {
+          // Update messages
           this.messages = messages.map((msg) => {
             const segments = this.parseAnsiText(msg.text);
             return {
@@ -69,10 +75,21 @@ export class RunChatComponent implements OnInit, OnDestroy {
               segments: segments,
             };
           });
+
+          // Update chatStatus based on session status
+          if (session.status === 'end') {
+            this.chatStatus = 'finished';
+          } else if (session.status === 'run') {
+            this.chatStatus = 'running';
+          } else {
+            this.chatStatus = session.status;
+          }
+
+          console.log('Chat Status:', this.chatStatus);
           console.log(this.messages);
         },
         error: (error: Error) => {
-          console.error('Error fetching messages:', error);
+          console.error('Error fetching messages or session status:', error);
         },
       });
   }

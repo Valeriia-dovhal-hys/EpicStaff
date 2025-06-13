@@ -4,8 +4,8 @@ import {
   MAT_DIALOG_DATA,
   MatDialogModule,
 } from '@angular/material/dialog';
-import { Task } from '../shared/models/task.model';
-import { Agent } from '../shared/models/agent.model';
+import { Task } from '../../shared/models/task.model';
+import { Agent } from '../../shared/models/agent.model';
 import { NgFor } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 

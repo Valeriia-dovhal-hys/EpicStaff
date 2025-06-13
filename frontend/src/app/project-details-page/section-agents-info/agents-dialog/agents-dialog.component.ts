@@ -6,7 +6,7 @@ import {
   OnInit,
 } from '@angular/core';
 
-import { Agent } from '../../shared/models/agent.model';
+import { Agent } from '../../../shared/models/agent.model';
 import { CommonModule } from '@angular/common';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,11 +15,10 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
-  MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { AgentsService } from '../../services/staff.service';
-import { Task } from '../../shared/models/task.model';
+import { AgentsService } from '../../../services/staff.service';
+import { Task } from '../../../shared/models/task.model';
 import { UpdateAgentsConfirmationDialogComponent } from '../update-agents-confirmation-dialog.component';
 
 @Component({
@@ -27,11 +26,10 @@ import { UpdateAgentsConfirmationDialogComponent } from '../update-agents-confir
   standalone: true,
   imports: [
     CommonModule,
-    MatListModule,
+
     MatButtonModule,
     MatProgressSpinnerModule,
     MatCheckboxModule,
-    MatDialogModule,
   ],
   templateUrl: './agents-dialog.component.html',
   styleUrls: ['./agents-dialog.component.scss'],
@@ -41,10 +39,10 @@ export class AgentsDialogComponent implements OnInit {
   public staffAgents: Agent[] = [];
   public isLoading: boolean = true;
   public tasks: Task[] = [];
+
   private initialSelectedAgents: Agent[] = [];
   public selectedAgents: Agent[] = [];
 
-  // Keep agentAssignedTasks for confirmation logic
   private agentAssignedTasks: { [agentId: number]: Task[] } = {};
 
   constructor(
@@ -55,9 +53,13 @@ export class AgentsDialogComponent implements OnInit {
     private dialog: MatDialog,
     private agentsService: AgentsService
   ) {
-    this.selectedAgents = data.preSelectedAgents || [];
+    this.selectedAgents = data.preSelectedAgents
+      ? [...data.preSelectedAgents]
+      : [];
+    this.initialSelectedAgents = data.preSelectedAgents
+      ? [...data.preSelectedAgents]
+      : [];
     this.tasks = data.tasks || [];
-    this.initialSelectedAgents = [...this.selectedAgents];
   }
 
   ngOnInit(): void {
@@ -71,6 +73,7 @@ export class AgentsDialogComponent implements OnInit {
         this.staffAgents = agents;
 
         this.mapTasksToAgents();
+
         this.isLoading = false;
         this.cdr.markForCheck();
       },
@@ -85,8 +88,8 @@ export class AgentsDialogComponent implements OnInit {
   private mapTasksToAgents(): void {
     if (this.tasks && this.tasks.length > 0) {
       // Map tasks to agents
-      this.tasks.forEach((task) => {
-        const agentId = task.agent;
+      this.tasks.forEach((task: Task) => {
+        const agentId: number | null = task.agent;
         if (agentId) {
           if (!this.agentAssignedTasks[agentId]) {
             this.agentAssignedTasks[agentId] = [];

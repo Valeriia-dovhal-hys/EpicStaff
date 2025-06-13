@@ -13,11 +13,11 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 
-import { Tool } from '../../shared/models/tool.model';
+import { Tool } from '../../../shared/models/tool.model';
 import { CommonModule } from '@angular/common';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
-import { MatListModule } from '@angular/material/list';
+
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
@@ -27,11 +27,10 @@ import { Subscription } from 'rxjs';
   standalone: true,
   imports: [
     FormsModule,
-    MatDialogModule,
     CommonModule,
     MatCheckboxModule,
     MatButtonModule,
-    MatListModule,
+
     MatProgressSpinnerModule,
     MatIconModule,
   ],

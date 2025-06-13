@@ -14,7 +14,12 @@ import Handsontable from 'handsontable/base';
 import { CommonModule, DOCUMENT } from '@angular/common';
 
 import { isRowValid } from '../table-utils/universal_handsontable_utils';
-import { Agent, CreateAgentRequest } from '../../shared/models/agent.model';
+import {
+  Agent,
+  AgentTableItem,
+  CreateAgentRequest,
+  GetAgentRequest,
+} from '../../shared/models/agent.model';
 
 import { AgentsService } from '../../services/staff.service';
 import {
@@ -45,26 +50,28 @@ import { getInvalidRows } from '../table-utils/universal_handsontable_utils';
 
 //validators
 import { validateNotEmpty } from '../table-utils/column-validators/validate-not-empty-validator';
-import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { ConfirmationDialogComponent } from '../table-utils/confirmation-dialog/confirmation-dialog.component';
 import { validateToolsField } from '../table-utils/column-validators/validate-tools-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
 import { CreateAgentFormComponent } from '../../forms/create-agent-form-dialog/create-agent-form-dialog.component';
-import { ToolSelectorComponent } from '../../main/tools-selector-dialog/tool-selector-dialog.component';
+import { ToolSelectorComponent } from './tools-selector-dialog/tool-selector-dialog.component';
 
 import { LLM_Model } from '../../shared/models/LLM.model';
 import { LLM_Models_Service } from '../../services/LLM_models.service';
-import { createCustomStatusRenderer } from '../table-utils/cell-renderers/select-llm-renderer/custom-status-renderer';
+
 import { LLM_Config_Service } from '../../services/LLM_config.service';
 import {
   CreateLLMConfigRequest,
   LLM_Config,
+  UpdateLLMConfigRequest,
 } from '../../shared/models/LLM_config.model';
 import { validateTemperatureField } from '../table-utils/column-validators/temperature-validator';
 import { createBeforeChangeHandler } from './staff-table-utils/staff-table-event-handlers/before-change-handler';
 import { validateIsNumberField } from '../table-utils/column-validators/validate-is-number';
+import { validateUniqueRole } from '../table-utils/column-validators/unique-role.validator';
 
 interface AgentDataRow {
   tools: any[];
@@ -104,7 +111,7 @@ export class StaffComponent implements OnInit, OnDestroy {
   @ViewChild('staffTableContainer', { static: false })
   public hotContainer!: ElementRef;
 
-  private agentsTableData: any[] = [];
+  private agentsTableData: AgentTableItem[] = [];
   private toolsData: Tool[] = [];
   private llmConfigs: LLM_Config[] = [];
 
@@ -118,8 +125,6 @@ export class StaffComponent implements OnInit, OnDestroy {
 
   // Loading state
   public isTableInitialized: boolean = true;
-  private isViewInitialized: boolean = false;
-  private isDataReady: boolean = false;
 
   //TOOLS MODAL TARGET COLUMN
   private readonly targetColumnName: string = 'Tools';
@@ -129,75 +134,11 @@ export class StaffComponent implements OnInit, OnDestroy {
   private llmCellRenderer: any;
   private eventListenerRefs: Array<() => void> = [];
 
-  //test
-  // Mocked data
-  currentRow: number | null = null;
-  currentCol: number | null = null;
-  providers = [
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-
-    { id: 2, name: 'Provider B' },
-    { id: 2, name: 'Provider B' },
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-    { id: 2, name: 'Provider B' },
-
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-    { id: 2, name: 'Provider B' },
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-    { id: 2, name: 'Provider B' },
-
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-    { id: 2, name: 'Provider B' },
-    { id: 1, name: 'Provider A' },
-    { id: 2, name: 'Provider B' },
-  ];
-
-  // Create the renderer
-  // statusCellRenderer = createCustomStatusRenderer(
-  //   this.providers,
-  //   this.llmModelsMock,
-  //   this.eventListenerRefs
-  // );
-
-  // Popup control properties
-  showPopup: boolean = false;
-  popupStyles: any = {};
-  selectedLlmName: string = '';
-  selectedProviderId: number | null = null;
-  llmsForProvider: LLM_Model[] = [];
-  //end test
-
   private colHeaders: string[] = [
     'ID',
     'llm_config_id',
     'fnc_llm_config_id',
-    'Comments',
+    'Tags',
     'Agent Role',
     'Goal',
     'Backstory',
@@ -207,14 +148,10 @@ export class StaffComponent implements OnInit, OnDestroy {
     'Iterations',
     'Creativity',
     'Context',
-    // 'Agent LLM',
-    // 'Function LLM',
-    // 'Agent LLM',
-    // 'Function LLM'
-
     'Agent LLM',
     'Function LLM',
   ];
+
   private defineColumns(): void {
     this.columns = [
       {
@@ -240,7 +177,7 @@ export class StaffComponent implements OnInit, OnDestroy {
         data: 'role',
         type: 'text',
         renderer: manualRowResizeRenderer,
-        validator: validateNotEmpty(this.snackbarService),
+        validator: validateUniqueRole(this.snackbarService),
         headerClassName: 'staff-table-default-column-header-style',
         className: 'staff-table-role-column-style',
       },
@@ -302,6 +239,7 @@ export class StaffComponent implements OnInit, OnDestroy {
         data: 'llm_context',
         type: 'numeric',
         validator: validateIsNumberField(this.snackbarService),
+
         headerClassName:
           'staff-table-default-column-header-style vertical-header',
         className: 'staff-table-default-column-numeric-style htBottom',
@@ -318,52 +256,6 @@ export class StaffComponent implements OnInit, OnDestroy {
         editor: false,
         headerClassName: 'staff-table-default-column-header-style',
       },
-      // {
-      //   data: 'status',
-      //   renderer: this.statusCellRenderer,
-      //   editor: false, // Disable default editor
-      //   headerClassName: 'staff-table-default-column-header-style',
-      // },
-      // {
-      //   data: 'status2',
-      //   renderer: this.statusCellRenderer,
-      //   editor: false, // Disable default editor
-      //   headerClassName: 'staff-table-default-column-header-style',
-      // },
-      // {
-      //   data: 'temp1',
-      //   headerClassName:
-      //     'staff-table-default-column-header-style vertical-header',
-      //   className: 'htCenter htMiddle',
-      // },
-      // {
-      //   data: 'context1',
-      //   headerClassName:
-      //     'staff-table-default-column-header-style vertical-header',
-      //   className: 'htCenter htMiddle',
-      // },
-      // {
-      //   data: 'status',
-      //   headerClassName: 'staff-table-default-column-header-style',
-      //   className: 'staff-table-llm-column htBottom htRight',
-      // },
-      // {
-      //   data: 'temp2',
-      //   headerClassName:
-      //     'staff-table-default-column-header-style vertical-header',
-      //   className: 'htCenter htMiddle',
-      // },
-      // {
-      //   data: 'context2',
-      //   headerClassName:
-      //     'staff-table-default-column-header-style vertical-header',
-      //   className: 'htCenter htMiddle',
-      // },
-      // {
-      //   data: 'status2',
-      //   headerClassName: 'staff-table-default-column-header-style',
-      //   className: 'staff-table-llm-column htBottom htRight',
-      // },
     ];
   }
 
@@ -389,7 +281,7 @@ export class StaffComponent implements OnInit, OnDestroy {
       columns: this.columns,
 
       rowHeaders: true,
-      rowHeights: 75,
+      rowHeights: 85,
       wordWrap: true,
 
       selectionMode: 'range',
@@ -398,7 +290,7 @@ export class StaffComponent implements OnInit, OnDestroy {
       undo: true,
 
       hiddenColumns: {
-        columns: [0, 1, 2], // Index of the column
+        columns: [0, 1, 2],
         indicators: false,
       },
 
@@ -455,9 +347,6 @@ export class StaffComponent implements OnInit, OnDestroy {
 
       afterCreateRow: this.afterCreateRowHandler.bind(this),
 
-      // beforeChange: (changes, source) =>
-      //   beforeChangeHandler(changes, source, snackbarService),
-
       afterChange: this.afterChangeHandler.bind(this),
 
       beforeBeginEditing: (row: number, column: number): void | boolean => {
@@ -467,10 +356,6 @@ export class StaffComponent implements OnInit, OnDestroy {
           this.onOpenToolSelectorDialog(row, column);
           return false;
         }
-        // if (columnName === 'Agent LLM' || columnName === 'Function LLM') {
-        //   this.onOpenPopup(row, column);
-        //   return false; // Prevent the default editor from opening
-        // }
       },
 
       contextMenu: {
@@ -490,261 +375,6 @@ export class StaffComponent implements OnInit, OnDestroy {
         },
       },
     };
-  }
-
-  private handleDeleteRows(
-    selection: Array<{
-      start: Handsontable.CellCoords;
-      end: Handsontable.CellCoords;
-    }>
-  ): void {
-    const physicalRowsToDeleteSet = new Set<number>();
-    const agentIdsToDeleteSet = new Set<number>();
-
-    // Collect unique physical rows and agent IDs to delete
-    selection.forEach(({ start, end }) => {
-      const startRow = Math.min(start.row, end.row);
-      const endRow = Math.max(start.row, end.row);
-
-      for (let visualRow = startRow; visualRow <= endRow; visualRow++) {
-        const physicalRow = this.hotInstance.toPhysicalRow(visualRow);
-        physicalRowsToDeleteSet.add(physicalRow);
-
-        const agent = this.agentsTableData[physicalRow] as Agent;
-        if (agent?.id) {
-          agentIdsToDeleteSet.add(agent.id);
-        }
-      }
-    });
-
-    const physicalRowsToDelete = Array.from(physicalRowsToDeleteSet).sort(
-      (a, b) => b - a
-    ); // Sort descending
-    const agentIdsToDelete = Array.from(agentIdsToDeleteSet);
-
-    if (agentIdsToDelete.length > 0) {
-      from(agentIdsToDelete)
-        .pipe(
-          mergeMap(
-            (agentId) =>
-              this.agentsService.deleteAgent(agentId).pipe(
-                map(() => ({ agentId, success: true })),
-                catchError((error) => {
-                  console.error(`Error deleting agent ${agentId}:`, error);
-                  return of({ agentId, success: false });
-                })
-              ),
-            100
-          ),
-          toArray() // Collect all results
-        )
-        .subscribe({
-          next: (results) => {
-            const failedDeletions = results
-              .filter((result) => !result.success)
-              .map((r) => r.agentId);
-
-            if (failedDeletions.length > 0) {
-              this.snackbarService.showSnackbar(
-                `Failed to delete some agents. Please try again.`,
-                'error'
-              );
-            } else {
-              this.snackbarService.showSnackbar(
-                `Selected agent(s) deleted successfully.`,
-                'success'
-              );
-            }
-
-            // Remove all selected physical rows from agentsTableData
-            physicalRowsToDelete.forEach((physicalRowIndex) => {
-              this.agentsTableData.splice(physicalRowIndex, 1);
-            });
-
-            // Update the grid with the new data
-            this.hotInstance.loadData(this.agentsTableData);
-
-            // Re-render the Handsontable grid
-            this.hotInstance.render();
-          },
-          error: (error) => {
-            console.error('Error deleting agents:', error);
-            this.snackbarService.showSnackbar(
-              `Failed to delete agents. Please try again.`,
-              'error'
-            );
-
-            // Re-render the Handsontable grid in case of error
-            this.hotInstance.render();
-          },
-        });
-    } else {
-      // No agents to delete from server, remove unsaved rows
-      physicalRowsToDelete.forEach((physicalRowIndex) => {
-        this.agentsTableData.splice(physicalRowIndex, 1);
-      });
-
-      this.snackbarService.showSnackbar(
-        `Selected rows) deleted successfully.`,
-        'success'
-      );
-
-      // Update the grid with the new data
-      this.hotInstance.loadData(this.agentsTableData);
-
-      // Re-render the Handsontable grid
-      this.hotInstance.render();
-    }
-  }
-
-  onOpenPopup(row: number, column: number) {
-    // Store the current cell position
-    this.currentRow = row;
-    this.currentCol = column;
-
-    // Get the cell's data and cast it to AgentDataRow
-    const cellData = this.hotInstance.getSourceDataAtRow(row) as AgentDataRow;
-
-    // Determine which column is being edited
-    const columnName: string = this.colHeaders[column];
-
-    // Initialize popup data
-    this.selectedLlmName = '';
-    this.selectedProviderId = null;
-
-    if (columnName === 'Agent LLM') {
-      this.selectedLlmName = cellData.llm_model_name || '';
-    } else if (columnName === 'Function LLM') {
-      this.selectedLlmName = cellData.fcm_llm_model_name || '';
-    }
-
-    // Determine the provider based on the selected LLM
-    if (this.selectedLlmName) {
-      const selectedLlm = this.llmModels.find(
-        (llm) => llm.name === this.selectedLlmName
-      );
-      if (selectedLlm) {
-        this.selectedProviderId = selectedLlm.llm_provider;
-      }
-    }
-
-    // If still not set, default to the first provider
-    if (!this.selectedProviderId) {
-      this.selectedProviderId =
-        this.providers.length > 0 ? this.providers[0].id : null;
-    }
-
-    // Get LLMs for the selected provider
-    if (this.selectedProviderId) {
-      this.llmsForProvider = this.llmModels.filter(
-        (llm) => llm.llm_provider === this.selectedProviderId
-      );
-    } else {
-      this.llmsForProvider = [];
-    }
-
-    // Get the cell's DOM element
-    const cellElement = this.hotInstance.getCell(row, column);
-
-    if (cellElement) {
-      const cellRect = cellElement.getBoundingClientRect();
-
-      // Set the styles to position the popup
-      this.popupStyles = {
-        top: `${cellRect.bottom}px`,
-        left: `${cellRect.right}px`,
-        transform: 'translateX(-100%)', // Shift popup to the left by its width
-      };
-
-      // Show the popup
-      this.showPopup = true;
-      this.cdr.detectChanges();
-
-      // Handle clicks outside the popup to close it
-      setTimeout(() => {
-        document.addEventListener('click', this.onDocumentClick);
-      });
-    }
-  }
-
-  onProviderChange(event: any) {
-    const selectedId = parseInt(event.target.value, 10);
-    if (!isNaN(selectedId)) {
-      this.selectedProviderId = selectedId;
-      this.llmsForProvider = this.llmModels.filter(
-        (llm) => llm.llm_provider === selectedId
-      );
-      // Reset selectedLlmName if it's not in the new provider's LLMs
-      if (
-        !this.llmsForProvider.find((llm) => llm.name === this.selectedLlmName)
-      ) {
-        this.selectedLlmName = '';
-      }
-    } else {
-      this.selectedProviderId = null;
-      this.llmsForProvider = [];
-      this.selectedLlmName = '';
-    }
-  }
-
-  onLlmSelect(llm: LLM_Model) {
-    if (this.currentRow !== null && this.currentCol !== null) {
-      // Get the cell's data and cast it to AgentDataRow
-      const cellData = this.hotInstance.getSourceDataAtRow(
-        this.currentRow
-      ) as AgentDataRow;
-
-      const columnName: string = this.colHeaders[this.currentCol];
-
-      if (columnName === 'Agent LLM') {
-        cellData.llm_model_name = llm.name;
-      } else if (columnName === 'Function LLM') {
-        cellData.fcm_llm_model_name = llm.name;
-      }
-
-      // Update the cell display
-      this.hotInstance.setDataAtCell(
-        this.currentRow,
-        this.currentCol,
-        llm.name
-      );
-    }
-
-    // Hide the popup
-    this.closePopup();
-
-    // Reset currentRow and currentCol
-    this.currentRow = null;
-    this.currentCol = null;
-  }
-
-  closePopup() {
-    this.showPopup = false;
-    this.cdr.detectChanges();
-    document.removeEventListener('click', this.onDocumentClick);
-
-    // Re-select the cell if desired
-    if (this.currentRow !== null && this.currentCol !== null) {
-      this.hotInstance.selectCell(this.currentRow, this.currentCol);
-    }
-  }
-
-  onPopupClick(event: MouseEvent) {
-    event.stopPropagation();
-    event.preventDefault();
-  }
-  onDocumentClick = (event: MouseEvent) => {
-    const popupElement = document.querySelector('.popup-container');
-    if (popupElement && !popupElement.contains(event.target as Node)) {
-      this.closePopup();
-    }
-  };
-
-  ngAfterViewInit(): void {
-    this.isViewInitialized = true;
-    if (this.isDataReady) {
-      this.initializeHandsontable();
-    }
   }
 
   ngOnInit(): void {
@@ -769,8 +399,10 @@ export class StaffComponent implements OnInit, OnDestroy {
         );
 
         agents.sort((a: Agent, b: Agent) => a.id - b.id);
-        this.agentsTableData = agents.map((agent: Agent) => {
-          const llmConfig = this.getLLMConfigById(agent.llm_config);
+        this.agentsTableData = agents.map((agent: GetAgentRequest) => {
+          const llmConfig: LLM_Config | null = this.getLLMConfigById(
+            agent.llm_config
+          );
 
           return {
             ...agent,
@@ -785,17 +417,13 @@ export class StaffComponent implements OnInit, OnDestroy {
         // Add a new empty agent at the end
         this.agentsTableData.push(this.createEmptyAgent());
 
-        this.isDataReady = true;
-
         this.cdr.detectChanges();
 
-        if (this.isViewInitialized) {
-          this.initializeHandsontable();
-        }
+        this.initializeHandsontable();
       },
       error: (error) => {
         console.error('Error fetching data:', error);
-        this.isDataReady = true;
+
         this.cdr.detectChanges();
       },
     });
@@ -809,7 +437,9 @@ export class StaffComponent implements OnInit, OnDestroy {
     return model ? model.name : '';
   }
 
-  private getLLMModelIdByName(modelName: string | null): number | null {
+  private getLLMModelIdByName(
+    modelName: string | null | undefined
+  ): number | null {
     if (!modelName) return null;
     const model = this.llmModels.find((m) => m.name === modelName);
     return model ? model.id : null;
@@ -817,7 +447,9 @@ export class StaffComponent implements OnInit, OnDestroy {
 
   private getLLMConfigById(configId: number | null): LLM_Config | null {
     if (!configId) return null;
-    const config = this.llmConfigs.find((c: LLM_Config) => c.id === configId);
+    const config: LLM_Config | undefined = this.llmConfigs.find(
+      (c: LLM_Config) => c.id === configId
+    );
     return config || null;
   }
 
@@ -851,6 +483,155 @@ export class StaffComponent implements OnInit, OnDestroy {
       this.isTableInitialized = true;
     } else {
       console.error('Container element not found!');
+    }
+  }
+
+  private handleDeleteRows(
+    selection: Array<{
+      start: Handsontable.CellCoords;
+      end: Handsontable.CellCoords;
+    }>
+  ): void {
+    const physicalRowsToDeleteSet = new Set<number>();
+    const agentsToDelete: Agent[] = [];
+    const deletedConfigIds = new Set<number>();
+
+    // Collect unique physical rows and agents to delete
+    selection.forEach(({ start, end }) => {
+      const startRow = Math.min(start.row, end.row);
+      const endRow = Math.max(start.row, end.row);
+
+      for (let visualRow = startRow; visualRow <= endRow; visualRow++) {
+        const physicalRow = this.hotInstance.toPhysicalRow(visualRow);
+        physicalRowsToDeleteSet.add(physicalRow);
+
+        const agent = this.agentsTableData[physicalRow] as Agent;
+        if (agent?.id) {
+          agentsToDelete.push(agent);
+        }
+      }
+    });
+
+    const physicalRowsToDelete = Array.from(physicalRowsToDeleteSet).sort(
+      (a, b) => b - a
+    ); // Sort descending
+
+    if (agentsToDelete.length > 0) {
+      from(agentsToDelete)
+        .pipe(
+          mergeMap(
+            (agent) =>
+              this.agentsService.deleteAgent(agent.id).pipe(
+                mergeMap(() => {
+                  const deleteConfigObservables: Observable<any>[] = [];
+
+                  if (
+                    agent.llm_config &&
+                    !deletedConfigIds.has(agent.llm_config)
+                  ) {
+                    deletedConfigIds.add(agent.llm_config);
+                    deleteConfigObservables.push(
+                      this.llmConfigsService
+                        .deleteConfig(agent.llm_config)
+                        .pipe(
+                          catchError((error) => {
+                            console.error(
+                              `Error deleting LLM config ${agent.llm_config}:`,
+                              error
+                            );
+                            return of(null);
+                          })
+                        )
+                    );
+                  }
+
+                  if (
+                    agent.fcm_llm_config &&
+                    !deletedConfigIds.has(agent.fcm_llm_config)
+                  ) {
+                    deletedConfigIds.add(agent.fcm_llm_config);
+                    deleteConfigObservables.push(
+                      this.llmConfigsService
+                        .deleteConfig(agent.fcm_llm_config)
+                        .pipe(
+                          catchError((error) => {
+                            console.error(
+                              `Error deleting FCM LLM config ${agent.fcm_llm_config}:`,
+                              error
+                            );
+                            return of(null);
+                          })
+                        )
+                    );
+                  }
+
+                  if (deleteConfigObservables.length > 0) {
+                    return forkJoin(deleteConfigObservables).pipe(
+                      map(() => ({ agentId: agent.id, success: true }))
+                    );
+                  } else {
+                    return of({ agentId: agent.id, success: true });
+                  }
+                }),
+                catchError((error) => {
+                  console.error(`Error deleting agent ${agent.id}:`, error);
+                  return of({ agentId: agent.id, success: false });
+                })
+              ),
+            100
+          ),
+          toArray()
+        )
+        .subscribe({
+          next: (results) => {
+            const failedDeletions = results
+              .filter((result) => !result.success)
+              .map((r) => r.agentId);
+
+            if (failedDeletions.length > 0) {
+              this.snackbarService.showSnackbar(
+                `Failed to delete some agents. Please try again.`,
+                'error'
+              );
+            } else {
+              this.snackbarService.showSnackbar(
+                `Selected agent(s) deleted successfully.`,
+                'success'
+              );
+            }
+
+            physicalRowsToDelete.forEach((physicalRowIndex) => {
+              this.agentsTableData.splice(physicalRowIndex, 1);
+            });
+
+            this.hotInstance.loadData(this.agentsTableData);
+
+            this.hotInstance.render();
+          },
+          error: (error) => {
+            console.error('Error deleting agents:', error);
+            this.snackbarService.showSnackbar(
+              `Failed to delete agents. Please try again.`,
+              'error'
+            );
+
+            this.hotInstance.render();
+          },
+        });
+    } else {
+      // No agents to delete from server, remove unsaved rows
+      physicalRowsToDelete.forEach((physicalRowIndex) => {
+        this.agentsTableData.splice(physicalRowIndex, 1);
+      });
+
+      this.snackbarService.showSnackbar(
+        `Selected row(s) deleted successfully.`,
+        'success'
+      );
+
+      this.hotInstance.loadData(this.agentsTableData);
+
+      this.hotInstance.render();
     }
   }
 
@@ -907,43 +688,40 @@ export class StaffComponent implements OnInit, OnDestroy {
     const isRowValidResult: boolean = isRowValid(rowIndex, this.hotInstance);
 
     if (!isRowValidResult) {
-      console.log(
-        `Row ${rowIndex} contains invalid data. Skipping config update.`
-      );
       return;
     }
 
-    let rowData: Agent = this.hotInstance.getSourceDataAtRow(rowIndex) as Agent;
+    let rowData: AgentTableItem = this.hotInstance.getSourceDataAtRow(
+      rowIndex
+    ) as AgentTableItem;
 
     if (!rowData.id) {
       return;
     }
 
-    if (rowData.llm_config) {
-      const llmConfigData: CreateLLMConfigRequest = {
+    if (
+      rowData.llm_config &&
+      rowData.llm_temperature != null &&
+      rowData.llm_context != null
+    ) {
+      const llmConfigData: UpdateLLMConfigRequest = {
+        id: rowData.llm_config,
         temperature: rowData.llm_temperature,
         num_ctx: rowData.llm_context,
       };
 
-      this.llmConfigsService
-        .updateConfig(rowData.llm_config, llmConfigData)
-        .subscribe({
-          next: (response: LLM_Config) => {
-            console.log('Config updated successfully:', response);
-          },
-          error: (error) => {
-            console.error('Error updating config:', error);
-          },
-        });
+      this.llmConfigsService.updateConfig(llmConfigData).subscribe({
+        next: (response: LLM_Config) => {
+          console.log('Config updated successfully:', response);
+        },
+        error: (error) => {
+          console.error('Error updating config:', error);
+        },
+      });
     }
   }
 
   private sendAgentUpdate(rowIndex: number): void {
-    // Get the latest data from Handsontable
-    let agentData: Agent = this.hotInstance.getSourceDataAtRow(
-      rowIndex
-    ) as Agent;
-
     // STEP 1: Check if row is valid
     const isRowValidResult: boolean = isRowValid(rowIndex, this.hotInstance);
 
@@ -952,10 +730,10 @@ export class StaffComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Agent doesn't have an ID yet (new agent)
-    if (!this.allRequiredFieldsFilled(agentData)) {
-      return;
-    }
+    // Get the latest data from Handsontable
+    let agentData: Agent = this.hotInstance.getSourceDataAtRow(
+      rowIndex
+    ) as Agent;
 
     // STEP 2: Update the agent's fields values
     agentData.tools = this.updateAgentTools(agentData.toolTitles);
@@ -966,45 +744,74 @@ export class StaffComponent implements OnInit, OnDestroy {
 
     // STEP 3: Update or create based on agent.id
     if (!agentData.id) {
-      const llmConfigData: CreateLLMConfigRequest = {
-        temperature: agentData.llm_temperature,
-        num_ctx: agentData.llm_context,
-      };
+      // required fields
+      if (!this.allRequiredFieldsFilled(agentData)) {
+        return;
+      }
 
-      this.llmConfigsService.createConfig(llmConfigData).subscribe({
-        next: (createdConfig: LLM_Config) => {
-          agentData.llm_config = createdConfig.id;
-          agentData.fcm_llm_config = createdConfig.id;
+      // Initialize config variables
+      let llmConfigData: CreateLLMConfigRequest | undefined;
+      let functionConfigData: CreateLLMConfigRequest | undefined;
 
-          this.agentsService.createAgent(agentData).subscribe({
-            next: (createdAgent: Agent) => {
-              console.log(`Agent created successfully:`, createdAgent);
+      // Conditionally assign values to llmConfigData
+      if (agentData.llm_temperature != null && agentData.llm_context != null) {
+        llmConfigData = {
+          temperature: agentData.llm_temperature,
+          num_ctx: agentData.llm_context,
+        };
 
-              // Update the agentsTableData at the given rowIndex
-              this.agentsTableData[rowIndex].id = createdAgent.id;
-              this.agentsTableData[rowIndex].llm_config = createdConfig.id;
-              this.agentsTableData[rowIndex].fcm_llm_config = createdConfig.id;
+        functionConfigData = {
+          temperature: 0,
+          num_ctx: 25,
+        };
+      }
+      if (llmConfigData && functionConfigData) {
+        // Use forkJoin to send both configuration requests in parallel
+        const configSubscription: Subscription = forkJoin({
+          createdConfig: this.llmConfigsService.createConfig(llmConfigData),
+          createdFunctionConfig:
+            this.llmConfigsService.createConfig(functionConfigData),
+        }).subscribe({
+          next: ({ createdConfig, createdFunctionConfig }) => {
+            agentData.llm_config = createdConfig.id;
+            agentData.fcm_llm_config = createdFunctionConfig.id;
 
-              this.insertRowAtTheEnd();
+            this.agentsService.createAgent(agentData).subscribe({
+              next: (createdAgent: Agent) => {
+                console.log(`Agent created successfully:`, createdAgent);
 
-              this.snackbarService.showSnackbar(
-                `Agent created successfully.`,
-                'success'
-              );
-            },
-            error: (error) => {
-              console.error(`Error creating agent:`, error);
-              this.snackbarService.showSnackbar(
-                `Failed to create agent. Please try again.`,
-                'error'
-              );
-            },
-          });
-        },
-        error: (error) => {
-          console.error('Error updating config:', error);
-        },
-      });
+                this.agentsTableData[rowIndex].id = createdAgent.id;
+                this.agentsTableData[rowIndex].llm_config = createdConfig.id;
+                this.agentsTableData[rowIndex].fcm_llm_config =
+                  createdFunctionConfig.id;
+
+                this.insertRowAtTheEnd();
+
+                this.snackbarService.showSnackbar(
+                  `Agent created successfully.`,
+                  'success'
+                );
+              },
+              error: (error) => {
+                console.error(`Error creating agent:`, error);
+                this.snackbarService.showSnackbar(
+                  `Failed to create agent. Please try again.`,
+                  'error'
+                );
+              },
+            });
+          },
+          error: (error) => {
+            console.error('Error creating LLM configs:', error);
+            this.snackbarService.showSnackbar(
+              `Failed to create LLM configs. Please try again.`,
+              'error'
+            );
+          },
+        });
+
+        this.subscriptions.add(configSubscription);
+      }
     } else {
       // Update existing agent
       this.agentsService.updateAgent(agentData).subscribe({
@@ -1075,7 +882,6 @@ export class StaffComponent implements OnInit, OnDestroy {
     const lastRowData = this.hotInstance.getSourceDataAtRow(
       lastRowIndex
     ) as Agent;
-    console.log(lastRowData);
 
     return !lastRowData.id;
   }
@@ -1085,12 +891,6 @@ export class StaffComponent implements OnInit, OnDestroy {
     amount: number,
     source?: Handsontable.ChangeSource
   ): void {
-    console.log(
-      `Rows added at index ${index}, amount: ${amount}, source: ${
-        source || 'unknown'
-      }`
-    );
-
     setTimeout(() => {
       this.hotInstance.selectCell(index, 4);
     }, 0);
@@ -1099,10 +899,12 @@ export class StaffComponent implements OnInit, OnDestroy {
   }
 
   public canDeactivate(): Observable<boolean> | Promise<boolean> | boolean {
-    const invalidRows: number[] = getInvalidRows(this.hotInstance);
+    if (this.hotInstance) {
+      const invalidRows: number[] = getInvalidRows(this.hotInstance);
 
-    if (invalidRows.length > 0) {
-      return this.showConfirmationDialog(invalidRows);
+      if (invalidRows.length > 0) {
+        return this.showConfirmationDialog(invalidRows);
+      }
     }
 
     return true;
@@ -1139,14 +941,11 @@ export class StaffComponent implements OnInit, OnDestroy {
       toolNames.includes(tool.name)
     );
 
-    // Open the dialog with toolsData and selectedTools
     const dialogRef = this.dialog.open(ToolSelectorComponent, {
-      maxWidth: 'none',
       data: {
         toolsData: this.toolsData,
         selectedTools: selectedTools,
       },
-
       autoFocus: false,
     });
 
@@ -1166,17 +965,20 @@ export class StaffComponent implements OnInit, OnDestroy {
       autoFocus: false,
     });
 
-    dialogRef
-      .afterClosed()
-      .subscribe((agentData: CreateAgentRequest | undefined) => {
-        if (agentData) {
-          console.log('Agent data received from form:', agentData);
-          this.addNewAgent(agentData);
-        }
-      });
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result) {
+        const { agentData, llm_temperature, llm_context } = result;
+        console.log('Agent data received from form:', agentData);
+        this.addNewAgent(agentData, llm_temperature, llm_context);
+      }
+    });
   }
 
-  private addNewAgent(agentData: CreateAgentRequest): void {
+  private addNewAgent(
+    agentData: CreateAgentRequest,
+    llm_temperature: number,
+    llm_context: number
+  ): void {
     this.agentsService.createAgent(agentData).subscribe({
       next: (createdAgent: Agent) => {
         createdAgent.llm_model_name = this.getLLMModelNameById(
@@ -1185,26 +987,40 @@ export class StaffComponent implements OnInit, OnDestroy {
         createdAgent.fcm_llm_model_name = this.getLLMModelNameById(
           createdAgent.fcm_llm_model
         );
+        createdAgent.llm_temperature = llm_temperature;
+        createdAgent.llm_context = llm_context;
+        createdAgent.toolTitles = this.getToolTitlesFromTools(
+          createdAgent.tools
+        );
 
-        this.agentsTableData.push(createdAgent);
+        if (this.hasEmptyRowAtEnd()) {
+          this.agentsTableData.splice(
+            this.agentsTableData.length - 1,
+            0,
+            createdAgent
+          );
+        } else {
+          this.agentsTableData.push(createdAgent);
+          this.agentsTableData.push(this.createEmptyAgent());
+        }
 
-        // this.hotInstance.loadData(this.agentsTableData);
+        this.hotInstance.loadData(this.agentsTableData);
+
         this.hotInstance.render();
 
         const newRowIndex: number = this.agentsTableData.findIndex(
           (agent) => agent.id === createdAgent.id
         );
         if (newRowIndex >= 0) {
-          this.hotInstance.selectCell(newRowIndex, 1);
+          this.hotInstance.selectCell(newRowIndex, 4);
         }
 
-        // Show a success message
         this.snackbarService.showSnackbar(
           `Agent "${createdAgent.role}" created successfully.`,
           'success'
         );
 
-        // Trigger change detection if necessary
+        // Trigger change detection
         this.cdr.detectChanges();
       },
       error: (error) => {

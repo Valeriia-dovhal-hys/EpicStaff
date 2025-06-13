@@ -1,3 +1,7 @@
+// * {
+//   border: 1px solid red;
+// }
+
 .main-container {
   height: 100%;
   display: flex;
@@ -9,7 +13,8 @@
 
 .dialog-header {
   background-color: #3f51b5;
-  padding: 16px;
+  height: 13%;
+  padding: 16px 22px;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -27,19 +32,40 @@
   background-color: #f5f5f5;
 }
 
+input[type="text"] {
+  padding: 12px 16px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  width: 100%;
+  transition: all 0.3s ease;
+
+  color: #333333;
+
+  margin-bottom: 0.9rem;
+
+  ::placeholder {
+    color: #757575;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #3f51b5;
+    box-shadow: 0 0 5px rgba(63, 81, 181, 0.2);
+  }
+
+  &:hover {
+    border-color: #3f51b5;
+  }
+}
+
 .loading-container {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
 }
-
-.agents-list {
-  display: grid;
-  grid-template-columns: 1fr; // Ensures only one agent card per row
-  gap: 10px;
-}
-
 .agent-card {
   background-color: #ffffff;
   border: 1px solid #e0e0e0;
@@ -48,9 +74,9 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: background-color 0.3s, box-shadow 0.3s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 
+  width: 100%;
   &:hover {
     background-color: #e0e0e0;
   }
@@ -64,24 +90,58 @@
 
 .agent-info {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
+
+  .details-wrapper {
+    width: 90%;
+  }
+  .checkbox {
+    width: 10%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
 .agent-details {
-  flex-grow: 1;
-  margin-right: 8px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 .agent-role {
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 1.2rem;
   color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-goal {
+  font-weight: 400;
+  font-size: 0.9rem;
+  color: #757575;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.selected {
+    color: rgb(255, 255, 255);
+  }
 }
 
 mat-checkbox {
-  flex-shrink: 0;
+  align-self: center;
+  margin-left: auto;
+}
+
+.agents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .dialog-actions {

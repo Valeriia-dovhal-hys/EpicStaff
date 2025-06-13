@@ -3,6 +3,7 @@
     <h1>Choose the needed agents from your Staff:</h1>
   </div>
   <div class="dialog-content">
+    <input type="text" placeholder="Search agents..." />
     <ng-container *ngIf="!isLoading; else loading">
       <div class="agents-list">
         <div
@@ -12,15 +13,23 @@
           [class.selected]="isSelected(agent)"
         >
           <div class="agent-info">
-            <div class="agent-details">
-              <div class="agent-role">{{ agent.role }}</div>
-              <!-- Assigned tasks display has been removed -->
+            <div class="details-wrapper">
+              <div class="agent-details">
+                <div class="agent-role">{{ agent.role }}</div>
+              </div>
+              <div class="agent-details">
+                <div class="agent-goal" [class.selected]="isSelected(agent)">
+                  {{ agent.goal }}
+                </div>
+              </div>
             </div>
-            <mat-checkbox
-              [checked]="isSelected(agent)"
-              (click)="$event.stopPropagation()"
-              (change)="toggleSelection(agent)"
-            ></mat-checkbox>
+            <div class="checkbox">
+              <mat-checkbox
+                [checked]="isSelected(agent)"
+                (click)="$event.stopPropagation()"
+                (change)="toggleSelection(agent)"
+              ></mat-checkbox>
+            </div>
           </div>
         </div>
       </div>

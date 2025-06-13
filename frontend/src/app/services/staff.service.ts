@@ -22,15 +22,17 @@ export class AgentsService {
   constructor(private http: HttpClient) {}
 
   // GET all agents
-  getAgents(): Observable<Agent[]> {
+  getAgents(): Observable<GetAgentRequest[]> {
     return this.http
-      .get<ApiGetRequest<Agent>>(this.apiUrl)
-      .pipe(map((response: ApiGetRequest<Agent>) => response.results));
+      .get<ApiGetRequest<GetAgentRequest>>(this.apiUrl)
+      .pipe(
+        map((response: ApiGetRequest<GetAgentRequest>) => response.results)
+      );
   }
 
   // GET agent by ID
-  getAgentById(agentId: number): Observable<Agent> {
-    return this.http.get<Agent>(`${this.apiUrl}${agentId}/`);
+  getAgentById(agentId: number): Observable<GetAgentRequest> {
+    return this.http.get<GetAgentRequest>(`${this.apiUrl}${agentId}/`);
   }
 
   // POST create agent
