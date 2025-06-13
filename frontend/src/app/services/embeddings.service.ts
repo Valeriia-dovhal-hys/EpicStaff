@@ -18,4 +18,9 @@ export class EmbeddingModelsService {
       .get<ApiGetRequest<EmbeddingModel>>(this.apiUrl)
       .pipe(map((response: ApiGetRequest<EmbeddingModel>) => response.results));
   }
+
+  getEmbeddingModelById(id: number): Observable<EmbeddingModel> {
+    const url = `${this.apiUrl}${id}/`;
+    return this.http.get<EmbeddingModel>(url);
+  }
 }

@@ -1,0 +1,106 @@
+{ 
+    "id": 1,
+    "agents": [
+        {
+        "id": 1,
+        "tools": [
+            {
+            "id": 1,
+            "llm_model": {
+                "id": 1,
+                "llm_provider": {
+                "id": 1,
+                "name": "openai"
+                },
+                "name": "gpt-4o",
+                "comments": "string",
+                "context_size": 5
+            },
+            "llm_config": {
+                "id": 1,
+                "temperature": 0.3,
+                "num_ctx": 4
+            },
+            "name": "wikipedia",
+            "description": "string",
+            "requires_model": true,
+            "enabled": true
+            }
+        ],
+        "llm_model": {
+            "id": 1,
+            "llm_provider": {
+            "id": 1,
+            "name": "openai"
+            },
+            "name": "gpt-4o",
+            "comments": "string",
+            "context_size": 5
+        },
+        "llm_config": {
+            "id": 1,
+            "temperature": 0.3,
+            "num_ctx": 4
+        },
+        "fcm_llm_model": {
+            "id": 1,
+            "llm_provider": {
+            "id": 1,
+            "name": "openai"
+            },
+            "name": "gpt-4o",
+            "comments": "string",
+            "context_size": 5
+        },
+        "fcm_llm_config": {
+            "id": 1,
+            "temperature": 0.3,
+            "num_ctx": 4
+        },
+        "role": "First Agent",
+        "goal": "Use wikipedia tool",
+        "backstory": "string",
+        "allow_delegation": true,
+        "memory": "string",
+        "max_iter": 12
+        }
+    ],
+    "manager_llm_model": {
+        "id": 1,
+        "llm_provider": {
+        "id": 1,
+        "name": "openai"
+        },
+        "name": "gpt-4o",
+        "comments": "string",
+        "context_size": 5
+    },
+    "manager_llm_config": {
+        "id": 1,
+        "temperature": 0.3,
+        "num_ctx": 4
+    },
+    "comments": "string",
+    "name": "string",
+    "assignment": "string",
+    "process": "sequential",
+    "verbose": true,
+    "memory": true,
+    "tasks": [
+        {
+            "name": "my task",
+            "agent": {
+                "role": "First Agent",
+                "goal": "string",
+                "backstory": "string",
+                "allow_delegation": true,
+                "memory": "string",
+                "max_iter": 12
+            },
+            "instructions": "Who is Obama?",
+            "expected_output": "Short description from wikipedia",
+            "order": 5
+        }
+    ]
+}
+  

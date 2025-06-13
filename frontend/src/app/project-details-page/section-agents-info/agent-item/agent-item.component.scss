@@ -94,38 +94,48 @@
       width: 5%;
       height: 100%;
       border-left: 1px solid #3f51b5;
-      color: #3f51b5;
-      background-color: transparent;
 
       button {
-        border: none;
-        box-shadow: none;
-        background: transparent;
-        padding: 0;
-        min-width: unset; // Removes Material button default padding
-        min-height: unset;
-        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        color: #3f51b5;
         &:hover {
-          background-color: rgba(
-            63,
-            81,
-            181,
-            0.1
-          ); // Light blue background on hover
+          color: #333;
         }
 
         &:focus {
           outline: none; // Removes focus outline
         }
       }
+    }
 
-      mat-icon {
+    .header-cross {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 5%;
+      height: 100%;
+      border-left: 1px solid #3f51b5;
+
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        cursor: pointer;
         color: #3f51b5;
-        font-size: 20px; // Adjust icon size if needed
+        &:hover {
+          color: #333;
+        }
+
+        &:focus {
+          outline: none; // Removes focus outline
+        }
       }
     }
   }
@@ -134,7 +144,7 @@
   margin: 0 auto;
   width: 98%;
   height: auto;
-  max-height: 12rem;
+  max-height: 11.2rem;
 
   border: 1px solid #3f51b5;
   border-top: none;
@@ -148,7 +158,7 @@
     display: flex;
     flex-direction: column;
     overflow: auto;
-    padding: 0.5rem 0.8rem;
+    padding: 0.8rem 0.8rem;
     border: 1px;
     border-right: 1px solid #3f51b5;
 
@@ -187,6 +197,7 @@
       font-weight: bold;
       color: #3f51b5;
       margin-bottom: 0.5rem;
+      padding-left: 3px;
     }
 
     .tools-list {
@@ -216,6 +227,7 @@
       font-weight: bold;
       color: #3f51b5;
       margin-bottom: 0.5rem;
+      padding-left: 3px;
     }
 
     .configurations-list {

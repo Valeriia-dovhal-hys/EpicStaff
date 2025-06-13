@@ -18,8 +18,7 @@ run_crew_service = RunCrewService(
 if __name__ == "__main__":
     try:
         run_crew_service.run()
-    except Exception as e:
-        print(e)
+    except:
         redis_service.publish_session_status(SessionStatus.ERROR)
     else:
         redis_service.publish_session_status(SessionStatus.END)

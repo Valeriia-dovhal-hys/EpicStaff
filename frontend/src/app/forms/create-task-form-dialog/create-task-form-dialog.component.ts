@@ -67,7 +67,7 @@ export class CreateTaskFormDialogComponent implements OnInit {
       instructions: ['', Validators.required],
       expected_output: ['', Validators.required],
       agent: [null],
-      order: [null, Validators.required],
+      order: [null],
     });
   }
 

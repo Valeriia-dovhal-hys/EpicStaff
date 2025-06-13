@@ -8,7 +8,7 @@ import { ProjectDetailsComponent } from './project-details-page/project-details.
 import { TesttableComponent } from './main/testtable/testtable.component';
 import { VariablesComponent } from './main/variables/variables.component';
 import { TestTableDataComponent } from './main/test-table-data/test-table-data.component';
-import { TasksTable2Component } from './handsontable-tables/tasks-table-2/tasks-table-2.component';
+import { TasksTable2Component } from './handsontable-tables/tasks-template/tasks-table-2.component';
 import { StaffComponent } from './handsontable-tables/staff/staff.component';
 import { CrewRunPageComponent } from './crew-run-page/crew-run-page.component';
 
@@ -28,7 +28,9 @@ export const routes: Routes = [
     path: 'project/:projectId/run-session/:sessionId',
     component: CrewRunPageComponent,
   },
-
+  // {
+  //   path: 'settings',
+  // },
   {
     path: 'test-table-dialog',
     component: TesttableComponent,
@@ -43,7 +45,7 @@ export const routes: Routes = [
     component: VariablesComponent,
   },
   {
-    path: 'tasks-table-2',
+    path: 'tasks-templates',
     component: TasksTable2Component,
   },
   {

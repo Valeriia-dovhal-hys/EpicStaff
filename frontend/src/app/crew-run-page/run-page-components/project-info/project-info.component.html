@@ -1,6 +1,6 @@
 <div class="parent-container">
   <div class="project info">
-    <span class="project-name">{{ project.name }}</span>
+    <p class="project-name">{{ project.name }}</p>
     <hr />
     <div class="project-assignment">
       {{ project.assignment }}
@@ -10,9 +10,11 @@
   <div class="project agents">
     <span class="agents-tasks-title">Agents:</span>
     <hr />
-    <div class="agent" *ngFor="let agent of agents">
-      <div class="agent-role">Role: {{ agent.role }}</div>
-      <div class="agent-goal">Goal: {{ agent.goal }}</div>
+    <div>
+      <div class="agent" *ngFor="let agent of agents">
+        <div class="agent-role">Role: {{ agent.role }}</div>
+        <div class="agent-goal">Goal: {{ agent.goal }}</div>
+      </div>
     </div>
   </div>
 
@@ -21,10 +23,12 @@
   <div class="project tasks">
     <span class="agents-tasks-title">Tasks:</span>
     <hr />
-    <div class="agent" *ngFor="let task of tasksWithAgentRole">
-      <div class="agent-role">Title: {{ task.name }}</div>
-      <div class="task-assigned-to">
-        Assigned to: <span class="assigned-agent">{{ task.agentRole }}</span>
+    <div>
+      <div class="agent" *ngFor="let task of tasksWithAgentRole">
+        <div class="agent-role">Title: {{ task.name }}</div>
+        <div class="task-assigned-to">
+          Assigned to: <span class="assigned-agent">{{ task.agentRole }}</span>
+        </div>
       </div>
     </div>
   </div>
