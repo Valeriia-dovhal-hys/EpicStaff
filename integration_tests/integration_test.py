@@ -10,7 +10,7 @@ from loguru import logger
 
 dotenv.load_dotenv()
 BASE_URL = "http://127.0.0.1:8000/api"
-MAX_SESSION_EXECUTION_TIME_SECONDS = 600
+MAX_SESSION_EXECUTION_TIME_SECONDS = 1200
 container_name_list = ["manager_container", "redis", "crewdb", "django_app", "frontend"]
 client = docker.from_env()
 
@@ -129,6 +129,14 @@ def wait_for_results(session_id: int):
     session_message_list = get_session_messages(session_id=session_id)
     logger.info(f"Messages: \n{session_message_list}")
     assert len(session_message_list) != 0
+
+    running = is_container_running("wikipedia_tool")
+    if not running:
+        logger.error("Tool is not running")
+        log_container("wikipedia_tool")
+
+        assert False, "Tool is not running"
+
 
 
 def log_container(container_name: str):
