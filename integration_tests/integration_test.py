@@ -180,7 +180,7 @@ def create_task(crew_id: int, agent_id: int):
     crew_response = repeat_request("post", f"{BASE_URL}/tasks/", json=task_data)
 
 
-def create_crew(agent_id_list: list[int], llm_id: int, config_id: int) -> int:
+def create_crew(agent_id_list: list, llm_id: int, config_id: int) -> int:
 
     crew_data = {
         "name": "Integratin test crew",
