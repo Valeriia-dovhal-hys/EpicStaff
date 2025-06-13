@@ -142,8 +142,9 @@ def wait_for_results(session_id: int):
             break
 
         time.sleep(2)
-
-    assert len(get_session_messages(session_id=session_id)) != 0
+    session_message_list = get_session_messages(session_id=session_id)
+    print(f"Messages: \n{session_message_list}")
+    assert len(session_message_list) != 0
 
 
 def check_containers():
