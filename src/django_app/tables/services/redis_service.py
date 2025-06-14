@@ -1,42 +1,22 @@
 import os
 import json
 import redis
-from threading import Lock
-
-from utils.singleton_meta import SingletonMeta
 
 
-class RedisService(metaclass=SingletonMeta):
-    _lock: Lock = Lock()
+# TODO: singleton maybe?
+class RedisService:
 
     def __init__(self):
 
-        self._redis_client = None
-        self._pubsub = None
-        self._redis_host = os.getenv("REDIS_HOST", "localhost")
-        self._redis_port = int(os.getenv("REDIS_PORT", 6379))
+        redis_host = os.getenv("REDIS_HOST", "localhost")
+        redis_port = int(os.getenv("REDIS_PORT", 6379))
 
-    def _initialize_redis(self):
-        with self._lock:
-            if self._redis_client is None:
-                self._redis_client = redis.Redis(
-                    host=self._redis_host, port=self._redis_port
-                )
-                self._pubsub = self._redis_client.pubsub()
+        self.redis_client = redis.Redis(host=redis_host, port=redis_port)
+        self.pubsub = self.redis_client.pubsub()
 
-    @property
-    def redis_client(self):
-        """Lazy initialize redis_client"""
-        if self._redis_client is None:
-            self._initialize_redis()
-        return self._redis_client
-
-    @property
-    def pubsub(self):
-        """Lazy initialize pubsub"""
-        if self._pubsub is None:
-            self._initialize_redis()
-        return self._pubsub
+    def loadToolAliases(self) -> str:
+        keys = [key.decode("utf-8") for key in self.redis_client.hkeys("tools")]
+        return json.dumps(keys)
 
     def set_session_data(self, session_id: int, session_json_schema: str) -> None:
         self.redis_client.set(f"sessions:{session_id}:schema", session_json_schema)

@@ -105,7 +105,7 @@ export class ProjectListItemCardComponent {
             'Session stopped successfully!',
             'success'
           );
-          this.runSessionId = null;
+          this.runSessionId = null; // Reset the session ID
           this.cdr.detectChanges();
         },
         error: (error) => {
