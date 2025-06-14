@@ -281,7 +281,7 @@ export class StaffComponent implements OnInit, OnDestroy {
       columns: this.columns,
 
       rowHeaders: true,
-      rowHeights: 75,
+      rowHeights: 85,
       wordWrap: true,
 
       selectionMode: 'range',
