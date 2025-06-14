@@ -164,12 +164,15 @@
   },
   {
     "image_name": "browserbase_load",
-    "browserbase_load": {
+    "tool_dict": {
+      "browserbase_load": {
         "composio": {
           "class_name": "BrowserbaseLoadTool",
           "package": "crewai_tools"
         }
+      }
     },
+    
     "dependencies": [
       "crewai[tools]", "browserbase"
     ]
