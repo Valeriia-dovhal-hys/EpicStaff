@@ -3,11 +3,11 @@ clear:
   extends: .docker-login
   tags:
     - docker
-  
   script:
-    - docker stop $(docker ps -aq)
-    - docker rm $(docker ps -aq)
+    - docker stop $(docker ps -aq) || true
+    - docker rm $(docker ps -aq) || true
     - docker rmi -f $(docker images -q $TEST_CREW_TAG) || true
     - docker rmi -f $(docker images -q $TEST_DJANGO_TAG) || true
     - docker rmi -f $(docker images -q $TEST_MANAGER_TAG) || true
     - docker rmi -f $(docker images -q $TEST_FRONTEND_TAG) || true
+    
