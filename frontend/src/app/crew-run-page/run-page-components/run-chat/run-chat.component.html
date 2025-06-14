@@ -2,8 +2,8 @@
   <app-run-chat-header [chatStatus]="chatStatus"></app-run-chat-header>
 
   <div class="run-chat-content">
-    <!-- Check if messages are available -->
-    <ng-container *ngIf="messages.length > 0; else loading">
+    <!-- Display messages if available -->
+    <ng-container *ngIf="messages.length > 0; else noMessages">
       <div
         *ngFor="let message of messages"
         class="message-container"
@@ -23,12 +23,18 @@
         </div>
       </div>
     </ng-container>
-    <!-- Loading template -->
-    <ng-template #loading>
-      <div class="loading-container">
-        <div class="custom-loader"></div>
-        <p>Generating...</p>
-      </div>
+
+    <ng-template #noMessages>
+      <ng-container *ngIf="chatStatus === 'running'; else sessionStopped">
+        <div class="loading-container">
+          <div class="custom-loader"></div>
+          <p>Generating...</p>
+        </div>
+      </ng-container>
+
+      <ng-template #sessionStopped>
+        <p class="no-messages">No messages to display.</p>
+      </ng-template>
     </ng-template>
   </div>
 

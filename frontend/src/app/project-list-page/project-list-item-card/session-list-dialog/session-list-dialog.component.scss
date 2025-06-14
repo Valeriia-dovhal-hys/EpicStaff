@@ -1,0 +1,109 @@
+.custom-dialog {
+  background-color: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.custom-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 15%;
+  padding: 16px 24px;
+  background-color: #3f51b5;
+
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.custom-dialog-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #555;
+}
+
+.custom-dialog-content {
+  padding: 20px;
+  overflow-y: auto;
+
+  height: 70%;
+}
+
+.session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.session-item:hover {
+  background-color: #f3f3f3;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.session-details {
+  flex-grow: 1;
+}
+
+.session-details p {
+  margin: 0 0 5px;
+  font-size: 14px;
+  color: #333;
+}
+
+.session-details p strong {
+  color: #3f51b5;
+}
+
+.session-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.custom-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 20px;
+  height: 15%;
+  border-top: 1px solid #e0e0e0;
+}
+
+.filter-buttons {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+
+  button {
+    margin: 0 5px;
+  }
+
+  .active-filter {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+}
+
+/* Rest of your existing styles */
