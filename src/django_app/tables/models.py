@@ -190,12 +190,6 @@ class Session(models.Model):
         choices=SessionStatus.choices, max_length=255, blank=False, null=False
     )
     created_at = models.DateTimeField(default=timezone.now)
-    finished_at = models.DateTimeField(null=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        if self.status in {self.SessionStatus.END, self.SessionStatus.ERROR} and not self.finished_at:
-            self.finished_at = timezone.now()
-        super().save(*args, **kwargs)
 
     class Meta:
         get_latest_by = ["id"]
