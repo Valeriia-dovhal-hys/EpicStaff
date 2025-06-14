@@ -115,10 +115,6 @@
         "youtube_video_search": {
           "class_name": "YoutubeVideoSearchTool",
           "package": "crewai_tools"
-        },
-        "browserbase_load": {
-          "class_name": "BrowserbaseLoadTool",
-          "package": "crewai_tools"
         }
 
     },
@@ -166,7 +162,19 @@
       "crewai[tools]", "composio-core"
     ]
   },
-  
+  {
+    "image_name": "browserbase_load",
+    "browserbase_load": {
+        "composio": {
+          "class_name": "BrowserbaseLoadTool",
+          "package": "crewai_tools"
+        }
+    },
+    "dependencies": [
+      "crewai[tools]", "browserbase"
+    ]
+  },
+
   {
     "image_name": "wolfram_alpha",
     "tool_dict": {
