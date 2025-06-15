@@ -1,5 +1,4 @@
-// process.env.CHROME_BIN = require("puppeteer").executablePath();
-
+// Set CHROME_BIN to the path of Chromium installed via apt-get
 process.env.CHROME_BIN = "/usr/bin/chromium";
 
 module.exports = function (config) {
@@ -8,18 +7,23 @@ module.exports = function (config) {
     frameworks: ["jasmine", "@angular-devkit/build-angular"],
     files: [],
     exclude: [],
-    reporters: ["progress", "kjhtml"],
+    reporters: ["progress"],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: false,
-    browsers: ["ChromeHeadless"],
+    browsers: ["ChromeHeadlessNoSandbox"],
     singleRun: true,
     concurrency: Infinity,
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: "ChromeHeadless",
+        flags: ["--no-sandbox", "--disable-gpu"],
+      },
+    },
     plugins: [
       require("karma-jasmine"),
       require("karma-chrome-launcher"),
-      require("karma-jasmine-html-reporter"),
       require("@angular-devkit/build-angular"),
     ],
   });
