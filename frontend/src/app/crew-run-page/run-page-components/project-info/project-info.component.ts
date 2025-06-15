@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Input,
   OnInit,
@@ -37,7 +38,8 @@ export class ProjectInfoComponent implements OnInit {
   constructor(
     private location: Location,
     private dialog: MatDialog,
-    private runCrewSessionService: RunCrewSessionService
+    private runCrewSessionService: RunCrewSessionService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -81,6 +83,7 @@ export class ProjectInfoComponent implements OnInit {
           next: () => {
             console.log(`Session ${this.session.id} successfully stopped.`);
             this.session.status = 'end';
+            this.cdr.markForCheck();
           },
           error: (error) => {
             console.error(`Failed to stop session ${this.session.id}:`, error);
