@@ -1,5 +1,6 @@
 import time
 from typing import Any, Type
+from models.request_models import ToolData
 from langchain_core.tools import BaseTool
 import requests
 
@@ -20,11 +21,10 @@ class ProxyToolFactory:
 
     def create_proxy_class(
         self,
-        tool_alias: str,
-        tool_config: dict[str, Any] = None,
+        tool_data: ToolData
     ) -> Type[BaseTool]:
         resp = self.fetch_data_with_retry(
-            url=f"http://{self.host}:{self.port}/tool/{tool_alias}/class-data"
+            url=f"http://{self.host}:{self.port}/tool/{tool_data.name_alias}/class-data"
         )
         data_txt = resp.json()["classdata"]
         data: dict = txt_to_obj(data_txt)
@@ -50,7 +50,7 @@ class ProxyToolFactory:
             logger.debug(f"args = {args}\nkwargs = {kw}")
 
             return self.run_tool_in_container(
-                tool_alias=tool_alias, tool_config=tool_config, run_params=(args, kw)
+                tool_data=tool_data, run_params=(args, kw)
             )
 
         data["_run"] = modified_run
@@ -59,8 +59,7 @@ class ProxyToolFactory:
 
     def run_tool_in_container(
         self,
-        tool_alias: str,
-        tool_config: dict[str, Any],
+        tool_data: ToolData,
         run_params: tuple[tuple, dict[str, Any]],
     ) -> str:
 
@@ -68,9 +67,9 @@ class ProxyToolFactory:
         run_kwargs = run_params[1]
 
         response = requests.post(
-            url=f"http://{self.host}:{self.port}/tool/{tool_alias}/run",
+            url=f"http://{self.host}:{self.port}/tool/{tool_data.name_alias}/run",
             json={
-                "tool_config": tool_config,
+                "tool_config": tool_data.name_alias,
                 "run_args": run_args,
                 "run_kwargs": run_kwargs,
             },

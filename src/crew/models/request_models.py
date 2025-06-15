@@ -1,39 +1,64 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 from pydantic import BaseModel, HttpUrl
 
 
-class ProviderData(BaseModel):
-    name: str
-
-
-class LLMModelData(BaseModel):
-    name: str
-    llm_provider: ProviderData
-    base_url: Optional[HttpUrl] = None
-    deployment: Optional[str] = None
-
-
-class ConfigLLMData(BaseModel):
-    temperature: float = 0.7
-    num_ctx: int = 25
-
-
-class EmbeddingModelData(BaseModel):
-    name: str
-    embedding_provider: Optional[ProviderData] = None
-    deployment: Optional[str] = None
-    base_url: Optional[HttpUrl] = None
-
-
 class ToolData(BaseModel):
-    name: str
     name_alias: str
-    description: str
     requires_model: bool
-    llm_model: Optional[LLMModelData] = None
-    llm_config: Optional[ConfigLLMData] = None
-    embedding_model: Optional[EmbeddingModelData] = None
-    enabled: bool = True
+    tool_config: "ToolConfig"
+
+
+class LLMConfig(BaseModel):
+    model: str
+    temperature: float = 0
+    top_p: float = 1
+    stream: bool = True
+    model: str
+    timeout: float | int | None = None
+    temperature: float | None = None
+    top_p: float | None = None
+    n: int | None = None
+    stop: str | list[str] | None = None
+    max_completion_tokens: int | None = None
+    max_tokens: int | None = None
+    presence_penalty: float | None = None
+    frequency_penalty: float | None = None
+    logit_bias: dict[int, float] | None = None
+    response_format: dict[str, Any] | None = None
+    seed: int | None = None
+    logprobs: bool | None = None
+    top_logprobs: int | None = None
+    base_url: str | None = None
+    api_version: str | None = None
+    api_key: str | None = None
+
+
+class EmbedderConfig(BaseModel):
+    model: str
+    deployment_name: str | None = None
+    base_url: HttpUrl | None = None
+    api_key: str | None = None
+
+
+class LLMData(BaseModel):
+    provider: str
+    config: LLMConfig
+
+
+class EmbedderData(BaseModel):
+    provider: str
+    config: EmbedderConfig
+
+
+class ToolConfig(BaseModel):
+    llm: LLMData | None = None
+    embedder: EmbedderData | None = None
+
+
+class RunToolParamsModel(BaseModel):
+    tool_config: ToolConfig | None = None
+    run_args: list[str]
+    run_kwargs: dict[str, Any]
 
 
 class AgentData(BaseModel):
@@ -44,24 +69,9 @@ class AgentData(BaseModel):
     allow_delegation: bool = False
     memory: bool = False
     max_iter: int = 25
-    llm_model: Optional[LLMModelData] = None
-    fcm_llm_model: Optional[LLMModelData] = None
-    llm_config: Optional[ConfigLLMData] = None
-    fcm_llm_config: Optional[ConfigLLMData] = None
-
-
-class TemplateAgentData(BaseModel):
-    role: str
-    goal: str
-    backstory: str
-    tools: List[ToolData] = []
-    allow_delegation: bool = False
-    memory: bool = False
-    max_iter: int = 25
-    llm_model: Optional[LLMModelData] = None
-    fcm_llm_model: Optional[LLMModelData] = None
-    llm_config: Optional[ConfigLLMData] = None
-    fcm_llm_config: Optional[ConfigLLMData] = None
+    llm: LLMData | None = None
+    embedder: EmbedderData | None = None
+    function_calling_llm: LLMData | None
 
 
 class CrewData(BaseModel):
@@ -71,16 +81,15 @@ class CrewData(BaseModel):
     agents: List[AgentData] = []
     process: str = "sequential"
     memory: bool = False
-    embedding_model: Optional[EmbeddingModelData] = None
-    manager_llm_model: Optional[LLMModelData] = None
-    manager_llm_config: Optional[ConfigLLMData] = None
     tasks: List["TaskData"] | None = None
+    manager_llm: LLMData | None = None
+    embedder: EmbedderData | None = None
 
 
 class TaskData(BaseModel):
-    crew: Optional[CrewData] = None
+    crew: CrewData
     name: str
-    agent: Optional[AgentData] = None
+    agent: AgentData | None = None
     instructions: str
     expected_output: str
     order: int = 1
@@ -88,7 +97,7 @@ class TaskData(BaseModel):
 
 class SessionData(BaseModel):
     id: int
-    crew: Optional[CrewData] = None
+    crew: CrewData | None = None
     status: str
 
 

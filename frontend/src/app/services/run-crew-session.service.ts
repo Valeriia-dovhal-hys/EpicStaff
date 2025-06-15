@@ -8,7 +8,7 @@ import { CrewRunMessage } from '../shared/models/crew_run_message.model';
 export interface Session {
   id: number;
   crew: number | null;
-  status: 'run' | 'end' | 'error';
+  status: string;
   created_at: string;
 }
 
@@ -19,16 +19,6 @@ export class RunCrewSessionService {
   private apiUrl = 'http://127.0.0.1:8000/api';
 
   constructor(private http: HttpClient) {}
-
-  getSessionsByProjectId(projectId: number): Observable<Session[]> {
-    const url = `${this.apiUrl}/sessions/`;
-    return this.http.get<ApiGetRequest<Session>>(url).pipe(
-      map((response: ApiGetRequest<Session>) => response.results),
-      map((sessions: Session[]) =>
-        sessions.filter((session) => session.crew === projectId)
-      )
-    );
-  }
 
   createSession(crewId: number): Observable<RunCrewSessionRequest> {
     const payload = { crew_id: crewId };

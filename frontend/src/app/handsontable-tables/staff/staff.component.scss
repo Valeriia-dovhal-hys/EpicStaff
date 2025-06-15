@@ -105,9 +105,7 @@
 }
 
 //hide horizontal scrollbar
-#staffTableContainer .wtHolder {
-  overflow-x: hidden !important;
-}
+
 @media (min-width: 1450px) {
   #staffTableContainer .wtHolder {
     overflow-x: hidden !important;
@@ -276,7 +274,7 @@ textarea.handsontableInput {
   background-color: #ffffff !important;
   // padding: 10px !important;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1) !important;
-  font-size: 0.9rem !important;
+  font-size: 1rem !important;
   line-height: 1.4 !important;
 
   letter-spacing: 0.5px;

@@ -5,16 +5,13 @@ if TYPE_CHECKING:
     from models.request_models import AgentData, TaskData, CrewData
 
 import pytest
-import fakeredis
-from unittest.mock import patch, MagicMock
 from polyfactory.factories.pydantic_factory import ModelFactory
 
 from models.request_models import (
     AgentData,
-    ConfigLLMData,
     CrewData,
-    EmbeddingModelData,
-    LLMModelData,
+    EmbedderData,
+    LLMData,
     TaskData,
 )
 
@@ -32,25 +29,23 @@ class AgentDataFactory(ModelFactory[AgentData]):
 
 
 gpt_4o_data = {
-    "name": "gpt-4o",
-    "llm_provider": {
-        "name": "openai"
-    }
-}
-llm_config_data = {
-    "temperature": 0.7,
-    "num_ctx": 25,
-}
-embedding_model_data = {
-    "name": "gpt-4o",
-    "embedding_provider": {
-        "name": "openai"
+    "provider": "openai",
+    "config": {
+        "model": "gpt-4o",
+        "temperature": 0.7,
     }
 }
 
-gpt_4o_model_validated = LLMModelData.model_validate(gpt_4o_data)
-llm_config_validated_model = ConfigLLMData.model_validate(llm_config_data)
-embedding_validated_model = EmbeddingModelData.model_validate(embedding_model_data)
+embedding_model_data = {
+    "provider": "openai",
+    "config": {
+        "model": "text-embedding-3-small",
+        "temperature": 0.7,
+    }
+}
+
+gpt_4o_model_validated = LLMData.model_validate(gpt_4o_data)
+embedder_validated_model = EmbedderData.model_validate(embedding_model_data)
 
 
 @pytest.fixture
@@ -58,10 +53,8 @@ def fake_agent_data() -> Generator[AgentData, None, None]:
     fake_agent_data = AgentDataFactory.build()
 
     fake_agent_data.tools = []
-    fake_agent_data.llm_model = gpt_4o_model_validated
-    fake_agent_data.fcm_llm_model = gpt_4o_model_validated
-    fake_agent_data.llm_config = llm_config_validated_model
-    fake_agent_data.fcm_llm_config = llm_config_validated_model
+    fake_agent_data.llm = gpt_4o_model_validated
+    fake_agent_data.function_calling_llm = gpt_4o_model_validated
 
     yield fake_agent_data
 
@@ -81,9 +74,8 @@ def fake_crew_data(fake_agent_data: AgentData, fake_task_data: TaskData) -> Gene
     )
     fake_task_data.crew = fake_crew_data
 
-    fake_crew_data.manager_llm_model = gpt_4o_model_validated
-    fake_crew_data.manager_llm_config = llm_config_validated_model
-    fake_crew_data.embedding_model = embedding_validated_model
+    fake_crew_data.manager_llm = gpt_4o_model_validated
+    fake_crew_data.embedder = embedder_validated_model
     fake_crew_data.agents = [fake_agent_data]
     fake_crew_data.tasks = [fake_task_data]
     
