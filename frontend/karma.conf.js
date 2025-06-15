@@ -1,5 +1,6 @@
-// Set CHROME_BIN to the path provided by Puppeteer
-process.env.CHROME_BIN = require("puppeteer").executablePath();
+// process.env.CHROME_BIN = require("puppeteer").executablePath();
+
+process.env.CHROME_BIN = "/usr/bin/chromium";
 
 module.exports = function (config) {
   config.set({
