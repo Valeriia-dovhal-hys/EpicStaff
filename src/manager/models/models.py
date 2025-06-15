@@ -1,6 +1,6 @@
 from typing import Any
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 
 
 class SessionStatus(Enum):
@@ -8,12 +8,6 @@ class SessionStatus(Enum):
     RUN = "run"
     WAIT_FOR_USER = "wait_for_user"
     ERROR = "error"
-
-
-class RunToolParamsModel(BaseModel):
-    tool_config: dict[str, Any] | None = None
-    run_args: list[str]
-    run_kwargs: dict[str, Any]
 
 
 class RunCrewModel(BaseModel):
@@ -34,3 +28,57 @@ class RunToolResponseModel(BaseModel):
 
 class RunCrewResponseModel(BaseModel):
     data: str
+
+
+class LLMConfig(BaseModel):
+    model: str
+    temperature: float = 0
+    top_p: float = 1
+    stream: bool = True
+    model: str
+    timeout: float | int | None = None
+    temperature: float | None = None
+    top_p: float | None = None
+    n: int | None = None
+    stop: str | list[str] | None = None
+    max_completion_tokens: int | None = None
+    max_tokens: int | None = None
+    presence_penalty: float | None = None
+    frequency_penalty: float | None = None
+    logit_bias: dict[int, float] | None = None
+    response_format: dict[str, Any] | None = None
+    seed: int | None = None
+    logprobs: bool | None = None
+    top_logprobs: int | None = None
+    base_url: str | None = None
+    api_version: str | None = None
+    api_key: str | None = None
+
+
+class EmbedderConfig(BaseModel):
+    model: str
+    deployment_name: str | None = None
+    base_url: HttpUrl | None = None
+    api_key: str | None = None
+
+
+class LLMData(BaseModel):
+    provider: str
+    config: LLMConfig
+
+
+class EmbedderData(BaseModel):
+    provider: str
+    config: EmbedderConfig
+
+
+class ToolConfig(BaseModel):
+    llm: LLMData | None = None
+    embedder: EmbedderData | None = None
+
+
+class RunToolParamsModel(BaseModel):
+    tool_config: ToolConfig | None = None
+    run_args: list[str]
+    run_kwargs: dict[str, Any]
+
