@@ -1,6 +1,3 @@
-// Set CHROME_BIN to the path of Chromium installed via apt-get
-process.env.CHROME_BIN = "/usr/bin/chromium";
-
 module.exports = function (config) {
   config.set({
     basePath: "",
@@ -18,6 +15,8 @@ module.exports = function (config) {
     customLaunchers: {
       ChromeHeadlessNoSandbox: {
         base: "ChromeHeadless",
+        // Specify the path to the Chromium executable
+        binary: "/usr/bin/chromium",
         flags: ["--no-sandbox", "--disable-gpu"],
       },
     },
