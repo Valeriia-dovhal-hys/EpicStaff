@@ -12,15 +12,9 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: false,
-    browsers: ["Chrome", "ChromeHeadlessCI"],
+    browsers: ["ChromeHeadless"],
     singleRun: true,
     concurrency: Infinity,
-    customLaunchers: {
-      ChromeHeadlessCI: {
-        base: "ChromeHeadless",
-        flags: ["--no-sandbox"],
-      },
-    },
     plugins: [
       require("karma-jasmine"),
       require("karma-chrome-launcher"),
