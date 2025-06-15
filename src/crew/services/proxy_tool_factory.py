@@ -1,5 +1,6 @@
 import time
 from typing import Any, Type
+from models.response_models import ToolResponse
 from models.request_models import ToolData
 from langchain_core.tools import BaseTool
 import requests
@@ -75,7 +76,7 @@ class ProxyToolFactory:
             },
         )
 
-        return response.json()["data"]
+        return ToolResponse.model_validate(response.json()).data
 
     # TODO: make async
     def fetch_data_with_retry(self, url, retries=10, delay=3):
