@@ -32,10 +32,7 @@ class RunCrewResponseModel(BaseModel):
 
 class LLMConfig(BaseModel):
     model: str
-    temperature: float = 0
-    top_p: float = 1
     stream: bool = True
-    model: str
     timeout: float | int | None = None
     temperature: float | None = None
     top_p: float | None = None
