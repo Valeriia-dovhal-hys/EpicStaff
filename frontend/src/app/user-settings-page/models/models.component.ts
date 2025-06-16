@@ -3,27 +3,27 @@ import { MatDialog } from '@angular/material/dialog';
 import { LLM_Models_Service } from '../../services/LLM_models.service';
 import { LLM_Providers_Service } from '../../services/LLM_providers.service';
 import { EmbeddingModelsService } from '../../services/embeddings.service';
-import { LLM_Model } from '../../shared/models/LLM.model';
-import { EmbeddingModel } from '../../shared/models/embedding.model';
-import { CommonModule } from '@angular/common';
 import { Subscription, forkJoin } from 'rxjs';
 import { SharedSnackbarService } from '../../services/snackbar/shared-snackbar.service';
 import { LLM_Provider } from '../../shared/models/LLM_provider.model';
+import { LLM_Model } from '../../shared/models/LLM.model';
 import { ModelDetailsModalComponent } from './model-details-modal/model-details-modal.component';
 import { MatIconModule } from '@angular/material/icon';
+import { NgClass, NgFor, NgIf } from '@angular/common';
 
-interface ActivatedModel {
-  name: string;
+export interface ExtendedLLMModel extends LLM_Model {
   activated: boolean;
   isEmbedding: boolean;
-  // Include other necessary properties
+  template: boolean;
+  embedding_provider?: number;
+  customName?: string;
+  apiKey?: string;
 }
 
 interface ProviderModels {
   provider: LLM_Provider;
-  models: ActivatedModel[];
-  embeddingModels: ActivatedModel[];
-  activatedModels: ActivatedModel[];
+  models: ExtendedLLMModel[];
+  setupedModels: ExtendedLLMModel[];
 }
 
 @Component({
@@ -31,11 +31,10 @@ interface ProviderModels {
   templateUrl: './models.component.html',
   styleUrls: ['./models.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [MatIconModule, NgClass, NgIf, NgFor],
 })
 export class ModelsComponent implements OnInit, OnDestroy {
   public providersWithModels: ProviderModels[] = [];
-
   private subscription: Subscription = new Subscription();
 
   constructor(
@@ -54,45 +53,64 @@ export class ModelsComponent implements OnInit, OnDestroy {
         embeddingModels: this.embeddingModelsService.getEmbeddingModels(),
       }).subscribe({
         next: ({ providers, models, embeddingModels }) => {
+          // Setuped models are empty initially
+          const setupedModels: ExtendedLLMModel[] = [];
+
+          // Create template models from fetched models
+          // LLM Models
+          const allLLMModels: ExtendedLLMModel[] = models.map((model) => ({
+            ...model,
+            activated: false,
+            isEmbedding: false,
+            template: true,
+          }));
+
+          // Embedding Models
+          const allEmbeddingModels: ExtendedLLMModel[] = embeddingModels.map(
+            (embeddingModel) => ({
+              id: embeddingModel.id,
+              name: embeddingModel.name,
+              description: null,
+              base_url: embeddingModel.base_url || null,
+              deployment: embeddingModel.deployment || null,
+              llm_provider: embeddingModel.embedding_provider || 0,
+              embedding_provider: embeddingModel.embedding_provider || 0,
+              activated: false,
+              isEmbedding: true,
+              template: true,
+            })
+          );
+
+          // Combine all template models
+          const allTemplateModels: ExtendedLLMModel[] = [
+            ...allLLMModels,
+            ...allEmbeddingModels,
+          ];
+
+          // Group models by provider
           this.providersWithModels = providers
             .map((provider) => {
-              const providerLLMModels = models
-                .filter((model) => model.llm_provider === provider.id)
-                .map((model) => ({
-                  ...model,
-                  activated: Math.random() < 0.5, // Mock activation status
-                  isEmbedding: false, // Not an embedding model
-                }));
+              // Template models for this provider
+              const templateModels: ExtendedLLMModel[] =
+                allTemplateModels.filter(
+                  (model) => model.llm_provider === provider.id
+                );
 
-              const providerEmbeddingModels = embeddingModels
-                .filter(
-                  (embeddingModel) =>
-                    embeddingModel.embedding_provider === provider.id
-                )
-                .map((model) => ({
-                  ...model,
-                  activated: Math.random() < 0.5, // Mock activation status
-                  isEmbedding: true, // Is an embedding model
-                }));
+              // Setuped models for this provider (empty initially)
+              const providerSetupedModels: ExtendedLLMModel[] = [];
 
-              const allModels = [
-                ...providerLLMModels,
-                ...providerEmbeddingModels,
-              ];
-
-              // Only include providers with at least one model
-              if (allModels.length === 0) {
+              // Only include providers with at least one template model
+              if (templateModels.length === 0) {
                 return null;
               }
 
               return {
                 provider,
-                models: providerLLMModels,
-                embeddingModels: providerEmbeddingModels,
-                activatedModels: allModels,
+                models: templateModels,
+                setupedModels: providerSetupedModels,
               };
             })
-            .filter((group) => group !== null)
+            .filter((group): group is ProviderModels => group !== null)
             .sort((a, b) => {
               if (a.provider.name.toLowerCase() === 'openai') return -1;
               if (b.provider.name.toLowerCase() === 'openai') return 1;
@@ -110,15 +128,85 @@ export class ModelsComponent implements OnInit, OnDestroy {
     );
   }
 
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+  private isAzureProvider(providerName: string): boolean {
+    return providerName.toLowerCase() === 'azure_openai';
   }
 
-  openModelDetails(model: ActivatedModel, providerName: string): void {
-    this.dialog.open(ModelDetailsModalComponent, {
+  openModelDetails(model: ExtendedLLMModel, providerName: string): void {
+    const isAzure = this.isAzureProvider(providerName);
+
+    const dialogRef = this.dialog.open(ModelDetailsModalComponent, {
       width: '500px',
-      data: { model, providerName, isEmbedding: model.isEmbedding },
-      panelClass: 'custom-modal',
+      data: {
+        model,
+        providerName,
+        isAzure,
+        isEditMode: false, // Indicate that we're in create mode
+      },
+      autoFocus: false,
     });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const newSetupedModel: ExtendedLLMModel = {
+          ...model,
+          customName: result.customName,
+          activated: result.activated,
+          template: false, // Not a template anymore
+          isEmbedding: model.isEmbedding, // Preserve isEmbedding flag
+          base_url: result.base_url || model.base_url,
+          deployment: result.deployment || model.deployment,
+          apiKey: result.apiKey || model.apiKey,
+        };
+
+        // Find the provider group
+        const providerGroup: ProviderModels | undefined =
+          this.providersWithModels.find(
+            (group) => group.provider.name === providerName
+          );
+        if (providerGroup) {
+          providerGroup.setupedModels.push(newSetupedModel);
+        }
+      }
+    });
+  }
+
+  configureModel(model: ExtendedLLMModel, providerName: string): void {
+    const isAzure = this.isAzureProvider(providerName);
+
+    const dialogRef = this.dialog.open(ModelDetailsModalComponent, {
+      width: '500px',
+      data: {
+        model,
+        providerName,
+        isAzure,
+        isEditMode: true, // Indicate that we're in edit mode
+      },
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // Update the existing model in the setupedModels array
+        const providerGroup = this.providersWithModels.find(
+          (group) => group.provider.name === providerName
+        );
+        if (providerGroup) {
+          const index = providerGroup.setupedModels.findIndex(
+            (m) => m.id === model.id
+          );
+          if (index !== -1) {
+            providerGroup.setupedModels[index] = {
+              ...providerGroup.setupedModels[index],
+              ...result, // Update with new values
+            };
+          }
+        }
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 }

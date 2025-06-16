@@ -29,91 +29,106 @@
     </div>
     <hr class="provider-divider" />
 
-    <!-- Model Templates Section -->
-    <div class="section-header">
-      <div class="section-title">Model Templates:</div>
-    </div>
-
-    <!-- Models Grid -->
-    <div class="models-grid">
-      <!-- LLM Models -->
-      <div
-        *ngFor="let model of providerGroup.models"
-        class="model-card"
-        (click)="openModelDetails(model, providerGroup.provider.name)"
-      >
-        <div class="model-card-content">
-          <div class="model-name">{{ model.name }}</div>
-          <div class="configure-link">Use as template</div>
+    <!-- Flex Container for Side-by-Side Layout -->
+    <div class="models-flex-container">
+      <!-- Model Templates Section -->
+      <div class="models-column">
+        <div class="section-header">
+          <div class="section-title">Model Templates:</div>
         </div>
-      </div>
 
-      <!-- Embedding Models -->
-      <div
-        *ngFor="let model of providerGroup.embeddingModels"
-        class="model-card embedding"
-        (click)="openModelDetails(model, providerGroup.provider.name)"
-      >
-        <div class="model-card-content">
-          <div class="model-name">{{ model.name }}</div>
-          <div class="model-horizontal">
-            <div class="model-type-label">Embedding</div>
-            <div class="configure-link">Use as template</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Activated Models Section -->
-    <div class="section-header">
-      <div class="section-title">Setuped Models:</div>
-    </div>
-
-    <div class="activated-models-container">
-      <ng-container
-        *ngIf="providerGroup.activatedModels.length > 0; else noActivatedModels"
-      >
-        <div class="models-grid">
-          <div
-            *ngFor="let model of providerGroup.activatedModels"
-            class="model-card"
-          >
-            <div class="model-card-content">
+        <!-- Models List -->
+        <!-- Models List -->
+        <ul class="models-list">
+          <li *ngFor="let model of providerGroup.models" class="model-item">
+            <div class="model-item-content">
               <div class="model-name">
-                <div>
-                  {{ model.name }}
-                </div>
-                <div
-                  class="activation-status-text"
-                  [ngClass]="{
-                    'activated-text': model.activated,
-                    'deactivated-text': !model.activated
-                  }"
-                >
-                  ({{ model.activated ? "Activated" : "Deactivated" }})
-                </div>
+                {{ model.name }}
               </div>
 
-              <div
-                class="model-horizontal"
-                [ngClass]="{ 'center-configure': !model.isEmbedding }"
-              >
+              <div class="model-actions">
                 <div class="model-type-label" *ngIf="model.isEmbedding">
                   Embedding
                 </div>
-                <div class="configure-link">Configure</div>
+                <div
+                  class="configure-link"
+                  (click)="openModelDetails(model, providerGroup.provider.name)"
+                >
+                  Use as template
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      </ng-container>
+          </li>
+        </ul>
+      </div>
 
-      <!-- Fallback Message -->
-      <ng-template #noActivatedModels>
-        <div class="no-activated-models">
-          <div>No setuped models available. Use template to setup a model.</div>
+      <!-- Setuped Models Section -->
+
+      <div class="models-column">
+        <div class="section-header">
+          <div class="section-title">Setuped Models:</div>
         </div>
-      </ng-template>
+
+        <div class="setuped-models-container">
+          <ng-container
+            *ngIf="providerGroup.setupedModels.length > 0; else noSetupedModels"
+          >
+            <ul class="models-list">
+              <li
+                *ngFor="let model of providerGroup.setupedModels"
+                class="model-item"
+              >
+                <div class="model-item-content">
+                  <div class="model-name">
+                    <div>
+                      {{ model.customName || model.name }}
+                      <span class="original-model-name">
+                        ({{ model.name }})
+                      </span>
+                      <span
+                        class="activation-status-text"
+                        [ngClass]="{
+                          'activated-text': model.activated,
+                          'deactivated-text': !model.activated
+                        }"
+                      >
+                        - {{ model.activated ? "Activated" : "Deactivated" }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Model Horizontal for Embedding Label and Configure Button -->
+                  <div
+                    class="model-horizontal"
+                    [ngClass]="{ 'center-configure': !model.isEmbedding }"
+                  >
+                    <div class="model-type-label" *ngIf="model.isEmbedding">
+                      Embedding
+                    </div>
+                    <div
+                      class="configure-link"
+                      (click)="
+                        configureModel(model, providerGroup.provider.name)
+                      "
+                    >
+                      Configure
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </ng-container>
+
+          <!-- Fallback Message -->
+          <ng-template #noSetupedModels>
+            <div class="no-setuped-models">
+              <div>
+                No setuped models available. Use a template to set up a model.
+              </div>
+            </div>
+          </ng-template>
+        </div>
+      </div>
     </div>
   </div>
 </ng-container>

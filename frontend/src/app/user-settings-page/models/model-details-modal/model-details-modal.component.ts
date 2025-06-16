@@ -7,18 +7,13 @@ import {
 } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NgIf } from '@angular/common';
+import { ExtendedLLMModel } from '../models.component';
 
 interface ModelDialogData {
-  model: {
-    name: string;
-    id: number;
-    description: string | null;
-    base_url: string | null;
-    deployment: string | null;
-    llm_provider: number;
-    providerName?: string;
-  };
+  model: ExtendedLLMModel;
   providerName: string;
+  isAzure: boolean;
+  isEditMode?: boolean;
 }
 
 @Component({
@@ -30,25 +25,56 @@ interface ModelDialogData {
 })
 export class ModelDetailsModalComponent implements OnInit {
   modelForm!: FormGroup;
+  isEmbedding: boolean;
+  isAzure: boolean;
+  isEditMode: boolean;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: ModelDialogData,
     private dialogRef: MatDialogRef<ModelDetailsModalComponent>,
     private fb: FormBuilder
-  ) {}
-
-  ngOnInit(): void {
-    this.modelForm = this.fb.group({
-      customName: ['', [Validators.required, Validators.maxLength(50)]],
-      apiKey: ['', [Validators.required, Validators.minLength(8)]],
-      activated: [false],
-    });
+  ) {
+    this.isEmbedding = data.model.isEmbedding;
+    this.isAzure = data.isAzure;
+    this.isEditMode = data.isEditMode || false;
   }
 
-  onCreate(): void {
+  ngOnInit(): void {
+    const model = this.data.model;
+
+    if (this.isAzure) {
+      // Form for Azure provider with pre-filled data
+      this.modelForm = this.fb.group({
+        customName: [
+          model.customName || model.name,
+          [Validators.required, Validators.maxLength(50)],
+        ],
+        base_url: [model.base_url || '', [Validators.required]],
+        deployment: [model.deployment || '', [Validators.required]],
+        activated: [model.activated !== undefined ? model.activated : true],
+      });
+    } else {
+      // Form for other providers with pre-filled data
+      this.modelForm = this.fb.group({
+        customName: [
+          model.customName || model.name,
+          [Validators.required, Validators.maxLength(50)],
+        ],
+        apiKey: [
+          model.apiKey || '',
+          [Validators.required, Validators.minLength(8)],
+        ],
+        activated: [model.activated !== undefined ? model.activated : true],
+      });
+    }
+  }
+
+  onSave(): void {
     if (this.modelForm.valid) {
-      console.log('Form Submitted:', this.modelForm.value);
-      this.dialogRef.close(this.modelForm.value);
+      this.dialogRef.close({
+        ...this.modelForm.value,
+        isEmbedding: this.isEmbedding,
+      });
     }
   }
 

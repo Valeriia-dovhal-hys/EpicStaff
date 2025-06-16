@@ -1,11 +1,14 @@
 <div class="modal-content">
   <div class="modal-header">
     <div class="modal-title">
-      Setup a model from template "{{ data.model.name }}"
+      {{ isEditMode ? "Configure Model" : "Setup a model from template" }}: "{{
+        data.model.name
+      }}"
     </div>
     <div class="modal-provider">Provider: {{ data.providerName }}</div>
   </div>
   <form [formGroup]="modelForm" class="modal-body">
+    <!-- Custom Name Field -->
     <div class="form-group">
       <label for="customName">Custom Name</label>
       <input
@@ -30,26 +33,79 @@
         </ng-container>
       </div>
     </div>
-    <div class="form-group">
-      <label for="apiKey">API Key</label>
-      <input
-        id="apiKey"
-        type="text"
-        class="input-field"
-        formControlName="apiKey"
-        placeholder="Enter API Key"
-      />
-      <div class="error-message">
-        <ng-container *ngIf="modelForm.get('apiKey')?.touched">
-          <ng-container *ngIf="modelForm.get('apiKey')?.errors?.['required']">
-            API key is required.
+
+    <!-- Conditionally Display Fields Based on Provider -->
+    <ng-container *ngIf="!isAzure">
+      <!-- API Key Field for Non-Azure Providers -->
+      <div class="form-group">
+        <label for="apiKey">API Key</label>
+        <input
+          id="apiKey"
+          type="text"
+          class="input-field"
+          formControlName="apiKey"
+          placeholder="Enter API Key"
+        />
+        <div class="error-message">
+          <ng-container *ngIf="modelForm.get('apiKey')?.touched">
+            <ng-container *ngIf="modelForm.get('apiKey')?.errors?.['required']">
+              API key is required.
+            </ng-container>
+            <ng-container
+              *ngIf="modelForm.get('apiKey')?.errors?.['minlength']"
+            >
+              Minimum 8 characters required.
+            </ng-container>
           </ng-container>
-          <ng-container *ngIf="modelForm.get('apiKey')?.errors?.['minlength']">
-            Minimum 8 characters required.
-          </ng-container>
-        </ng-container>
+        </div>
       </div>
-    </div>
+    </ng-container>
+
+    <ng-container *ngIf="isAzure">
+      <!-- Base URL Field for Azure Provider -->
+      <div class="form-group">
+        <label for="base_url">Base URL</label>
+        <input
+          id="base_url"
+          type="text"
+          class="input-field"
+          formControlName="base_url"
+          placeholder="Enter Base URL"
+        />
+        <div class="error-message">
+          <ng-container *ngIf="modelForm.get('base_url')?.touched">
+            <ng-container
+              *ngIf="modelForm.get('base_url')?.errors?.['required']"
+            >
+              Base URL is required.
+            </ng-container>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Deployment Field for Azure Provider -->
+      <div class="form-group">
+        <label for="deployment">Deployment</label>
+        <input
+          id="deployment"
+          type="text"
+          class="input-field"
+          formControlName="deployment"
+          placeholder="Enter Deployment"
+        />
+        <div class="error-message">
+          <ng-container *ngIf="modelForm.get('deployment')?.touched">
+            <ng-container
+              *ngIf="modelForm.get('deployment')?.errors?.['required']"
+            >
+              Deployment is required.
+            </ng-container>
+          </ng-container>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Activated Checkbox -->
     <div class="form-group checkbox-group">
       <label for="useToggle">Make active:</label>
       <input id="useToggle" type="checkbox" formControlName="activated" />
@@ -60,10 +116,10 @@
     <button
       mat-button
       class="button-create"
-      (click)="onCreate()"
+      (click)="onSave()"
       [disabled]="modelForm.invalid"
     >
-      Create
+      {{ isEditMode ? "Save" : "Create" }}
     </button>
   </div>
 </div>
