@@ -16,12 +16,13 @@ from tables.views.model_view_sets import (
 
 from .views.views import (
     AnswerToLLM,
-    EnviromentConfig,
+    EnvironmentConfig,
     SessionMessageListView,
     SessionViewSet,
     RunSession,
     GetUpdates,
     StopSession,
+    CrewDeleteAPIView,
     delete_environment_config,
 )
 
@@ -56,9 +57,10 @@ urlpatterns = [
         SessionMessageListView.as_view(),
         name="messages",
     ),
+    path('crews/<int:id>/delete/', CrewDeleteAPIView.as_view(), name='delete-crew'),
     path(
         "environment/config",
-        EnviromentConfig.as_view(),
+        EnvironmentConfig.as_view(),
         name="environment_config",
     ),
     path(

@@ -1,18 +1,6 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  Input,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Output,
-  EventEmitter,
-} from '@angular/core';
+import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { RunChatHeaderComponent } from './run-chat-header/run-chat-header.component';
-import {
-  RunCrewSessionService,
-  Session,
-} from '../../../services/run-crew-session.service';
+import { RunCrewSessionService } from '../../../services/run-crew-session.service';
 import { forkJoin, Subscription, timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
@@ -56,30 +44,24 @@ const ANSI_TO_CSS_CLASS: { [key: string]: string } = {
   ],
   templateUrl: './run-chat.component.html',
   styleUrls: ['./run-chat.component.scss'],
-  // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RunChatComponent implements OnInit, OnDestroy {
-  @Input() session!: Session;
-  @Output() sessionEnded = new EventEmitter<void>();
-
+  @Input() sessionId!: number;
   public chatStatus!: string;
 
   public messages: Array<CrewRunMessage & { segments?: TextSegment[] }> = [];
 
   private messagesSubscription!: Subscription;
 
-  constructor(
-    private runCrewSessionService: RunCrewSessionService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  constructor(private runCrewSessionService: RunCrewSessionService) {}
 
   ngOnInit(): void {
     this.messagesSubscription = timer(0, 2000)
       .pipe(
         switchMap(() =>
           forkJoin({
-            messages: this.runCrewSessionService.getMessages(this.session.id),
-            session: this.runCrewSessionService.getSession(this.session.id),
+            messages: this.runCrewSessionService.getMessages(this.sessionId),
+            session: this.runCrewSessionService.getSession(this.sessionId),
           })
         )
       )
@@ -99,21 +81,12 @@ export class RunChatComponent implements OnInit, OnDestroy {
             this.chatStatus = 'finished';
           } else if (session.status === 'run') {
             this.chatStatus = 'running';
-          } else if (session.status === 'error') {
-            this.chatStatus = 'error';
           } else {
             this.chatStatus = session.status;
           }
 
           console.log('Chat Status:', this.chatStatus);
           console.log(this.messages);
-
-          if (session.status === 'end' || session.status === 'error') {
-            if (this.messagesSubscription) {
-              this.messagesSubscription.unsubscribe();
-            }
-            this.sessionEnded.emit();
-          }
         },
         error: (error: Error) => {
           console.error('Error fetching messages or session status:', error);

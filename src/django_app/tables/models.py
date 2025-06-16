@@ -185,11 +185,17 @@ class Session(models.Model):
         WAIT_FOR_USER = "wait_for_user"
         ERROR = "error"
 
-    crew = models.ForeignKey(Crew, on_delete=models.SET_NULL, null=True)
+    crew = models.ForeignKey(Crew, on_delete=models.CASCADE, null=True)
     status = models.CharField(
         choices=SessionStatus.choices, max_length=255, blank=False, null=False
     )
     created_at = models.DateTimeField(default=timezone.now)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.status in {self.SessionStatus.END, self.SessionStatus.ERROR} and not self.finished_at:
+            self.finished_at = timezone.now()
+        super().save(*args, **kwargs)
 
     class Meta:
         get_latest_by = ["id"]

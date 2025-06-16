@@ -11,11 +11,6 @@ import { TestTableDataComponent } from './main/test-table-data/test-table-data.c
 import { TasksTable2Component } from './handsontable-tables/tasks-template/tasks-table-2.component';
 import { StaffComponent } from './handsontable-tables/staff/staff.component';
 import { CrewRunPageComponent } from './crew-run-page/crew-run-page.component';
-import { UserSettingsPageComponent } from './user-settings-page/user-settings-page.component';
-import { ToolsComponent } from './user-settings-page/tools/tools.component';
-import { ModelsComponent } from './user-settings-page/models/models.component';
-import { PreferencesComponent } from './user-settings-page/preferences/preferences.component';
-import { LlmDefaultsComponent } from './user-settings-page/llm-defaults/llm-defaults.component';
 
 export const routes: Routes = [
   {
@@ -33,29 +28,9 @@ export const routes: Routes = [
     path: 'project/:projectId/run-session/:sessionId',
     component: CrewRunPageComponent,
   },
-  {
-    path: 'settings',
-    component: UserSettingsPageComponent,
-    children: [
-      {
-        path: 'tools',
-        component: ToolsComponent,
-      },
-
-      {
-        path: 'models',
-        component: ModelsComponent,
-      },
-      {
-        path: 'preferences',
-        component: PreferencesComponent,
-      },
-      {
-        path: 'llm-defaults',
-        component: LlmDefaultsComponent,
-      },
-    ],
-  },
+  // {
+  //   path: 'settings',
+  // },
   {
     path: 'test-table-dialog',
     component: TesttableComponent,

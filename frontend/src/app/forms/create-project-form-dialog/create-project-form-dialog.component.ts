@@ -121,7 +121,7 @@ export class CreateProjectFormDialogComponent implements OnInit, OnDestroy {
         0.7,
         [Validators.required, Validators.min(0), Validators.max(1)],
       ],
-      num_ctx: [0, [Validators.required, Validators.min(0)]],
+      num_ctx: [25, [Validators.required, Validators.min(0)]],
     });
   }
 

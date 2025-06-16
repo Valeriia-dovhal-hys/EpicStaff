@@ -2,10 +2,8 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
   Input,
   OnInit,
-  Output,
 } from '@angular/core';
 import { Agent } from '../../../shared/models/agent.model';
 import { ToolsService } from '../../../services/tools.service';
@@ -29,7 +27,6 @@ import { Router } from '@angular/router';
 })
 export class AgentItemComponent implements OnInit {
   @Input() agent!: Agent;
-  @Output() agentRemoved = new EventEmitter<Agent>();
 
   public tools: Tool[] = [];
   public llmConfig: LLM_Config | null = null;
@@ -53,10 +50,6 @@ export class AgentItemComponent implements OnInit {
     this.fetchTools();
     this.fetchConfigs();
     this.fetchModelNames();
-  }
-
-  onRemoveAgent(): void {
-    this.agentRemoved.emit(this.agent);
   }
 
   toggleExpanded(): void {

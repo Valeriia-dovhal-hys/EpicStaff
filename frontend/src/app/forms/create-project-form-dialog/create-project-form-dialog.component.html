@@ -32,14 +32,14 @@
       </mat-form-field>
 
       <!-- Description Field (Textarea) -->
-      <!-- <mat-form-field
+      <mat-form-field
         appearance="outline"
         class="full-width"
         floatLabel="always"
       >
         <mat-label>Description(optional)</mat-label>
         <textarea matInput formControlName="description" rows="3"></textarea>
-      </mat-form-field> -->
+      </mat-form-field>
 
       <!-- Process Type Field -->
       <mat-form-field appearance="outline" class="process-select full-width">
@@ -98,7 +98,7 @@
           </mat-form-field>
 
           <!-- Context Field -->
-          <!-- <mat-form-field
+          <mat-form-field
             appearance="outline"
             floatLabel="always"
             class="inline-field"
@@ -117,7 +117,7 @@
             <mat-error *ngIf="projectForm.get('num_ctx')?.hasError('min')">
               Context must be at least 0
             </mat-error>
-          </mat-form-field> -->
+          </mat-form-field>
         </div>
 
         <!-- Provider and LLM Fields Inline -->

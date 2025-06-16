@@ -26,7 +26,6 @@ class RedisService:
         await self.pubsub.subscribe(self.session_start_channel)
 
 
-
     async def listen_redis(self):
         logger.info("Starting Redis listener...")
 

@@ -11,6 +11,7 @@ import { CustomSidenavComponent } from './custom-sidenav/custom-sidenav.componen
   selector: 'app-sidenav',
   standalone: true,
   imports: [
+    RouterLink,
     MatSidenavModule,
     MatToolbarModule,
     MatButtonModule,

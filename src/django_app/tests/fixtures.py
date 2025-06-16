@@ -10,6 +10,7 @@ from tables.models import (
     Agent,
     ConfigLLM,
     Crew,
+    Session,
     EmbeddingModel,
     LLMModel,
     Provider,
@@ -156,4 +157,9 @@ def yaml_config_service_patched_config_path(tmp_path: Path) -> Generator[MagicMo
     
     shutil.rmtree(tmp_path)
     
-    
+
+@pytest.fixture
+def session_factory(db):
+    def create_session(**kwargs):
+        return Session.objects.create(**kwargs)
+    return create_session
