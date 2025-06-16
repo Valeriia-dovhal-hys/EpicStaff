@@ -4,7 +4,6 @@ import redis
 from threading import Lock
 
 from utils.singleton_meta import SingletonMeta
-from utils.logger import logger
 
 
 class RedisService(metaclass=SingletonMeta):
@@ -41,8 +40,6 @@ class RedisService(metaclass=SingletonMeta):
 
     def set_session_data(self, session_id: int, session_json_schema: str) -> None:
         self.redis_client.set(f"sessions:{session_id}:schema", session_json_schema)
-        logger.info(f"Session data set in Redis for session ID: {session_id}.")
 
     def publish_start_session(self, session_id: int) -> None:
         self.redis_client.publish("sessions:start", session_id)
-        logger.info(f"Start session event published to Redis for session ID: {session_id}.")

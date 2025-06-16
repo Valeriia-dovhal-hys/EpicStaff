@@ -101,22 +101,213 @@ def upload_embedding_models():
 
 
 def upload_tools():
-    Tool.objects.get_or_create(
-        name="Wikipedia tool",
-        name_alias="wikipedia",
-        description="Tool for wikipedia searching",
-        requires_model=False,
-    )
-    Tool.objects.get_or_create(
-        name="DuckDuckGo Search",
-        name_alias="ddg_search",
-        description="Tool for DuckDuckGo searching",
-        requires_model=False,
-    )
+    tools = [
+        {
+            "name": "Wikipedia Tool",
+            "name_alias": "wikipedia",
+            "description": "Tool for Wikipedia searching",
+            "requires_model": False,
+        },
+        {
+            "name": "DuckDuckGo Search",
+            "name_alias": "ddg_search",
+            "description": "Tool for DuckDuckGo searching",
+            "requires_model": False,
+        },
+        {
+            "name": "Gmail Draft Creator",
+            "name_alias": "create_draft",
+            "description": "Tool for creating Gmail drafts",
+            "requires_model": False,
+        },
+        {
+            "name": "Code Docs Search Tool",
+            "name_alias": "code_docs_search",
+            "description": "Tool for searching through code documentation",
+            "requires_model": True,
+        },
+        {
+            "name": "CSV Search Tool",
+            "name_alias": "csv_search",
+            "description": "Tool for searching within CSV files",
+            "requires_model": True,
+        },
+        {
+            "name": "DALL-E Tool",
+            "name_alias": "dalle",
+            "description": "Tool for generating images with DALL-E",
+            "requires_model": False,
+        },
+        {
+            "name": "Directory Read Tool",
+            "name_alias": "directory_read",
+            "description": "Tool for reading files in directories",
+            "requires_model": True,
+        },
+        {
+            "name": "Directory Search Tool",
+            "name_alias": "directory_search",
+            "description": "Tool for searching within directories",
+            "requires_model": False,
+        },
+        {
+            "name": "DOCX Search Tool",
+            "name_alias": "docx_search",
+            "description": "Tool for searching within DOCX files",
+            "requires_model": True,
+        },
+        {
+            "name": "EXA Search Tool",
+            "name_alias": "exa_search",
+            "description": "Tool for EXA data searching",
+            "requires_model": False,
+        },
+        {
+            "name": "File Read Tool",
+            "name_alias": "file_read",
+            "description": "Tool for reading files",
+            "requires_model": False,
+        },
+        {
+            "name": "File Writer Tool",
+            "name_alias": "file_writer",
+            "description": "Tool for writing files",
+            "requires_model": False,
+        },
+        {
+            "name": "GitHub Search Tool",
+            "name_alias": "github_search",
+            "description": "Tool for searching GitHub repositories",
+            "requires_model": True,
+        },
+        {
+            "name": "Serper.dev Tool",
+            "name_alias": "serper_dev",
+            "description": "Tool for Serper.dev search",
+            "requires_model": False,
+        },
+        {
+            "name": "JSON Search Tool",
+            "name_alias": "json_search",
+            "description": "Tool for searching JSON files",
+            "requires_model": True,
+        },
+        {
+            "name": "MDX Search Tool",
+            "name_alias": "mdx_search",
+            "description": "Tool for searching MDX files",
+            "requires_model": True,
+        },
+        {
+            "name": "MySQL Search Tool",
+            "name_alias": "my_sql_search",
+            "description": "Tool for searching MySQL databases",
+            "requires_model": True,
+        },
+        {
+            "name": "NL2SQL Tool",
+            "name_alias": "nl2sql",
+            "description": "Tool for natural language to SQL queries",
+            "requires_model": False,
+        },
+        {
+            "name": "PDF Search Tool",
+            "name_alias": "pdf_search",
+            "description": "Tool for searching PDF documents",
+            "requires_model": True,
+        },
+        {
+            "name": "PostgreSQL Search Tool",
+            "name_alias": "pg_search",
+            "description": "Tool for searching PostgreSQL databases",
+            "requires_model": True,
+        },
+        {
+            "name": "Scrape Website Tool",
+            "name_alias": "scrape_website",
+            "description": "Tool for scraping websites",
+            "requires_model": False,
+        },
+        {
+            "name": "Selenium Scraping Tool",
+            "name_alias": "selenium_scraping",
+            "description": "Tool for scraping websites using Selenium",
+            "requires_model": False,
+        },
+        {
+            "name": "TXT Search Tool",
+            "name_alias": "txt_search",
+            "description": "Tool for searching TXT files",
+            "requires_model": True,
+        },
+        {
+            "name": "Vision Tool",
+            "name_alias": "vision",
+            "description": "Tool for image analysis",
+            "requires_model": False,
+        },
+        {
+            "name": "Website Search Tool",
+            "name_alias": "website_search",
+            "description": "Tool for searching websites",
+            "requires_model": True,
+        },
+        {
+            "name": "XML Search Tool",
+            "name_alias": "xml_search",
+            "description": "Tool for searching XML files",
+            "requires_model": True,
+        },
+        {
+            "name": "YouTube Channel Search Tool",
+            "name_alias": "youtube_channel_search",
+            "description": "Tool for searching YouTube channels",
+            "requires_model": True,
+        },
+        {
+            "name": "YouTube Video Search Tool",
+            "name_alias": "youtube_video_search",
+            "description": "Tool for searching YouTube videos",
+            "requires_model": True,
+        },
+        {
+            "name": "Firecrawl Scrape Website Tool",
+            "name_alias": "firecrawl_scrape_website",
+            "description": "Tool for scraping websites with Firecrawl",
+            "requires_model": False,
+        },
+        {
+            "name": "Firecrawl Search Tool",
+            "name_alias": "firecrawl_search",
+            "description": "Tool for searching with Firecrawl",
+            "requires_model": False,
+        },
+        {
+            "name": "Spider Tool",
+            "name_alias": "spider_scraper",
+            "description": "Tool for web scraping with Spider",
+            "requires_model": False,
+        },
+        {
+            "name": "Composio Tool",
+            "name_alias": "composio",
+            "description": "Tool for document composition with Composio",
+            "requires_model": False,
+        },
+        {
+            "name": "Browserbase Load Tool",
+            "name_alias": "browserbase_load",
+            "description": "Tool for browser-based loading with Browserbase",
+            "requires_model": False,
+        },
+        {
+            "name": "Wolfram Alpha Tool",
+            "name_alias": "wolfram_alpha",
+            "description": "Tool for querying Wolfram Alpha",
+            "requires_model": False,
+        }
+    ]
+    
+    for tool_data in tools:
+        Tool.objects.get_or_create(**tool_data)
 
-    Tool.objects.get_or_create(
-        name="Scrape Website Tool",
-        name_alias="scrape_website",
-        description="Tool for scraping websites",
-        requires_model=False,
-    )
