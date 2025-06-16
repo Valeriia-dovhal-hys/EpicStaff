@@ -52,26 +52,20 @@ class SessionManagerService(metaclass=SingletonMeta):
         if len(tasks) == 0: raise ValueError(f"No tasks provided for {crew_name}")
         if len(agents) == 0: raise ValueError(f"No agents provided {crew_name}")
 
-
-        agent_roles = [agent["role"] for agent in agents]
-        
         for task in tasks:
-            if task["agent"]["role"] not in agent_roles:
+            if task["agent"] not in agents: 
                 task_name = task["name"]
                 agent_role = task["agent"]["role"]
-                raise ValueError(
-                    f"Agent {agent_role} assigned for task {task_name} not found in crew {crew_name}"
-                )
+                raise ValueError(f"Agent {agent_role} assigned for task {task_name} not found in crew {crew_name}")
+
 
     def create_session_schema_json(self, session_id: int) -> str:
         session = self.get_session(session_id=session_id)
 
         serialized_session = NestedSessionSerializer(session).data
-        serialized_session["crew"] = self.crew_service.convert_crew_to_pydantic(
-            crew_id=session.crew.pk
-        ).model_dump()
-
-        self.crew_service.inject_tasks(serialized_session["crew"])
+        serialized_crew = serialized_session["crew"]
+        serialized_session["crew"] = self.crew_service.inject_tasks(serialized_crew)
+        
         try:
             self.validate_session(serialized_session)
             session_json = json.dumps(serialized_session)
@@ -79,7 +73,6 @@ class SessionManagerService(metaclass=SingletonMeta):
         except ValueError as e:
             logger.error(f"Session schema validation failed for session ID {session_id}: {e}")
             raise
-
 
 
     def run_session(self, session_id: int) -> None:
