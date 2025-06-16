@@ -9,17 +9,16 @@ from langchain_core.tools import BaseTool
 from pydantic.v1 import BaseModel as V1BaseModel
 from langchain_core.tools import create_schema_from_function
 from parse_model_data import CallableParser
-from models.models import ToolConfig
 
 cp: CallableParser = CallableParser()
 
 
-def init_tool_classes() -> dict:
+def init_tools() -> dict:
     """
     Initialize all tools using ALIAS_CALLABLE variable from dotenv file
 
     Returns:
-        A dict with all tool classes in ALIAS_CALLABLE env variable
+        A dict with all tools in ALIAS_CALLABLE env variable
     """
     load_dotenv()
     tool_alias_callable_dict_txt = os.environ.get("ALIAS_CALLABLE")
@@ -27,22 +26,17 @@ def init_tool_classes() -> dict:
         tool_alias_callable_dict_txt
     )
 
-    tool_alias_class_dict = dict()
+    tool_alias_dict = dict()
     for k, v in tool_alias_callable_dict.items():
-        tool_alias_class_dict[k] = create_tool(v)
-    return tool_alias_class_dict
+        tool_alias_dict[k] = create_tool(v)
+    return tool_alias_dict
 
 
-def run_tool(
-    tool_class,
-    run_args: list[str],
-    run_kwargs: dict[str, Any],
-    tool_config: ToolConfig | None = None,
-):
+def run_tool(tool, run_args: list[str], run_kwargs: dict[str, Any]):
     """
-    Run tool with args and kwargs and tool_config
+    Run tool with args and kwargs
     """
-    return tool_class(config=tool_config.model_dump())._run(*run_args, **run_kwargs)
+    return tool._run(*run_args, **run_kwargs)
 
 
 def create_tool(callable: Callable) -> BaseTool:
