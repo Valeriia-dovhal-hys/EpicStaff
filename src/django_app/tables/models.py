@@ -2,6 +2,20 @@ from django.utils import timezone
 from django.db import models
 
 
+class SingletonModel(models.Model):
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super(SingletonModel, self).save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+    
+
 class Provider(models.Model):
     name = models.TextField(unique=True)
 
@@ -15,6 +29,7 @@ class LLMModel(models.Model):
     llm_provider = models.ForeignKey(Provider, on_delete=models.PROTECT)
     base_url = models.URLField(null=True, blank=True)
     deployment = models.TextField(null=True, blank=True)
+    is_visible = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -24,6 +39,42 @@ class ConfigLLM(models.Model):
     temperature = models.FloatField(default=0.7)
     num_ctx = models.IntegerField(default=25)
 
+
+class LLMDefaultAgentConfig(SingletonModel):
+    default_llm_model = models.ForeignKey(
+        LLMModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='default_agent_llm_model'
+    )
+    default_llm_config = models.ForeignKey(
+        ConfigLLM,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='default_agent_llm_config'
+    )
+
+    def __str__(self):
+        return "Default Agent Config"
+
+
+class LLMDefaultCrewConfig(SingletonModel):
+    default_llm_model = models.ForeignKey(
+        LLMModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='default_crew_llm_model'
+    )
+    default_llm_config = models.ForeignKey(
+        ConfigLLM,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='default_crew_llm_config'
+    )
+
+    def __str__(self):
+        return "Default Crew Config"
+    
 
 class EmbeddingModel(models.Model):
     name = models.TextField()
@@ -69,6 +120,7 @@ class Agent(models.Model):
         LLMModel,
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name="llm_agents",
         default=None,
     )
@@ -83,6 +135,7 @@ class Agent(models.Model):
         ConfigLLM,
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name="llm_agents_config",
         default=None,
     )
@@ -93,6 +146,20 @@ class Agent(models.Model):
         related_name="fcm_agents_config",
         default=None,
     )
+
+    def get_llm_model(self):
+        if self.llm_model:
+            return self.llm_model
+        else:
+            default_config = LLMDefaultAgentConfig.objects.first()
+            return default_config.default_llm_model if default_config else None
+
+    def get_llm_config(self):
+        if self.llm_config:
+            return self.llm_config
+        else:
+            default_config = LLMDefaultAgentConfig.objects.first()
+            return default_config.default_llm_config if default_config else None
 
     def __str__(self):
         return self.role
@@ -153,14 +220,42 @@ class Crew(models.Model):
     )
     memory = models.BooleanField(default=False)
     embedding_model = models.ForeignKey(
-        EmbeddingModel, on_delete=models.SET_NULL, null=True, default=None
+        EmbeddingModel, 
+        on_delete=models.SET_NULL, 
+        null=True,
+        default=None
     )
     manager_llm_model = models.ForeignKey(
-        LLMModel, null=True, on_delete=models.SET_NULL, default=None
+        LLMModel, 
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL, 
+        default=None
     )
     manager_llm_config = models.ForeignKey(
-        ConfigLLM, null=True, on_delete=models.SET_NULL, default=None
+        ConfigLLM, 
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL, 
+        default=None
     )
+
+
+    def get_manager_llm_model(self):
+        if self.manager_llm_model:
+            return self.manager_llm_model
+        else:
+            default_config = LLMDefaultCrewConfig.objects.first()
+            return default_config.default_llm_model if default_config else None
+
+
+    def get_manager_llm_config(self):
+        if self.manager_llm_config:
+            return self.manager_llm_config
+        else:
+            default_config = LLMDefaultCrewConfig.objects.first()
+            return default_config.default_llm_config if default_config else None
+
 
     def __str__(self):
         return self.name

@@ -1,15 +1,25 @@
 from django.core.management.base import BaseCommand
-from tables.models import Provider, LLMModel, EmbeddingModel, Tool
+from tables.models import (
+    Provider,
+    LLMModel,
+    EmbeddingModel,
+    Tool,
+    ConfigLLM,
+    LLMDefaultAgentConfig,
+    LLMDefaultCrewConfig,
+)
 
 
 class Command(BaseCommand):
-    help = "Upload predifined models to database"
+    help = "Upload predefined models to database"
 
     def handle(self, *args, **kwargs):
         upload_providers()
         upload_llm_models()
         upload_embedding_models()
         upload_tools()
+        upload_config_llm()
+        upload_default_llm_configs()
 
 
 def upload_providers():
@@ -119,4 +129,30 @@ def upload_tools():
         name_alias="scrape_website",
         description="Tool for scraping websites",
         requires_model=False,
+    )
+
+
+def upload_config_llm():
+    ConfigLLM.objects.get_or_create(temperature=0.7, num_ctx=2048)
+
+
+def upload_default_llm_configs():
+
+    default_llm_config, _ = ConfigLLM.objects.get_or_create(temperature=0.7, num_ctx=2048)
+    default_llm_model = LLMModel.objects.get(name="gpt-4o")
+
+    LLMDefaultAgentConfig.objects.update_or_create(
+        id=1,
+        defaults={
+            "default_llm_model": default_llm_model,
+            "default_llm_config": default_llm_config,
+        },
+    )
+
+    LLMDefaultCrewConfig.objects.update_or_create(
+        id=1,
+        defaults={
+            "default_llm_model": default_llm_model,
+            "default_llm_config": default_llm_config,
+        },
     )
