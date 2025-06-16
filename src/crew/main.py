@@ -1,6 +1,7 @@
 import os
 import json
 
+from utils.logger import logger
 from services.redis_service import RedisService
 from services.container_manager_service import ContainerManagerService
 from services.run_crew_service import RunCrewService
@@ -17,11 +18,11 @@ run_crew_service = RunCrewService(
 
 if __name__ == "__main__":
     try:
+        logger.info("Starting RunCrewService...")
         run_crew_service.run()
     except Exception as e:
-        print(e)
+        logger.error(f"An error occurred while running RunCrewService: {e}")
         redis_service.publish_session_status(SessionStatus.ERROR)
     else:
+        logger.info("RunCrewService completed successfully.")
         redis_service.publish_session_status(SessionStatus.END)
-
-

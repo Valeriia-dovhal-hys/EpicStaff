@@ -1,6 +1,7 @@
 import json
 
 from utils.singleton_meta import SingletonMeta
+from utils.logger import logger
 from tables.services.crew_service import CrewService
 from tables.services.redis_service import RedisService
 from tables.serializers.nested_model_serializers import NestedSessionSerializer
@@ -51,6 +52,7 @@ class SessionManagerService(metaclass=SingletonMeta):
         if len(tasks) == 0: raise ValueError(f"No tasks provided for {crew_name}")
         if len(agents) == 0: raise ValueError(f"No agents provided {crew_name}")
 
+
         agent_roles = [agent["role"] for agent in agents]
         
         for task in tasks:
@@ -62,7 +64,6 @@ class SessionManagerService(metaclass=SingletonMeta):
                 )
 
     def create_session_schema_json(self, session_id: int) -> str:
-
         session = self.get_session(session_id=session_id)
 
         serialized_session = NestedSessionSerializer(session).data
@@ -71,9 +72,14 @@ class SessionManagerService(metaclass=SingletonMeta):
         ).model_dump()
 
         self.crew_service.inject_tasks(serialized_session["crew"])
-        self.validate_session(serialized_session)
+        try:
+            self.validate_session(serialized_session)
+            session_json = json.dumps(serialized_session)
+            return session_json
+        except ValueError as e:
+            logger.error(f"Session schema validation failed for session ID {session_id}: {e}")
+            raise
 
-        return json.dumps(serialized_session)
 
 
     def run_session(self, session_id: int) -> None:

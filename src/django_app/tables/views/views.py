@@ -144,7 +144,7 @@ class StopSession(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class EnviromentConfig(APIView):
+class EnvironmentConfig(APIView):
     @swagger_auto_schema(
         responses={
             200: openapi.Response(
@@ -154,8 +154,9 @@ class EnviromentConfig(APIView):
         },
     )
     def get(self, request, format=None):
-
+        
         config_dict: dict = config_service.get_all()
+        logger.info("Configuration retrieved successfully.")
 
         return Response(status=status.HTTP_200_OK, data={"data": config_dict})
 
@@ -170,14 +171,19 @@ class EnviromentConfig(APIView):
         },
     )
     def post(self, request, *args, **kwargs):
+        
         serializer = EnvironmentConfigSerializer(data=request.data)
         if not serializer.is_valid():
+            logger.error("Invalid configuration data provided.")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         config_service.set_all(config_dict=serializer.validated_data["data"])
+        logger.info("Configuration updated successfully.")
 
+        updated_config = config_service.get_all()
+        
         return Response(
-            data={"data": config_service.get_all()}, status=status.HTTP_201_CREATED
+            data={"data": updated_config}, status=status.HTTP_201_CREATED
         )
 
 
@@ -192,15 +198,18 @@ class EnviromentConfig(APIView):
 @api_view(["DELETE"])
 def delete_environment_config(request, *args, **kwargs):
     key: str | None = kwargs.get("key", None)
+
     if key is None:
+        logger.error("No key provided in DELETE request.")
         return Response("No key provided", status=status.HTTP_400_BAD_REQUEST)
     
     deleted_key = config_service.delete(key=key)
     
     if not deleted_key:
+        logger.warning(f"Key '{key}' not found.")
         return Response("Key not found", status=status.HTTP_404_NOT_FOUND)
 
-    
+    logger.info(f"Config key '{key}' deleted successfully.")
     return Response("Config deleted successfully", status=status.HTTP_204_NO_CONTENT)
 
 

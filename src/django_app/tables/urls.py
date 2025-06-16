@@ -16,7 +16,7 @@ from tables.views.model_view_sets import (
 
 from .views.views import (
     AnswerToLLM,
-    EnviromentConfig,
+    EnvironmentConfig,
     SessionMessageListView,
     SessionViewSet,
     RunSession,
@@ -58,7 +58,7 @@ urlpatterns = [
     ),
     path(
         "environment/config",
-        EnviromentConfig.as_view(),
+        EnvironmentConfig.as_view(),
         name="environment_config",
     ),
     path(
