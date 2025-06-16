@@ -15,6 +15,7 @@
         <app-section-agents-info
           [agents]="agents"
           (addAgentsClicked)="openAgentsDialog()"
+          (agentRemoved)="onAgentRemoved($event)"
         >
         </app-section-agents-info>
       </ng-container>

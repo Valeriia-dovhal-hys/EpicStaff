@@ -1,4 +1,19 @@
 <div class="parent-container">
+  <div class="actions">
+    <button mat-flat-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back
+    </button>
+    <button
+      mat-stroked-button
+      color="warn"
+      (click)="onStop()"
+      [disabled]="session.status !== 'run'"
+    >
+      Stop
+    </button>
+  </div>
+
   <div class="project info">
     <p class="project-name">{{ project.name }}</p>
     <hr />

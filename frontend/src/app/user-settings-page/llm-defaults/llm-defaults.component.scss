@@ -1,0 +1,59 @@
+.llm-defaults-container {
+  .llm-defaults-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333333;
+    margin-bottom: 0.5rem;
+  }
+
+  .llm-defaults-description {
+    font-size: 1rem;
+    color: #666666;
+    margin-bottom: 2rem;
+  }
+
+  .llm-defaults-section {
+    margin-bottom: 2rem;
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #333333;
+      margin-bottom: 1rem;
+    }
+
+    .setting-item {
+      display: flex;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid #e5e7eb;
+
+      .label {
+        font-weight: 500;
+        color: #333333;
+        flex: 1; // Aligns to the left
+        text-align: left;
+      }
+
+      .value {
+        color: #666666;
+        flex: 1; // Centers in the middle
+        text-align: center;
+      }
+
+      .update-link {
+        color: #3b82f6;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: color 0.2s;
+        flex: 1; // Aligns to the right
+        text-align: right;
+
+        &:hover {
+          color: #2563eb;
+        }
+      }
+    }
+  }
+}

@@ -49,8 +49,8 @@ export class CustomSidenavComponent {
     },
     {
       icon: 'settings',
-      label: 'All tasks',
-      route: 'tasks-templates',
+      label: 'settings',
+      route: 'settings',
     },
 
     // {

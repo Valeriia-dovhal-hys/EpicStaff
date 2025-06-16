@@ -1,0 +1,50 @@
+<div class="main-wrapper">
+  <!-- Header with Title and Search -->
+  <div class="header">
+    <div class="title-search">
+      <mat-icon class="arrow-icon">arrow_back</mat-icon>
+      <span class="title">Settings</span>
+    </div>
+  </div>
+
+  <div class="content-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <ul class="nav-list">
+        <li
+          class="nav-item"
+          routerLink="/settings/preferences"
+          routerLinkActive="active"
+        >
+          Preferences
+        </li>
+        <li
+          class="nav-item"
+          routerLink="/settings/llm-defaults"
+          routerLinkActive="active"
+        >
+          Defaults
+        </li>
+        <li
+          class="nav-item"
+          routerLink="/settings/tools"
+          routerLinkActive="active"
+        >
+          Tools
+        </li>
+        <li
+          class="nav-item"
+          routerLink="/settings/models"
+          routerLinkActive="active"
+        >
+          Models
+        </li>
+      </ul>
+    </div>
+
+    <!-- Settings Content -->
+    <div class="settings-content">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

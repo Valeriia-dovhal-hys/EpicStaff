@@ -14,8 +14,13 @@ import { AgentItemComponent } from './agent-item/agent-item.component';
 export class SectionAgentsInfoComponent {
   @Input() agents: Agent[] = [];
   @Output() addAgentsClicked = new EventEmitter<void>();
+  @Output() agentRemoved = new EventEmitter<Agent>();
 
   public onAddAgentsClick(): void {
     this.addAgentsClicked.emit();
+  }
+
+  public onAgentRemoved(agent: Agent): void {
+    this.agentRemoved.emit(agent);
   }
 }

@@ -235,6 +235,67 @@ export class ProjectDetailsComponent implements OnInit {
     this.subscriptions.add(dialogSubscription);
   }
 
+  onAgentRemoved(agent: Agent): void {
+    // Remove the agent from the agents array
+    this.agents = this.agents.filter((a) => a.id !== agent.id);
+
+    // Remove the agent's ID from the project's agents array
+    this.project.agents = this.project.agents.filter((id) => id !== agent.id);
+
+    // Find tasks assigned to this agent
+    const tasksToUpdate = this.tasks.filter((task) => task.agent === agent.id);
+
+    // Update tasks to set agent to null
+    const tasksUpdateObservables = tasksToUpdate.map((task) =>
+      this.tasksService.updateTask({ ...task, agent: null })
+    );
+
+    // Update the project
+    const projectUpdateObservable = this.projectsService.updateProject(
+      this.project
+    );
+
+    // Combine all updates using an object
+    const updateObservables = {
+      updatedProject: projectUpdateObservable,
+      updatedTasks:
+        tasksUpdateObservables.length > 0
+          ? forkJoin(tasksUpdateObservables)
+          : of([] as Task[]),
+    };
+
+    const updateSubscription = forkJoin(updateObservables).subscribe({
+      next: ({ updatedProject, updatedTasks }) => {
+        // Update the local project
+        this.project = updatedProject;
+
+        // Update the local tasks array
+        this.tasks = this.tasks.map((task) => {
+          const updatedTask = updatedTasks.find((t) => t.id === task.id);
+          return updatedTask ? updatedTask : task;
+        });
+
+        // Mark for change detection
+        this.cdr.markForCheck();
+
+        // Show success message
+        this.sharedSnackbarService.showSnackbar(
+          'Agent removed successfully.',
+          'success'
+        );
+      },
+      error: (error) => {
+        console.error('Error updating project and tasks:', error);
+        this.sharedSnackbarService.showSnackbar(
+          'Failed to remove agent.',
+          'error'
+        );
+      },
+    });
+
+    this.subscriptions.add(updateSubscription);
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }

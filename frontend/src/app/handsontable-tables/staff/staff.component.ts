@@ -275,7 +275,7 @@ export class StaffComponent implements OnInit, OnDestroy {
       height: '100%',
 
       colWidths: [
-        0, 0, 0, 100, 150, 200, 300, 150, 40, 40, 40, 40, 40, 100, 100,
+        0, 0, 0, 100, 150, 200, 300, 150, 40, 40, 40, 40, 40, 110, 110,
       ],
       colHeaders: this.colHeaders,
       columns: this.columns,
@@ -480,12 +480,30 @@ export class StaffComponent implements OnInit, OnDestroy {
       });
 
       this.hotInstance.render();
+
+      //very strange fix to the handsontable bug that row header is initially badly displayed
+      this.scrollTableContainerSlightly();
       this.isTableInitialized = true;
     } else {
       console.error('Container element not found!');
     }
   }
 
+  private scrollTableContainerSlightly(): void {
+    // Access the Handsontable container
+    const tableContainer = this.hotInstance?.rootElement?.querySelector(
+      '.wtHolder'
+    ) as HTMLElement;
+
+    if (tableContainer) {
+      // Scroll down slightly
+      tableContainer.scrollTop += 5; // Adjust the pixel value as needed
+
+      // Scroll back up after a short delay
+
+      tableContainer.scrollTop -= 4; // Return to the original position
+    }
+  }
   private handleDeleteRows(
     selection: Array<{
       start: Handsontable.CellCoords;

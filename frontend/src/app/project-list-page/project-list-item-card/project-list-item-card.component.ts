@@ -13,11 +13,16 @@ import { MatDividerModule } from '@angular/material/divider';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { RunCrewSessionService } from '../../services/run-crew-session.service';
+import {
+  RunCrewSessionService,
+  Session,
+} from '../../services/run-crew-session.service';
 import { SharedSnackbarService } from '../../services/snackbar/shared-snackbar.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RunCrewSessionRequest } from '../../shared/models/RunCrewSession.model';
 import { NgIf } from '@angular/common';
+import { Subscription } from 'rxjs';
+import { SessionListDialogComponent } from './session-list-dialog/session-list-dialog.component';
 
 @Component({
   selector: 'app-project-list-item-card',
@@ -39,7 +44,9 @@ export class ProjectListItemCardComponent {
 
   @ViewChild('confirmRunDialog') confirmRunDialog!: TemplateRef<any>;
 
-  runSessionId: number | null = null; // Made public to access in template
+  runSessionId: number | null = null;
+
+  private subscriptions = new Subscription();
 
   constructor(
     private router: Router,
@@ -64,29 +71,33 @@ export class ProjectListItemCardComponent {
       disableClose: true,
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe((result: boolean) => {
       if (result) {
-        this.runCrewSessionService.createSession(this.project.id).subscribe({
-          next: (response: RunCrewSessionRequest) => {
-            const sessionId = response.session_id;
-            console.log('Session ID:', sessionId);
+        const sessionsSubscription: Subscription = this.runCrewSessionService
+          .createSession(this.project.id)
+          .subscribe({
+            next: (response: RunCrewSessionRequest) => {
+              const sessionId = response.session_id;
+              console.log('Session ID:', sessionId);
 
-            this.runSessionId = sessionId;
-            this.cdr.detectChanges();
+              this.runSessionId = sessionId;
+              this.cdr.detectChanges();
 
-            this.sharedSnackbarService.showSnackbar(
-              'Session started successfully!',
-              'success'
-            );
-          },
-          error: (error) => {
-            console.error('Error creating session:', error);
-            this.sharedSnackbarService.showSnackbar(
-              'Failed to start session.',
-              'error'
-            );
-          },
-        });
+              this.sharedSnackbarService.showSnackbar(
+                'Session started successfully!',
+                'success'
+              );
+            },
+            error: (error) => {
+              console.error('Error creating session:', error);
+              this.sharedSnackbarService.showSnackbar(
+                'Failed to start session.',
+                'error'
+              );
+            },
+          });
+
+        this.subscriptions.add(sessionsSubscription);
       }
     });
   }
@@ -99,25 +110,52 @@ export class ProjectListItemCardComponent {
 
   stopRunSession() {
     if (this.runSessionId != null) {
-      this.runCrewSessionService.stopSession(this.runSessionId).subscribe({
-        next: () => {
-          this.sharedSnackbarService.showSnackbar(
-            'Session stopped successfully!',
-            'success'
-          );
-          this.runSessionId = null;
-          this.cdr.detectChanges();
+      const stopSessionSubscription: Subscription = this.runCrewSessionService
+        .stopSession(this.runSessionId)
+        .subscribe({
+          next: () => {
+            this.sharedSnackbarService.showSnackbar(
+              'Session stopped successfully!',
+              'success'
+            );
+            this.runSessionId = null;
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            console.error('Error stopping session:', error);
+            this.sharedSnackbarService.showSnackbar(
+              'Failed to stop session.',
+              'error'
+            );
+          },
+        });
+    }
+  }
+  copyProject() {}
+
+  viewRunResults() {
+    const sessionsSubscription: Subscription = this.runCrewSessionService
+      .getSessionsByProjectId(this.project.id)
+      .subscribe({
+        next: (sessions: Session[]) => {
+          console.log(sessions);
+
+          this.dialog.open(SessionListDialogComponent, {
+            height: '600px',
+            width: '600px',
+            data: { sessions: sessions, project: this.project },
+            autoFocus: false,
+          });
         },
         error: (error) => {
-          console.error('Error stopping session:', error);
+          console.error('Error fetching sessions:', error);
           this.sharedSnackbarService.showSnackbar(
-            'Failed to stop session.',
+            'Failed to fetch session results.',
             'error'
           );
         },
       });
-    }
+
+    this.subscriptions.add(sessionsSubscription);
   }
-  copyProject() {}
-  viewRunResults() {}
 }

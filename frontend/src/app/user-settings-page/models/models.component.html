@@ -1,0 +1,119 @@
+<!-- Header Section -->
+<div class="models-header">
+  <div>
+    <h2 class="models-title">Models</h2>
+    <p class="models-description">
+      Browse and manage your available models below.
+    </p>
+  </div>
+
+  <!-- Search Input -->
+  <div class="search-checkbox-wrapper">
+    <div class="search-input-wrapper">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input type="text" placeholder="Search models..." class="search-input" />
+    </div>
+
+    <label class="filter-checkbox">
+      <input type="checkbox" />
+      Show Only Activated Models
+    </label>
+  </div>
+</div>
+
+<ng-container *ngFor="let providerGroup of providersWithModels">
+  <div class="provider-section">
+    <!-- Provider Header -->
+    <div class="provider-header">
+      <div class="provider-title">{{ providerGroup.provider.name }}</div>
+    </div>
+    <hr class="provider-divider" />
+
+    <!-- Model Templates Section -->
+    <div class="section-header">
+      <div class="section-title">Model Templates:</div>
+    </div>
+
+    <!-- Models Grid -->
+    <div class="models-grid">
+      <!-- LLM Models -->
+      <div
+        *ngFor="let model of providerGroup.models"
+        class="model-card"
+        (click)="openModelDetails(model, providerGroup.provider.name)"
+      >
+        <div class="model-card-content">
+          <div class="model-name">{{ model.name }}</div>
+          <div class="configure-link">Use as template</div>
+        </div>
+      </div>
+
+      <!-- Embedding Models -->
+      <div
+        *ngFor="let model of providerGroup.embeddingModels"
+        class="model-card embedding"
+        (click)="openModelDetails(model, providerGroup.provider.name)"
+      >
+        <div class="model-card-content">
+          <div class="model-name">{{ model.name }}</div>
+          <div class="model-horizontal">
+            <div class="model-type-label">Embedding</div>
+            <div class="configure-link">Use as template</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activated Models Section -->
+    <div class="section-header">
+      <div class="section-title">Setuped Models:</div>
+    </div>
+
+    <div class="activated-models-container">
+      <ng-container
+        *ngIf="providerGroup.activatedModels.length > 0; else noActivatedModels"
+      >
+        <div class="models-grid">
+          <div
+            *ngFor="let model of providerGroup.activatedModels"
+            class="model-card"
+          >
+            <div class="model-card-content">
+              <div class="model-name">
+                <div>
+                  {{ model.name }}
+                </div>
+                <div
+                  class="activation-status-text"
+                  [ngClass]="{
+                    'activated-text': model.activated,
+                    'deactivated-text': !model.activated
+                  }"
+                >
+                  ({{ model.activated ? "Activated" : "Deactivated" }})
+                </div>
+              </div>
+
+              <div
+                class="model-horizontal"
+                [ngClass]="{ 'center-configure': !model.isEmbedding }"
+              >
+                <div class="model-type-label" *ngIf="model.isEmbedding">
+                  Embedding
+                </div>
+                <div class="configure-link">Configure</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Fallback Message -->
+      <ng-template #noActivatedModels>
+        <div class="no-activated-models">
+          <div>No setuped models available. Use template to setup a model.</div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</ng-container>

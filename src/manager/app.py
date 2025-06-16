@@ -1,13 +1,18 @@
 import json
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 import asyncio
+import redis.asyncio as aioredis
 import uvicorn
+from fastapi.responses import JSONResponse
 from models.models import (
     RunToolParamsModel,
+    RunCrewModel,
     ToolListResponseModel,
     ClassDataResponseModel,
     RunToolResponseModel,
+    RunCrewResponseModel,
 )
+
 
 from repositories.import_tool_data_repository import ImportToolDataRepository
 from services.tool_image_service import ToolImageService
@@ -15,13 +20,15 @@ from services.tool_container_service import ToolContainerService
 from services.crew_container_service import CrewContainerService
 from services.redis_service import RedisService
 from helpers.yaml_parser import load_env_from_yaml_config
-from helpers.logger import logger
 
 
 app = FastAPI()
 
 import_tool_data_repository = ImportToolDataRepository()
-tool_image_service = ToolImageService(import_tool_data_repository=import_tool_data_repository)
+
+tool_image_service = ToolImageService(
+    import_tool_data_repository=import_tool_data_repository
+)
 tool_container_service = ToolContainerService(
     tool_image_service=tool_image_service,
     import_tool_data_repository=import_tool_data_repository,
@@ -30,49 +37,47 @@ crew_container_service = CrewContainerService()
 redis_service = RedisService()
 
 
+# TODO ADD LOGGER
+# TODO add error handlers (if error in important request -send to some service)
+
+
 @app.get("/tool/list", status_code=200, response_model=ToolListResponseModel)
 def get_all_tool_aliases():
-    try:
-        tool_list = import_tool_data_repository.get_tool_alias_list()
-        logger.info("Tool list retrieved successfully.")
-        return ToolListResponseModel(tool_list=tool_list)
-    except Exception as e:
-        logger.error(f"Failed to retrieve tool list: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return ToolListResponseModel(
+        tool_list=import_tool_data_repository.get_tool_alias_list()
+    )
 
 
-@app.get("/tool/{tool_alias}/class-data", status_code=200, response_model=ClassDataResponseModel)
+@app.get(
+    "/tool/{tool_alias}/class-data",
+    status_code=200,
+    response_model=ClassDataResponseModel,
+)
 def get_class_data(tool_alias: str):
-    try:
-        classdata = tool_container_service.request_class_data(tool_alias=tool_alias)["classdata"]
-        logger.info(f"Class data retrieved successfully for tool alias: {tool_alias}")
-        return ClassDataResponseModel(classdata=classdata)
-    except Exception as e:
-        logger.error(f"Failed to retrieve class data for tool alias {tool_alias}: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+    classdata = tool_container_service.request_class_data(tool_alias=tool_alias)[
+        "classdata"
+    ]
+    return ClassDataResponseModel(classdata=classdata)
 
 
-@app.post("/tool/{tool_alias}/run", status_code=200, response_model=RunToolResponseModel)
+@app.post(
+    "/tool/{tool_alias}/run", status_code=200, response_model=RunToolResponseModel
+)
 def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
-    try:
-        run_tool_response = tool_container_service.request_run_tool(
-            tool_alias=tool_alias, run_tool_params_model=run_tool_params_model
-        )
-        logger.info(f"Tool with alias {tool_alias} run successfully.")
-        return RunToolResponseModel(data=run_tool_response["data"])
-    except Exception as e:
-        logger.error(f"Failed to run tool with alias {tool_alias}: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+    # logger.debug(f"run tool {tool_alias} with params {run_tool_params_model.dict()}")
+
+    run_tool_response = tool_container_service.request_run_tool(
+        tool_alias=tool_alias, run_tool_params_model=run_tool_params_model
+    )
+    
+    return RunToolResponseModel(data=run_tool_response["data"])
 
 
 @app.on_event("startup")
 async def start_redis_subscription():
-    try:
-        await redis_service.init_redis()
-        asyncio.create_task(redis_service.listen_redis())
-        logger.info("Redis subscription initialized successfully.")
-    except Exception as e:
-        logger.error(f"Failed to initialize Redis subscription: {e}")
+    await redis_service.init_redis()
+    asyncio.create_task(redis_service.listen_redis())
 
 
 if __name__ == "__main__":

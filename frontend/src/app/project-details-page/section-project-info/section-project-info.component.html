@@ -7,6 +7,9 @@
 
   <div class="content">
     <div *ngIf="dataLoaded" class="project-info">
+      <button mat-stroked-button (click)="openEditProjectDialog()">
+        Edit Project <mat-icon>edit</mat-icon>
+      </button>
       <div class="assignment-wrapper">
         <span class="assignment-title">Assignment: </span>
         <hr />
@@ -51,11 +54,6 @@
   </div>
 
   <div class="footer">
-    <div class="edit-project">
-      <button mat-stroked-button (click)="openEditProjectDialog()">
-        Edit Project <mat-icon>edit</mat-icon>
-      </button>
-    </div>
     <!-- <button class="run-button" mat-flat-button color="primary">Run</button> -->
     <ng-container *ngIf="sessionId == null; else sessionActiveTemplate">
       <button
@@ -73,7 +71,7 @@
     <button mat-flat-button color="primary" (click)="viewRunSession()">
       View
     </button>
-    <button mat-flat-button color="primary" (click)="stopRunSession()">
+    <button mat-flat-button color="warn" (click)="stopRunSession()">
       Stop
     </button>
   </ng-template>

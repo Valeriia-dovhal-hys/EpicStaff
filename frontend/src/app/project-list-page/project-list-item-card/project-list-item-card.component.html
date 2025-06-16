@@ -41,18 +41,14 @@
   </div>
 
   <ng-template #sessionActiveTemplate>
-    <button class="stop-button" mat-flat-button (click)="stopRunSession()">
-      Stop
-    </button>
-    <button class="view-button" mat-flat-button (click)="viewRunSession()">
-      View
-    </button>
-  </ng-template>
-
-  <ng-template #viewButtonTemplate>
-    <button class="view-button" mat-flat-button (click)="viewRunSession()">
-      View
-    </button>
+    <div class="view-stop-buttons-wrapper">
+      <!-- <button class="stop-button" mat-raised-button (click)="stopRunSession()">
+        Stop
+      </button> -->
+      <button class="view-button" mat-flat-button (click)="viewRunSession()">
+        View
+      </button>
+    </div>
   </ng-template>
 </div>
 <!-- Confirmation Dialog Template -->

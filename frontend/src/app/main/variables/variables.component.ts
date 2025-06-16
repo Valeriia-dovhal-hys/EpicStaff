@@ -49,7 +49,12 @@ export class VariablesComponent implements AfterViewInit, OnDestroy, OnChanges {
   @ViewChild(VariablePopupComponent)
   variablePopupComponent!: VariablePopupComponent;
 
-  @Input() variables?: Variable[]; // Optional variables input
+  @Input() variables?: Variable[] = [
+    {
+      title: 'City',
+      value: 'Paris',
+    },
+  ]; // Optional variables input
 
   dataSource: DataItem[] = [
     {
@@ -77,7 +82,12 @@ export class VariablesComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   // Define the popup configuration object
   popupConfig: PopupConfig = {
-    variables: [], // Will be set in ngOnChanges
+    variables: [
+      {
+        title: 'City',
+        value: 'Paris',
+      },
+    ], // Will be set in ngOnChanges
     position: { top: 0, left: 0 },
     show: false,
   };

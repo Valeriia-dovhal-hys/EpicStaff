@@ -46,8 +46,6 @@ class ToolSerializer(serializers.ModelSerializer):
 
 
 class AgentSerializer(serializers.ModelSerializer):
-    llm_model = serializers.SerializerMethodField()
-    llm_config = serializers.SerializerMethodField()
     tools = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tool.objects.all(),
@@ -56,19 +54,7 @@ class AgentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Agent
-        fields = '__all__'
-
-    def get_llm_model(self, obj):
-        llm_model = obj.get_llm_model()
-        if llm_model:
-            return LLMModelSerializer(llm_model).data
-        return None
-
-    def get_llm_config(self, obj):
-        llm_config = obj.get_llm_config()
-        if llm_config:
-            return ConfigLLMSerializer(llm_config).data
-        return None
+        fields = "__all__"
 
 
 class TemplateAgentSerializer(serializers.ModelSerializer):
@@ -89,9 +75,6 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class CrewSerializer(serializers.ModelSerializer):
     tasks = serializers.PrimaryKeyRelatedField(many=True, read_only=True, source="task_set")
-    manager_llm_model = serializers.SerializerMethodField()
-    manager_llm_config = serializers.SerializerMethodField()
-    agents = AgentSerializer(many=True)
 
     class Meta:
         model = Crew
@@ -106,20 +89,8 @@ class CrewSerializer(serializers.ModelSerializer):
             "embedding_model",
             "manager_llm_model",
             "manager_llm_config",
-            "tasks",
+            "tasks"
         ]
-
-    def get_manager_llm_model(self, obj):
-        llm_model = obj.get_manager_llm_model()
-        if llm_model:
-            return LLMModelSerializer(llm_model).data
-        return None
-
-    def get_manager_llm_config(self, obj):
-        llm_config = obj.get_manager_llm_config()
-        if llm_config:
-            return ConfigLLMSerializer(llm_config).data
-        return None
 
 
 class SessionSerializer(serializers.ModelSerializer):

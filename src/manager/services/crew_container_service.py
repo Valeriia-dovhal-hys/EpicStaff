@@ -1,3 +1,6 @@
+from typing import Optional
+import requests
+import time
 from docker.types import Mount
 
 import docker
@@ -5,6 +8,7 @@ from docker.models.images import Image
 from docker.models.containers import Container
 
 from helpers.logger import logger
+from models.models import RunCrewModel
 from services.crew_image_service import CrewImageService
 
 
@@ -29,12 +33,15 @@ class CrewContainerService:
     def run_container(
         self, image: Image, container_name: str, session_id: int, port: int = 0
     ) -> Container:
+        # Check if a container with the given name already exists
         for container in self.client.containers.list(all=True):
             if container.name == container_name:
                 logger.info(f"Container with name {container_name} already exists, removing it.")
                 container.remove(force=True)
                 break
 
+
+        # Create one of not exists
         try:
             container_crew = self.client.containers.run(
                 image=image,
@@ -63,4 +70,3 @@ class CrewContainerService:
             raise
 
         return container_crew
-    

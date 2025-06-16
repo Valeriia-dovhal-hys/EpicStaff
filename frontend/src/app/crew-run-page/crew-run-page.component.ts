@@ -12,6 +12,11 @@ import { TasksService } from '../services/tasks.service';
 import { SharedSnackbarService } from '../services/snackbar/shared-snackbar.service';
 import { ProjectInfoComponent } from './run-page-components/project-info/project-info.component';
 import { RunChatComponent } from './run-page-components/run-chat/run-chat.component';
+import { MatButton } from '@angular/material/button';
+import {
+  RunCrewSessionService,
+  Session,
+} from '../services/run-crew-session.service';
 
 @Component({
   selector: 'app-crew-run-page',
@@ -25,6 +30,7 @@ export class CrewRunPageComponent implements OnInit, OnDestroy {
   agents: Agent[] = [];
   tasks: Task[] = [];
   sessionId!: number;
+  session!: Session;
 
   isDataLoaded: boolean = false;
   private subscriptions = new Subscription();
@@ -35,12 +41,10 @@ export class CrewRunPageComponent implements OnInit, OnDestroy {
     private agentsService: AgentsService,
     private tasksService: TasksService,
     private sharedSnackbarService: SharedSnackbarService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private runCrewSessionService: RunCrewSessionService
   ) {}
-
   ngOnInit() {
-    console.log('run page loaded');
-
     this.sessionId = Number(this.route.snapshot.paramMap.get('sessionId'));
     const projectId: number = Number(
       this.route.snapshot.paramMap.get('projectId')
@@ -80,34 +84,47 @@ export class CrewRunPageComponent implements OnInit, OnDestroy {
           const tasksObservable: Observable<Task[]> =
             this.tasksService.getTasks();
 
+          // Fetch session object
+          const sessionObservable: Observable<Session> =
+            this.runCrewSessionService.getSession(this.sessionId);
+
           return forkJoin({
             agents: agentsObservable,
             tasks: tasksObservable,
+            session: sessionObservable,
           });
         })
       )
       .subscribe({
-        next: ({ agents, tasks }) => {
+        next: ({ agents, tasks, session }) => {
           this.agents = agents;
           // Filter tasks by project ID
           this.tasks = tasks.filter((task) => task.crew === this.project.id);
 
+          this.session = session; // Assign the fetched session
+
           console.log('Agents:', this.agents);
           console.log('Tasks for project:', this.tasks);
+          console.log('Session:', this.session);
 
           this.isDataLoaded = true;
           this.cdr.detectChanges();
         },
         error: (error) => {
-          console.error('Error fetching project, agents, or tasks:', error);
+          console.error('Error fetching data:', error);
           this.sharedSnackbarService.showSnackbar(
-            'Failed to load project details, agents, or tasks.',
+            'Failed to load project details, agents, tasks, or session.',
             'error'
           );
         },
       });
 
     this.subscriptions.add(projectSubscription);
+  }
+  onSessionEnded(): void {
+    this.session = { ...this.session, status: 'end' };
+
+    console.log('Session has ended.');
   }
 
   ngOnDestroy(): void {

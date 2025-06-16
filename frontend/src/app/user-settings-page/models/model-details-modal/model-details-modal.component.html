@@ -1,0 +1,69 @@
+<div class="modal-content">
+  <div class="modal-header">
+    <div class="modal-title">
+      Setup a model from template "{{ data.model.name }}"
+    </div>
+    <div class="modal-provider">Provider: {{ data.providerName }}</div>
+  </div>
+  <form [formGroup]="modelForm" class="modal-body">
+    <div class="form-group">
+      <label for="customName">Custom Name</label>
+      <input
+        id="customName"
+        type="text"
+        class="input-field"
+        formControlName="customName"
+        placeholder="Enter a custom name"
+      />
+      <div class="error-message">
+        <ng-container *ngIf="modelForm.get('customName')?.touched">
+          <ng-container
+            *ngIf="modelForm.get('customName')?.errors?.['required']"
+          >
+            Custom name is required.
+          </ng-container>
+          <ng-container
+            *ngIf="modelForm.get('customName')?.errors?.['maxlength']"
+          >
+            Max 50 characters allowed.
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="apiKey">API Key</label>
+      <input
+        id="apiKey"
+        type="text"
+        class="input-field"
+        formControlName="apiKey"
+        placeholder="Enter API Key"
+      />
+      <div class="error-message">
+        <ng-container *ngIf="modelForm.get('apiKey')?.touched">
+          <ng-container *ngIf="modelForm.get('apiKey')?.errors?.['required']">
+            API key is required.
+          </ng-container>
+          <ng-container *ngIf="modelForm.get('apiKey')?.errors?.['minlength']">
+            Minimum 8 characters required.
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+    <div class="form-group checkbox-group">
+      <label for="useToggle">Make active:</label>
+      <input id="useToggle" type="checkbox" formControlName="activated" />
+    </div>
+  </form>
+  <div class="modal-footer">
+    <button mat-button class="button-close" (click)="onClose()">Close</button>
+    <button
+      mat-button
+      class="button-create"
+      (click)="onCreate()"
+      [disabled]="modelForm.invalid"
+    >
+      Create
+    </button>
+  </div>
+</div>

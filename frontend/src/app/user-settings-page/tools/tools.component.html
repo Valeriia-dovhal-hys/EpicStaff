@@ -1,0 +1,45 @@
+<div class="tools-container">
+  <!-- Header Section -->
+  <div class="tools-header">
+    <div>
+      <h2 class="tools-title">Tools</h2>
+      <p class="tools-description">
+        Browse and manage your available tools below.
+      </p>
+    </div>
+
+    <!-- Search and Filter Wrapper -->
+    <div class="search-filter-wrapper">
+      <!-- Search Input for Tools -->
+      <div class="search-input-wrapper">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" class="search-input" placeholder="Search tools..." />
+      </div>
+
+      <!-- Filter Dropdown -->
+      <div class="filter-dropdown">
+        <button class="filter-button" (click)="toggleFilterMenu()">
+          Filter
+
+          <mat-icon class="arrow-icon">arrow_drop_down</mat-icon>
+        </button>
+        <div class="filter-menu" *ngIf="isFilterMenuOpen">
+          <div class="filter-option">Option 1</div>
+          <div class="filter-option">Option 2</div>
+          <div class="filter-option">Option 3</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tools Grid -->
+  <div class="tools-grid">
+    <div *ngFor="let tool of tools" class="tool-card">
+      <div class="tool-card-header">
+        <p class="tool-name">{{ tool.name }}</p>
+        <p class="configure-link">Configure</p>
+      </div>
+      <p class="tool-description">{{ tool.description }}</p>
+    </div>
+  </div>
+</div>

@@ -1,14 +1,19 @@
 <div class="main-container">
   @if(isDataLoaded){
+
   <div class="project-info-container">
     <app-project-info
       [project]="project"
       [agents]="agents"
       [tasks]="tasks"
+      [session]="session"
     ></app-project-info>
   </div>
   <div class="chat-container">
-    <app-run-chat [sessionId]="sessionId"></app-run-chat>
+    <app-run-chat
+      [session]="session"
+      (sessionEnded)="onSessionEnded()"
+    ></app-run-chat>
   </div>
   }
 </div>

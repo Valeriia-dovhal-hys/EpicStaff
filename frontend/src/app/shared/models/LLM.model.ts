@@ -5,4 +5,6 @@ export interface LLM_Model {
   base_url: string | null;
   deployment: string | null;
   llm_provider: number;
+
+  providerName?: string;
 }
