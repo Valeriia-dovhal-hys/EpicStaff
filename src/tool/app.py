@@ -1,20 +1,21 @@
 import os
-from dotenv import load_dotenv
-from fastapi import FastAPI
-from base_models import Callable
+from fastapi import FastAPI, Response, status
 from models.models import (
     RunToolParamsModel,
     ClassDataResponseModel,
     RunToolResponseModel,
 )
-from utils import get_tool_data, run_tool, init_tool_classes
+from utils import get_tool_data, run_tool, init_tools
 from pickle_encode import obj_to_txt
 import uvicorn
 from loguru import logger
+from tool_factory import DynamicToolFactory, ToolNotFoundException
 
 app = FastAPI()
+tool_factory = DynamicToolFactory()
 
-tool_alias_class_dict = init_tool_classes()
+init_tools()
+
 
 
 @app.get(
@@ -23,7 +24,16 @@ tool_alias_class_dict = init_tool_classes()
     response_model=ClassDataResponseModel,
 )
 def get_class_data(tool_alias: str):
-    tool_data = get_tool_data(tool_alias_class_dict[tool_alias]())
+    try:
+        tool = tool_factory.create(tool_alias=tool_alias)
+    except ToolNotFoundException as e:
+        logger.error(f"Tool class not found by tool alias {tool_alias}")
+        return Response(
+            content=str(e),
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    tool_data = get_tool_data(tool)
     txt = obj_to_txt(tool_data)
     return ClassDataResponseModel(classdata=txt)
 
@@ -35,16 +45,27 @@ def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
     logger.debug(
         f"tool/{tool_alias}/run \nrun_tool_params_model: {run_tool_params_model}"
     )
+
+    config_dict = (
+        {"config": run_tool_params_model.tool_config.model_dump()}
+        if run_tool_params_model.tool_config is not None
+        else {}
+    )
+
+    tool = tool_factory.create(
+        tool_alias=tool_alias,
+        tool_kwargs=config_dict
+    )
+
     result = run_tool(
-        tool_alias_class_dict[tool_alias],
-        run_tool_params_model.run_args,
-        run_tool_params_model.run_kwargs,
+        tool=tool,
+        run_args=run_tool_params_model.run_args,
+        run_kwargs=run_tool_params_model.run_kwargs,
     )
 
     return RunToolResponseModel(data=result)
 
 
 if __name__ == "__main__":
-    tool_alias_class_dict = init_tool_classes()
 
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True, workers=1)
