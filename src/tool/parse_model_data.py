@@ -2,7 +2,8 @@ import importlib
 import pkgutil
 import typing
 from base_models import Callable
-
+from langchain_core.tools import BaseTool
+from loguru import logger
 
 class CallableParser:
 
@@ -40,7 +41,14 @@ class CallableParser:
 
         return None
 
-    def eval_callable(self, callable: Callable):
+    def eval_callable(self, callable: Callable, eval=True) -> (
+        BaseTool
+        | tuple[
+            BaseTool,
+            list[Callable, typing.Iterable, dict],
+            dict[str, str | Callable | typing.Iterable | dict] | None,
+        ]
+    ):
 
         if callable.args is None:
             callable.args = list()
@@ -54,14 +62,18 @@ class CallableParser:
             class_ = self.import_callable(
                 class_name=callable.class_name, module_path=callable.module_path
             )
-            return class_(*args, **kwargs)
 
-        if callable.package is not None:
+        elif callable.package is not None:
             class_ = self.find_tool(callable.class_name, callable.package)
+        else:
+            logger.critical("package or module path not provided")
+            raise Exception("package or module path not provided")
+        
+        if eval:
             return class_(*args, **kwargs)
+        
+        return class_, args, kwargs
 
-        # if not eval:
-        #     return class_, args, kwargs
 
     def parse_entity(self, entity: str | Callable | typing.Sequence | typing.Dict):
         if isinstance(entity, str):
