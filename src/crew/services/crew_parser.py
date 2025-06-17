@@ -18,9 +18,9 @@ class CrewParser:
         self.proxy_tool_factory = ProxyToolFactory(host=manager_host, port=manager_port)
 
     def parse_llm(self, llm: LLMData):
-        llm_config = {"provider": llm.provider, **llm.config.model_dump()}
+        # llm_config = {"provider": llm.provider, **llm.config.model_dump()}
     
-        return LLM(**llm_config)
+        return LLM(**llm.config.model_dump())
 
     def parse_agent(self, agent_data: AgentData) -> Agent:
 
