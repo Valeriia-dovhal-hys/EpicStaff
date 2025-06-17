@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import docker
@@ -31,6 +32,12 @@ class CrewImageService:
 
     def get_image(self):
         
+        rebuild_crew = os.environ.get("REBUILD_CREW", "False").lower() in {"true", "1"}
+        if rebuild_crew:
+            logger.info("REBUILD_CREW variable set to true. Building a new image. This may take a while...")
+
+            return self.build_image()
+
         image_list = self.client.images.list(name="crew")
         if image_list:
             logger.info("Docker image 'crew' found.")
