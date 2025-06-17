@@ -1,0 +1,155 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <h2 class="dialog-title" title="{{ data.graphName }}">
+      Sessions for "{{ data.graphName }}"
+    </h2>
+    <button class="close-button" (click)="close()">
+      <span>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </span>
+    </button>
+  </div>
+
+  <div class="dialog-content">
+    <!-- Status Filter Tabs -->
+    <div class="status-filters" *ngIf="!isLoading && sessions.length > 0">
+      <button
+        class="filter-button"
+        [class.active]="activeFilter === 'all'"
+        (click)="applyFilter('all')"
+      >
+        <i class="ti ti-list"></i>
+        All
+        <span class="status-count">{{ statusCounts.all }}</span>
+      </button>
+      <button
+        class="filter-button status-running"
+        [ngClass]="getFilterClass(GraphSessionStatus.RUNNING)"
+        (click)="applyFilter(GraphSessionStatus.RUNNING)"
+      >
+        <i class="ti ti-player-play"></i>
+        Running
+        <span class="status-count">{{
+          statusCounts[GraphSessionStatus.RUNNING]
+        }}</span>
+      </button>
+      <button
+        class="filter-button status-waiting"
+        [ngClass]="getFilterClass(GraphSessionStatus.WAITING_FOR_USER)"
+        (click)="applyFilter(GraphSessionStatus.WAITING_FOR_USER)"
+      >
+        <i class="ti ti-hourglass"></i>
+        Waiting Input
+        <span class="status-count">{{
+          statusCounts[GraphSessionStatus.WAITING_FOR_USER]
+        }}</span>
+      </button>
+      <button
+        class="filter-button status-completed"
+        [ngClass]="getFilterClass(GraphSessionStatus.ENDED)"
+        (click)="applyFilter(GraphSessionStatus.ENDED)"
+      >
+        <i class="ti ti-check"></i>
+        Completed
+        <span class="status-count">{{
+          statusCounts[GraphSessionStatus.ENDED]
+        }}</span>
+      </button>
+      <button
+        class="filter-button status-error"
+        [ngClass]="getFilterClass(GraphSessionStatus.ERROR)"
+        (click)="applyFilter(GraphSessionStatus.ERROR)"
+      >
+        <i class="ti ti-alert-triangle"></i>
+        Error
+        <span class="status-count">{{
+          statusCounts[GraphSessionStatus.ERROR]
+        }}</span>
+      </button>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Loading sessions...</p>
+    </div>
+
+    <div *ngIf="!isLoading && sessions.length === 0" class="empty-state">
+      <p>No sessions found for this flow.</p>
+    </div>
+
+    <div
+      *ngIf="!isLoading && filteredSessions.length === 0 && sessions.length > 0"
+      class="empty-state"
+    >
+      <p>No sessions match the selected filter.</p>
+    </div>
+
+    <div
+      *ngIf="!isLoading && filteredSessions.length > 0"
+      class="sessions-list"
+    >
+      <table class="sessions-table">
+        <thead>
+          <tr>
+            <th>Session ID</th>
+            <th>Created</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let session of filteredSessions"
+            [ngClass]="{
+              'status-highlight':
+                activeFilter !== 'all' && session.status === activeFilter,
+              'running-highlight':
+                session.status === GraphSessionStatus.RUNNING,
+              'error-highlight': session.status === GraphSessionStatus.ERROR,
+              'completed-highlight':
+                session.status === GraphSessionStatus.ENDED,
+              'waiting-highlight':
+                session.status === GraphSessionStatus.WAITING_FOR_USER
+            }"
+          >
+            <td class="session-id">{{ session.id }}</td>
+            <td class="session-time">{{ formatDate(session.created_at) }}</td>
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(session.status)"
+              >
+                <i
+                  [ngClass]="getStatusIcon(session.status)"
+                  aria-hidden="true"
+                ></i>
+                {{ getStatusLabel(session.status) }}
+              </span>
+            </td>
+            <td>
+              <button class="view-button" (click)="viewSession(session)">
+                <i class="ti ti-eye"></i> View
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="dialog-actions">
+    <button class="cancel-button" (click)="close()">Close</button>
+  </div>
+</div>

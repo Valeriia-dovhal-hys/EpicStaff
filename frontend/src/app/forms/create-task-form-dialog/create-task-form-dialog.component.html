@@ -2,91 +2,178 @@
   <div class="header-container">
     <p class="header">Create Task</p>
   </div>
+
   <div class="content">
     <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
       <!-- Name Field -->
-      <mat-form-field
-        appearance="outline"
-        floatLabel="always"
-        class="full-width"
-      >
-        <mat-label>Name</mat-label>
-        <input matInput formControlName="name" />
-        <mat-error *ngIf="taskForm.get('name')?.hasError('required')">
+      <div class="custom-field">
+        <label for="name">Task Name <span class="required">*</span></label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="Enter task name"
+        />
+        <div
+          class="error-message"
+          *ngIf="
+            taskForm.get('name')?.hasError('required') &&
+            taskForm.get('name')?.touched
+          "
+        >
           Name is required
-        </mat-error>
-      </mat-form-field>
+        </div>
+      </div>
 
       <!-- Instructions Field -->
-      <mat-form-field
-        appearance="outline"
-        floatLabel="always"
-        class="full-width"
-      >
-        <mat-label>Instructions</mat-label>
-        <textarea matInput formControlName="instructions" rows="5"></textarea>
-        <mat-error *ngIf="taskForm.get('instructions')?.hasError('required')">
+      <div class="custom-field">
+        <label for="instructions"
+          >Instructions <span class="required">*</span></label
+        >
+        <textarea
+          id="instructions"
+          formControlName="instructions"
+          rows="4"
+          placeholder="Enter detailed instructions for this task"
+        ></textarea>
+        <div
+          class="error-message"
+          *ngIf="
+            taskForm.get('instructions')?.hasError('required') &&
+            taskForm.get('instructions')?.touched
+          "
+        >
           Instructions are required
-        </mat-error>
-      </mat-form-field>
+        </div>
+      </div>
 
       <!-- Expected Output Field -->
-      <mat-form-field
-        appearance="outline"
-        floatLabel="always"
-        class="full-width"
-      >
-        <mat-label>Expected Output</mat-label>
+      <div class="custom-field">
+        <label for="expected_output"
+          >Expected Output <span class="required">*</span></label
+        >
         <textarea
-          matInput
+          id="expected_output"
           formControlName="expected_output"
           rows="3"
+          placeholder="Describe the expected result of this task"
         ></textarea>
-        <mat-error
-          *ngIf="taskForm.get('expected_output')?.hasError('required')"
+        <div
+          class="error-message"
+          *ngIf="
+            taskForm.get('expected_output')?.hasError('required') &&
+            taskForm.get('expected_output')?.touched
+          "
         >
-          Expected Output is required
-        </mat-error>
-      </mat-form-field>
+          Expected output is required
+        </div>
+      </div>
 
-      <!-- Order Field -->
-      <mat-form-field
-        appearance="outline"
-        floatLabel="always"
-        class="full-width"
-      >
-        <mat-label>Order(optional)</mat-label>
-        <input matInput type="number" formControlName="order" />
-        <mat-error *ngIf="taskForm.get('order')?.hasError('required')">
-          Order is required
-        </mat-error>
-      </mat-form-field>
+      <!-- Human Input & Async Execution Toggle Switches -->
+      <div class="toggle-row">
+        <div class="toggle-field">
+          <div class="toggle-label">Human Input</div>
+          <label class="toggle">
+            <input type="checkbox" formControlName="human_input" />
+            <span class="slider"></span>
+          </label>
+        </div>
 
-      <!-- Agent Selection Field -->
-      <mat-form-field
-        appearance="outline"
-        floatLabel="always"
-        class="full-width"
+        <div class="toggle-field">
+          <div class="toggle-label">Async Execution</div>
+          <label class="toggle">
+            <input type="checkbox" formControlName="async_execution" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Task Tools Section -->
+      <div class="tools-section">
+        <div class="tools-header">
+          <label>Task Tools</label>
+          <button
+            type="button"
+            class="add-tool-button"
+            (click)="openToolSelector()"
+          >
+            Add Tool
+          </button>
+        </div>
+
+        <div class="tool-chips" *ngIf="selectedTools.length > 0">
+          <div class="tool-chip" *ngFor="let tool of selectedTools">
+            {{ tool.name }}
+            <span class="remove-tool" (click)="removeTool(tool)">×</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced Settings Toggler -->
+      <button
+        type="button"
+        class="toggle-settings"
+        (click)="toggleAdvancedSettings()"
       >
-        <mat-label>Select Agent(optional)</mat-label>
-        <mat-select formControlName="agent">
-          <mat-option [value]="null">None</mat-option>
-          <mat-option *ngFor="let agent of agents" [value]="agent">
-            {{ agent.role }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+        {{
+          advancedSettingsVisible
+            ? "Hide Advanced Settings"
+            : "Show Advanced Settings"
+        }}
+      </button>
+
+      <!-- Advanced Settings Section -->
+      <div
+        class="advanced-settings"
+        *ngIf="advancedSettingsVisible"
+        @expandInOut
+      >
+        <!-- Task Context List -->
+        <div class="custom-field">
+          <label for="task_context_list">Task Context List</label>
+          <select
+            id="task_context_list"
+            multiple
+            formControlName="task_context_list"
+          >
+            <option *ngFor="let context of contextList" [value]="context.id">
+              {{ context.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Config Field -->
+        <div class="custom-field">
+          <label for="config">Configuration</label>
+          <textarea
+            id="config"
+            formControlName="config"
+            rows="3"
+            placeholder="Enter configuration in JSON format (optional)"
+          ></textarea>
+        </div>
+
+        <!-- Output Model Field -->
+        <div class="custom-field">
+          <label for="output_model">Output Model</label>
+          <textarea
+            id="output_model"
+            formControlName="output_model"
+            rows="3"
+            placeholder="Specify output model format (optional)"
+          ></textarea>
+        </div>
+      </div>
     </form>
   </div>
 
-  <!-- Submit Button -->
   <div class="bottom">
-    <button mat-stroked-button (click)="onCancel()" class="close">Close</button>
+    <button class="close" (click)="onCancel()">Cancel</button>
     <button
-      mat-raised-button
-      color="primary"
-      (click)="onSubmit()"
       type="submit"
+      [disabled]="taskForm.invalid"
+      class="submit-button"
+      (click)="onSubmit()"
     >
       Create
     </button>

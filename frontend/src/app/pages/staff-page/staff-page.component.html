@@ -1,0 +1,16 @@
+<div class="staff-page-container">
+  <app-page-header
+    [headerTitle]="'Staff'"
+    [showFavorites]="false"
+    [createButtonTitle]="'Add Agent'"
+    [searchPlaceholder]="'this search will work soon'"
+    (openCreate)="openCreateAgentDialog()"
+    [showFilter]="false"
+    [showSort]="false"
+    [showFavoriteToggle]="false"
+  ></app-page-header>
+
+  <div class="body">
+    <app-agents-table [newAgent]="newlyCreatedAgent"></app-agents-table>
+  </div>
+</div>

@@ -1,0 +1,179 @@
+/* graph-messages.component.scss */
+:host {
+  width: 100%;
+  height: 100%;
+  display: block; /* Keep as block to fill parent */
+}
+
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  width: 85%;
+
+  // For very large screens, use auto margins to center
+  @media (min-width: 1800px) {
+    width: 75%;
+  }
+
+  // For smaller screens, expand to use more space
+  @media (max-width: 1200px) {
+    width: 90%;
+  }
+
+  // For mobile screens, use almost full width
+  @media (max-width: 768px) {
+    width: 95%;
+  }
+
+  .no-messages {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 300px;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease-out;
+
+    .no-messages-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 0.5rem; /* Add spacing between icon and text */
+
+      i {
+        font-size: 1.5rem;
+        color: var(--gray-400);
+      }
+
+      p {
+        color: var(--gray-400);
+        font-size: 0.95rem;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .messages-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 1rem;
+
+    gap: 1rem;
+  }
+}
+
+/* Message styling with tooltip */
+.message {
+  position: relative;
+  opacity: 0;
+  transform: translateY(20px);
+
+  /* Animation for messages */
+  &.animate-message {
+    animation: messageAppear 0.8s forwards;
+  }
+
+  /* Tooltip styling */
+  .tooltip {
+    position: absolute;
+    top: 50%; /* Vertically center */
+    right: 0; /* Align with the right edge of message */
+    transform: translate(
+      calc(100% + 10px),
+      -50%
+    ); /* Move right plus a small gap */
+    background-color: var(--gray-800, #333);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    white-space: nowrap;
+    z-index: 10;
+    display: inline-block; /* Allow width to be determined by content */
+    width: max-content; /* Use max-content to size based on content */
+    box-sizing: border-box; /* Ensure padding is included in width calculation */
+
+    /* Change from :after to :before for arrow on the left side of tooltip */
+    &:before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -5px;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-right: 5px solid var(--gray-800, #333);
+    }
+  }
+
+  /* Show tooltip on hover */
+  &:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Hide tooltips on mobile */
+  @media (max-width: 768px) {
+    &:hover .tooltip {
+      display: none;
+    }
+  }
+}
+
+.user-input-container {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0s, transform 0s;
+
+  &.animate-user-input {
+    animation: userInputAppear 0.8s forwards;
+  }
+}
+
+/* Add subtle animation for the empty state */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation for messages appearing with delay */
+@keyframes messageAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes userInputAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

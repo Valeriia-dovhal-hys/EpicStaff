@@ -1,0 +1,11 @@
+@if(isLoaded){
+<app-flow-header
+  [graphName]="graph.name"
+  [graphId]="graph.id"
+  (save)="handleSaveFlow()"
+></app-flow-header>
+
+<div class="body">
+  <app-flow-graph [flowState]="graph.metadata"></app-flow-graph>
+</div>
+}

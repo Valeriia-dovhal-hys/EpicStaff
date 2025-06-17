@@ -1,0 +1,90 @@
+<div class="wrapper">
+  <!-- Header: Icon + Task Name + Close Button -->
+  <div class="dialog-header">
+    <div class="icon-and-title">
+      <i class="ti ti-list"></i>
+      <span class="title">{{ taskForm.value.name || "New Task" }}</span>
+    </div>
+    <i class="ti ti-x close-icon" (click)="close()"></i>
+  </div>
+
+  <!-- Scrollable Form Content -->
+  <div class="dialog-content">
+    <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+      <!-- Basic Fields -->
+      <div class="form-group">
+        <label for="name">Task Name</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="Enter task name"
+        />
+      </div>
+      <div class="form-group">
+        <label for="instructions">Instructions</label>
+        <textarea
+          id="instructions"
+          formControlName="instructions"
+          placeholder="Enter instructions"
+        ></textarea>
+      </div>
+      <div class="form-group">
+        <label for="expected_output">Expected Output</label>
+        <textarea
+          id="expected_output"
+          formControlName="expected_output"
+          placeholder="Enter expected output"
+        ></textarea>
+      </div>
+
+      <!-- Advanced Settings Toggler -->
+      <button
+        type="button"
+        class="toggle-advanced"
+        (click)="toggleAdvancedSettings()"
+      >
+        {{
+          advancedSettingsOpen
+            ? "Hide Advanced Settings"
+            : "Show Advanced Settings"
+        }}
+      </button>
+
+      <!-- Advanced Settings Section (animated) -->
+      <div class="advanced-settings" *ngIf="advancedSettingsOpen" @expandInOut>
+        <div class="form-group">
+          <label for="human_input">Wait for user input?</label>
+          <select id="human_input" formControlName="human_input">
+            <option [value]="true">Yes</option>
+            <option [value]="false">No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="async_execution">Execution Process</label>
+          <select id="async_execution" formControlName="async_execution">
+            <option [value]="true">Asynchronous</option>
+            <option [value]="false">Synchronous</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="output_model">Output Model</label>
+          <input
+            id="output_model"
+            type="text"
+            formControlName="output_model"
+            [disabled]="true"
+          />
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Fixed Action Buttons -->
+  <div class="actions">
+    <button type="button" (click)="close()">Cancel</button>
+    <button type="submit" [disabled]="taskForm.invalid" (click)="onSubmit()">
+      Save
+    </button>
+  </div>
+</div>

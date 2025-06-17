@@ -1,0 +1,74 @@
+<div class="modal-content">
+  <div class="modal-header">
+    <div class="modal-title">Edit Project Defaults</div>
+    <button class="close-button" (click)="onCancel()" aria-label="Close Dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="projectDefaultsForm" class="modal-body">
+    <!-- Process Type -->
+    <div class="form-group">
+      <label for="processType">Process Type</label>
+      <select
+        id="processType"
+        class="input-field"
+        formControlName="processType"
+      >
+        <option value="sequential">Sequential</option>
+        <option value="hierarchical">Hierarchical</option>
+      </select>
+    </div>
+
+    <!-- Memory Setting -->
+    <div class="form-group">
+      <label for="memory">Memory Setting</label>
+      <select id="memory" class="input-field" formControlName="memory">
+        <option [value]="true">Enabled</option>
+        <option [value]="false">Disabled</option>
+      </select>
+    </div>
+
+    <!-- Default LLM Configuration -->
+    <div class="form-group">
+      <label for="managerLLMConfigId">Default LLM Configuration</label>
+      <select
+        id="managerLLMConfigId"
+        class="input-field"
+        formControlName="managerLLMConfigId"
+      >
+        <option value="">None</option>
+        <option *ngFor="let config of llmConfigs" [value]="config.id">
+          {{ config.custom_name }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Default Embedding Configuration -->
+    <div class="form-group">
+      <label for="embeddingConfigId">Default Embedding Configuration</label>
+      <select
+        id="embeddingConfigId"
+        class="input-field"
+        formControlName="embeddingConfigId"
+      >
+        <option value="">None</option>
+        <option *ngFor="let config of embeddingConfigs" [value]="config.id">
+          {{ config.custom_name }}
+        </option>
+      </select>
+    </div>
+  </form>
+
+  <div class="modal-footer">
+    <button class="button-close" (click)="onCancel()">Cancel</button>
+    <!-- Remove condition related to llmConfigs.length since "None" is available -->
+    <button
+      class="button-create"
+      (click)="onSave()"
+      [disabled]="projectDefaultsForm.invalid"
+    >
+      Save
+    </button>
+  </div>
+</div>

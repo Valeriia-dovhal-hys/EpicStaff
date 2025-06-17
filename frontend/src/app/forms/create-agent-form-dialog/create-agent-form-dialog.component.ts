@@ -1,277 +1,261 @@
-// Import statements
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  Inject,
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import {
-  MatDialogRef,
-  MAT_DIALOG_DATA,
-  MatDialog,
-} from '@angular/material/dialog';
+import { Dialog, DialogRef } from '@angular/cdk/dialog';
 import {
   FormBuilder,
   FormGroup,
-  ReactiveFormsModule,
   Validators,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
-import { Tool } from '../../shared/models/tool.model';
-import { MatError, MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatOption, MatSelect } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInput } from '@angular/material/input';
-import { MatIcon } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
-import { ToolSelectorComponent } from '../../handsontable-tables/staff/tools-selector-dialog/tool-selector-dialog.component';
-import { LLM_Model } from '../../shared/models/LLM.model';
-import { forkJoin, Subscription } from 'rxjs';
-import { LLM_Models_Service } from '../../services/LLM_models.service';
-import { LLM_Providers_Service } from '../../services/LLM_providers.service';
-import { LLM_Provider } from '../../shared/models/LLM_provider.model';
+import { Subscription } from 'rxjs';
+import {
+  trigger,
+  transition,
+  style,
+  animate,
+  state,
+} from '@angular/animations';
+
+// Import required models and services
 import { LLM_Config_Service } from '../../services/LLM_config.service';
-import { CreateLLMConfigRequest } from '../../shared/models/LLM_config.model';
-import { LLM_Config } from '../../shared/models/LLM_config.model'; // Import the model
-import { FormsModule } from '@angular/forms'; // Import FormsModule
-import { CreateAgentRequest } from '../../shared/models/agent.model';
+import { AgentsService } from '../../services/staff.service';
+import { SharedSnackbarService } from '../../services/snackbar/shared-snackbar.service';
+import {
+  AgentDto,
+  CreateAgentRequest,
+  GetAgentRequest,
+} from '../../shared/models/agent.model';
+import { MatIconModule } from '@angular/material/icon';
+
+// Import shared form components
+import { FormHeaderComponent } from '../shared/header/form-header.component';
+import { FormFooterComponent } from '../shared/footer/form-footer.component';
+import { FormSliderComponent } from '../shared/slider/form-slider.component';
+import { ToggleSwitchComponent } from '../shared/small-toggler/toggle-switch.component';
+import { LlmSelectorComponent } from '../shared/llm-selector/llm-selector.component';
+import { ToastService } from '../../services/notifications/toast.service';
+import { IconPickerComponent } from '../shared/icon-selector/icon-picker.component';
 
 @Component({
   selector: 'app-create-agent-form',
-  standalone: true,
-  imports: [
-    MatFormField,
-    MatLabel,
-    MatSelect,
-    MatOption,
-
-    CommonModule,
-    MatButtonModule,
-    ReactiveFormsModule,
-    MatError,
-    MatInput,
-    MatIcon,
-    MatChipsModule,
-    FormsModule, // Include FormsModule
-  ],
   templateUrl: './create-agent-form-dialog.component.html',
   styleUrls: ['./create-agent-form-dialog.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    FormHeaderComponent,
+    FormFooterComponent,
+    FormSliderComponent,
+    ToggleSwitchComponent,
+    LlmSelectorComponent,
+    IconPickerComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('smoothExpand', [
+      state(
+        'void',
+        style({
+          maxHeight: '0',
+          overflow: 'hidden',
+          opacity: 0,
+          padding: '0',
+        })
+      ),
+      state(
+        '*',
+        style({
+          maxHeight: '1000px',
+          overflow: 'visible',
+          opacity: 1,
+        })
+      ),
+      transition('void => *', [
+        style({
+          maxHeight: '0',
+          overflow: 'hidden',
+          opacity: 0,
+          padding: '0',
+        }),
+        animate(
+          '300ms ease-out',
+          style({
+            maxHeight: '1000px',
+            opacity: 1,
+            padding: '*',
+            overflow: 'visible',
+          })
+        ),
+      ]),
+      transition('* => void', [
+        style({
+          maxHeight: '*',
+          overflow: 'hidden',
+          opacity: 1,
+        }),
+        animate(
+          '300ms ease-in',
+          style({
+            maxHeight: '0',
+            opacity: 0,
+            padding: '0',
+          })
+        ),
+      ]),
+    ]),
+  ],
 })
 export class CreateAgentFormComponent implements OnInit, OnDestroy {
   public agentForm!: FormGroup;
 
-  // Data
-  private toolsData: Tool[] = [];
-  public selectedTools: Tool[] = [];
-
-  public providers: LLM_Provider[] = [];
-  public selectedAgentProviderId: number | null = null;
-  public selectedFunctionProviderId: number | null = null;
-
-  public llmModels: LLM_Model[] = [];
-  public filteredAgentLLMModels: LLM_Model[] = [];
-  public filteredFunctionLLMModels: LLM_Model[] = [];
-
-  // Visibility
   public advancedSettingsVisible: boolean = false;
-  public isDataLoaded: boolean = false;
+  public temperatureValue: number = 0;
+  public maxRpmSliderValue: number = 10;
+  public isSubmitting: boolean = false;
 
   private subscriptions: Subscription = new Subscription();
 
+  // Icon Picker property
+  public selectedIcon: string | null = null;
+
   constructor(
-    public agentFormDialogRef: MatDialogRef<CreateAgentFormComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { toolsData: Tool[] },
     private fb: FormBuilder,
-    private dialog: MatDialog,
-    private llmModelsService: LLM_Models_Service,
-    private providersService: LLM_Providers_Service,
+
     private cdr: ChangeDetectorRef,
-    private llmConfigService: LLM_Config_Service
-  ) {
-    this.toolsData = data.toolsData;
-  }
+    private agentService: AgentsService,
+    private snackbarService: SharedSnackbarService,
+    private toastService: ToastService,
+
+    public dialogRef: DialogRef<GetAgentRequest | undefined>
+  ) {}
 
   public ngOnInit(): void {
     this.initializeForm();
-    this.loadModels();
   }
 
-  // Initialize Form
   private initializeForm(): void {
     this.agentForm = this.fb.group({
+      // Basic Fields
       role: ['', Validators.required],
       goal: ['', Validators.required],
       backstory: ['', Validators.required],
-      allowDelegation: [true, Validators.required],
-      memory: [false, Validators.required],
-      max_iter: [15, [Validators.required, Validators.min(1)]],
-      llm_model: [null, Validators.required],
-      fcm_llm_model: [null, Validators.required],
+      // Basic Advanced Fields
+      allow_delegation: [true],
+      memory: [false],
+      max_iter: [10, [Validators.min(1)]],
+      // Advanced Settings
+      max_rpm: [10],
+      max_execution_time: [60],
+      cache: [false],
+      allow_code_execution: [false],
+      max_retry_limit: [3],
+      respect_context_window: [true],
+      default_temperature: [0],
+      // LLM Configurations
       llm_config: [null],
       fcm_llm_config: [null],
-
-      temperature: [
-        0.5,
-        [Validators.required, Validators.min(0), Validators.max(1)],
-      ],
-      num_ctx: [25, [Validators.required, Validators.min(0)]],
+      // Tools
+      configured_tools: [[]],
+      python_code_tools: [[]],
     });
   }
 
-  // Load LLM models and providers
-  private loadModels(): void {
-    const modelsSubscription: Subscription = forkJoin({
-      llmModels: this.llmModelsService.getLLMModels(),
-      providers: this.providersService.getProviders(),
-    }).subscribe({
-      next: ({ llmModels, providers }) => {
-        this.llmModels = llmModels;
-        this.providers = providers;
-
-        const openaiProvider: LLM_Provider | undefined = this.providers.find(
-          (provider) => provider.name.toLowerCase() === 'openai'
-        );
-
-        if (openaiProvider) {
-          this.selectedAgentProviderId = openaiProvider.id;
-          this.selectedFunctionProviderId = openaiProvider.id;
-          this.filterAgentLLMModels();
-          this.filterFunctionLLMModels();
-        }
-
-        this.isDataLoaded = true;
-        this.cdr.markForCheck();
-      },
-      error: (error: Error) => {
-        console.error('Error fetching data:', error);
-        this.isDataLoaded = true;
-        this.cdr.markForCheck();
-      },
-    });
-
-    this.subscriptions.add(modelsSubscription);
+  public onSliderInput(newValue: number): void {
+    this.temperatureValue = newValue;
+    this.agentForm.get('default_temperature')?.setValue(newValue);
+    this.cdr.markForCheck();
   }
 
-  public onAgentProviderChange(providerId: number): void {
-    this.selectedAgentProviderId = providerId;
-    this.filterAgentLLMModels();
-  }
-
-  public onFunctionProviderChange(providerId: number): void {
-    this.selectedFunctionProviderId = providerId;
-    this.filterFunctionLLMModels();
-  }
-
-  private filterAgentLLMModels(): void {
-    this.filteredAgentLLMModels = this.llmModels.filter(
-      (model: LLM_Model) => model.llm_provider === this.selectedAgentProviderId
-    );
-
-    if (this.filteredAgentLLMModels.length > 0) {
-      this.agentForm
-        .get('llm_model')
-        ?.setValue(this.filteredAgentLLMModels[0].id);
-    } else {
-      this.agentForm.get('llm_model')?.setValue(null);
-    }
-  }
-
-  private filterFunctionLLMModels(): void {
-    this.filteredFunctionLLMModels = this.llmModels.filter(
-      (model: LLM_Model) =>
-        model.llm_provider === this.selectedFunctionProviderId
-    );
-
-    if (this.filteredFunctionLLMModels.length > 0) {
-      this.agentForm
-        .get('fcm_llm_model')
-        ?.setValue(this.filteredFunctionLLMModels[0].id);
-    } else {
-      this.agentForm.get('fcm_llm_model')?.setValue(null);
-    }
+  public onMaxRpmSliderInput(newValue: number): void {
+    this.maxRpmSliderValue = newValue;
+    this.agentForm.get('max_rpm')?.setValue(newValue);
+    this.cdr.markForCheck();
   }
 
   public toggleAdvancedSettings(): void {
     this.advancedSettingsVisible = !this.advancedSettingsVisible;
+    this.cdr.markForCheck();
   }
 
-  public openToolSelectorDialog(): void {
-    const dialogRef = this.dialog.open(ToolSelectorComponent, {
-      data: {
-        toolsData: this.toolsData,
-        selectedTools: this.selectedTools,
-      },
-    });
-
-    dialogRef.afterClosed().subscribe((selectedTools: Tool[] | undefined) => {
-      if (selectedTools) {
-        this.selectedTools = [...selectedTools];
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  public onRemoveTool(selectedTool: Tool): void {
-    this.selectedTools = this.selectedTools.filter(
-      (tool: Tool) => tool.id !== selectedTool.id
-    );
-  }
-
-  public onCancelForm(): void {
-    this.agentFormDialogRef.close();
+  public onIconSelected(icon: string | null): void {
+    console.log(icon);
   }
 
   public onSubmitForm(): void {
-    this.agentForm.markAllAsTouched();
-
-    if (this.agentForm.valid) {
-      this.agentForm.disable();
-
-      const configData: CreateLLMConfigRequest = {
-        temperature: this.agentForm.value.temperature,
-        num_ctx: this.agentForm.value.num_ctx,
-      };
-
-      const functionConfigData: CreateLLMConfigRequest = {
-        temperature: 0,
-        num_ctx: 25,
-      };
-
-      const forkJoinSubscription = forkJoin({
-        createdConfig: this.llmConfigService.createConfig(configData),
-        createdFunctionConfig:
-          this.llmConfigService.createConfig(functionConfigData),
-      }).subscribe({
-        next: ({ createdConfig, createdFunctionConfig }) => {
-          const { temperature, num_ctx, ...agentFormData } =
-            this.agentForm.value;
-
-          const newAgent: CreateAgentRequest = {
-            ...agentFormData,
-            tools: this.selectedTools.map((tool: Tool) => tool.id),
-            llm_config: createdConfig.id,
-            fcm_llm_config: createdFunctionConfig.id,
-          };
-
-          // Pass both newAgent and temperature, context to the StaffComponent
-          this.agentFormDialogRef.close({
-            agentData: newAgent,
-            llm_temperature: temperature,
-            llm_context: num_ctx,
-          });
-        },
-        error: (error: Error) => {
-          console.error('Error creating LLM configs:', error);
-          this.agentForm.enable();
-        },
-      });
-      this.subscriptions.add(forkJoinSubscription);
-    } else {
-      console.log('Form Invalid');
+    if (this.agentForm.invalid) {
+      this.snackbarService.showSnackbar(
+        'Please fill all required fields',
+        'error'
+      );
+      this.markFormGroupTouched(this.agentForm);
+      return;
     }
+
+    this.isSubmitting = true;
+    const formData = this.agentForm.value;
+
+    const newAgent: CreateAgentRequest = {
+      role: formData.role,
+      goal: formData.goal,
+      backstory: formData.backstory,
+      allow_delegation: formData.allow_delegation,
+      memory: formData.memory,
+      max_iter: formData.max_iter,
+      max_rpm: formData.max_rpm,
+      max_execution_time: formData.max_execution_time,
+      cache: formData.cache,
+      allow_code_execution: formData.allow_code_execution,
+      max_retry_limit: formData.max_retry_limit,
+      respect_context_window: formData.respect_context_window,
+      default_temperature: formData.default_temperature,
+      llm_config: formData.llm_config,
+      fcm_llm_config: formData.fcm_llm_config || formData.llm_config, // Use llm_config if fcm_llm_config is not provided
+      configured_tools: formData.configured_tools,
+      python_code_tools: formData.python_code_tools,
+    };
+
+    this.agentForm.disable();
+
+    this.agentService.createAgent(newAgent).subscribe({
+      next: (response: AgentDto) => {
+        this.toastService.success(
+          `Agent "${response.role}" created successfully!`
+        );
+        this.isSubmitting = false;
+        this.dialogRef.close(response);
+      },
+      error: (error) => {
+        console.error('Error creating agent:', error);
+
+        this.toastService.error('Error creating agent. Please try again.');
+        this.agentForm.enable();
+        this.isSubmitting = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  public onCancelForm(): void {
+    this.dialogRef.close();
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup): void {
+    Object.values(formGroup.controls).forEach((control) => {
+      control.markAsTouched();
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
+      }
+    });
   }
 
   public ngOnDestroy(): void {

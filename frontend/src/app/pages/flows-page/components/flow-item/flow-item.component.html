@@ -1,0 +1,75 @@
+<div
+  class="flow-item"
+  [class.has-open-menu]="isMenuOpen"
+  (click)="onOpenFlow()"
+>
+  <div class="flow-item-header">
+    <h3>{{ graph.name }}</h3>
+    <div class="flow-item-actions">
+      <!-- Sessions button with status indicators moved to same level -->
+      <div class="session-status-area">
+        <!-- Active sessions label -->
+        <div
+          class="status-label active"
+          *ngIf="hasActiveSessions()"
+          (click)="onViewSessionsWithFilter($event, sessionStatuses.RUNNING)"
+        >
+          <i class="ti ti-player-play"></i>
+          <span>{{ graph.activeSessionsCount }}</span>
+        </div>
+
+        <!-- Waiting sessions label -->
+        <div
+          class="status-label waiting"
+          *ngIf="hasWaitingForUserSessions()"
+          (click)="
+            onViewSessionsWithFilter($event, sessionStatuses.WAITING_FOR_USER)
+          "
+        >
+          <i class="ti ti-clock"></i>
+          <span>{{ graph.waitingForUserSessionsCount }}</span>
+        </div>
+
+        <!-- Sessions button -->
+        <button class="sessions-btn" (click)="onViewSessions($event)">
+          <i class="ti ti-history"></i>
+        </button>
+      </div>
+
+      <div
+        class="menu-container"
+        *ngIf="isMenuOpen"
+        clickOutside
+        (clickOutside)="closeMenu()"
+      >
+        <div class="menu-options">
+          <div class="menu-option" (click)="onPlayFlow($event)">
+            <i class="ti ti-player-play"></i>
+            <span>Play</span>
+          </div>
+          <div class="menu-option" (click)="onEditFlow($event)">
+            <i class="ti ti-edit"></i>
+            <span>Edit</span>
+          </div>
+          <div class="menu-option delete" (click)="onDeleteFlow($event)">
+            <i class="ti ti-trash"></i>
+            <span>Delete</span>
+          </div>
+        </div>
+      </div>
+
+      <i
+        class="ti ti-dots-vertical menu-trigger"
+        (click)="toggleMenu($event)"
+      ></i>
+    </div>
+  </div>
+  <div class="flow-item-body">
+    <p class="flow-item-description">{{ graph.description }}</p>
+    <div class="flow-item-footer">
+      <div class="flow-item-tags">
+        <span class="tag" *ngFor="let tag of getTags()">#{{ tag }}</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,23 +1,30 @@
+from typing import Type
 from singleton_meta import SingletonMeta
 from langchain_core.tools import BaseTool
 from loguru import logger
+from dataclasses import dataclass
 
 
 class ToolNotFoundException(Exception):
     def __init__(self, tool_alias: str):
         super().__init__(f"Class with tool alias {tool_alias} is not registered")
 
+@dataclass
+class ToolRegistryItem:
+    tool_class: Type
+    args: tuple
+    kwargs: dict
+
 
 class DynamicToolFactory(metaclass=SingletonMeta):
-    _tool_registry: dict[str, tuple[type[BaseTool], tuple, dict]] = {}
+    _tool_registry: dict[str, ToolRegistryItem] = {}
 
-    def __init__(self):
-        ...
+    def __init__(self): ...
 
     def register_tool_class(
         self,
         tool_alias: str,
-        tool_class: type[BaseTool],
+        tool_class: Type,
         default_args: tuple | None = None,
         default_kwargs: dict | None = None,
     ):
@@ -28,7 +35,7 @@ class DynamicToolFactory(metaclass=SingletonMeta):
         if default_kwargs is None:
             default_kwargs = dict()
 
-        self._tool_registry[tool_alias] = (tool_class, default_args, default_kwargs)
+        self._tool_registry[tool_alias] = ToolRegistryItem(tool_class=tool_class, args=default_args, kwargs=default_kwargs)
         logger.info(f"Registered {tool_alias}")
 
     def create(
@@ -50,16 +57,16 @@ class DynamicToolFactory(metaclass=SingletonMeta):
         if tool_kwargs is None:
             tool_kwargs = dict()
 
-        class_type, default_args, default_kwargs = self._tool_registry[tool_alias]
+        item: ToolRegistryItem = self._tool_registry[tool_alias]
 
-        combined_args = default_args + tool_args
-        combined_kwargs = {**default_kwargs, **tool_kwargs}
+        combined_args = item.args + tool_args
+        combined_kwargs = {**item.kwargs, **tool_kwargs}
 
-        return class_type(*combined_args, **combined_kwargs)
+        return item.tool_class(*combined_args, **combined_kwargs)
 
-    def get_tool_class(self, tool_alias: str) -> BaseTool:
-        tool_registry_item = self._tool_registry.get(tool_alias, None)
-        if tool_registry_item is None:
+    def get_tool_class(self, tool_alias: str) -> Type[BaseTool]:
+        if tool_alias not in self._tool_registry.keys():
+            logger.error(f"{tool_alias} not in {self._tool_registry.keys()}")
             raise ToolNotFoundException(tool_alias=tool_alias)
-
-        return tool_registry_item[0]
+        
+        return self._tool_registry.get(tool_alias).tool_class

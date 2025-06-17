@@ -53,9 +53,13 @@ class EmbedderData(BaseModel):
 class ToolConfig(BaseModel):
     llm: LLMData | None = None
     embedder: EmbedderData | None = None
+    tool_init_configuration: dict[str, Any] | None = None
 
 
 class RunToolParamsModel(BaseModel):
     tool_config: ToolConfig | None = None
-    run_args: list[str]
     run_kwargs: dict[str, Any]
+
+
+class ToolInitConfigurationModel(BaseModel):
+    tool_init_configuration: dict[str, Any] | None = None

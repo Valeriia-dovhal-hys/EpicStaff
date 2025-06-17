@@ -1,0 +1,372 @@
+:host {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+::ng-deep app-flow-graph {
+  .f-line-alignment {
+    .f-line {
+      background-color: var(--vp-line-alignment-color);
+    }
+  }
+
+  .f-background {
+    circle {
+      fill: var(--vp-line-alignment-color);
+    }
+  }
+
+  .f-connection {
+    .f-connection-drag-handle {
+      fill: transparent;
+    }
+
+    .f-connection-selection {
+      fill: none;
+      stroke: transparent;
+      stroke-width: 20;
+      cursor: pointer;
+    }
+
+    .f-connection-path {
+      fill: none;
+
+      stroke-width: 2;
+    }
+
+    // .f-marker {
+    //   path,
+    //   circle {
+    //     fill: var(--db-text-1);
+    //   }
+    // }
+
+    &.f-selected {
+      .f-connection-path {
+        stroke: var(--db-primary-1);
+      }
+
+      .f-marker {
+        path,
+        circle {
+          fill: var(--db-primary-1);
+        }
+      }
+      .connection-center {
+        display: flex;
+      }
+    }
+
+    &:hover {
+      .f-connection-selection {
+        stroke: var(--db-primary-1);
+        opacity: 0.1;
+      }
+    }
+
+    &.f-snap-connection {
+      .f-connection-path {
+        stroke: var(--db-snap-connection);
+        stroke-width: 2px;
+      }
+
+      .f-marker {
+        path,
+        circle {
+          fill: var(--db-snap-connection);
+        }
+      }
+
+      .f-connection-selection {
+        fill: transparent !important;
+        stroke: transparent !important;
+      }
+    }
+
+    &.f-connection-for-create {
+      .f-connection-path {
+        stroke: var(--db-primary-1);
+        stroke-width: 2px;
+      }
+      .f-marker {
+        path,
+        circle {
+          fill: var(--db-primary-1);
+        }
+      }
+      .f-connection-selection {
+        fill: transparent !important;
+        stroke: transparent !important;
+      }
+    }
+  }
+
+  .f-selection-area {
+    background-color: var(--vp-selection-area-color);
+  }
+
+  .f-minimap {
+    background-color: var(--vp-minimap-color);
+    bottom: 16px;
+    left: 16px;
+    width: 140px;
+    height: 120px;
+
+    .f-minimap-node {
+      fill: var(--vp-minimap-node-color);
+
+      &.f-selected {
+        fill: var(--vp-minimap-selected-node-color);
+      }
+    }
+
+    .f-minimap-view {
+      fill: var(--vp-minimap-view-color);
+    }
+  }
+  .f-connections-dragging {
+    .f-component.f-node-input.f-node-output.port-circle.f-node-input-can-be-connected-to
+      ~ .port-label {
+      display: block;
+    }
+
+    .f-component.f-node-input.f-node-output.port-circle.f-node-input-can-be-connected-to {
+      transform: translate(-50%, -50%) scale(1.5);
+      transition: transform 0.2s ease-in-out;
+      position: relative;
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        border: 2px dashed #b4b4b4;
+        border-radius: 50%;
+        pointer-events: none;
+        animation: rotateBorder 3s linear infinite;
+      }
+    }
+  }
+
+  // Connection center: hidden by default
+  .connection-center {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; // Reduce space between buttons
+  }
+
+  /* General Button Styles */
+  .icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; // Smaller size
+    height: 28px;
+    border-radius: 6px;
+    background-color: #2a2a2a; // Static background
+    cursor: pointer;
+    transition: transform 0.1s, color 0.2s;
+
+    i {
+      font-size: 0.875rem; // Slightly smaller icons
+      color: #5672cd; // Default icon color
+      transition: color 0.2s; // Only change the icon color on hover
+    }
+
+    &:active {
+      transform: scale(0.9); // Slight press effect
+    }
+  }
+
+  /* Plus Icon: Turns white on hover */
+  .plus-icon:hover i {
+    color: #ffffff; // White on hover
+  }
+
+  /* Delete Icon: Turns red on hover */
+  .delete-icon:hover i {
+    color: #d32f2f; // Red on hover
+  }
+  .node-group {
+    border-radius: 8px;
+    background-color: rgba(51, 51, 51, 0.2);
+    padding-top: 50px;
+    min-width: 300px;
+    position: relative;
+    outline: 2px solid transparent;
+
+    &.f-parent-for-drop {
+      outline: 2px dashed #3451b2;
+    }
+
+    > .node-group-header {
+      position: relative;
+      width: 100%;
+      margin-top: -50px;
+      padding: 15px;
+      background-color: #181818;
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-top-left-radius: inherit;
+      border-top-right-radius: inherit;
+
+      /* Keep the same header height in both modes */
+      display: flex;
+      align-items: center;
+      height: 50px;
+
+      .icon-and-title {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        overflow: hidden;
+
+        .group-icon {
+          color: #2a6bbf;
+          margin-right: 8px;
+          font-size: 16px;
+          flex-shrink: 0;
+        }
+
+        .group-name {
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .edit-container {
+          display: flex;
+          align-items: center;
+          width: 100%;
+
+          input {
+            box-sizing: border-box;
+            flex: 1;
+            margin-right: 8px;
+            border-radius: 4px;
+            padding: 2px 5px;
+            border: 1px solid #c2c2c2;
+            outline: none;
+            &:focus {
+              border-color: #c2c2c2;
+            }
+          }
+
+          button {
+            background-color: #2a6bbf;
+            color: #fff;
+            border: none;
+            font-weight: 400;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            padding: 2px 10px;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+    /* If collapsed, the header should have full border-radius: 8px */
+    &.f-collapsed {
+      > .node-group-header {
+        border-radius: 8px;
+      }
+    }
+
+    /* Floating icons */
+    .icon-floating {
+      display: flex;
+      opacity: 0;
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: rgba(20, 20, 20, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: background 0.2s ease-in-out;
+
+      i {
+        font-size: 16px;
+        color: #f0f0f0;
+      }
+
+      &:hover {
+        background: rgba(40, 40, 40, 0.9);
+        opacity: 1;
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        width: calc(100% + 50px);
+        height: calc(100% + 50px);
+      }
+
+      &.top-left {
+        top: -28px;
+        left: -28px;
+      }
+
+      &.top-right {
+        top: -28px;
+        right: -28px;
+      }
+    }
+
+    &:hover .icon-floating,
+    .icon-floating:hover {
+      opacity: 1;
+    }
+
+    &.f-selected {
+      outline: 2px solid var(--vp-selected-node-border-color);
+      .f-resize-handle {
+        display: block;
+      }
+    }
+
+    .f-resize-handle {
+      --resize-handle-size: 16px;
+      --resize-handle-offset: -8px;
+      display: none;
+      position: absolute;
+      width: var(--resize-handle-size);
+      height: var(--resize-handle-size);
+      background-color: var(--db-background);
+      border: 1px solid var(--db-primary-1);
+      border-radius: 1px;
+
+      &.f-resize-handle-right-bottom {
+        bottom: var(--resize-handle-offset);
+        right: var(--resize-handle-offset);
+        cursor: nwse-resize;
+      }
+    }
+  }
+
+  @keyframes rotateBorder {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}

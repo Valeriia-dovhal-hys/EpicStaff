@@ -1,10 +1,12 @@
 import asyncio
 import json
-import os
+import re
 import uuid
+import warnings
 from concurrent.futures import Future
+from copy import copy as shallow_copy
 from hashlib import md5
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 from pydantic import (
     UUID4,
@@ -25,37 +27,37 @@ from crewai.crews.crew_output import CrewOutput
 from crewai.llm import LLM
 from crewai.memory.entity.entity_memory import EntityMemory
 from crewai.memory.long_term.long_term_memory import LongTermMemory
+from crewai.memory.long_term.local_long_term_memory import LocalLongTermMemory
 from crewai.memory.short_term.short_term_memory import ShortTermMemory
+from crewai.memory.user.user_memory import UserMemory
 from crewai.process import Process
 from crewai.task import Task
 from crewai.tasks.conditional_task import ConditionalTask
 from crewai.tasks.task_output import TaskOutput
 from crewai.telemetry import Telemetry
-from crewai.tools.agent_tools import AgentTools
+from crewai.tools.agent_tools.agent_tools import AgentTools
+from crewai.tools.base_tool import Tool
 from crewai.types.usage_metrics import UsageMetrics
 from crewai.utilities import I18N, FileHandler, Logger, RPMController
-from crewai.utilities.constants import (
-    TRAINING_DATA_FILE,
-)
+from crewai.utilities.constants import TRAINING_DATA_FILE
 from crewai.utilities.evaluators.crew_evaluator_handler import CrewEvaluator
 from crewai.utilities.evaluators.task_evaluator import TaskEvaluator
 from crewai.utilities.formatter import (
     aggregate_raw_outputs_from_task_outputs,
     aggregate_raw_outputs_from_tasks,
 )
+from crewai.utilities.llm_utils import create_llm
 from crewai.utilities.planning_handler import CrewPlanner
 from crewai.utilities.task_output_storage_handler import TaskOutputStorageHandler
 from crewai.utilities.training_handler import CrewTrainingHandler
 
-agentops = None
-if os.environ.get("AGENTOPS_API_KEY"):
-    try:
-        import agentops  # type: ignore
-    except ImportError:
-        pass
+try:
+    import agentops  # type: ignore
+except ImportError:
+    agentops = None
 
-if TYPE_CHECKING:
-    from crewai.pipeline.pipeline import Pipeline
+
+warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
 
 class Crew(BaseModel):
@@ -68,6 +70,7 @@ class Crew(BaseModel):
         manager_llm: The language model that will run manager agent.
         manager_agent: Custom agent that will be used as manager.
         memory: Whether the crew should use memory to store memories of it's execution.
+        memory_config: Configuration for the memory to be used for the crew.
         cache: Whether the crew should use a cache to store the results of the tools execution.
         function_calling_llm: The language model that will run the tool calling for all the agents.
         process: The process flow that the crew will follow (e.g., sequential, hierarchical).
@@ -80,6 +83,9 @@ class Crew(BaseModel):
         step_callback: Callback to be executed after each step for every agents execution.
         share_crew: Whether you want to share the complete crew information and execution with crewAI to make the library better, and allow us to train models.
         planning: Plan the crew execution and add the plan to the crew.
+        chat_llm: The language model used for orchestrating chat interactions with the crew.
+
+        knowledge_collection_id: A unique identifier of the knowledgecollection instance for crew. Now fields "knowledge_sources" and "knowledge" are unnecessary.
     """
 
     __hash__ = object.__hash__  # type: ignore
@@ -91,6 +97,7 @@ class Crew(BaseModel):
     _short_term_memory: Optional[InstanceOf[ShortTermMemory]] = PrivateAttr()
     _long_term_memory: Optional[InstanceOf[LongTermMemory]] = PrivateAttr()
     _entity_memory: Optional[InstanceOf[EntityMemory]] = PrivateAttr()
+    _user_memory: Optional[InstanceOf[UserMemory]] = PrivateAttr()
     _train: Optional[bool] = PrivateAttr(default=False)
     _train_iteration: Optional[int] = PrivateAttr()
     _inputs: Optional[Dict[str, Any]] = PrivateAttr(default=None)
@@ -111,6 +118,10 @@ class Crew(BaseModel):
         default=False,
         description="Whether the crew should use memory to store memories of it's execution",
     )
+    memory_config: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Configuration for the memory to be used for the crew.",
+    )
     short_term_memory: Optional[InstanceOf[ShortTermMemory]] = Field(
         default=None,
         description="An Instance of the ShortTermMemory to be used by the Crew",
@@ -123,8 +134,12 @@ class Crew(BaseModel):
         default=None,
         description="An Instance of the EntityMemory to be used by the Crew",
     )
+    user_memory: Optional[InstanceOf[UserMemory]] = Field(
+        default=None,
+        description="An instance of the UserMemory to be used by the Crew to store/fetch memories of a specific user.",
+    )
     embedder: Optional[dict] = Field(
-        default={"provider": "openai"},
+        default=None,
         description="Configuration for the embedder to be used for the crew.",
     )
     usage_metrics: Optional[UsageMetrics] = Field(
@@ -137,7 +152,7 @@ class Crew(BaseModel):
     manager_agent: Optional[BaseAgent] = Field(
         description="Custom agent that will be used as manager.", default=None
     )
-    function_calling_llm: Optional[Any] = Field(
+    function_calling_llm: Optional[Union[str, InstanceOf[LLM], Any]] = Field(
         description="Language model that will run the agent.", default=None
     )
     config: Optional[Union[Json, Dict[str, Any]]] = Field(default=None)
@@ -150,6 +165,16 @@ class Crew(BaseModel):
     task_callback: Optional[Any] = Field(
         default=None,
         description="Callback to be executed after each task for all agents execution.",
+    )
+    before_kickoff_callbacks: List[
+        Callable[[Optional[Dict[str, Any]]], Optional[Dict[str, Any]]]
+    ] = Field(
+        default_factory=list,
+        description="List of callbacks to be executed before crew kickoff. It may be used to adjust inputs before the crew is executed.",
+    )
+    after_kickoff_callbacks: List[Callable[[CrewOutput], CrewOutput]] = Field(
+        default_factory=list,
+        description="List of callbacks to be executed after crew kickoff. It may be used to adjust the output of the crew.",
     )
     max_rpm: Optional[int] = Field(
         default=None,
@@ -178,6 +203,18 @@ class Crew(BaseModel):
     execution_logs: List[Dict[str, Any]] = Field(
         default=[],
         description="List of execution logs for tasks",
+    )
+    chat_llm: Optional[Any] = Field(
+        default=None,
+        description="LLM used to handle chatting with the crew.",
+    )
+    manager_ask_human_input_callback: Optional[Any] = Field(
+        default=None,
+        description="Callback to be executed for human input by manager agent",
+    )
+    knowledge_collection_id: Optional[int] = Field(
+        default=None,
+        description="Knowledge collection id for the crew.",
     )
 
     @field_validator("id", mode="before")
@@ -212,15 +249,9 @@ class Crew(BaseModel):
         if self.output_log_file:
             self._file_handler = FileHandler(self.output_log_file)
         self._rpm_controller = RPMController(max_rpm=self.max_rpm, logger=self._logger)
-        if self.function_calling_llm:
-            if isinstance(self.function_calling_llm, str):
-                self.function_calling_llm = LLM(model=self.function_calling_llm)
-            elif not isinstance(self.function_calling_llm, LLM):
-                self.function_calling_llm = LLM(
-                    model=getattr(self.function_calling_llm, "model_name", None)
-                    or getattr(self.function_calling_llm, "deployment_name", None)
-                    or str(self.function_calling_llm)
-                )
+        if self.function_calling_llm and not isinstance(self.function_calling_llm, LLM):
+            self.function_calling_llm = create_llm(self.function_calling_llm)
+
         self._telemetry = Telemetry()
         self._telemetry.set_tracer()
         return self
@@ -229,19 +260,40 @@ class Crew(BaseModel):
     def create_crew_memory(self) -> "Crew":
         """Set private attributes."""
         if self.memory:
-            self._long_term_memory = (
-                self.long_term_memory if self.long_term_memory else LongTermMemory()
-            )
+            if hasattr(self, "memory_config") and self.memory_config is not None:
+                memory_provider = self.memory_config.get("provider")
+                if memory_provider == "local_mem0":
+                    self._long_term_memory = LocalLongTermMemory(
+                        crew=self, embedder_config=self.embedder
+                    )
+            else:
+                self._long_term_memory = (
+                    self.long_term_memory if self.long_term_memory else LongTermMemory()
+                )
             self._short_term_memory = (
                 self.short_term_memory
                 if self.short_term_memory
-                else ShortTermMemory(crew=self, embedder_config=self.embedder)
+                else ShortTermMemory(
+                    crew=self,
+                    embedder_config=self.embedder,
+                )
             )
             self._entity_memory = (
                 self.entity_memory
                 if self.entity_memory
                 else EntityMemory(crew=self, embedder_config=self.embedder)
             )
+            if hasattr(self, "memory_config") and self.memory_config is not None:
+                self._user_memory = (
+                    self.user_memory
+                    if self.user_memory
+                    else UserMemory(
+                        crew=self,
+                        embedder_config=self.embedder,
+                    )
+                )
+            else:
+                self._user_memory = None
         return self
 
     @model_validator(mode="after")
@@ -432,27 +484,39 @@ class Crew(BaseModel):
         self, n_iterations: int, filename: str, inputs: Optional[Dict[str, Any]] = {}
     ) -> None:
         """Trains the crew for a given number of iterations."""
-        self._setup_for_training(filename)
+        train_crew = self.copy()
+        train_crew._setup_for_training(filename)
 
-        for n_iteration in range(n_iterations):
-            self._train_iteration = n_iteration
-            self.kickoff(inputs=inputs)
+        try:
+            for n_iteration in range(n_iterations):
+                train_crew._train_iteration = n_iteration
+                train_crew.kickoff(inputs=inputs)
 
-        training_data = CrewTrainingHandler(TRAINING_DATA_FILE).load()
+            training_data = CrewTrainingHandler(TRAINING_DATA_FILE).load()
 
-        for agent in self.agents:
-            result = TaskEvaluator(agent).evaluate_training_data(
-                training_data=training_data, agent_id=str(agent.id)
-            )
-
-            CrewTrainingHandler(filename).save_trained_data(
-                agent_id=str(agent.role), trained_data=result.model_dump()
-            )
+            for agent in train_crew.agents:
+                if training_data.get(str(agent.id)):
+                    result = TaskEvaluator(agent).evaluate_training_data(
+                        training_data=training_data, agent_id=str(agent.id)
+                    )
+                    CrewTrainingHandler(filename).save_trained_data(
+                        agent_id=str(agent.role), trained_data=result.model_dump()
+                    )
+        except Exception as e:
+            self._logger.log("error", f"Training failed: {e}", color="red")
+            CrewTrainingHandler(TRAINING_DATA_FILE).clear()
+            CrewTrainingHandler(filename).clear()
+            raise
 
     def kickoff(
         self,
         inputs: Optional[Dict[str, Any]] = None,
     ) -> CrewOutput:
+        for before_callback in self.before_kickoff_callbacks:
+            if inputs is None:
+                inputs = {}
+            inputs = before_callback(inputs)
+
         """Starts the crew to work on its assigned tasks."""
         self._execution_span = self._telemetry.crew_execution_span(self, inputs)
         self._task_output_handler.reset()
@@ -473,9 +537,6 @@ class Crew(BaseModel):
             if not agent.function_calling_llm:  # type: ignore # "BaseAgent" has no attribute "function_calling_llm"
                 agent.function_calling_llm = self.function_calling_llm  # type: ignore # "BaseAgent" has no attribute "function_calling_llm"
 
-            if agent.allow_code_execution:  # type: ignore # BaseAgent" has no attribute "allow_code_execution"
-                agent.tools += agent.get_code_execution_tools()  # type: ignore # "BaseAgent" has no attribute "get_code_execution_tools"; maybe "get_delegation_tools"?
-
             if not agent.step_callback:  # type: ignore # "BaseAgent" has no attribute "step_callback"
                 agent.step_callback = self.step_callback  # type: ignore # "BaseAgent" has no attribute "step_callback"
 
@@ -494,6 +555,9 @@ class Crew(BaseModel):
             raise NotImplementedError(
                 f"The process '{self.process}' is not implemented yet."
             )
+
+        for after_callback in self.after_kickoff_callbacks:
+            result = after_callback(result)
 
         metrics += [agent._token_process.get_summary() for agent in self.agents]
 
@@ -609,10 +673,10 @@ class Crew(BaseModel):
                 )
                 manager.tools = []
                 raise Exception("Manager agent should not have tools")
-            manager.tools = self.manager_agent.get_delegation_tools(self.agents)
         else:
             self.manager_llm = (
                 getattr(self.manager_llm, "model_name", None)
+                or getattr(self.manager_llm, "model", None)
                 or getattr(self.manager_llm, "deployment_name", None)
                 or self.manager_llm
             )
@@ -621,8 +685,10 @@ class Crew(BaseModel):
                 goal=i18n.retrieve("hierarchical_manager_agent", "goal"),
                 backstory=i18n.retrieve("hierarchical_manager_agent", "backstory"),
                 tools=AgentTools(agents=self.agents).tools(),
+                allow_delegation=True,
                 llm=self.manager_llm,
                 verbose=self.verbose,
+                ask_human_input_callback=self.manager_ask_human_input_callback,
             )
             self.manager_agent = manager
         manager.crew = self
@@ -663,7 +729,10 @@ class Crew(BaseModel):
                     f"No agent available for task: {task.description}. Ensure that either the task has an assigned agent or a manager agent is provided."
                 )
 
-            self._prepare_agent_tools(task)
+            # Determine which tools to use - task tools take precedence over agent tools
+            tools_for_task = task.tools or agent_to_use.tools or []
+            tools_for_task = self._prepare_tools(agent_to_use, task, tools_for_task)
+
             self._log_task_start(task, agent_to_use.role)
 
             if isinstance(task, ConditionalTask):
@@ -680,7 +749,7 @@ class Crew(BaseModel):
                 future = task.execute_async(
                     agent=agent_to_use,
                     context=context,
-                    tools=agent_to_use.tools,
+                    tools=tools_for_task,
                 )
                 futures.append((task, future, task_index))
             else:
@@ -692,7 +761,7 @@ class Crew(BaseModel):
                 task_output = task.execute_sync(
                     agent=agent_to_use,
                     context=context,
-                    tools=agent_to_use.tools,
+                    tools=tools_for_task,
                 )
                 task_outputs = [task_output]
                 self._process_task_result(task, task_output)
@@ -729,58 +798,93 @@ class Crew(BaseModel):
             return skipped_task_output
         return None
 
-    def _prepare_agent_tools(self, task: Task):
-        if self.process == Process.hierarchical:
-            if self.manager_agent:
-                self._update_manager_tools(task)
-            else:
-                raise ValueError("Manager agent is required for hierarchical process.")
-        elif task.agent and task.agent.allow_delegation:
-            self._add_delegation_tools(task)
+    def _prepare_tools(
+        self, agent: BaseAgent, task: Task, tools: List[Tool]
+    ) -> List[Tool]:
+        # Add delegation tools if agent allows delegation
+        if agent.allow_delegation:
+            if self.process == Process.hierarchical:
+                if self.manager_agent:
+                    tools = self._update_manager_tools(task, tools)
+                else:
+                    raise ValueError(
+                        "Manager agent is required for hierarchical process."
+                    )
+
+            elif agent and agent.allow_delegation:
+                tools = self._add_delegation_tools(task, tools)
+
+        # Add code execution tools if agent allows code execution
+        if agent.allow_code_execution:
+            tools = self._add_code_execution_tools(agent, tools)
+
+        if agent and agent.multimodal:
+            tools = self._add_multimodal_tools(agent, tools)
+
+        return tools
 
     def _get_agent_to_use(self, task: Task) -> Optional[BaseAgent]:
         if self.process == Process.hierarchical:
             return self.manager_agent
         return task.agent
 
-    def _add_delegation_tools(self, task: Task):
+    def _merge_tools(
+        self, existing_tools: List[Tool], new_tools: List[Tool]
+    ) -> List[Tool]:
+        """Merge new tools into existing tools list, avoiding duplicates by tool name."""
+        if not new_tools:
+            return existing_tools
+
+        # Create mapping of tool names to new tools
+        new_tool_map = {tool.name: tool for tool in new_tools}
+
+        # Remove any existing tools that will be replaced
+        tools = [tool for tool in existing_tools if tool.name not in new_tool_map]
+
+        # Add all new tools
+        tools.extend(new_tools)
+
+        return tools
+
+    def _inject_delegation_tools(
+        self, tools: List[Tool], task_agent: BaseAgent, agents: List[BaseAgent]
+    ):
+        delegation_tools = task_agent.get_delegation_tools(agents)
+        return self._merge_tools(tools, delegation_tools)
+
+    def _add_multimodal_tools(self, agent: BaseAgent, tools: List[Tool]):
+        multimodal_tools = agent.get_multimodal_tools()
+        return self._merge_tools(tools, multimodal_tools)
+
+    def _add_code_execution_tools(self, agent: BaseAgent, tools: List[Tool]):
+        code_tools = agent.get_code_execution_tools()
+        return self._merge_tools(tools, code_tools)
+
+    def _add_delegation_tools(self, task: Task, tools: List[Tool]):
         agents_for_delegation = [agent for agent in self.agents if agent != task.agent]
         if len(self.agents) > 1 and len(agents_for_delegation) > 0 and task.agent:
-            delegation_tools = task.agent.get_delegation_tools(agents_for_delegation)
-
-            # Add tools if they are not already in task.tools
-            for new_tool in delegation_tools:
-                # Find the index of the tool with the same name
-                existing_tool_index = next(
-                    (
-                        index
-                        for index, tool in enumerate(task.tools or [])
-                        if tool.name == new_tool.name
-                    ),
-                    None,
-                )
-                if not task.tools:
-                    task.tools = []
-
-                if existing_tool_index is not None:
-                    # Replace the existing tool
-                    task.tools[existing_tool_index] = new_tool
-                else:
-                    # Add the new tool
-                    task.tools.append(new_tool)
+            if not tools:
+                tools = []
+            tools = self._inject_delegation_tools(
+                tools, task.agent, agents_for_delegation
+            )
+        return tools
 
     def _log_task_start(self, task: Task, role: str = "None"):
         if self.output_log_file:
-            self._file_handler.log(agent=role, task=task.description, status="started")
+            self._file_handler.log(
+                task_name=task.name, task=task.description, agent=role, status="started"
+            )
 
-    def _update_manager_tools(self, task: Task):
+    def _update_manager_tools(self, task: Task, tools: List[Tool]):
         if self.manager_agent:
             if task.agent:
-                self.manager_agent.tools = task.agent.get_delegation_tools([task.agent])
+                tools = self._inject_delegation_tools(tools, task.agent, [task.agent])
             else:
-                self.manager_agent.tools = self.manager_agent.get_delegation_tools(
-                    self.agents
+                tools = self._inject_delegation_tools(
+                    tools, self.manager_agent, self.agents
                 )
+        return tools
 
     def _get_context(self, task: Task, task_outputs: List[TaskOutput]):
         context = (
@@ -793,7 +897,13 @@ class Crew(BaseModel):
     def _process_task_result(self, task: Task, output: TaskOutput) -> None:
         role = task.agent.role if task.agent is not None else "None"
         if self.output_log_file:
-            self._file_handler.log(agent=role, task=output, status="completed")
+            self._file_handler.log(
+                task_name=task.name,
+                task=task.description,
+                agent=role,
+                status="completed",
+                output=output.raw,
+            )
 
     def _create_crew_output(self, task_outputs: List[TaskOutput]) -> CrewOutput:
         if len(task_outputs) != 1:
@@ -881,6 +991,31 @@ class Crew(BaseModel):
         result = self._execute_tasks(self.tasks, start_index, True)
         return result
 
+    def fetch_inputs(self) -> Set[str]:
+        """
+        Gathers placeholders (e.g., {something}) referenced in tasks or agents.
+        Scans each task's 'description' + 'expected_output', and each agent's
+        'role', 'goal', and 'backstory'.
+
+        Returns a set of all discovered placeholder names.
+        """
+        placeholder_pattern = re.compile(r"\{(.+?)\}")
+        required_inputs: Set[str] = set()
+
+        # Scan tasks for inputs
+        for task in self.tasks:
+            # description and expected_output might contain e.g. {topic}, {user_name}, etc.
+            text = f"{task.description or ''} {task.expected_output or ''}"
+            required_inputs.update(placeholder_pattern.findall(text))
+
+        # Scan agents for inputs
+        for agent in self.agents:
+            # role, goal, backstory might have placeholders like {role_detail}, etc.
+            text = f"{agent.role or ''} {agent.goal or ''} {agent.backstory or ''}"
+            required_inputs.update(placeholder_pattern.findall(text))
+
+        return required_inputs
+
     def copy(self):
         """Create a deep copy of the Crew."""
 
@@ -900,7 +1035,23 @@ class Crew(BaseModel):
         }
 
         cloned_agents = [agent.copy() for agent in self.agents]
-        cloned_tasks = [task.copy(cloned_agents) for task in self.tasks]
+
+        task_mapping = {}
+
+        cloned_tasks = []
+
+        for task in self.tasks:
+            cloned_task = task.copy(cloned_agents, task_mapping)
+            cloned_tasks.append(cloned_task)
+            task_mapping[task.key] = cloned_task
+
+        for cloned_task, original_task in zip(cloned_tasks, self.tasks):
+            if original_task.context:
+                cloned_context = [
+                    task_mapping[context_task.key]
+                    for context_task in original_task.context
+                ]
+                cloned_task.context = cloned_context
 
         copied_data = self.model_dump(exclude=exclude)
         copied_data = {k: v for k, v in copied_data.items() if v is not None}
@@ -908,7 +1059,11 @@ class Crew(BaseModel):
         copied_data.pop("agents", None)
         copied_data.pop("tasks", None)
 
-        copied_crew = Crew(**copied_data, agents=cloned_agents, tasks=cloned_tasks)
+        copied_crew = Crew(
+            **copied_data,
+            agents=cloned_agents,
+            tasks=cloned_tasks,
+        )
 
         return copied_crew
 
@@ -921,7 +1076,7 @@ class Crew(BaseModel):
     def _interpolate_inputs(self, inputs: Dict[str, Any]) -> None:
         """Interpolates the inputs in the tasks and agents."""
         [
-            task.interpolate_inputs(
+            task.interpolate_inputs_and_add_conversation_history(
                 # type: ignore # "interpolate_inputs" of "Task" does not return a value (it only ever returns None)
                 inputs
             )
@@ -938,6 +1093,7 @@ class Crew(BaseModel):
             agentops.end_session(
                 end_state="Success",
                 end_state_reason="Finished Execution",
+                is_auto_end=True,
             )
         self._telemetry.end_crew(self, final_string_output)
 
@@ -961,31 +1117,21 @@ class Crew(BaseModel):
         inputs: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Test and evaluate the Crew with the given inputs for n iterations concurrently using concurrent.futures."""
-        self._test_execution_span = self._telemetry.test_execution_span(
-            self,
+        test_crew = self.copy()
+
+        self._test_execution_span = test_crew._telemetry.test_execution_span(
+            test_crew,
             n_iterations,
             inputs,
             openai_model_name,  # type: ignore[arg-type]
         )  # type: ignore[arg-type]
-        evaluator = CrewEvaluator(self, openai_model_name)  # type: ignore[arg-type]
+        evaluator = CrewEvaluator(test_crew, openai_model_name)  # type: ignore[arg-type]
 
         for i in range(1, n_iterations + 1):
             evaluator.set_iteration(i)
-            self.kickoff(inputs=inputs)
+            test_crew.kickoff(inputs=inputs)
 
         evaluator.print_crew_evaluation_result()
-
-    def __rshift__(self, other: "Crew") -> "Pipeline":
-        """
-        Implements the >> operator to add another Crew to an existing Pipeline.
-        """
-        from crewai.pipeline.pipeline import Pipeline
-
-        if not isinstance(other, Crew):
-            raise TypeError(
-                f"Unsupported operand type for >>: '{type(self).__name__}' and '{type(other).__name__}'"
-            )
-        return Pipeline(stages=[self, other])
 
     def __repr__(self):
         return f"Crew(id={self.id}, process={self.process}, number_of_agents={len(self.agents)}, number_of_tasks={len(self.tasks)})"

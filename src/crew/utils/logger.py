@@ -6,7 +6,7 @@ import traceback
 
 logger.remove()
 logger.add(sys.stdout, format="{time} {level} {message}", level="INFO")
-logger.add("logs/file.log", rotation="1 MB", compression="zip")
+# logger.add("logs/file.log", rotation="1 MB", compression="zip")
 
 
 def log_exception(

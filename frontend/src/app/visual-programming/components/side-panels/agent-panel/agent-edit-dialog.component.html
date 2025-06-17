@@ -1,0 +1,165 @@
+<div class="wrapper">
+  <!-- Header: Icon + Role + Close Button -->
+  <div class="dialog-header">
+    <div class="icon-and-role">
+      <i class="ti ti-robot"></i>
+      <span class="role">{{ agentForm.value.role || "New Agent" }}</span>
+    </div>
+    <i class="ti ti-x close-icon" (click)="close()"></i>
+  </div>
+
+  <!-- Scrollable Form Content -->
+  <div class="dialog-content">
+    <form [formGroup]="agentForm" (ngSubmit)="onSubmit()">
+      <!-- Basic Fields -->
+      <div class="form-group">
+        <label for="role">Role</label>
+        <input
+          id="role"
+          type="text"
+          formControlName="role"
+          placeholder="Enter agent's role"
+        />
+      </div>
+      <div class="form-group">
+        <label for="goal">Goal</label>
+        <textarea
+          id="goal"
+          formControlName="goal"
+          placeholder="Describe agent's goal"
+        ></textarea>
+      </div>
+      <div class="form-group">
+        <label for="backstory">Backstory</label>
+        <textarea
+          id="backstory"
+          formControlName="backstory"
+          placeholder="Provide a backstory (optional)"
+        ></textarea>
+      </div>
+
+      <!-- Advanced Settings Toggler -->
+      <button
+        type="button"
+        class="toggle-advanced"
+        (click)="toggleAdvancedSettings()"
+        [class.opened]="advancedSettingsOpen"
+      >
+        {{
+          advancedSettingsOpen
+            ? "Hide Advanced Settings"
+            : "Show Advanced Settings"
+        }}
+      </button>
+
+      <!-- Advanced Settings Section (animated) -->
+      <div class="advanced-settings" *ngIf="advancedSettingsOpen" @expandInOut>
+        <div class="form-group">
+          <label for="allow_delegation">Delegation</label>
+          <select id="allow_delegation" formControlName="allow_delegation">
+            <option [value]="true">Allow Delegation</option>
+            <option [value]="false">Disallow Delegation</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="memory">Memory</label>
+          <select id="memory" formControlName="memory">
+            <option [value]="true">Allow Memory</option>
+            <option [value]="false">Disallow Memory</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="max_iter">Max Iterations</label>
+          <input
+            id="max_iter"
+            type="number"
+            formControlName="max_iter"
+            placeholder="Enter max iterations"
+          />
+        </div>
+        <div class="form-group">
+          <label for="max_rpm">Max RPM</label>
+          <input
+            id="max_rpm"
+            type="number"
+            formControlName="max_rpm"
+            placeholder="Enter max RPM"
+          />
+        </div>
+        <div class="form-group">
+          <label for="max_execution_time">Max Execution Time (seconds)</label>
+          <input
+            id="max_execution_time"
+            type="number"
+            formControlName="max_execution_time"
+            placeholder="Enter execution time"
+          />
+        </div>
+        <div class="form-group">
+          <label for="cache">Cache</label>
+          <select id="cache" formControlName="cache">
+            <option [value]="true">Allow Caching</option>
+            <option [value]="false">Disallow Caching</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="allow_code_execution">Code Execution</label>
+          <select
+            id="allow_code_execution"
+            formControlName="allow_code_execution"
+          >
+            <option [value]="true">Allow Code Execution</option>
+            <option [value]="false">Disallow Code Execution</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="max_retry_limit">Max Retry Limit</label>
+          <input
+            id="max_retry_limit"
+            type="number"
+            formControlName="max_retry_limit"
+            placeholder="Enter max retry limit"
+          />
+        </div>
+        <div class="form-group">
+          <label for="respect_context_window">Respect Context Window</label>
+          <select
+            id="respect_context_window"
+            formControlName="respect_context_window"
+          >
+            <option [value]="true">Yes</option>
+            <option [value]="false">No</option>
+          </select>
+        </div>
+        <!-- Visual Slider for Default Temperature -->
+        <div class="visual-slider">
+          <label for="visualSlider">Creativity Level</label>
+          <input
+            type="range"
+            id="visualSlider"
+            min="0"
+            max="100"
+            [value]="sliderValue"
+            (input)="onSliderInput($event)"
+            [style.--value]="sliderValue"
+          />
+          <div class="scale-markers">
+            <span>0</span>
+            <span>25</span>
+            <span>50</span>
+            <span>75</span>
+            <span>100</span>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Fixed Action Buttons -->
+  <div class="actions">
+    <button type="button" (click)="close()">Cancel</button>
+    <button type="submit" [disabled]="agentForm.invalid" (click)="onSubmit()">
+      Save
+    </button>
+  </div>
+</div>

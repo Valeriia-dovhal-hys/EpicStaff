@@ -1,14 +1,32 @@
-<!-- <mat-toolbar class="mat-elevation-z3">
-  <button mat-icon-button (click)="toggleSidenav()">
-    <mat-icon>menu</mat-icon>
-  </button>
-</mat-toolbar> -->
-<mat-sidenav-container>
-  <mat-sidenav mode="side" [style.width]="sidenavWidth()" opened>
-    <app-custom-sidenav [collapsed]="collapsed()"></app-custom-sidenav>
-  </mat-sidenav>
+<nav class="sidenav">
+  <div class="logo-container">
+    <div class="app-logo">
+      <img src="assets/icons/logo.svg" alt="AI" class="logo-svg" />
+      <div class="logo-text">epicstaff.ai</div>
+    </div>
+  </div>
 
-  <mat-sidenav-content class="content" [style.margin-left]="sidenavWidth()">
-    <ng-content></ng-content>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  <ul class="sidenav-nav">
+    <li
+      class="sidenav-nav-item"
+      *ngFor="let item of items; trackBy: trackItem"
+      (mouseenter)="item.showTooltip = true"
+      (mouseleave)="item.showTooltip = false"
+    >
+      <div class="tooltip-wrapper">
+        <a
+          class="sidenav-nav-link"
+          [routerLink]="item.routeLink"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: false }"
+        >
+          <div class="sidenav-link-icon" [innerHTML]="item.svgIcon"></div>
+        </a>
+        <app-tooltip
+          [text]="item.label"
+          [visible]="item.showTooltip"
+        ></app-tooltip>
+      </div>
+    </li>
+  </ul>
+</nav>

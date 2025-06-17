@@ -1,0 +1,38 @@
+<div class="wrapper">
+  <app-spinner
+    *ngIf="isLoading()"
+    [text]="'Agents coming...'"
+    [size]="48"
+    [accentColor]="'#6562f5'"
+    [borderColor]="'rgba(101, 98, 245, 0.3)'"
+  ></app-spinner>
+
+  <ag-grid-angular
+    [class.hidden-grid]="isLoading()"
+    appPreventContextMenu
+    class="ag-grid-staff"
+    style="width: 100%; height: 100%"
+    [gridOptions]="gridOptions"
+    [rowData]="rowData"
+    [columnDefs]="columnDefs"
+    [defaultColDef]="defaultColDef"
+    [rowDragManaged]="true"
+    (gridReady)="onGridReady($event)"
+    (cellContextMenu)="onCellContextMenu($event)"
+  >
+  </ag-grid-angular>
+</div>
+
+<app-ag-grid-context-menu
+  clickOutside
+  (clickOutside)="closeContextMenu()"
+  [visible]="contextMenuVisible()"
+  [left]="menuLeft"
+  [top]="menuTop"
+  (delete)="handleDelete()"
+  (copy)="handleCopy()"
+  (pasteBelow)="handlePasteBelow()"
+  (pasteAbove)="handlePasteAbove()"
+  (addEmptyAgentBelow)="handleAddEmptyAgentBelow()"
+  (addEmptyAgentAbove)="handleAddEmptyAgentAbove()"
+></app-ag-grid-context-menu>

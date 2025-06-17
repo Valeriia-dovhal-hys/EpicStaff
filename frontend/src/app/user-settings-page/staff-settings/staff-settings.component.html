@@ -1,0 +1,114 @@
+<div class="settings-page">
+  <div class="settings-page-content" >
+    <div class="settings-page-header">
+      <div class="settings-page-title-group">
+        <div class="settings-page-title-wrap">
+          <h2 class="settings-page-title">Staff Settings</h2>
+          <!-- If you want to show a count or any other info, you can place it here -->
+        </div>
+        <p class="settings-page-description">
+          Configure default settings for Agents in your organization below.
+        </p>
+      </div>
+    </div>
+
+
+    <div class="settings-page-content-wrapper">
+      <div class="settings-content">
+        <!-- Agent Defaults Section -->
+        <div class="settings-section defaults-section" *ngIf="agentDefaults">
+          <div class="section-header">
+            <h2 class="section-title">Agent Defaults</h2>
+            <button class="edit-button" (click)="openEditAgentDefaultsDialog()">
+              Configure
+            </button>
+          </div>
+
+          <!-- Allow Delegation -->
+          <div class="setting-item">
+            <span class="label">Allow Delegation</span>
+            <span class="state-value">
+              {{ agentDefaults.allow_delegation ? "True" : "False" }}
+            </span>
+          </div>
+
+          <!-- Memory Setting -->
+          <div class="setting-item">
+            <span class="label">Memory</span>
+            <span class="state-value">
+              {{ agentDefaults.memory ? "Enabled" : "Disabled" }}
+            </span>
+          </div>
+
+          <!-- Max Iterations -->
+          <div class="setting-item">
+            <span class="label">Max Iterations</span>
+            <span class="state-value">{{ agentDefaults.max_iter }}</span>
+          </div>
+
+          <!-- Default LLM Configuration -->
+          <div
+            class="setting-item default-llm-config"
+            (mouseover)="onLLMConfigHover(true)"
+            (mouseout)="onLLMConfigHover(false)"
+          >
+            <span class="label">Default LLM Configuration</span>
+            <span class="state-value">
+              {{ agentDefaults.llmConfigName || "Not Configured" }}
+            </span>
+          </div>
+
+          <!-- Default Function LLM Configuration -->
+          <div
+            class="setting-item default-function-llm-config"
+            (mouseover)="onFunctionLLMConfigHover(true)"
+            (mouseout)="onFunctionLLMConfigHover(false)"
+          >
+            <span class="label">Default Function LLM Configuration</span>
+            <span class="state-value">
+              {{ agentDefaults.fcmLlmConfigName || "Not Configured" }}
+            </span>
+          </div>
+        </div>
+
+        <!-- LLM Configurations Section -->
+        <div
+          class="settings-section llm-section"
+          *ngIf="selectedLLMConfig"
+          [class.hover-active]="isHoveringLLMConfig"
+        >
+          <h2 class="section-title">
+            LLM Configuration: "{{ selectedLLMConfig.custom_name }}"
+          </h2>
+          <div class="setting-item">
+            <span class="label">Temperature</span>
+            <span class="state-value">{{ selectedLLMConfig.temperature }}</span>
+          </div>
+          <div class="setting-item">
+            <span class="label">Context</span>
+            <span class="state-value">{{ selectedLLMConfig.num_ctx }}</span>
+          </div>
+        </div>
+
+        <!-- Function LLM Configurations Section -->
+        <div
+          class="settings-section function-llm-section"
+          *ngIf="selectedFunctionLLMConfig"
+          [class.hover-active]="isHoveringFunctionLLMConfig"
+        >
+          <h2 class="section-title">
+            Function LLM Configuration: "{{ selectedFunctionLLMConfig.custom_name }}"
+          </h2>
+          <div class="setting-item">
+            <span class="label">Temperature</span>
+            <span class="state-value">{{ selectedFunctionLLMConfig.temperature }}</span>
+          </div>
+          <div class="setting-item">
+            <span class="label">Context</span>
+            <span class="state-value">{{ selectedFunctionLLMConfig.num_ctx }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,109 @@
+<div class="files-area">
+  <ng-container *ngIf="selectedCollection; else noCollection">
+    <!-- Collection info header -->
+    <div class="collection-header">
+      <div class="collection-info">
+        <h3 class="collection-name">
+          {{ selectedCollection.collection_name }}
+        </h3>
+        <div class="embedding-info">
+          <span class="label">Embedding config:</span>
+          <span class="value">{{
+            selectedEmbeddingConfig?.custom_name || "..."
+          }}</span>
+        </div>
+      </div>
+      <button class="upload-button" (click)="onUploadFiles()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <polyline
+            points="17 8 12 3 7 8"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <line
+            x1="12"
+            y1="3"
+            x2="12"
+            y2="15"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        Add Files
+      </button>
+    </div>
+
+    <!-- Display files list if we have files, otherwise show empty state -->
+    <ng-container *ngIf="hasFiles; else noFiles">
+      <div class="files-list">
+        <app-file-item
+          *ngFor="let source of filteredSources"
+          [source]="source"
+        ></app-file-item>
+      </div>
+    </ng-container>
+
+    <ng-template #noFiles>
+      <div class="zero-files">
+        <div class="file-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24">
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              stroke="currentColor"
+              fill="none"
+            />
+            <polyline
+              points="14 2 14 8 20 8"
+              stroke="currentColor"
+              fill="none"
+            />
+          </svg>
+        </div>
+        <p>No files in this collection yet</p>
+        <div class="supported-file-types">
+          Supported file types:
+          <span class="file-type">PDF</span>,
+          <span class="file-type">CSV</span>,
+          <span class="file-type">DOCX</span>,
+          <span class="file-type">TXT</span>,
+          <span class="file-type">JSON</span>,
+          <span class="file-type">HTML</span>
+        </div>
+      </div>
+    </ng-template>
+  </ng-container>
+
+  <ng-template #noCollection>
+    <div class="zero-files">
+      <div class="file-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24">
+          <path
+            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            stroke="currentColor"
+            fill="none"
+          />
+          <polyline points="14 2 14 8 20 8" stroke="currentColor" fill="none" />
+        </svg>
+      </div>
+      <p>Select a collection to view files</p>
+      <div class="supported-file-types">
+        Supported file types:
+        <span class="file-type">PDF</span>, <span class="file-type">CSV</span>,
+        <span class="file-type">DOCX</span>, <span class="file-type">TXT</span>,
+        <span class="file-type">JSON</span>,
+        <span class="file-type">HTML</span>
+      </div>
+    </div>
+  </ng-template>
+</div>

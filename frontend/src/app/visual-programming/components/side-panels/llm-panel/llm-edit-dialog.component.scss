@@ -1,0 +1,303 @@
+/* llm-config-side-panel.component.scss */
+.wrapper {
+  background-color: #131313;
+  border-radius: 12px;
+  height: 100%;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  width: 520px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+
+  .dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+
+    .icon-and-title {
+      display: flex;
+      align-items: center;
+      flex-grow: 1;
+      min-width: 0;
+
+      i {
+        font-size: 1.25rem;
+        margin-right: 1.5rem;
+        color: #8e5cd9;
+      }
+
+      .title {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-grow: 1;
+        min-width: 0;
+        margin-right: 1rem;
+      }
+    }
+
+    .close-icon {
+      cursor: pointer;
+    }
+  }
+
+  form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; // Consistent spacing between form groups
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+
+      label {
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        color: #aaa;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+
+        .ti-plus {
+          margin-left: auto;
+          cursor: pointer;
+          color: #ccc;
+          transition: color 0.2s, background-color 0.2s;
+          padding: 0.2rem;
+          border-radius: 4px;
+
+          &:hover {
+            color: #00aaff;
+            background-color: rgba(0, 170, 255, 0.1);
+          }
+        }
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="password"] {
+        width: 100%;
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        color: #fff;
+        font-size: 0.875rem;
+        transition: border-color 0.3s ease;
+
+        &:focus {
+          outline: none;
+          border-color: #666;
+        }
+
+        &::placeholder {
+          color: #666;
+        }
+      }
+
+      /* Styles for the Input Map section */
+      &.input-map {
+        .input-map-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          margin-bottom: 0; // No additional margin at bottom
+
+          .input-map-item {
+            background: #1e1e1e;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            position: relative; // For absolute positioning of the handle
+
+            .input-map-fields {
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              width: 100%;
+
+              input[type="text"] {
+                flex: 1;
+                min-width: 0;
+                border: 1px solid #333;
+              }
+
+              .key-input,
+              .value-input {
+                border-color: #444;
+              }
+
+              .delete-icon,
+              .ti-trash {
+                font-size: 1rem;
+                cursor: pointer;
+                color: #ccc;
+                transition: color 0.2s ease;
+                flex-shrink: 0;
+                &:hover {
+                  color: red;
+                }
+              }
+            }
+
+            /* Drag Handle: positioned at the left side */
+            .drag-handle {
+              position: absolute;
+              top: 50%;
+              left: -20px;
+              transform: translateY(-50%);
+              cursor: move;
+              color: #ccc;
+              font-size: 1rem;
+              z-index: 20;
+              opacity: 0;
+              transition: opacity 0.2s ease;
+              cursor: pointer;
+            }
+            &:hover .drag-handle {
+              opacity: 1;
+            }
+          }
+        }
+      }
+    }
+
+    /* Styles for the API key input with an eye icon */
+    .api-key-group {
+      .input-with-icon {
+        display: flex;
+        align-items: center;
+        position: relative;
+
+        input {
+          flex: 1;
+          padding-right: 2.5rem; // Make room for the icon
+        }
+
+        i {
+          position: absolute;
+          right: 0.75rem;
+          cursor: pointer;
+          font-size: 1.25rem;
+          color: #aaa;
+        }
+      }
+    }
+
+    /* Purely Visual Slider */
+    .visual-slider {
+      margin-bottom: 1rem;
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        color: #aaa;
+        font-weight: 500;
+      }
+
+      input[type="range"] {
+        background: linear-gradient(to right, #0f0 0%, #f00 100%);
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+
+        &::-webkit-slider-runnable-track {
+          background: transparent;
+          height: 8px;
+          border-radius: 4px;
+        }
+
+        &::-moz-range-track {
+          background: transparent;
+          height: 8px;
+          border-radius: 4px;
+        }
+
+        &::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #fff;
+          cursor: pointer;
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+          margin-top: -6px;
+        }
+
+        &::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #fff;
+          cursor: pointer;
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+          border: none;
+        }
+      }
+
+      .scale-markers {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+
+        span {
+          font-size: 0.75rem;
+          color: #aaa;
+        }
+      }
+    }
+
+    /* Action Buttons */
+    .actions {
+      margin-top: auto;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+
+      button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+
+        &:disabled {
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
+
+        &:last-of-type {
+          background-color: #3a7afe;
+          color: #fff;
+
+          &:hover:enabled {
+            background-color: #006af6;
+          }
+        }
+
+        &:first-of-type {
+          background-color: transparent;
+          color: #ccc;
+          border: 1px solid #333;
+
+          &:hover {
+            background-color: #333;
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+}

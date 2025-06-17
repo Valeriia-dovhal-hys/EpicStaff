@@ -1,0 +1,151 @@
+$accent-color: #9a73af; // Main accent color
+
+.modal-content {
+  background: #1a1a1a;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  color: #ffffff;
+  border-radius: 1rem;
+  box-shadow: none !important;
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ffffff;
+      word-wrap: break-word;
+      margin: 0;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      color: #cccccc;
+      cursor: pointer;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      transition: background-color 0.2s ease, color 0.2s ease;
+
+      &:hover {
+        background-color: #2a2a2a;
+        color: #ffffff;
+      }
+
+      mat-icon {
+        font-size: 1.25rem;
+        width: 1.25rem;
+        height: 100%;
+        width: 100%;
+      }
+    }
+  }
+
+  .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    flex-grow: 1;
+    margin-bottom: 1rem;
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      position: relative;
+
+      label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #cccccc;
+      }
+
+      .input-field {
+        padding: 0.75rem;
+        border: 1px solid transparent;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        background: #262626;
+        color: #ffffff;
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        outline: none;
+        width: 100%;
+
+        &:focus {
+          border-color: $accent-color;
+          box-shadow: 0 0 0 3px rgba(154, 115, 175, 0.3);
+        }
+
+        &:disabled {
+          background-color: #2a2a2a;
+          cursor: not-allowed;
+          color: #aaaaaa;
+        }
+
+        &::placeholder {
+          color: #777777;
+        }
+      }
+
+      .error-message {
+        font-size: 0.875rem;
+        color: #ff9494; // Light red for error text
+      }
+    }
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+
+    .button-close {
+      background: #262626;
+      color: #cccccc;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease;
+
+      &:hover {
+        background-color: #2a2a2a;
+        color: #ffffff;
+      }
+    }
+
+    .button-create {
+      background: $accent-color;
+      color: #ffffff;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      //   &:hover:not(:disabled) {
+      //     background: darken($accent-color, 10%);
+      //   }
+
+      &:disabled {
+        background: #2a2a2a;
+        color: #555555;
+        cursor: not-allowed;
+      }
+    }
+  }
+}

@@ -1,0 +1,136 @@
+<div class="node-name-wrapper">
+  <div class="node-name-label">
+    {{ node.node_name || "Unnamed Node" }}
+  </div>
+</div>
+
+@for ( port of this.node.ports; track port.id) {
+
+<div
+  class="port-wrapper port-index-{{ $index }} port-position-{{ port.position }}"
+  [ngStyle]="
+    node.type === NodeType.TABLE && port.position === 'right'
+      ? { top: calculatePortTop($index) }
+      : {}
+  "
+>
+  <div
+    class="port-circle"
+    fNodeInput
+    fNodeOutput
+    [fInputMultiple]="port.multiple"
+    [fOutputMultiple]="port.multiple"
+    [fInputId]="port.id"
+    [fOutputId]="port.id"
+    [isSelfConnectable]="false"
+    [fInputConnectableSide]="port.position"
+    [fOutputConnectableSide]="port.position"
+    [fCanBeConnectedInputs]="portConnections()[port.id]"
+    [ngStyle]="{
+      'border-color':
+        port.port_type === 'output' ? port.color : 'hsl(0, 0%, 15%)',
+      'background-color':
+        port.port_type === 'input' ? port.color : 'hsl(0, 0%, 15%)'
+    }"
+  >
+    <i
+      class="fa-solid fa-plus plus-icon"
+      [ngStyle]="{
+        color: port.port_type === 'input' ? 'hsl(0, 0%, 15%)' : port.color
+      }"
+    ></i>
+  </div>
+  <span class="port-label">{{ port.label }}</span>
+</div>
+
+}
+
+<div
+  *ngIf="agentNode || taskNode || projectNode"
+  class="expand-collapse-toggle"
+  (click)="toggleExpand($event, node.type)"
+  (mousedown)="$event.stopPropagation()"
+>
+  <i class="ti ti-aspect-ratio"></i>
+</div>
+
+<!-- Edit Icon -->
+<div
+  *ngIf="!startNode"
+  class="edit-icon"
+  (click)="onEditClick($event)"
+  (mousedown)="$event.stopPropagation()"
+>
+  <i class="ti ti-edit"></i>
+</div>
+<div
+  *ngIf="node.parentId"
+  class="ungroup-icon"
+  (click)="onUngroupClick($event)"
+  (mousedown)="$event.stopPropagation()"
+>
+  <i class="ti ti-box-off"></i>
+</div>
+
+@if (!edgeNode) {
+<div class="selected-background"></div>
+<div class="interactive-node-body">
+  <!-- Header Section -->
+  <div
+    class="header"
+    [ngStyle]="{
+      'margin-bottom': isExpanded() || !!tableNode ? '1rem' : null
+    }"
+  >
+    <div class="icon-wrapper">
+      <i [class]="node.icon" [style.color]="node.color"></i>
+    </div>
+    <div class="title" [ngSwitch]="true">
+      <ng-container *ngSwitchCase="!!startNode"> Start </ng-container>
+      <!-- Display role for Agent node -->
+      <ng-container *ngSwitchCase="!!agentNode">
+        {{ agentNode?.data?.role }}
+      </ng-container>
+
+      <!-- Display name for Project node -->
+      <ng-container
+        *ngSwitchCase="
+          !!projectNode ||
+          !!taskNode ||
+          !!pythonNode ||
+          !!toolNode ||
+          !!tableNode
+        "
+      >
+        {{ projectNode?.data?.name }} {{ taskNode?.data?.name }}
+        {{ pythonNode?.data?.name }} {{ toolNode?.data?.name }}
+        {{ tableNode?.data?.name }}
+      </ng-container>
+      <ng-container *ngSwitchCase="!!llmNode">
+        {{ llmNode?.data?.custom_name }}
+      </ng-container>
+
+      <!-- Default fallback if node type is not recognized -->
+      <ng-container *ngSwitchDefault> Unknown Node </ng-container>
+    </div>
+  </div>
+
+  <agent-node
+    *ngIf="agentNode"
+    [node]="agentNode"
+    [parentExpanded]="isExpanded"
+  ></agent-node>
+  <task-node
+    *ngIf="taskNode"
+    [node]="taskNode"
+    [parentExpanded]="isExpanded"
+  ></task-node>
+  <app-decision-table-node
+    *ngIf="tableNode"
+    [node]="tableNode"
+  ></app-decision-table-node>
+</div>
+} @else{
+<app-conditional-edge-node></app-conditional-edge-node>
+
+}

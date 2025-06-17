@@ -1,48 +1,82 @@
-import { Component, computed, signal } from '@angular/core';
-
-import { RouterLink } from '@angular/router';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDrawerMode, MatSidenavModule } from '@angular/material/sidenav';
-import { CustomSidenavComponent } from './custom-sidenav/custom-sidenav.component';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ICONS } from '../shared/constants/icons.constants';
+import { TooltipComponent } from './tooltip.component';
+import { NgFor } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
-  selector: 'app-sidenav',
+  selector: 'app-left-sidebar',
   standalone: true,
-  imports: [
-    RouterLink,
-    MatSidenavModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatIconModule,
-    CustomSidenavComponent,
-  ],
+  imports: [TooltipComponent, NgFor, RouterLinkActive, RouterLink],
   templateUrl: './sidenav.component.html',
-  styleUrl: './sidenav.component.scss',
+  styleUrls: ['./sidenav.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SidenavComponent {
-  collapsed = signal(true);
+export class LeftSidebarComponent {
+  public items: {
+    routeLink: string;
+    icon?: string;
+    svgIcon: SafeHtml;
+    label: string;
+    showTooltip: boolean;
+  }[];
 
-  // sidenavWidth = computed(() => (this.collapsed() ? '65px' : '250px'));
+  constructor(private sanitizer: DomSanitizer) {
+    this.items = [
+      {
+        routeLink: 'projects',
+        svgIcon: this.sanitizer.bypassSecurityTrustHtml(ICONS.projects),
+        label: 'Projects',
+        showTooltip: false,
+      },
 
-  // sidenavMode = signal<MatDrawerMode>('side');
-  sidenavWidth = signal<string>('80px');
+      {
+        routeLink: 'staff',
+        svgIcon: this.sanitizer.bypassSecurityTrustHtml(ICONS.staff),
+        label: 'Staff',
+        showTooltip: false,
+      },
+      {
+        routeLink: 'tools',
+        svgIcon: this.sanitizer.bypassSecurityTrustHtml(ICONS.tools),
+        label: 'Tools',
+        showTooltip: false,
+      },
+      {
+        routeLink: 'models',
+        svgIcon: this.sanitizer.bypassSecurityTrustHtml(ICONS.models),
+        label: 'Models',
+        showTooltip: false,
+      },
+      {
+        routeLink: 'flows',
+        svgIcon: this.sanitizer.bypassSecurityTrustHtml(ICONS.flows),
+        label: 'Flows',
+        showTooltip: false,
+      },
+      {
+        routeLink: 'knowledge-sources',
+        svgIcon: this.sanitizer.bypassSecurityTrustHtml(ICONS.sources),
+        label: 'Knowledge Sources',
+        showTooltip: false,
+      },
+      {
+        routeLink: 'chats',
+        svgIcon: this.sanitizer.bypassSecurityTrustHtml(ICONS.chats),
+        label: 'Chats',
+        showTooltip: false,
+      },
+      //   {
+      //     routeLink: 'settings',
+      //     svgIcon: this.sanitizer.bypassSecurityTrustHtml(ICONS.settings),
+      //     label: 'Settings',
+      //     showTooltip: false,
+      //   },
+    ];
+  }
 
-  // toggleSidenav() {
-  //   this.collapsed.set(!this.collapsed());
-  //   this.sidenavWidth.set(this.collapsed() ? '80px' : '240px');
-  // }
-
-  // onMouseEnter() {
-
-  //   this.collapsed.set(false);
-  //   this.sidenavWidth.set('240px');
-  // }
-
-  // onMouseLeave() {
-
-  //   this.collapsed.set(true);
-  //   this.sidenavWidth.set('80px');
-  // }
+  public trackItem(index: number, item: any) {
+    return item.routeLink;
+  }
 }

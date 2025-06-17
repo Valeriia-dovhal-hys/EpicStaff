@@ -1,0 +1,134 @@
+<div class="dialog-header">
+  <h2>
+    {{ isEditMode ? "Edit" : "Add" }} Configuration for {{ data.modelName }}
+  </h2>
+</div>
+
+<div class="form-container">
+  <form [formGroup]="configForm">
+    <!-- Custom Name -->
+    <div class="form-field">
+      <label for="custom_name">Custom Name</label>
+      <input id="custom_name" formControlName="custom_name" type="text" />
+      <div
+        *ngIf="
+          customNameControl?.invalid &&
+          (customNameControl?.dirty || customNameControl?.touched)
+        "
+        class="error"
+      >
+        <div *ngIf="customNameControl?.errors?.['required']">
+          Custom Name is required.
+        </div>
+        <div *ngIf="customNameControl?.errors?.['minlength']">
+          Custom Name must be at least 3 characters long.
+        </div>
+      </div>
+    </div>
+
+    <!-- Temperature -->
+    <div class="form-field">
+      <label for="temperature">Temperature</label>
+      <input
+        id="temperature"
+        formControlName="temperature"
+        type="number"
+        step="0.01"
+        min="0"
+        max="1"
+      />
+      <div
+        *ngIf="
+          temperatureControl?.invalid &&
+          (temperatureControl?.dirty || temperatureControl?.touched)
+        "
+        class="error"
+      >
+        <div *ngIf="temperatureControl?.errors?.['required']">
+          Temperature is required and must be numeric
+        </div>
+        <div *ngIf="temperatureControl?.errors?.['min']">
+          Temperature cannot be less than
+          {{ temperatureControl?.errors?.['min'].min }}.
+        </div>
+        <div *ngIf="temperatureControl?.errors?.['max']">
+          Temperature cannot be more than
+          {{ temperatureControl?.errors?.['max'].max }}.
+        </div>
+        <div *ngIf="temperatureControl?.errors?.['pattern']">
+          Temperature must be a numeric value.
+        </div>
+      </div>
+    </div>
+
+    <!-- Number of Contexts -->
+    <div class="form-field">
+      <label for="num_ctx">Number of Contexts</label>
+      <input id="num_ctx" formControlName="num_ctx" type="number" min="1" />
+      <div
+        *ngIf="
+          numCtxControl?.invalid &&
+          (numCtxControl?.dirty || numCtxControl?.touched)
+        "
+        class="error"
+      >
+        <div *ngIf="numCtxControl?.errors?.['required']">
+          Number of Contexts is required and must be numeric.
+        </div>
+        <div *ngIf="numCtxControl?.errors?.['min']">
+          Number of Contexts cannot be less than
+          {{ numCtxControl?.errors?.['min'].min }}.
+        </div>
+        <div *ngIf="numCtxControl?.errors?.['pattern']">
+          Number of Contexts must be a numeric value.
+        </div>
+      </div>
+    </div>
+
+    <!-- API Key Field with visibility toggle -->
+    <div class="form-field with-toggle">
+      <label for="api_key">API Key</label>
+      <div class="input-wrapper">
+        <input
+          id="api_key"
+          [type]="showApiKey ? 'text' : 'password'"
+          formControlName="api_key"
+          placeholder="Enter API Key"
+        />
+        <button
+          type="button"
+          class="toggle-visibility"
+          (click)="toggleApiKeyVisibility()"
+          [attr.aria-label]="showApiKey ? 'Hide API Key' : 'Show API Key'"
+        >
+          <mat-icon>{{
+            showApiKey ? "visibility_off" : "visibility"
+          }}</mat-icon>
+        </button>
+      </div>
+      <div
+        class="error"
+        *ngIf="apiKeyControl?.touched && apiKeyControl?.invalid"
+      >
+        <div *ngIf="apiKeyControl?.errors?.['required']">
+          API Key is required.
+        </div>
+      </div>
+    </div>
+
+    <!-- Visibility -->
+    <div class="form-field">
+      <label>
+        <input type="checkbox" formControlName="is_visible" />
+        Activated
+      </label>
+    </div>
+  </form>
+</div>
+
+<div class="dialog-actions">
+  <button (click)="onCancel()">Cancel</button>
+  <button (click)="onSave()" [disabled]="configForm.invalid">
+    {{ isEditMode ? "Update" : "Create" }}
+  </button>
+</div>

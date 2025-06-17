@@ -1,0 +1,37 @@
+<div
+  class="custom-menu"
+  [ngStyle]="{
+    display: visible ? 'block' : 'none',
+    'left.px': left,
+    'top.px': top
+  }"
+>
+  <ul>
+    <li (click)="onAddEmptyAgentAbove()">
+      <i class="ti ti-row-insert-top icon"></i>
+      <span>Add Empty Agent Above</span>
+    </li>
+    <li (click)="onAddEmptyAgentBelow()">
+      <i class="ti ti-row-insert-bottom icon"></i>
+      <span>Add Empty Agent Below</span>
+    </li>
+    <li class="divider"></li>
+    <li (click)="onCopy()">
+      <i class="ti ti-copy icon"></i>
+      <span>Copy Row</span>
+    </li>
+    <li (click)="onPasteBelow()">
+      <i class="ti ti-clipboard icon"></i>
+      <span>Paste Row Below</span>
+    </li>
+    <li (click)="onPasteAbove()">
+      <i class="ti ti-clipboard-text icon"></i>
+      <span>Paste Row Above</span>
+    </li>
+    <li class="divider"></li>
+    <li (click)="onDelete()" class="delete-option">
+      <i class="ti ti-trash icon"></i>
+      <span>Delete Row</span>
+    </li>
+  </ul>
+</div>

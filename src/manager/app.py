@@ -1,9 +1,11 @@
 import json
+import os
 from fastapi import FastAPI, HTTPException
 import asyncio
 import uvicorn
 from models.models import (
     RunToolParamsModel,
+    ToolInitConfigurationModel,
     ToolListResponseModel,
     ClassDataResponseModel,
     RunToolResponseModel,
@@ -12,7 +14,6 @@ from models.models import (
 from repositories.import_tool_data_repository import ImportToolDataRepository
 from services.tool_image_service import ToolImageService
 from services.tool_container_service import ToolContainerService
-from services.crew_container_service import CrewContainerService
 from services.redis_service import RedisService
 from helpers.yaml_parser import load_env_from_yaml_config
 from helpers.logger import logger
@@ -21,12 +22,13 @@ from helpers.logger import logger
 app = FastAPI()
 
 import_tool_data_repository = ImportToolDataRepository()
-tool_image_service = ToolImageService(import_tool_data_repository=import_tool_data_repository)
+tool_image_service = ToolImageService(
+    import_tool_data_repository=import_tool_data_repository
+)
 tool_container_service = ToolContainerService(
     tool_image_service=tool_image_service,
     import_tool_data_repository=import_tool_data_repository,
 )
-crew_container_service = CrewContainerService()
 redis_service = RedisService()
 
 
@@ -41,10 +43,20 @@ def get_all_tool_aliases():
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@app.get("/tool/{tool_alias}/class-data", status_code=200, response_model=ClassDataResponseModel)
-def get_class_data(tool_alias: str):
+@app.post(
+    "/tool/{tool_alias}/class-data",
+    status_code=200,
+    response_model=ClassDataResponseModel,
+)
+def post_class_data(
+    tool_alias: str, tool_init_configuration: ToolInitConfigurationModel
+):
+    logger.info(f"{tool_alias}; {tool_init_configuration.tool_init_configuration}")
     try:
-        classdata = tool_container_service.request_class_data(tool_alias=tool_alias)["classdata"]
+        classdata = tool_container_service.request_class_data(
+            tool_alias=tool_alias,
+            tool_init_configuration=tool_init_configuration.model_dump(),
+        )["classdata"]
         logger.info(f"Class data retrieved successfully for tool alias: {tool_alias}")
         return ClassDataResponseModel(classdata=classdata)
     except Exception as e:
@@ -52,7 +64,9 @@ def get_class_data(tool_alias: str):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@app.post("/tool/{tool_alias}/run", status_code=200, response_model=RunToolResponseModel)
+@app.post(
+    "/tool/{tool_alias}/run", status_code=200, response_model=RunToolResponseModel
+)
 def run(tool_alias: str, run_tool_params_model: RunToolParamsModel):
     try:
         run_tool_response = tool_container_service.request_run_tool(
@@ -76,5 +90,7 @@ async def start_redis_subscription():
 
 
 if __name__ == "__main__":
-    load_env_from_yaml_config('./manager_config.yaml')
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True, workers=1)
+    load_env_from_yaml_config("./manager_config.yaml")
+    # port = 8001 for local launch
+    port = int(os.environ.get("PORT", "8001"))
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=True, workers=1)

@@ -1,0 +1,136 @@
+<!-- llm-config-side-panel.component.html -->
+<div class="wrapper">
+  <!-- Header: Icon + Custom Name Title + Close Button -->
+  <div class="dialog-header">
+    <div class="icon-and-title">
+      <!-- Using Tabler Icons (e.g., "ti ti-settings") -->
+      <i class="ti ti-settings"></i>
+      <span class="title">
+        {{ configForm.value.custom_name || "LLM Config" }}
+      </span>
+    </div>
+    <i class="ti ti-x close-icon" (click)="close()"></i>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="configForm" (ngSubmit)="onSubmit()">
+    <!-- Custom Name Input -->
+    <div class="form-group">
+      <label for="custom_name">Custom Name</label>
+      <input
+        id="custom_name"
+        type="text"
+        formControlName="custom_name"
+        placeholder="Enter custom name"
+      />
+    </div>
+
+    <!-- API Key with toggle visibility -->
+    <div class="form-group api-key-group">
+      <label for="api_key">API Key</label>
+      <div class="input-with-icon">
+        <input
+          id="api_key"
+          [type]="apiKeyVisible ? 'text' : 'password'"
+          formControlName="api_key"
+          placeholder="Enter API key"
+        />
+        <!-- The icon toggles between eye and eye-off -->
+        <i
+          class="ti"
+          [ngClass]="apiKeyVisible ? 'ti-eye-off' : 'ti-eye'"
+          (click)="toggleApiKeyVisibility()"
+        ></i>
+      </div>
+    </div>
+
+    <!-- Temperature Slider -->
+    <div class="visual-slider">
+      <label for="temperatureSlider">Temperature</label>
+      <input
+        type="range"
+        id="temperatureSlider"
+        min="0"
+        max="100"
+        [value]="sliderValue"
+        (input)="onSliderInput($event)"
+        [style.--value]="sliderValue"
+      />
+      <div class="scale-markers">
+        <span>0</span>
+        <span>25</span>
+        <span>50</span>
+        <span>75</span>
+        <span>100</span>
+      </div>
+    </div>
+
+    <!-- Input Map Key-Value Pairs with Drag & Drop -->
+    <div class="form-group input-map">
+      <label>
+        Input Map
+        <i class="ti ti-plus" (click)="addInputMapPair()"></i>
+      </label>
+      <div
+        class="input-map-list"
+        formArrayName="input_map"
+        cdkDropList
+        (cdkDropListDropped)="dropInputMapPair($event)"
+      >
+        <div
+          class="input-map-item"
+          *ngFor="let pairCtrl of inputMapPairs.controls; let i = index"
+          [formGroupName]="i"
+          cdkDrag
+        >
+          <!-- Drag handle -->
+          <div class="drag-handle" cdkDragHandle>
+            <i class="ti ti-grip-vertical"></i>
+          </div>
+
+          <!-- Key-Value Pair Controls -->
+          <div class="input-map-fields">
+            <input
+              type="text"
+              formControlName="key"
+              placeholder="Key"
+              class="key-input"
+            />
+            <input
+              type="text"
+              formControlName="value"
+              placeholder="Value"
+              class="value-input"
+            />
+            <i
+              class="ti ti-trash delete-icon"
+              (click)="removeInputMapPair(i)"
+            ></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Output Variable Path -->
+    <div class="form-group">
+      <label for="output_variable_path">Output Variable Path</label>
+      <input
+        id="output_variable_path"
+        type="text"
+        formControlName="output_variable_path"
+        placeholder="Enter output variable path (leave empty for null)"
+      />
+    </div>
+
+    <!-- Hidden Fields for "model", "num_ctx" and "is_visible" -->
+    <input type="hidden" formControlName="model" />
+    <input type="hidden" formControlName="num_ctx" />
+    <input type="hidden" formControlName="is_visible" />
+
+    <!-- Action Buttons -->
+    <div class="actions">
+      <button type="button" (click)="close()">Cancel</button>
+      <button type="submit" [disabled]="configForm.invalid">Save</button>
+    </div>
+  </form>
+</div>

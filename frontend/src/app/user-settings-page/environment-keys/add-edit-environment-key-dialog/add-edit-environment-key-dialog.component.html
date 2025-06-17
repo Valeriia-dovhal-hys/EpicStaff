@@ -1,0 +1,74 @@
+<div class="modal-content">
+  <div class="modal-header">
+    <div class="modal-title">
+      {{ data.key ? "Edit Environment Key" : "Add New Environment Key" }}
+    </div>
+    <button class="close-button" (click)="onClose()" aria-label="Close Dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="keyForm" class="modal-body">
+    <!-- Key Field -->
+    <div class="form-group">
+      <label for="key">Key</label>
+      <input
+        id="key"
+        type="text"
+        class="input-field"
+        formControlName="key"
+        placeholder="Enter key"
+      />
+      <div class="error-message">
+        <ng-container *ngIf="keyForm.get('key')?.touched">
+          <ng-container *ngIf="keyForm.get('key')?.errors?.['required']">
+            Key is required.
+          </ng-container>
+          <ng-container *ngIf="keyForm.get('key')?.errors?.['maxlength']">
+            Max 50 characters allowed.
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Value Field with eye icon toggle -->
+    <div class="form-group with-toggle">
+      <label for="value">Value</label>
+      <div class="input-wrapper">
+        <input
+          id="value"
+          [type]="showValue ? 'text' : 'password'"
+          class="input-field"
+          formControlName="value"
+          placeholder="Enter value"
+        />
+        <button
+          type="button"
+          class="toggle-visibility"
+          (click)="toggleValueVisibility()"
+          [attr.aria-label]="showValue ? 'Hide value' : 'Show value'"
+        >
+          <mat-icon>{{ showValue ? "visibility_off" : "visibility" }}</mat-icon>
+        </button>
+      </div>
+      <div class="error-message">
+        <ng-container *ngIf="keyForm.get('value')?.touched">
+          <ng-container *ngIf="keyForm.get('value')?.errors?.['required']">
+            Value is required.
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+  </form>
+
+  <div class="modal-footer">
+    <button class="button-close" (click)="onClose()">Close</button>
+    <button
+      class="button-create"
+      (click)="onSave()"
+      [disabled]="keyForm.invalid"
+    >
+      {{ data.key ? "Save" : "Create" }}
+    </button>
+  </div>
+</div>

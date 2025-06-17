@@ -1,6 +1,7 @@
 import os
 import unittest
 from unittest.mock import MagicMock, patch
+
 from crewai.cli.plus_api import PlusAPI
 
 
@@ -11,15 +12,22 @@ class TestPlusAPI(unittest.TestCase):
 
     def test_init(self):
         self.assertEqual(self.api.api_key, self.api_key)
-        self.assertEqual(
-            self.api.headers,
-            {
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-                "User-Agent": "CrewAI-CLI/no-version-found",
-                "X-Crewai-Version": "no-version-found",
-            },
+        self.assertEqual(self.api.headers["Authorization"], f"Bearer {self.api_key}")
+        self.assertEqual(self.api.headers["Content-Type"], "application/json")
+        self.assertTrue("CrewAI-CLI/" in self.api.headers["User-Agent"])
+        self.assertTrue(self.api.headers["X-Crewai-Version"])
+
+    @patch("crewai.cli.plus_api.PlusAPI._make_request")
+    def test_login_to_tool_repository(self, mock_make_request):
+        mock_response = MagicMock()
+        mock_make_request.return_value = mock_response
+
+        response = self.api.login_to_tool_repository()
+
+        mock_make_request.assert_called_once_with(
+            "POST", "/crewai_plus/api/v1/tools/login"
         )
+        self.assertEqual(response, mock_response)
 
     @patch("crewai.cli.plus_api.PlusAPI._make_request")
     def test_get_tool(self, mock_make_request):
@@ -85,16 +93,20 @@ class TestPlusAPI(unittest.TestCase):
         )
         self.assertEqual(response, mock_response)
 
-    @patch("crewai.cli.plus_api.requests.request")
-    def test_make_request(self, mock_request):
+    @patch("crewai.cli.plus_api.requests.Session")
+    def test_make_request(self, mock_session):
         mock_response = MagicMock()
-        mock_request.return_value = mock_response
+
+        mock_session_instance = mock_session.return_value
+        mock_session_instance.request.return_value = mock_response
 
         response = self.api._make_request("GET", "test_endpoint")
 
-        mock_request.assert_called_once_with(
+        mock_session.assert_called_once()
+        mock_session_instance.request.assert_called_once_with(
             "GET", f"{self.api.base_url}/test_endpoint", headers=self.api.headers
         )
+        mock_session_instance.trust_env = False
         self.assertEqual(response, mock_response)
 
     @patch("crewai.cli.plus_api.PlusAPI._make_request")

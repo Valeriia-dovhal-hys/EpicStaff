@@ -1,0 +1,123 @@
+<div class="wrapper">
+  <!-- Header: Icon + Node Name + Close Button -->
+  <div class="dialog-header">
+    <div class="icon-and-title">
+      <i class="ti ti-brand-python"></i>
+      <span class="title">{{
+        pythonForm.value.name || "New Python Node"
+      }}</span>
+    </div>
+    <i class="ti ti-x close-icon" (click)="close()"></i>
+  </div>
+
+  <!-- Scrollable Form Content -->
+  <!-- Scrollable Form Content -->
+  <div class="dialog-content">
+    <form [formGroup]="pythonForm">
+      <!-- Name Field -->
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="Enter node name"
+        />
+      </div>
+
+      <!-- Unique Node Name Field: for node.node_name -->
+      <div class="form-group">
+        <div class="label-row">
+          <label for="node_name">Node name (unique for all of the nodes)</label>
+          <span
+            *ngIf="pythonForm.get('node_name')?.errors?.['uniqueNodeName']"
+            class="error-message"
+          >
+            {{ pythonForm.get('node_name')?.errors?.['uniqueNodeName'].message }}
+          </span>
+        </div>
+        <input
+          id="node_name"
+          type="text"
+          formControlName="node_name"
+          placeholder="Enter node name"
+          autocomplete="off"
+        />
+      </div>
+
+      <!-- Input Map Key-Value Pairs with Drag & Drop -->
+      <div class="form-group input-map">
+        <label>
+          Input Map
+          <i class="ti ti-plus" (click)="addInputMapPair()"></i>
+        </label>
+        <div
+          class="input-map-list"
+          formArrayName="input_map"
+          cdkDropList
+          (cdkDropListDropped)="dropInputMapPair($event)"
+        >
+          <div
+            class="input-map-item"
+            *ngFor="let pairCtrl of inputMapPairs.controls; let i = index"
+            [formGroupName]="i"
+            cdkDrag
+          >
+            <!-- Drag handle -->
+            <div class="drag-handle" cdkDragHandle>
+              <i class="ti ti-grip-vertical"></i>
+            </div>
+
+            <!-- Key-Value Pair Controls -->
+            <div class="input-map-fields">
+              <input type="text" formControlName="key" placeholder="Key" />
+              <input type="text" formControlName="value" placeholder="Value" />
+              <i
+                class="ti ti-trash delete-icon"
+                (click)="removeInputMapPair(i)"
+              ></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Output Variable Path -->
+      <div class="form-group">
+        <label for="output_variable_path">Output Variable Path</label>
+        <input
+          id="output_variable_path"
+          type="text"
+          formControlName="output_variable_path"
+          placeholder="Enter output variable path (leave empty for null)"
+        />
+      </div>
+
+      <!-- Code Editor Component -->
+      <div class="form-group">
+        <app-code-editor
+          [editorHeight]="250"
+          [pythonCode]="pythonCode"
+          (errorChange)="onCodeErrorChange($event)"
+        ></app-code-editor>
+      </div>
+
+      <!-- Libraries Component -->
+      <div class="form-group">
+        <app-tool-libraries
+          [libraries]="node.data.libraries"
+        ></app-tool-libraries>
+      </div>
+    </form>
+  </div>
+  <!-- Fixed Action Buttons -->
+  <div class="actions">
+    <button type="button" (click)="close()">Cancel</button>
+    <button
+      type="button"
+      [disabled]="pythonForm.invalid || codeEditorHasError"
+      (click)="onSave()"
+    >
+      Save
+    </button>
+  </div>
+</div>

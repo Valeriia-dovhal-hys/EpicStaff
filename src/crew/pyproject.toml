@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "crewai-sheets-ui"
-version = "0.5.4"
-description = "Use Google sheets as UI for CrewAI"
+version = "0.6.0"
+description = "Web CrewAI"
 authors = ["yuriwa"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 packages = [
     { include = "src" },
     { include = "libraries/crewAI" }
@@ -12,24 +13,26 @@ packages = [
 
 
 [tool.poetry.dependencies]
-python = ">=3.11,<=3.13"
+python = ">=3.11,<3.13"
 crewai = { path = "libraries/crewAI" }
-crewai-tools = "^0.12.1"
-pandas = "^2.2.3"
-ollama = "^0.3.3"
-langchain-anthropic = "^0.1.23"
-langchain-groq = "^0.1.10"
-langchain-community = "^0.2"
-rich = "^13.9.3"
-sentry-sdk = "^2.17.0"
-open-interpreter = "^0.4.3"
-langgraph = "^0.2.39"
+mem0ai = { path = "libraries/mem0" }
+crewai-tools = "0.33.0"
+pandas = "2.2.3"
+ollama = "0.4.7"
+langchain-anthropic = "0.2.4"
+langchain-groq = "0.2.4"
+langchain-community = "0.3.16"
+rich = "13.9.4"
+sentry-sdk = "2.20.0"
+open-interpreter = "0.4.3"
+langgraph = "0.2.68"
 typing-extensions = "^4.12.2"
 pyyaml = "^6.0.2"
 python-dotenv = "^1.0.1"
 datamodel-code-generator = "^0.26.0"
 redis = "^5.2.0"
 loguru = "^0.7.2"
+psycopg2 = "^2.9.10"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"

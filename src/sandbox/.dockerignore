@@ -1,0 +1,6 @@
+ENV
+.env
+**/venv
+*/.venv
+*venvs
+executions

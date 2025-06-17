@@ -1,85 +1,219 @@
 .main-container {
-  height: 90vh;
-  width: 100%;
+  max-height: 85vh;
+  background-color: var(--gray-900);
+  color: var(--gray-100);
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px !important;
+  overflow: hidden;
+  width: 600px;
 }
 
-.header {
-  height: 10%;
-  background-color: #3f51b5;
-  padding: 1.8rem 2rem;
-
-  span {
-    color: white;
-
-    font-size: 1.5rem;
-    font-weight: 500;
-  }
-}
-
-.form-container {
-  height: 80%;
+.content {
+  max-height: 70vh;
   overflow-y: auto;
-  padding: 2rem;
+  padding: 1.5rem;
+  padding-bottom: 0;
 
-  .full-width {
-    width: 100%;
-    margin-bottom: 24px;
-  }
-
-  .add-tools-container {
+  /* Custom field styling */
+  .custom-field {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    position: relative;
+    margin-bottom: 1.5rem;
 
-    .no-tools-added {
-      font-size: 0.8rem;
-      font-style: italic;
+    label {
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--gray-300);
+      font-size: 0.875rem;
+
+      .required {
+        color: var(--accent-color);
+        margin-left: 2px;
+      }
+    }
+
+    input,
+    textarea,
+    select {
+      background-color: var(--gray-800);
+      border: 1px solid var(--gray-750);
+      border-radius: 8px;
+      padding: 0.625rem 0.875rem;
+      font-size: 0.9375rem;
+      color: var(--gray-200);
+      outline: none;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%239b9b9b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 0.875rem center;
+      background-size: 12px;
+      padding-right: 2.5rem;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--gray-600);
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(104, 95, 255, 0.2);
+      background-color: var(--gray-850);
+      color: var(--gray-100);
+    }
+
+    .error-message {
+      position: absolute;
+      bottom: -20px;
+      right: 0;
+      font-size: 0.75rem;
+      color: #ff6b6b;
+      padding: 2px 0;
     }
   }
-  .add-tools {
+  /* Style the input with icon layout */
+  .input-with-icon {
     display: flex;
-    width: 150px;
+    align-items: center;
+
+    background-color: var(--gray-800);
+    border: 1px solid var(--gray-750);
+    border-radius: 8px;
+    padding: 0.125rem;
+    padding-left: 0.35rem;
+    &:focus-within {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(104, 95, 255, 0.2);
+    }
+
+    input {
+      background-color: transparent;
+      border: none;
+      box-shadow: none;
+      flex: 1;
+      padding-inline: 0.875rem;
+      &:focus {
+        border: none;
+        box-shadow: none;
+        background-color: transparent;
+      }
+    }
+  }
+  /* Toggle button for advanced settings */
+  .toggle-settings {
+    background: transparent;
+    border: none;
+    color: var(--accent-color);
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    align-self: flex-start;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 
-  .selected-tools {
-    margin-bottom: 1rem;
+  .toggle-field {
+    margin-bottom: 1.25rem;
+
+    .toggle-label {
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--gray-300);
+      font-size: 0.875rem;
+    }
   }
-}
 
-.bottom {
-  height: 10%;
-  background-color: #3f51b5;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 2rem;
-}
+  /* Tools Section */
+  .tools-section {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
 
-.bottom .close {
-  color: white; /* Ensure text color is white for visibility */
-  border: 1px solid white;
-}
+    .tools-header {
+      display: flex;
+      margin-bottom: 1rem;
 
-.add-tools-button-container {
-  display: flex;
-  justify-content: flex-end;
-}
+      .add-tools-btn {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.625rem 1.25rem;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
 
-.advanced-settings-toggle {
-  color: #005cbb;
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
+        &:hover {
+          background-color: #7a70ff;
+        }
+      }
+    }
 
-.advanced-settings-field {
-  width: 50%;
-  margin-bottom: 0.8rem;
-}
-.temperature-field {
-  width: 48%;
-}
-.advanced-fields-pair {
-  display: flex;
-  justify-content: space-between;
-  gap: 5%;
+    .selected-tools {
+      background-color: var(--gray-850);
+      border-radius: 8px;
+      padding: 1rem;
+      border: 1px solid var(--gray-800);
+
+      label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+        color: var(--gray-300);
+        font-size: 0.875rem;
+      }
+
+      .tool-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+
+        .tool-chip {
+          background-color: var(--gray-750);
+          border: 1px solid var(--gray-700);
+          border-radius: 6px;
+          padding: 0.4rem 0.7rem;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: var(--gray-200);
+          font-size: 0.8125rem;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background-color: var(--gray-700);
+            color: var(--gray-100);
+          }
+
+          i {
+            font-size: 0.75rem;
+            opacity: 0.8;
+          }
+        }
+      }
+    }
+  }
 }

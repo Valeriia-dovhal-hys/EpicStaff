@@ -1,0 +1,149 @@
+.tool-libraries {
+  border-radius: 5px;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  color: #ddd;
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem; /* Space below the header */
+
+    h3 {
+      margin: 0; /* Margin bottom to create space below the title */
+      padding: 0;
+      font-weight: 500; /* Slightly bolder for better readability */
+      line-height: 1; /* Ensures compact vertical spacing */
+
+      font-size: 14px;
+      color: #685fff;
+    }
+  }
+
+  /* Wrapper that holds the list of library “chips” and the input group */
+  .libraries-wrapper {
+    display: flex;
+    flex-direction: column; /* Stacks the list above the input group */
+    gap: 0.5rem; /* Spacing between sections */
+
+    /* List of libraries (chips) */
+    .libraries-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+
+      /* Each library “chip” */
+      .library-item {
+        display: flex; /* For horizontal alignment */
+        align-items: center; /* Vertically center items */
+        background: #181818;
+        border-radius: 4px;
+        padding: 0.4rem 0.6rem; /* Consistent padding for the chip */
+        transition: background-color 0.2s;
+        max-width: 100%; /* Allows the chip to shrink within the parent */
+        flex: 1 1 auto; /* Grow/shrink as needed */
+        min-width: 0; /* Important for text ellipsis to work properly */
+
+        &:hover {
+          background-color: #3a3a3a; /* Slight highlight on hover */
+        }
+
+        .library-name {
+          /* Truncate with ellipsis if it overflows the container. */
+          flex: 1 1 auto;
+          min-width: 0; /* Allows shrinking below content size */
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          margin-right: 0.5rem; /* Space before the delete button */
+        }
+
+        /* Delete button for the chip */
+        .delete-library-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center; /* Ensures the icon is centered horizontally/vertically */
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          color: #ddd;
+          font-size: 1rem;
+          width: 1rem; /* Gives the icon a fixed button area */
+          height: 1rem;
+          border-radius: 50%;
+          transition: color 0.2s, transform 0.2s;
+
+          &:hover {
+            color: #f66;
+            transform: scale(1.1);
+          }
+
+          i {
+            font-size: 1rem;
+            line-height: 1;
+            margin: 0;
+            padding: 0;
+          }
+        }
+      }
+    }
+
+    /* Input group: the text field plus an "Add" button */
+    .input-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      width: fit-content;
+
+      /* Library input field */
+      .library-input {
+        padding: 0.4rem 0.6rem; /* Consistent padding for the chip */
+        border: 1px solid #444;
+        border-radius: 4px;
+        background: transparent;
+        color: #ddd;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+        outline: none;
+        &::placeholder {
+          color: #888;
+        }
+        &:focus {
+          border-color: #685fff;
+        }
+      }
+
+      /* Add library button (plus icon) */
+      .add-library-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Center the plus icon */
+        padding: 0.3rem 0.4rem;
+        border: 1px solid #444;
+        border-radius: 4px;
+        background: transparent;
+        cursor: pointer;
+        color: #685fff;
+        font-size: 1.2rem;
+        transition: color 0.2s, background-color 0.2s, transform 0.2s;
+
+        i {
+          font-size: 1.2rem;
+          width: 1.2rem;
+          height: 1.2rem;
+          line-height: 1.2;
+          margin-bottom: 4px;
+        }
+
+        &:hover {
+          color: #888;
+          background-color: rgba(255, 255, 255, 0.1);
+          transform: scale(1.05);
+        }
+      }
+    }
+  }
+}

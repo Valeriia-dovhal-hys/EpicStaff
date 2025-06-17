@@ -1,16 +1,12 @@
-from __future__ import annotations
+"""Utility for colored console output."""
+
 from typing import Optional
-from crewai.utilities.logger import Logger
 
 
 class Printer:
-    def __init__(self):
-        self._logger: Logger = Logger()
+    """Handles colored console output formatting."""
 
     def print(self, content: str, color: Optional[str] = None):
-
-        self._logger.log(level="info", message=content)
-
         if color == "purple":
             self._print_purple(content)
         elif color == "red":
@@ -25,6 +21,16 @@ class Printer:
             self._print_yellow(content)
         elif color == "bold_yellow":
             self._print_bold_yellow(content)
+        elif color == "cyan":
+            self._print_cyan(content)
+        elif color == "bold_cyan":
+            self._print_bold_cyan(content)
+        elif color == "magenta":
+            self._print_magenta(content)
+        elif color == "bold_magenta":
+            self._print_bold_magenta(content)
+        elif color == "green":
+            self._print_green(content)
         else:
             print(content)
 

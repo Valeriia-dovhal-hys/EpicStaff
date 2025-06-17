@@ -1,0 +1,56 @@
+<div class="tool-card" [ngClass]="{ disabled: !tool.enabled }">
+  <div class="tool-content">
+    <!-- Tool Details with Logo and Controls -->
+    <div class="tool-details">
+      <div class="tool-header">
+        <div class="tool-label">{{ tool.label }}</div>
+        <div class="tool-controls">
+          <!-- On/Off Toggle Switch - Always clickable -->
+          <div class="tool-toggle always-clickable">
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="tool.enabled"
+                (change)="toggleEnabled()"
+                (keydown.enter)="$event.preventDefault(); toggleEnabled()"
+              />
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <!-- Favorite Star Button -->
+          <div
+            class="icon-wrapper"
+            role="button"
+            tabindex="0"
+            (click)="toggleFavorite()"
+            (keydown.space)="toggleFavorite(); $event.preventDefault()"
+            (keydown.enter)="toggleFavorite()"
+          >
+            <mat-icon
+              class="star-icon"
+              [fontSet]="
+                tool.favorite ? 'material-icons' : 'material-icons-outlined'
+              "
+            >
+              {{ tool.favorite ? "star" : "star_outline" }}
+            </mat-icon>
+          </div>
+
+          <!-- Configuration Button -->
+          <button
+            *ngIf="tool.tool_fields.length > 0"
+            mat-icon-button
+            class="configure-icon"
+            (click)="onConfigureClick()"
+          >
+            <mat-icon>tune</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="tool-name">{{ tool.name }}</div>
+      <div class="tool-description">{{ tool.description }}</div>
+    </div>
+  </div>
+</div>

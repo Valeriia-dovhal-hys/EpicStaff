@@ -1,62 +1,99 @@
 import json
 import os
-
 import redis
 from django.db import transaction
-
-from tables.models import Session, SessionMessage
+from tables.models import GraphSessionMessage
+from tables.models import PythonCodeResult
+from tables.request_models import CodeResultData, GraphSessionMessageData
+from tables.services.session_manager_service import SessionManagerService
+from tables.models import Session
 from loguru import logger
 
-class RedisPubSub:
 
+class RedisPubSub:
     def __init__(
         self,
-        crewai_output_channel_name="sessions:crewai_output",
         session_status_channel_name="sessions:session_status",
+        code_results_channel_name="code_results",
+        graph_messages_channel_name="graph:messages",
     ):
-        self.crewai_output_channel_name = crewai_output_channel_name
         self.session_status_channel_name = session_status_channel_name
-        
-        redis_host = os.getenv("REDIS_HOST", "localhost")
+        self.code_results_channel_name = code_results_channel_name
+        self.graph_messages_channel_name = graph_messages_channel_name
+        redis_host = os.getenv("REDIS_HOST", "127.0.0.1")
         redis_port = int(os.getenv("REDIS_PORT", 6379))
 
-        self.redis_client = redis.Redis(host=redis_host, port=redis_port)
+        self.redis_client = redis.Redis(
+            host=redis_host, port=redis_port, decode_responses=True
+        )
         self.pubsub = self.redis_client.pubsub()
 
-        logger.debug(f"redis_host={redis_host}")
-        logger.debug(f"redis_port={redis_port}")
+        self.handlers = {
+            self.session_status_channel_name: self.session_status_handler,
+            self.code_results_channel_name: self.code_results_handler,
+            self.graph_messages_channel_name: self.graph_session_message_handler,
+        }
 
-    def crewai_output_handler(self, redis_message: dict):
-        logger.info(f"Got message from crewai_output_handler: {redis_message}" )
-        message = json.loads(redis_message["data"])
-        session = Session.objects.get(id=message["session_id"])
+        self.subscribe_to_channels()
 
-        with transaction.atomic():
-            session_message = SessionMessage(
-                session=session,
-                message_from=SessionMessage.MessageFrom.CREW,
-                text=message["text"],
-                # created_at = message.get("timestamp") # TODO fix this
+        logger.debug(f"Redis host: {redis_host}")
+        logger.debug(f"Redis port: {redis_port}")
+
+    def subscribe_to_channels(self):
+        self.pubsub.subscribe(**self.handlers)
+
+    def session_status_handler(self, message: dict):
+        try:
+            logger.info(f"Received message from session_status_handler: {message}")
+            data = json.loads(message["data"])
+
+            with transaction.atomic():
+                session = Session.objects.get(id=data["session_id"])
+                session.status = data["status"]
+                session.status_data = data.get("status_data", {})
+                session.save()
+        except Exception as e:
+            logger.error(f"Error handling session_status message: {e}")
+
+    def code_results_handler(self, message: dict):
+        try:
+            logger.info(f"Received message from code_result_handler: {message}")
+            data = json.loads(message["data"])
+            CodeResultData.model_validate(data)
+            PythonCodeResult.objects.create(**data)
+        except Exception as e:
+            logger.error(f"Error handling code_results message: {e}")
+
+    def graph_session_message_handler(self, message: dict):
+        try:
+            logger.info(f"Received message from graph_message_handler: {message}")
+            data = json.loads(message["data"])
+            graph_session_message_data = GraphSessionMessageData.model_validate(data)
+            GraphSessionMessage.objects.create(
+                session_id = graph_session_message_data.session_id,
+                created_at=graph_session_message_data.timestamp,
+                name=graph_session_message_data.name,
+                execution_order=graph_session_message_data.execution_order,
+                message_data=graph_session_message_data.message_data,
             )
-            session_message.save()
 
-    def session_status_handler(self, redis_message: dict):
-        logger.info(f"Got message from session_status_handler: {redis_message}" )
-        message = json.loads(redis_message["data"])
-        session_id = message["session_id"]
-        new_status = message["status"]
+        except Exception as e:
+            logger.error(f"Error handling graph_session_message: {e}")
 
-        with transaction.atomic():
-            session = Session.objects.get(id=session_id)
-            session.status = new_status
-            session.save()
+    def listen_for_messages(self):
+        logger.info("Listening for Redis messages...")
+        while True:
+            try:
+                message = self.pubsub.get_message(
+                    ignore_subscribe_messages=True, timeout=0.001
+                )
+                if message:
+                    channel = message.get("channel", "")
+                    handler = self.handlers.get(channel)
 
-    def listen_for_messages(self, *args, **kwargs):
-        self.pubsub.subscribe(
-            **{
-                self.crewai_output_channel_name: self.crewai_output_handler,
-                self.session_status_channel_name: self.session_status_handler,
-            }
-        )
-        daemon = kwargs.get("daemon", False)
-        self.pubsub.run_in_thread(0.001, daemon=daemon)
+                    if handler:
+                        handler(message)
+                    else:
+                        logger.warning(f"No handler found for channel: {channel}")
+            except Exception as e:
+                logger.error(f"Error while listening for Redis messages: {e}")

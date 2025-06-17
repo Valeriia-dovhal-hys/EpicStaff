@@ -1,0 +1,176 @@
+<!-- Tools Selection Popup -->
+<div class="tools-popup-container">
+  <!-- Header -->
+
+  <div class="header">
+    <div class="list-header">
+      <input
+        #searchInput
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Search tools..."
+      />
+      <button class="filter-button"><i class="ti ti-filter"></i> Filter</button>
+    </div>
+
+    <div class="menu-header">
+      <button [class.active]="!showPythonTools" (click)="toggleToolType(false)">
+        Built-in Tools
+      </button>
+      <button [class.active]="showPythonTools" (click)="toggleToolType(true)">
+        Custom Tools
+      </button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+    <!-- Built-in Tools -->
+    <div class="tools-list" *ngIf="!showPythonTools">
+      <!-- Loading Spinner -->
+      <div *ngIf="loading" class="loading-spinner">
+        <div class="dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+
+      <!-- No tools message -->
+      <div class="no-tools" *ngIf="!loading && tools.length === 0">
+        <p>No built-in tools available</p>
+      </div>
+
+      <!-- Tool items -->
+      <div class="tool-item-container" *ngFor="let tool of filteredTools">
+        <div
+          class="tool-item"
+          [ngClass]="{ 'selected-item': isToolSelected(tool) }"
+          (click)="
+            tool.tool_fields.length > 0
+              ? toggleToolConfigs(tool)
+              : onCheckboxToggle(tool)
+          "
+        >
+          <div class="tool-icon">🔧</div>
+          <div class="tool-name">
+            {{ tool.name }}
+          </div>
+
+          <!-- Chevron visible only for tools with non-empty tool_fields -->
+          <span
+            *ngIf="tool.tool_fields.length > 0"
+            class="chevron-icon"
+            [ngClass]="{ expanded: expandedToolConfigs.has(tool.id) }"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 9L12 15L18 9"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+
+          <!-- Checkbox visible only for tools with empty tool_fields -->
+          <input
+            *ngIf="tool.tool_fields.length === 0"
+            type="checkbox"
+            [checked]="isToolSelected(tool)"
+            (click)="$event.stopPropagation(); onCheckboxToggle(tool)"
+          />
+        </div>
+
+        <!-- Expanded tool configs section shown only for tools with non-empty tool_fields -->
+        <div
+          class="tool-configs"
+          *ngIf="
+            expandedToolConfigs.has(tool.id) && tool.tool_fields.length > 0
+          "
+          @expandCollapse
+        >
+          <div
+            class="tool-config-item"
+            *ngFor="let config of tool.toolConfigs"
+            [ngClass]="{
+              'selected-config': selectedToolConfigs.has(config.id)
+            }"
+            (click)="onConfigToggle(config)"
+          >
+            <span class="config-name">{{ config.name }}</span>
+            <span
+              class="status-indicator"
+              [ngClass]="config.is_completed ? 'green' : 'red'"
+            ></span>
+            <input
+              type="checkbox"
+              [checked]="selectedToolConfigs.has(config.id)"
+              (click)="$event.stopPropagation(); onConfigToggle(config)"
+            />
+          </div>
+          <!-- Optionally, you can include a button to create a config if none exists -->
+          <button
+            *ngIf="tool.toolConfigs.length === 0"
+            class="create-config-btn"
+            (click)="onCreateConfig(tool)"
+          >
+            <span class="plus-icon">+</span> Create Configuration
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Python/Custom Tools -->
+    <div class="python-tools" *ngIf="showPythonTools">
+      <!-- Loading Spinner -->
+      <div *ngIf="loading" class="loading-spinner">
+        <div class="dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+
+      <!-- No python tools message -->
+      <div class="no-tools" *ngIf="!loading && pythonTools.length === 0">
+        <p>No custom tools available</p>
+        <button class="create-tool-btn">
+          <span class="plus-icon">+</span> Create Custom Tool
+        </button>
+      </div>
+
+      <!-- Python tool items -->
+      <div class="tools-list" *ngIf="!loading && pythonTools.length > 0">
+        <div
+          class="python-tool-item"
+          *ngFor="let pTool of filteredPythonTools"
+          [ngClass]="{ 'selected-tool': selectedPythonTools.has(pTool.id) }"
+          (click)="onPythonToolToggle(pTool)"
+        >
+          <span class="tool-icon">🐍</span>
+          <span class="tool-name">
+            {{ pTool.name }}
+          </span>
+          <input
+            type="checkbox"
+            [checked]="selectedPythonTools.has(pTool.id)"
+            (click)="$event.stopPropagation(); onPythonToolToggle(pTool)"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <button class="save-btn" (click)="save()">Save Selection</button>
+  </div>
+</div>

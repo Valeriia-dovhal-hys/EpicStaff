@@ -1,0 +1,42 @@
+<div class="tool-variables">
+  <div class="header">
+    <h3>Inputs Description</h3>
+    <!-- Plus icon to add a new variable -->
+    <i
+      class="ti ti-plus"
+      (click)="onAddVariable(); $event.preventDefault()"
+    ></i>
+  </div>
+
+  <!-- Display the variables as a list of editable rows -->
+  <div class="variables-list">
+    <div
+      *ngFor="let variable of variables; let i = index"
+      class="variable-item"
+    >
+      <input
+        type="text"
+        placeholder="Input name"
+        [(ngModel)]="variable.name"
+        class="variable-input name-input"
+        (keyup.enter)="onKeyUpEnter(i); $event.preventDefault()"
+      />
+      <input
+        type="text"
+        placeholder="Input Description"
+        [(ngModel)]="variable.description"
+        class="variable-input desc-input"
+        (keyup.enter)="onKeyUpEnter(i); $event.preventDefault()"
+      />
+
+      <!-- Allow deletion if there’s more than one row -->
+      <button
+        class="delete-variable-btn"
+        (click)="removeVariable(i); $event.preventDefault()"
+        *ngIf="variables.length > 1"
+      >
+        <i class="ti ti-trash"></i>
+      </button>
+    </div>
+  </div>
+</div>

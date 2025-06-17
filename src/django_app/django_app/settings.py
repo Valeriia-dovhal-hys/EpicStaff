@@ -26,8 +26,10 @@ SECRET_KEY = "321567143216717121"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ALLOWED_HOSTS = [
+    host.strip() for host in os.getenv("ALLOWED_HOSTS", "0.0.0.0, 127.0.0.1").split(",")
+]
 
-ALLOWED_HOSTS = ["0.0.0.0", "127.0.0.1"]
 
 # Logging
 
@@ -50,6 +52,7 @@ LOGGING = {
 # Application definition
 
 INSTALLED_APPS = [
+    "health_check",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -72,13 +75,15 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    # TODO: test API without second CommonMiddleware and get rid of it if possible
     "django.middleware.common.CommonMiddleware",
 ]
 
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
-    "PAGE_SIZE": 50,
+    "PAGE_SIZE": 5000000,
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+    "EXCEPTION_HANDLER": "utils.exception_handler.custom_exception_handler",
 }
 
 CORS_ALLOW_ALL_ORIGINS = True

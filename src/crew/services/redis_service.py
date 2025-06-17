@@ -1,60 +1,79 @@
 import json
-import os
-from typing import Protocol
-from services.container_manager_service import ContainerManagerService
-from models.response_models import SessionStatus
-from loguru import logger
+import redis.asyncio as aioredis
 from redis import Redis
+from loguru import logger
+from redis.client import PubSub
 
+from utils.singleton_meta import SingletonMeta
 
-class MessageHandler(Protocol):
-    def __call__(self, message: dict) -> None: ...
+class RedisService(metaclass=SingletonMeta):
+    def __init__(self, host: str, port: int):
+        self.host = host
+        self.port = port
 
-class RedisService:
+        self.aioredis_client: aioredis.Redis | None = None
+        self.sync_redis_client: Redis| None = None
 
-    def __init__(
-        self,
-        container_manager_service: ContainerManagerService,
-        session_id: int | None = None,
-        redis_host: str | None = None,
-    ):
-        if redis_host is None:
-            redis_host = os.environ.get("PROCESS_REDIS_HOST", "localhost")
+    async def connect(self):
+        try:
+            self.aioredis_client = await aioredis.from_url(
+                f"redis://{self.host}:{self.port}", decode_responses=True
+            )
+            self.sync_redis_client = Redis.from_url(
+                f"redis://{self.host}:{self.port}", decode_responses=True
+            )
+            await self.aioredis_client.ping()
+            self.sync_redis_client.ping()
 
-        self.redis_host = redis_host
-        self.redis_client = Redis(host=redis_host, decode_responses=True)
-        self.container_manager_service = container_manager_service
-        self.session_id = (
-            session_id if session_id is not None else container_manager_service.get_session_id()
-        )
+            logger.info("Connected to Redis.")
+        except Exception as e:
+            logger.error(f"Failed to connect to Redis: {e}")
+            raise e
+        
+    async def close(self):
+        if self.aioredis_client:
+            await self.aioredis_client.close()
+        if self.sync_redis_client:
+            self.sync_redis_client.close()
 
+    async def async_subscribe(self, channel: str) -> PubSub:
+        if not self.aioredis_client:
+            raise RuntimeError("Redis client is not connected.")
+        pubsub = self.aioredis_client.pubsub()
+        await pubsub.subscribe(channel)
+        return pubsub
 
-    def _publish(self, channel: str, message):
-        channel_name = f"sessions:{channel}"
-        self.redis_client.publish(channel=channel_name, message=json.dumps(message))
-        logger.info(f"Message published to channel '{channel_name}'.")
+    def sync_subscribe(self, channel: str) -> PubSub:
+        if not self.sync_redis_client:
+            raise RuntimeError("Redis client is not connected.")
+        pubsub = self.sync_redis_client.pubsub()
+        pubsub.subscribe(channel)
+        return pubsub
+    
+    async def async_publish(self, channel: str, message: object):
+        await self.aioredis_client.publish(channel, json.dumps(message))
+        logger.info(f"Message published to channel '{channel}'.")
 
+    def sync_publish(self, channel: str, message: object):
+        self.sync_redis_client.publish(channel, json.dumps(message))
+        logger.info(f"Message published to channel '{channel}'.")
 
-    def get_json_session_schema(self) -> str | None:
-        channel_name = f"sessions:{self.session_id}:schema"
-        schema = self.redis_client.get(channel_name)
-        if schema:
-            logger.info(f"Session schema retrieved successfully for session ID: {self.session_id}")
-        else:
-            logger.warning(f"No session schema found for session ID: {self.session_id}")
-        return schema
-
-
-    def publish_session_status(self, session_status: SessionStatus):
+    async def async_update_session_status(self, session_id: int, status: str, **kwargs):
         message = {
-            'session_id': self.session_id,
-            'status': session_status.value,
+            "session_id": session_id,
+            "status": status,
+            "status_data": kwargs,
         }
-        self._publish("session_status", message)
-        logger.info(f"Session status {session_status.value} published for session ID {self.session_id}")
+        channel_name = "sessions:session_status"
+        await self.async_publish(channel_name, message)
 
+    def update_session_status(self, session_id: int, status: str, **kwargs):
 
-    def publish_final_result(self, final_result: str):
-        self._publish("final_result", final_result)
-        logger.info(f"Final result published for session ID {self.session_id}.")
+        message = {
+            "session_id": session_id,
+            "status": status,
+            "status_data": kwargs,
+        }
 
+        channel_name = "sessions:session_status"
+        self.sync_publish(channel=channel_name, message=message)

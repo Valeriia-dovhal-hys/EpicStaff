@@ -1,0 +1,117 @@
+$primary-bg-color: #161616;
+$input-bg-color: #242323;
+$button-bg-color: #007bff;
+$button-disabled-bg-color: #444;
+$cancel-btn-bg-color: #888;
+$text-color: #fff;
+$error-text-color: red;
+
+.create-flow-dialog {
+  background-color: $primary-bg-color;
+  color: $text-color;
+  border-radius: 12px;
+  padding: 30px;
+  width: 450px;
+  max-width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease-in-out;
+  overflow: hidden;
+
+  .header {
+    text-align: center;
+    margin-bottom: 25px;
+
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: $text-color;
+      margin: 0;
+    }
+  }
+
+  .body {
+    .form-group {
+      margin-bottom: 25px;
+
+      label {
+        display: block;
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: $text-color;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid $input-bg-color;
+        border-radius: 6px;
+        background-color: $input-bg-color;
+        color: $text-color;
+        font-size: 14px;
+        transition: border-color 0.3s ease-in-out;
+        resize: vertical;
+
+        &:focus {
+          outline: none;
+          border-color: $button-bg-color;
+        }
+      }
+
+      .error {
+        color: $error-text-color;
+        font-size: 12px;
+        margin-top: 5px;
+      }
+    }
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 20px;
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: translateY(2px);
+      }
+
+      &.cancel-btn {
+        background-color: $cancel-btn-bg-color;
+        color: $text-color;
+
+        &:hover {
+          background-color: darken($cancel-btn-bg-color, 10%);
+        }
+      }
+
+      &.create-btn {
+        background-color: $button-bg-color;
+        color: $text-color;
+
+        &:hover {
+          background-color: darken($button-bg-color, 10%);
+        }
+
+        &:disabled {
+          background-color: $button-disabled-bg-color;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}

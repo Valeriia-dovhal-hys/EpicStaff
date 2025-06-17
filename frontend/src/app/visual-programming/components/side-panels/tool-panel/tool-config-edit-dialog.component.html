@@ -1,0 +1,106 @@
+<!-- tool-config-side-panel.component.html -->
+<div class="wrapper" *ngIf="!loading; else loadingTemplate">
+  <!-- Header: Icon + Config Name + Close Button -->
+  <div class="dialog-header">
+    <div class="icon-and-name">
+      <!-- Using an icon for tools (e.g. a wrench) -->
+      <i class="ti ti-tool"></i>
+      <span class="name">{{
+        toolConfigForm.value.name || "New Tool Config"
+      }}</span>
+    </div>
+    <i class="ti ti-x close-icon" (click)="close()"></i>
+  </div>
+
+  <div class="dialog-content">
+    <!-- Form -->
+    <form [formGroup]="toolConfigForm" (ngSubmit)="onSubmit()">
+      <!-- Configuration Name -->
+      <div class="form-group">
+        <label for="name">Configuration Name</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="Enter configuration name"
+        />
+      </div>
+
+      <!-- Tool (read-only display) -->
+      <div class="form-group">
+        <label for="tool">Tool</label>
+        <input id="tool" type="text" [value]="tool.name" readonly />
+      </div>
+
+      <!-- Dynamic Configuration Fields -->
+      <div formGroupName="configuration">
+        <div *ngFor="let field of tool?.tool_fields" class="form-group">
+          <!-- Use ngSwitch to choose the input type based on data_type -->
+          <ng-container [ngSwitch]="field.data_type">
+            <label [for]="field.name">
+              <div>
+                {{ field.name }}
+                <!-- Icon with tooltip displaying the field description -->
+                <i class="ti ti-info-circle" [title]="field.description"></i>
+              </div>
+              <!-- Boolean: checkbox -->
+              <ng-container *ngSwitchCase="'boolean'">
+                <input
+                  id="{{ field.name }}"
+                  type="checkbox"
+                  [formControlName]="field.name"
+                />
+              </ng-container>
+            </label>
+
+            <!-- Integer: number input -->
+            <ng-container *ngSwitchCase="'integer'">
+              <input
+                id="{{ field.name }}"
+                type="number"
+                [formControlName]="field.name"
+                placeholder="Enter integer value"
+              />
+            </ng-container>
+
+            <!-- llm_config & embedding_config: use textarea -->
+            <ng-container *ngSwitchCase="'llm_config'">
+              <textarea
+                id="{{ field.name }}"
+                [formControlName]="field.name"
+                placeholder="Enter LLM configuration"
+              ></textarea>
+            </ng-container>
+            <ng-container *ngSwitchCase="'embedding_config'">
+              <textarea
+                id="{{ field.name }}"
+                [formControlName]="field.name"
+                placeholder="Enter Embedding configuration"
+              ></textarea>
+            </ng-container>
+
+            <!-- Default: treat as string / any (text input) -->
+            <ng-container *ngSwitchDefault>
+              <input
+                id="{{ field.name }}"
+                type="text"
+                [formControlName]="field.name"
+                placeholder="Enter value"
+              />
+            </ng-container>
+          </ng-container>
+        </div>
+      </div>
+    </form>
+  </div>
+  <!-- Action Buttons -->
+  <div class="actions">
+    <button type="button" (click)="close()">Cancel</button>
+    <button type="submit" [disabled]="toolConfigForm.invalid">Save</button>
+  </div>
+</div>
+
+<!-- Loading template -->
+<ng-template #loadingTemplate>
+  <div class="loading">Loading tool details...</div>
+</ng-template>

@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "backend"
+version = "0.1.0"
+description = "FastAPI WebSocket Audio Backend"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "api", from = "src"}, {include = "ai", from = "src"}]
+package-mode = false
+
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.109.0"
+uvicorn = {extras = ["standard"], version = "^0.27.0"}
+websockets = "*"
+python-multipart = "^0.0.6"
+openai-realtime-client="0.1.0"
+openai ="^1.5"
+python-dotenv = "^1.0.0"
+pydantic = {extras = ["email"], version = "^2.1.1"}
+loguru = "^0.7.3"
+redis = "^5.2.1"
+requests = "^2.32.3"
+sqlalchemy = "^2.0.39"
+psycopg2 = "^2.9.10"
+alembic = "^1.15.1"
+asyncpg = "^0.30.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-asyncio = "^0.23.0"
+httpx = "^0.25.0"
+pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

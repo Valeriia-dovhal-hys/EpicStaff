@@ -1,5 +1,6 @@
 import re
 from typing import Any, Union
+
 from json_repair import repair_json
 
 from crewai.utilities import I18N
@@ -116,7 +117,7 @@ class CrewAgentParser:
             )
 
     def _extract_thought(self, text: str) -> str:
-        regex = r"(.*?)(?:\n\nAction|\n\nFinal Answer)"
+        regex = r"(.*?)(?:\nAction|\nFinal Answer)"
         thought_match = re.search(regex, text, re.DOTALL)
         if thought_match:
             return thought_match.group(1).strip()

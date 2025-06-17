@@ -1,0 +1,81 @@
+/* 1. Universal box-sizing, margin & padding reset */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  width: 100%;
+  font-size: 16px;
+  //   font-family: "Inter", sans-serif;
+  font-family: ui-sans-serif, -apple-system, system-ui, Segoe UI, Helvetica,
+    Apple Color Emoji, Arial, sans-serif, Segoe UI Emoji, Segoe UI Symbol;
+  scroll-behavior: smooth !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden; /* Prevents default scrolling on the body */
+  position: relative;
+}
+body {
+  height: 100%;
+  width: 100%;
+  background-color: #111111fa;
+  color: #f8f9fa;
+  overflow: hidden; /* Prevents default scrolling on the body */
+  position: relative;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: ui-sans-serif, -apple-system, system-ui, Segoe UI, Helvetica,
+    Apple Color Emoji, Arial, sans-serif, Segoe UI Emoji, Segoe UI Symbol;
+  font-weight: inherit;
+  line-height: 1.2 !important;
+}
+
+/* 4. Paragraphs */
+p {
+  line-height: 1.6 !important;
+}
+
+/* 5. Lists: remove default bullets */
+ul,
+ol {
+  list-style: none;
+}
+
+/* 6. Images & svg: responsive and block display */
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* 7. Inputs, buttons, selects, etc.: inherit font styling */
+input,
+textarea,
+button,
+select {
+  font: inherit;
+  color: inherit;
+  background-color: transparent;
+  border: none;
+}
+
+/* 8. Optional: tables & button pointer */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+button {
+  cursor: pointer;
+}

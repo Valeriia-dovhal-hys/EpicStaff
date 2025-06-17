@@ -9,12 +9,19 @@ readme = "README.md"
 python = ">=3.12,<=3.13"
 python-dotenv = "^1.0.1"
 pydantic = "^2.9.2"
-fastapi = {extras = ["all"], version = "^0.115.4"}
 langchain-core = "^0.3.13"
 loguru = "^0.7.2"
+pyyaml = "^6.0.2"
+fastapi = "0.115.2"
+uvicorn = "^0.32.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
+pytest-mock = "^3.14.0"
+
+
+[tool.poetry.group.custom_tools.dependencies]
+open-interpreter = "^0.4.3"
 
 [build-system]
 requires = ["poetry-core"]

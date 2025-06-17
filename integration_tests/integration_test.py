@@ -1,183 +1,184 @@
-import os
-import sys
-from requests import Response
-import requests
-import time
-from time import sleep
-import dotenv
-import docker
+from utils.utils import *
+from utils.knowledge_utils import *
+import uuid
 from loguru import logger
 
-dotenv.load_dotenv()
-BASE_URL = "http://127.0.0.1:8000/api"
-MAX_SESSION_EXECUTION_TIME_SECONDS = 1200
-container_name_list = ["manager_container", "redis", "crewdb", "django_app", "frontend"]
-client = docker.from_env()
 
-logger.remove()
-logger.add(sink=sys.stdout, level="DEBUG")
+def test_create_and_run_session():
 
-
-def is_container_running(container_name: str) -> bool:
-    """
-    Checks if a Docker container is alive (running) by its name or ID.
-
-    Args:
-        container_name (str): The name or ID of the Docker container.
-
-    Returns:
-        bool: True if the container is running, False otherwise.
-    """
-
-    try:
-        container = client.containers.get(container_name)
-        # Check if the container status is 'running'
-        return container.status == "running"
-    except docker.errors.NotFound:
-        logger.error(f"Container '{container_name}' not found.")
-        log_container(container_name=container_name)
-        return False
-    except docker.errors.APIError as e:
-        logger.error(f"Error connecting to Docker API: {e}")
-        return False
-
-
-def repeat_request(
-    method, url, max_wait_time=200, retry_interval=1, **kwargs
-) -> Response:
-    """
-    Repeatedly sends an HTTP request of a specified method to the specified URL
-    until the maximum wait time is reached.
-    """
-
-    logger.debug(f"method: {method}, url: {url}")
-
-    total_wait_time = 0
-    while total_wait_time < max_wait_time:
-        try:
-            response = getattr(requests, method.lower())(url, **kwargs)
-            response.raise_for_status()
-            return response
-        except requests.exceptions.HTTPError as e:
-            if response.status_code >= 500:
-                logger.warning(
-                    f"Server error: {e}. Retrying in {retry_interval} seconds..."
-                )
-            elif response.status_code == 404:
-                logger.error("Resource not found.")
-                assert False, f"Resource not found at {url}"
-            else:
-                logger.warning(
-                    f"Request failed: {e}. Retrying in {retry_interval} seconds..."
-                )
-        except requests.exceptions.RequestException as e:
-            logger.warning(
-                f"Request failed: {e}. Retrying in {retry_interval} seconds..."
-            )
-
-        sleep(retry_interval)
-        total_wait_time += retry_interval
-
-    logger.error(f"Request failed after {max_wait_time} seconds.")
-    raise TimeoutError(f"Request failed after {max_wait_time} seconds.")
-
-
-def test_create_and_run_crew():
-
-    sleep(20) # sleep to make sure that predifined models uploaded
-    
+    # TODO: create a function to ensure container is running
+    sleep(180)  # sleep to make sure that predifined models uploaded
     set_openai_api_key_to_environment()
 
-    config_id = create_config()
+    # Create configurations
+    llm_id = get_llm_model()
+    config_id = create_config(llm_id=llm_id)
+    config_id_2 = create_config(llm_id=llm_id)
 
-    llm_id = 1
+    wikipedia_crew_id = create_wikipedia_crew(config_id)
+    author_crew_id = create_author_crew(config_id_2)
+    user_crew_id = create_user_crew(config_id)
 
+    graph_id = create_graph("Integration graph2")  # TODO: Change this
+
+    create_crew_node(
+        crew_id=wikipedia_crew_id,
+        node_name="wiki_crew_node",
+        graph_id=graph_id,
+        input_map={},
+        output_variable_path="variables",
+    )
+    create_crew_node(
+        crew_id=author_crew_id,
+        node_name="author_crew_node",
+        graph_id=graph_id,
+        input_map={
+            "user_id": "variables.user_name",
+        },
+        output_variable_path="variables.result",
+    )
+    create_crew_node(
+        crew_id=user_crew_id,
+        node_name="user_crew_node",
+        graph_id=graph_id,
+        input_map={
+            "user_id": "variables.user_id",
+        },
+        output_variable_path="variables",
+    )
+    create_llm_node(
+        llm_config_id=config_id,
+        node_name="llm_node1",
+        graph_id=graph_id,
+        input_map={
+            "query": "variables.query",
+        },
+        output_variable_path="variables",
+    )
+    create_start_node(graph_id=graph_id)
+    create_hash_message_python_node(graph_id=graph_id)
+    create_option_1_python_node(graph_id=graph_id)
+    create_option_2_python_node(graph_id=graph_id)
+    create_edge(start_key="__start__", end_key="hash_message", graph=graph_id)
+    create_edge(start_key="hash_message", end_key="user_crew_node", graph=graph_id)
+    create_user_name_conditional_edge(source="user_crew_node", graph=graph_id)
+
+    create_edge(start_key="option_1", end_key="llm_node1", graph=graph_id)
+
+    create_edge(start_key="option_2", end_key="author_crew_node", graph=graph_id)
+    create_edge(start_key="author_crew_node", end_key="wiki_crew_node", graph=graph_id)
+
+    # Run sessions
+    session1 = run_session(
+        graph_id=graph_id,
+        variables={"user_id": 14, "secret_message": "hello, crew"},
+    )
+    logger.success(f"Session with id {session1} created, yay!")
+    # session2 = run_session(
+    #     graph_id=graph_id,
+    #     initial_state={"user_id": 2, "secret_message": "hello, crew 2"},
+    #     entry_point="hash_message",
+    # )
+    # logger.success(f"Session with id {session2} created, yay!")
+
+    wait_for_results(session_id=session1)
+    # wait_for_results(session_id=session2)
+
+
+@pytest.mark.asyncio
+async def test_knowledges(collection_id, redis_service):
+    """Knowledges created in 'collection_id' fixture"""
+    test_query = "How do you select transport partners?"
+
+    # Execute the knowledge search
+    results = await knowledge_search(
+        knowledge_collection_id=collection_id,
+        query=test_query,
+        redis_service=redis_service,
+    )
+
+    # Assertions
+    assert results is not None
+    assert isinstance(results, str)
+    assert "We carefully vet all our transport partners" in results
+
+
+@pytest.mark.skip
+def test_get_tool_class_data():
+
+    tool_list_response = requests.get(f"{MANAGER_URL}/tool/list")
+    validate_response(response=tool_list_response)
+    tool_alias_list = tool_list_response.json()["tool_list"]
+
+    error_tools = []
+    for tool_alias in tool_alias_list:
+        tool_class_data_response = requests.get(
+            f"{MANAGER_URL}/tool/{tool_alias}/class-data"
+        )
+        try:
+            validate_response(response=tool_class_data_response)
+            tool_alias_list = tool_class_data_response.json()["classdata"]
+            print(tool_alias)
+        except HTTPError as e:
+            error_tools.append(
+                {"tool_alias": tool_alias, "message": tool_class_data_response.reason}
+            )
+
+    if error_tools:
+        assert False, str(error_tools)
+
+
+def create_wikipedia_crew(llm_config_id):
+    # Create Wikipedia agent and crew
+    wikipedia_tool_config_id = create_wikipedia_tool_config()
+    wiki_agent_id = create_wiki_agent(
+        tool_config_id_list=[wikipedia_tool_config_id], config_id=llm_config_id
+    )
+    wiki_crew_id = create_crew(name="WIKIPEDIA CREW", agents=[wiki_agent_id])
+    wiki_task_id, wiki_task_name = create_wiki_task(
+        crew_id=wiki_crew_id, agent_id=wiki_agent_id
+    )
+    return wiki_crew_id
+
+
+def create_user_crew(llm_config_id):
+    # Create Wikipedia agent and crew
+    user_python_code_tool_id = create_user_python_code_tool()
+    user_agent_id = create_user_agent(
+        config_id=llm_config_id,
+        python_code_tool_id_list=[user_python_code_tool_id],
+    )
+    user_crew_id = create_crew(name="USER CREW", agents=[user_agent_id])
+    task_id, task_name = create_user_task(crew_id=user_crew_id, agent_id=user_agent_id)
+    return user_crew_id
+
+
+def create_author_crew(llm_config_id):
+    author_agent_id = create_author_agent(config_id=llm_config_id)
+    author_crew_id = create_crew(
+        name="AUTHOR CREW",
+        agents=[author_agent_id],
+    )
+    author_task_id, author_task_name = create_poem_task(
+        crew_id=author_crew_id, agent_id=author_agent_id
+    )
+    return author_crew_id
+
+
+def create_wikipedia_tool_config() -> int:
     wikipedia_tool_id = get_tool("wikipedia")
 
-    wikipedia_agent_id = create_agent(
-        tool_id_list=[wikipedia_tool_id], llm_id=llm_id, config_id=config_id
-    )
-
-    crew_id = create_crew(
-        agent_id_list=[wikipedia_agent_id], llm_id=llm_id, config_id=config_id
-    )
-
-    session_id = run_session(crew_id=crew_id)
-
-    logger.success(f"Session with id {session_id} created, yay!")
-
-    wait_for_results(session_id=session_id)
+    tool_config_data = {
+        "name": "integration test wiki tool config",
+        "tool": wikipedia_tool_id,
+        "configuration": {},
+    }
+    return create_tool_config(**tool_config_data)
 
 
-def wait_for_results(session_id: int):
-    start_time = time.time()
-    while True:
-        if time.time() - start_time > MAX_SESSION_EXECUTION_TIME_SECONDS:
-            raise TimeoutError()
-        check_containers()
-        status = get_session_status(session_id=session_id)
-
-        if status == "error":
-            logger.error(f"Session status is {status}")
-            log_container(f"crew_session-{session_id}")
-            assert False, f"Session status is {status}"
-
-        if status == "end":
-            break
-
-        time.sleep(2)
-    session_message_list = get_session_messages(session_id=session_id)
-    logger.info(f"Messages: \n{session_message_list}")
-    assert len(session_message_list) != 0
-
-    running = is_container_running("wikipedia_tool")
-    if not running:
-        logger.error("Tool is not running")
-        log_container("wikipedia_tool")
-
-        assert False, "Tool is not running"
-
-
-
-def log_container(container_name: str):
-    container = client.containers.get(container_name)
-    logs = container.logs(timestamps=True).decode("utf-8")
-
-    logger.info(f"{container_name} logs\n{logs}")
-
-
-def check_containers():
-    for name in container_name_list:
-        running = is_container_running(container_name=name)
-        if not running:
-            logger.error(f'Container "{name}" not running')
-            assert False, f'Container "{name}" not running'
-
-
-def get_session_messages(session_id: int) -> list:
-    session_response = repeat_request(
-        "get", f"{BASE_URL}/sessions/{session_id}/messages"
-    )
-    return session_response.json()["results"]
-
-
-def get_session_status(session_id: int) -> str:
-    session_response = repeat_request("get", f"{BASE_URL}/sessions/{session_id}/")
-    return session_response.json()["status"]
-
-
-def run_session(crew_id: int):
-    run_data = {"crew_id": crew_id}
-    run_crew_response = repeat_request(
-        "post", f"{BASE_URL}/run-session/", json=run_data
-    )
-
-    return run_crew_response.json()["session_id"]
-
-
-def create_task(crew_id: int, agent_id: int):
+def create_wiki_task(crew_id: int, agent_id: int) -> tuple:
     task_data = {
-        "name": "Test task",
+        "name": f"Test wiki task {random.randint(1,100000)}",
         "instructions": "Find inpormation about cars",
         "expected_output": "What is car",
         "order": 1,
@@ -185,81 +186,224 @@ def create_task(crew_id: int, agent_id: int):
         "agent": agent_id,
     }
 
-    crew_response = repeat_request("post", f"{BASE_URL}/tasks/", json=task_data)
+    return create_task(**task_data)
 
 
-def create_crew(agent_id_list: list, llm_id: int, config_id: int) -> int:
+def create_poem_task(crew_id: int, agent_id: int) -> tuple:
 
-    crew_data = {
-        "name": "Integratin test crew",
-        "assignment": "",
-        "agents": agent_id_list,
-        "process": "sequential",
-        "memory": False,
-        "embedding_model": None,
-        "manager_llm_model": llm_id,
-        "manager_llm_config": config_id,
+    task_data = {
+        "name": f"Test write poem task {random.randint(1,100000)}",
+        "instructions": "Write short rhyming poem about nature",
+        "expected_output": "Short rhyming poem",
+        "order": 1,
+        "crew": crew_id,
+        "agent": agent_id,
     }
-
-    crew_response = repeat_request("post", f"{BASE_URL}/crews/", json=crew_data)
-    crew_id = crew_response.json()["id"]
-    create_task(crew_id=crew_id, agent_id=agent_id_list[0])
-
-    return crew_response.json()["id"]
+    return create_task(**task_data)
 
 
-def create_agent(
-    tool_id_list: list,
-    llm_id: int,
+def create_user_task(crew_id: int, agent_id: int) -> tuple:
+
+    task_data = {
+        "name": f"user task",
+        "instructions": "Get user name by user id {user_id}",
+        "expected_output": "name",
+        "order": 1,
+        "crew": crew_id,
+        "agent": agent_id,
+        "output_model": {
+            "type": "object",
+            "title": "ArgumentsSchema",
+            "properties": {
+                "user_name": {
+                    "type": "string",
+                    "description": "Name of user",
+                }
+            },
+        },
+    }
+    return create_task(**task_data)
+
+
+def create_wiki_agent(
+    tool_config_id_list: list,
     config_id: int,
 ) -> int:
     agent_data = {
-        "tools": tool_id_list,
+        "configured_tools": tool_config_id_list,
         "role": "wikipedia_searcher",
         "goal": "search information in wikipedia",
         "backstory": "You are the agent who use tools to perform tasks",
         "allow_delegation": False,
         "memory": False,
         "max_iter": 15,
-        "llm_model": llm_id,
-        "fcm_llm_model": llm_id,
         "llm_config": config_id,
         "fcm_llm_config": config_id,
     }
-
-    agent_response = repeat_request("post", f"{BASE_URL}/agents/", json=agent_data)
-
-    return agent_response.json()["id"]
+    return create_agent(**agent_data)
 
 
-def create_config() -> int:
-    config_llm_data = {"temperature": 0, "num_ctx": 25}
-
-    config_llm_response = repeat_request(
-        "post", f"{BASE_URL}/config-llm/", json=config_llm_data
-    )
-
-    return config_llm_response.json()["id"]
-
-
-def set_openai_api_key_to_environment() -> None:
-    SECRET_OPENAI_API_KEY = os.environ.get("OPENAI_KEY", None)
-
-    if SECRET_OPENAI_API_KEY is None:
-
-        logger.error("OPENAI_KEY not provided")
-        assert False, "OPENAI_KEY not provided"
-
-    environment_data = {"data": {"SECRET_OPENAI_API_KEY": SECRET_OPENAI_API_KEY}}
-
-    repeat_request("post", f"{BASE_URL}/environment/config", json=environment_data)
+def create_author_agent(
+    config_id: int,
+) -> int:
+    agent_data = {
+        "role": "poem writer",
+        "goal": "write short poem",
+        "backstory": "You are the agent who writes rhyming poems",
+        "allow_delegation": False,
+        "memory": False,
+        "max_iter": 15,
+        "llm_config": config_id,
+        "fcm_llm_config": config_id,
+    }
+    return create_agent(**agent_data)
 
 
-def get_tool(tool_alias: str) -> int:
-    response_tools = repeat_request("get", f"{BASE_URL}/tools/")
+def create_user_agent(config_id: int, python_code_tool_id_list: list[int]) -> int:
+    agent_data = {
+        "role": "User Agent",
+        "goal": "Persorm user related actions",
+        "backstory": "Use tools to perform tasks",
+        "allow_delegation": False,
+        "memory": False,
+        "python_code_tools": python_code_tool_id_list,
+        "max_iter": 15,
+        "llm_config": config_id,
+        "fcm_llm_config": config_id,
+    }
+    return create_agent(**agent_data)
 
-    tool_list = response_tools.json()["results"]
 
-    wikipedia_tool = filter(lambda tool: tool["name_alias"] == tool_alias, tool_list)
+def create_user_python_code_tool() -> int:
 
-    return next(wikipedia_tool)["id"]
+    code = """
+def main(user_id: int):
+    ids = {
+        14: "Artur",
+        2: "Max",
+        36: "Igor",
+    }
+    print(state["variables"])
+    return ids.get(user_id, "Not found")
+"""
+
+    test_state = {"input": {"user_surname": "Zelensky"}}
+    args_schema = {
+        "type": "object",
+        "title": "ArgumentsSchema",
+        "properties": {
+            "user_id": {"type": "integer", "description": "id of user"},
+        },
+    }
+
+    tool_data = {
+        "name": "python tool1",
+        "description": "Get user name from id",
+        "code": code,
+        "entrypoint": "main",
+        "libraries": ["requests"],
+        "global_kwargs": {"state": test_state},
+        "args_schema": args_schema,
+    }
+    tool = get_python_code_tool_by_name(tool_data["name"])
+    if tool is not None:
+        tool_data["name"] = f"{tool_data['name']}_{str(uuid.uuid4())}"
+    tool = create_python_code_tool(**tool_data)
+    return tool
+
+
+def create_hash_message_python_node(graph_id: int) -> int:
+    code = """
+import hashlib
+def main(user_id: int, secret_message: str):
+    m = hashlib.sha256(secret_message.encode()).hexdigest()
+    return {'hash': m, 'user_id': user_id}
+"""
+
+    python_node_data = {
+        "libraries": [],
+        "code": code,
+        "entrypoint": "main",
+        "global_kwargs": {},
+        "node_name": "hash_message",
+        "graph": graph_id,
+        "input_map": {
+            "user_id": "variables.user_id",
+            "secret_message": "variables.secret_message",
+        },
+        "output_variable_path": "variables",
+    }
+
+    return create_python_node(**python_node_data)
+
+
+def create_option_1_python_node(graph_id: int) -> int:
+    code = """
+def main(*args, **kwargs):
+    return {'query': f"Famous {kwargs.get('user_name')}s in the world"}
+"""
+
+    python_node_data = {
+        "libraries": [],
+        "code": code,
+        "entrypoint": "main",
+        "global_kwargs": {},
+        "node_name": "option_1",
+        "graph": graph_id,
+        "input_map": {
+            "user_name": "variables.user_name",
+        },
+        "output_variable_path": "variables",
+    }
+    return create_python_node(**python_node_data)
+
+
+def create_option_2_python_node(graph_id: int) -> int:
+    code = """
+def main(*args, **kwargs):
+    return {'result': "option_2"}
+"""
+
+    python_node_data = {
+        "libraries": [],
+        "code": code,
+        "entrypoint": "main",
+        "global_kwargs": {},
+        "node_name": "option_2",
+        "graph": graph_id,
+        "input_map": {
+            "user_name": "variables.user_name",
+        },
+        "output_variable_path": "variables",
+    }
+
+    return create_python_node(**python_node_data)
+
+
+def create_user_name_conditional_edge(source: str, graph: int):
+    code = """
+def main():
+    user_name = state["variables"]["user_name"]
+
+    if user_name == "Artur":
+        return "option_1"
+    else:
+        return "option_2"
+"""
+
+    conditional_edge_data = {
+        "source": source,
+        "graph": graph,
+        "code": code,
+    }
+    return create_conditional_edge(**conditional_edge_data)
+
+
+def get_llm_model(name: str = "gpt-4o-mini"):
+    llm_model_response = requests.get(f"{DJANGO_URL}/llm-models?name={name}")
+    llm_model = None
+    if llm_model_response.ok:
+        results = llm_model_response.json()["results"]
+        if len(results) > 0:
+            llm_model = results[0]
+    return llm_model["id"]

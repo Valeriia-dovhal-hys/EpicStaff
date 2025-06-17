@@ -3,10 +3,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.fe
+      args:
+        CONFIG: "production"
     ports:
       - "4200:80"
     networks:
       - frontend-network
+    volumes:
+      - ../frontend-config/frontend-config.json:/usr/share/nginx/html/config.json:ro
 
 networks:
   frontend-network:

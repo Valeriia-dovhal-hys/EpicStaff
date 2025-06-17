@@ -1,0 +1,209 @@
+.custom-tool-dialog {
+  background-color: var(--gray-850); /* Solid dark background */
+  color: #e0e0e0;
+  border-radius: 10px;
+  width: 600px;
+  max-width: 90vw;
+  height: 90vh; /* Fixed height for the dialog */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+
+  /* Apply grid layout to the form so that header, content, and footer are arranged in rows */
+  form {
+    display: grid;
+    grid-template-rows: auto 1fr auto; /* Header, content, footer */
+    height: 100%;
+  }
+
+  /* Global Dialog Header */
+  .dialog-header {
+    grid-row: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+
+    border-bottom: 1px solid #2a2a2a;
+
+    h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #bbb;
+      padding: 0.5rem;
+      transition: color 0.3s ease;
+      border-radius: 4px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        color: #685fff;
+      }
+    }
+  }
+
+  /* Dialog Content */
+  .dialog-content {
+    grid-row: 2;
+    padding: 1.5rem;
+    overflow-x: hidden;
+    overflow-y: auto; /* Enable scrolling for content */
+    min-height: 0; /* Important for scrollable grid children */
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    .name-section,
+    .description-section {
+      h3 {
+        margin: 0 0 0.5rem 0;
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #685fff;
+        letter-spacing: 0.05rem;
+        line-height: 1;
+      }
+    }
+
+    .name-section {
+      .input-container {
+        position: relative;
+
+        .name-input-field {
+          width: 100%;
+          padding: 0.4rem 0.6rem;
+          border: 1px solid #444;
+          border-radius: 4px;
+          color: #ddd;
+          font-size: 0.95rem;
+          box-sizing: border-box;
+          transition: border-color 0.3s ease;
+          outline: none;
+          &::placeholder {
+            color: #888;
+          }
+          &:focus {
+            border-color: #685fff;
+          }
+        }
+
+        .error-message {
+          position: absolute;
+          bottom: -25px; /* Adjust as needed */
+          right: 0;
+          color: rgb(247, 118, 43);
+          font-size: 12px;
+          background-color: transparent;
+        }
+      }
+    }
+
+    .description-section {
+      margin-bottom: -9px;
+      .input-container {
+        position: relative;
+
+        .description-textarea {
+          width: 100%;
+          min-height: 100px;
+          padding: 0.4rem 0.6rem;
+          border: 1px solid #444;
+          border-radius: 4px;
+          color: #ddd;
+          font-size: 0.95rem;
+          resize: vertical;
+          box-sizing: border-box;
+          transition: border-color 0.3s ease;
+          outline: none;
+          &::placeholder {
+            color: #888;
+          }
+          &:focus {
+            border-color: #685fff;
+          }
+        }
+        .error-message {
+          position: absolute;
+          bottom: -17px; /* Adjust as needed */
+          right: 0;
+          color: rgb(247, 118, 43);
+          font-size: 12px;
+          background-color: transparent;
+        }
+      }
+    }
+  }
+
+  /* Dialog Footer */
+  .dialog-footer {
+    grid-row: 3;
+
+    border-top: 1px solid #2a2a2a;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+
+    .btn {
+      padding: 0.5rem 1.2rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-left: 0.5rem;
+      transition: background-color 0.2s;
+
+      &.close {
+        background-color: #333;
+        color: #e0e0e0;
+
+        &:hover {
+          background-color: #555;
+        }
+      }
+
+      &.create {
+        background-color: #685fff;
+        color: #121212;
+
+        &:hover {
+          background-color: #5850fc;
+        }
+      }
+
+      /* Separate class for disabled buttons */
+      &.disabled {
+        background-color: #555 !important;
+        color: #aaa !important;
+        cursor: not-allowed;
+        transform: none !important;
+        opacity: 0.6;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Spinner */
+.spinner {
+  border: 4px solid rgba(224, 224, 224, 0.3);
+  border-top: 4px solid #e0e0e0;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+}

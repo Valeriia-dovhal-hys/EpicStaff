@@ -1,0 +1,141 @@
+<!-- needs to be refactored the way we display this sections -->
+
+<div class="project-container">
+  <app-header></app-header>
+
+  <div class="content-area">
+    @if(isLoading()) {
+    <div class="loading-container">
+      <app-spinner
+        [text]="'Loading project...'"
+        [accentColor]="'#685fff'"
+        [isOverlay]="false"
+      ></app-spinner>
+    </div>
+    } @else {
+    <div class="section-list">
+      <!-- Section 1: Details -->
+      <div class="section-item" [class.expanded]="isSectionExpanded('details')">
+        <div class="section-header" (click)="toggleSection('details')">
+          <i class="toggle-icon play-icon ti ti-player-play-filled"></i>
+          <span class="section-title">Details</span>
+        </div>
+        <div
+          class="section-content"
+          [@slideAnimation]="
+            isSectionExpanded('details') ? 'expanded' : 'collapsed'
+          "
+          [style.overflow]="isSectionExpanded('details') ? 'visible' : 'hidden'"
+        >
+          <app-details-content
+            [description]="project.description ?? ''"
+          ></app-details-content>
+        </div>
+      </div>
+
+      <!-- Section 2: Variables -->
+      <div
+        class="section-item"
+        [class.expanded]="isSectionExpanded('variables')"
+      >
+        <div class="section-header" (click)="toggleSection('variables')">
+          <i class="toggle-icon play-icon ti ti-player-play-filled"></i>
+          <span class="section-title">Variables</span>
+        </div>
+        <div
+          class="section-content"
+          [@slideAnimation]="
+            isSectionExpanded('variables') ? 'expanded' : 'collapsed'
+          "
+          [style.overflow]="
+            isSectionExpanded('variables') ? 'visible' : 'hidden'
+          "
+        >
+          <app-variables-content></app-variables-content>
+        </div>
+      </div>
+
+      <!-- Section 3: Agents -->
+      <div class="section-item" [class.expanded]="isSectionExpanded('agents')">
+        <div class="section-header" (click)="toggleSection('agents')">
+          <i class="toggle-icon play-icon ti ti-player-play-filled"></i>
+          <span class="section-title">
+            Agents
+            <span
+              class="item-count"
+              *ngIf="projectStateService.agentCount() > 0"
+            >
+              {{ projectStateService.agentCount() }}
+            </span>
+          </span>
+          <!-- <span class="add-button" (click)="onAddAgent($event)">
+            <i class="ti ti-plus"></i>
+          </span> -->
+        </div>
+        <div
+          class="section-content"
+          [@slideAnimation]="
+            isSectionExpanded('agents') ? 'expanded' : 'collapsed'
+          "
+          [style.overflow]="isSectionExpanded('agents') ? 'visible' : 'hidden'"
+        >
+          <app-agents-section></app-agents-section>
+        </div>
+      </div>
+
+      <!-- Section 4: Tasks -->
+      <div class="section-item" [class.expanded]="isSectionExpanded('tasks')">
+        <div class="section-header" (click)="toggleSection('tasks')">
+          <i class="toggle-icon play-icon ti ti-player-play-filled"></i>
+          <span class="section-title">
+            Tasks
+            <span
+              class="item-count"
+              *ngIf="projectStateService.taskCount() > 0"
+            >
+              {{ projectStateService.taskCount() }}
+            </span>
+          </span>
+          <!-- <span class="add-button" (click)="onAddTask($event)">
+            <i class="ti ti-plus"></i>
+          </span> -->
+        </div>
+        <div
+          class="section-content"
+          [@slideAnimation]="
+            isSectionExpanded('tasks') ? 'expanded' : 'collapsed'
+          "
+          [style.overflow]="isSectionExpanded('tasks') ? 'visible' : 'hidden'"
+        >
+          <app-tasks-section [project]="project"></app-tasks-section>
+        </div>
+      </div>
+
+      <!-- Section 5: Settings -->
+      <div
+        class="section-item"
+        [class.expanded]="isSectionExpanded('settings')"
+      >
+        <div class="section-header" (click)="toggleSection('settings')">
+          <i class="toggle-icon play-icon ti ti-player-play-filled"></i>
+          <span class="section-title">Settings</span>
+        </div>
+        <div
+          class="section-content"
+          [@slideAnimation]="
+            isSectionExpanded('settings') ? 'expanded' : 'collapsed'
+          "
+          [style.overflow]="
+            isSectionExpanded('settings') ? 'visible' : 'hidden'
+          "
+        >
+          <app-settings-section
+            [project]="project"
+            (settingsChanged)="onSettingsChanged($event)"
+          ></app-settings-section>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+</div>

@@ -1,235 +1,216 @@
 <div class="main-container">
-  <div class="header">
-    <span>Create Agent</span>
-  </div>
-  <div class="form-container">
-    <form [formGroup]="agentForm">
-      <!-- Agent Role Input -->
-      <mat-form-field
-        appearance="outline"
-        class="full-width"
-        floatLabel="always"
-      >
-        <mat-label>Agent Role</mat-label>
-        <input matInput formControlName="role" placeholder="Enter agent role" />
-        <mat-error *ngIf="agentForm.get('role')?.hasError('required')">
-          Agent Role is required
-        </mat-error>
-      </mat-form-field>
+  <!-- Header with title and close button -->
+  <app-form-header
+    [title]="agentForm.value.role || 'Create New Agent'"
+    (cancel)="onCancelForm()"
+  >
+  </app-form-header>
 
-      <!-- Goal Textarea -->
-      <mat-form-field
-        appearance="outline"
-        class="full-width"
-        floatLabel="always"
-      >
-        <mat-label>Goal</mat-label>
-        <textarea
-          matInput
-          formControlName="goal"
-          placeholder="Enter goal"
-          rows="2"
-        ></textarea>
-        <mat-error *ngIf="agentForm.get('goal')?.hasError('required')">
-          Goal is required
-        </mat-error>
-      </mat-form-field>
-
-      <!-- Backstory Textarea -->
-      <mat-form-field
-        appearance="outline"
-        class="full-width"
-        floatLabel="always"
-      >
-        <mat-label>Backstory</mat-label>
-        <textarea
-          matInput
-          formControlName="backstory"
-          placeholder="Enter backstory"
-          rows="4"
-        ></textarea>
-        <mat-error *ngIf="agentForm.get('backstory')?.hasError('required')">
-          Backstory is required
-        </mat-error>
-      </mat-form-field>
-
-      <!-- Allow Delegation -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Allow Delegation</mat-label>
-        <mat-select formControlName="allowDelegation">
-          <mat-option [value]="true">True</mat-option>
-          <mat-option [value]="false">False</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <!-- Add Tools Button -->
-      <div class="add-tools-button-container">
-        <button
-          mat-flat-button
-          type="button"
-          class="add-tools"
-          (click)="openToolSelectorDialog()"
+  <div class="content">
+    <form [formGroup]="agentForm" (ngSubmit)="onSubmitForm()">
+      <!-- Basic Field: name with icon selector -->
+      <div class="custom-field name-with-icon">
+        <label for="role">Agent Role <span class="required">*</span></label>
+        <div class="input-with-icon">
+          <!-- Icon Picker Component -->
+          <app-icon-picker
+            [selectedIcon]="selectedIcon"
+            (iconSelected)="onIconSelected($event)"
+          ></app-icon-picker>
+          <input
+            id="role"
+            type="text"
+            formControlName="role"
+            placeholder="Enter agent role..."
+            autocomplete="off"
+          />
+        </div>
+        <div
+          class="error-message"
+          *ngIf="
+            agentForm.get('role')?.touched &&
+            agentForm.get('role')?.dirty &&
+            agentForm.get('role')?.hasError('required')
+          "
         >
-          <span>Add Tools</span>
-          <mat-icon>add</mat-icon>
-        </button>
+          Agent role is required
+        </div>
       </div>
 
-      <!-- Display Selected Tools -->
-      <div *ngIf="selectedTools.length" class="selected-tools">
-        <label class="selected-tools-label">Selected Tools:</label>
-        <mat-chip-set>
-          <mat-chip
-            *ngFor="let tool of selectedTools"
-            [removable]="true"
-            (removed)="onRemoveTool(tool)"
-          >
-            {{ tool.name }}
-            <button matChipRemove>
-              <mat-icon>cancel</mat-icon>
-            </button>
-          </mat-chip>
-        </mat-chip-set>
+      <!-- Basic Field: Goal -->
+      <div class="custom-field">
+        <label for="goal">Goal <span class="required">*</span></label>
+        <textarea
+          id="goal"
+          formControlName="goal"
+          placeholder="Enter agent goal"
+          rows="3"
+          autocomplete="off"
+        ></textarea>
+        <div
+          class="error-message"
+          *ngIf="
+            agentForm.get('goal')?.touched &&
+            agentForm.get('goal')?.dirty &&
+            agentForm.get('goal')?.hasError('required')
+          "
+        >
+          Agent goal is required
+        </div>
       </div>
 
-      <!-- Advanced Settings Toggle -->
-      <div
-        (click)="toggleAdvancedSettings()"
+      <!-- Basic Field: Backstory -->
+      <div class="custom-field">
+        <label for="backstory">Backstory <span class="required">*</span></label>
+        <textarea
+          id="backstory"
+          formControlName="backstory"
+          placeholder="Enter agent backstory"
+          rows="3"
+          autocomplete="off"
+        ></textarea>
+        <div
+          class="error-message"
+          *ngIf="
+            agentForm.get('backstory')?.touched &&
+            agentForm.get('backstory')?.dirty &&
+            agentForm.get('backstory')?.hasError('required')
+          "
+        >
+          Agent backstory is required
+        </div>
+      </div>
+
+      <!-- LLM Configurations - Only Agent LLM in main settings -->
+      <div class="custom-field">
+        <label>Agent LLM</label>
+        <app-llm-selector
+          label="Agent LLM Config"
+          placeholder="Select an agent LLM configuration"
+          [required]="false"
+          [selectedValue]="agentForm.get('llm_config')?.value"
+        ></app-llm-selector>
+      </div>
+
+      <!-- Creativity Level Slider -->
+      <app-form-slider
+        [value]="temperatureValue"
+        label="Agent Creativity Level:"
+        (valueChange)="onSliderInput($event)"
+      ></app-form-slider>
+
+      <!-- Advanced Settings Toggle Button -->
+      <button
         type="button"
-        class="advanced-settings-toggle"
+        class="toggle-settings"
+        (click)="toggleAdvancedSettings()"
       >
-        <mat-icon>{{
-          advancedSettingsVisible ? "expand_less" : "expand_more"
-        }}</mat-icon>
-        Advanced Settings
-      </div>
+        {{
+          advancedSettingsVisible
+            ? "Hide Advanced Settings"
+            : "Show Advanced Settings"
+        }}
+      </button>
 
-      <!-- Advanced Settings Container -->
-      <div *ngIf="advancedSettingsVisible" class="advanced-settings-container">
-        <div class="advanced-fields-pair">
-          <!-- Memory Field -->
-          <mat-form-field appearance="outline" class="advanced-settings-field">
-            <mat-label>Memory</mat-label>
-            <mat-select formControlName="memory">
-              <mat-option [value]="true">True</mat-option>
-              <mat-option [value]="false">False</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <!-- Max Iterations Field -->
-          <mat-form-field appearance="outline" class="advanced-settings-field">
-            <mat-label>Max Iterations</mat-label>
-            <input matInput formControlName="max_iter" type="number" min="1" />
-            <mat-error *ngIf="agentForm.get('max_iter')?.hasError('required')">
-              Max Iterations is required
-            </mat-error>
-            <mat-error *ngIf="agentForm.get('max_iter')?.hasError('min')">
-              Must be at least 1
-            </mat-error>
-          </mat-form-field>
+      <!-- Advanced Settings Section -->
+      <div *ngIf="advancedSettingsVisible" @smoothExpand>
+        <!-- Function LLM moved to advanced settings -->
+        <div class="custom-field">
+          <label>Function LLM</label>
+          <app-llm-selector
+            label="Function LLM Config"
+            placeholder="Select a function LLM configuration"
+            [required]="false"
+            [selectedValue]="agentForm.get('fcm_llm_config')?.value"
+          ></app-llm-selector>
         </div>
 
-        <div class="advanced-fields-pair">
-          <!-- Temperature Field -->
-          <mat-form-field appearance="outline" class="advanced-settings-field">
-            <mat-label>Creativity index</mat-label>
-            <input
-              matInput
-              formControlName="temperature"
-              type="number"
-              min="0"
-              max="1"
-              step="0.1"
-            />
-          </mat-form-field>
-
-          <!-- Context Field -->
-          <mat-form-field appearance="outline" class="advanced-settings-field">
-            <mat-label>Context</mat-label>
-            <input matInput formControlName="num_ctx" type="number" min="0" />
-          </mat-form-field>
+        <!-- Allow Delegation Toggle -->
+        <div class="toggle-field">
+          <div class="toggle-label">Allow Delegation</div>
+          <app-toggle-switch
+            formControlName="allow_delegation"
+          ></app-toggle-switch>
         </div>
 
-        <!-- Agent LLM Provider and Model Selection -->
-        <div class="advanced-fields-pair">
-          <!-- Agent LLM Provider -->
-          <mat-form-field appearance="outline" class="advanced-settings-field">
-            <mat-label>Agent LLM Provider</mat-label>
-            <mat-select
-              [(value)]="selectedAgentProviderId"
-              (selectionChange)="onAgentProviderChange($event.value)"
-            >
-              <mat-option
-                *ngFor="let provider of providers"
-                [value]="provider.id"
-              >
-                {{ provider.name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <!-- Agent LLM Model -->
-          <mat-form-field appearance="outline" class="advanced-settings-field">
-            <mat-label>Agent LLM</mat-label>
-            <mat-select formControlName="llm_model">
-              <mat-option
-                *ngFor="let llm of filteredAgentLLMModels"
-                [value]="llm.id"
-              >
-                {{ llm.name }}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="filteredAgentLLMModels.length === 0">
-              No LLM models available for the selected provider.
-            </mat-error>
-          </mat-form-field>
+        <!-- Memory Toggle -->
+        <div class="toggle-field">
+          <div class="toggle-label">Memory</div>
+          <app-toggle-switch formControlName="memory"></app-toggle-switch>
         </div>
 
-        <!-- Function LLM Provider and Model Selection -->
-        <div class="advanced-fields-pair">
-          <!-- Function LLM Provider -->
-          <mat-form-field appearance="outline" class="advanced-settings-field">
-            <mat-label>Function LLM Provider</mat-label>
-            <mat-select
-              [(value)]="selectedFunctionProviderId"
-              (selectionChange)="onFunctionProviderChange($event.value)"
-            >
-              <mat-option
-                *ngFor="let provider of providers"
-                [value]="provider.id"
-              >
-                {{ provider.name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
+        <!-- Cache Toggle -->
+        <div class="toggle-field">
+          <div class="toggle-label">Cache</div>
+          <app-toggle-switch formControlName="cache"></app-toggle-switch>
+        </div>
 
-          <!-- Function LLM Model -->
-          <mat-form-field appearance="outline" class="advanced-settings-field">
-            <mat-label>Function LLM</mat-label>
-            <mat-select formControlName="fcm_llm_model">
-              <mat-option
-                *ngFor="let llm of filteredFunctionLLMModels"
-                [value]="llm.id"
-              >
-                {{ llm.name }}
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="filteredFunctionLLMModels.length === 0">
-              No LLM models available for the selected provider.
-            </mat-error>
-          </mat-form-field>
+        <!-- Allow Code Execution Toggle -->
+        <div class="toggle-field">
+          <div class="toggle-label">Allow Code Execution</div>
+          <app-toggle-switch
+            formControlName="allow_code_execution"
+          ></app-toggle-switch>
+        </div>
+
+        <!-- Respect Context Window Toggle -->
+        <div class="toggle-field">
+          <div class="toggle-label">Respect Context Window</div>
+          <app-toggle-switch
+            formControlName="respect_context_window"
+          ></app-toggle-switch>
+        </div>
+
+        <!-- Max Iterations Input -->
+        <div class="custom-field">
+          <label for="max_iter">Max Iterations</label>
+          <input
+            id="max_iter"
+            type="number"
+            formControlName="max_iter"
+            placeholder="Enter max iterations"
+            min="1"
+          />
+        </div>
+
+        <!-- Max RPM Slider -->
+        <app-form-slider
+          [value]="maxRpmSliderValue"
+          [max]="200"
+          label="Max Requests Per Minute (0-50):"
+          (valueChange)="onMaxRpmSliderInput($event)"
+        ></app-form-slider>
+
+        <!-- Max Execution Time Input -->
+        <div class="custom-field">
+          <label for="max_execution_time">Max Execution Time (seconds)</label>
+          <input
+            id="max_execution_time"
+            type="number"
+            formControlName="max_execution_time"
+            placeholder="Enter execution time"
+          />
+        </div>
+
+        <!-- Max Retry Limit Input -->
+        <div class="custom-field">
+          <label for="max_retry_limit">Max Retry Limit</label>
+          <input
+            id="max_retry_limit"
+            type="number"
+            formControlName="max_retry_limit"
+            placeholder="Enter max retry limit"
+          />
         </div>
       </div>
     </form>
   </div>
 
-  <!-- Bottom Buttons -->
-  <div class="bottom">
-    <button mat-stroked-button (click)="onCancelForm()" class="close">
-      Close
-    </button>
-    <button mat-raised-button (click)="onSubmitForm()" type="submit">
-      Create
-    </button>
-  </div>
+  <!-- Footer with action buttons -->
+  <app-form-footer
+    [isSubmitDisabled]="agentForm.invalid"
+    [isSubmitting]="isSubmitting"
+    (cancel)="onCancelForm()"
+    (submit)="onSubmitForm()"
+  ></app-form-footer>
 </div>

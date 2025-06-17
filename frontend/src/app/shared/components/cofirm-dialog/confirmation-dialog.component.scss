@@ -1,0 +1,133 @@
+/* confirmation-dialog.component.scss */
+.dialog-container {
+  display: flex;
+  flex-direction: column;
+
+  width: 400px;
+  background-color: var(--gray-900);
+  color: var(--gray-100);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--gray-800);
+
+  &.info {
+    background-color: rgba(66, 133, 244, 0.15);
+    color: #4285f4;
+  }
+
+  &.warning {
+    background-color: rgba(251, 188, 5, 0.15);
+    color: #fbbc05;
+  }
+
+  &.danger {
+    background-color: rgba(234, 67, 53, 0.15);
+    color: #ea4335;
+  }
+
+  i {
+    margin-right: 12px;
+    font-size: 24px;
+  }
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--gray-100);
+}
+
+.dialog-content {
+  padding: 16px;
+  max-height: 50vh;
+  overflow: auto;
+  p {
+    margin: 0;
+    line-height: 1.5;
+    color: var(--gray-300);
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px;
+  border-top: 1px solid var(--gray-800);
+}
+
+.cancel-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-300);
+  background-color: transparent;
+  border: 1px solid var(--gray-700);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--gray-800);
+    color: var(--gray-100);
+  }
+}
+
+.confirm-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--white);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.info {
+    background-color: #4285f4;
+
+    &:hover {
+      background-color: #3367d6;
+    }
+  }
+
+  &.warning {
+    background-color: #fbbc05;
+
+    &:hover {
+      background-color: #f09600;
+    }
+  }
+
+  &.danger {
+    background-color: #ea4335;
+
+    &:hover {
+      background-color: #d93025;
+    }
+  }
+}
+
+/* Small animation for dialog opening */
+:host {
+  animation: dialog-fade-in 0.2s ease-out;
+}
+
+@keyframes dialog-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

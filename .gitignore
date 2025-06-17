@@ -58,6 +58,9 @@ cover/
 *.mo
 *.pot
 
+# Crew stuff:
+demo_stands/
+
 # Django stuff:
 *.log
 local_settings.py
@@ -124,6 +127,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+*.env
 .env
 .venv
 src/ENV/
@@ -134,7 +138,9 @@ env.bak/
 venv.bak/
 .django_venv
 .crew_venv
-*venv*
+*venv
+venvs/
+run_program/manager.env
 
 # Spyder project settings
 .spyderproject
@@ -174,6 +180,8 @@ cython_debug/
 log.txt
 .telemetry_log/
 
+
+
 # Config
 config.yaml
 
@@ -186,8 +194,14 @@ token.json
 # Additional tool
 additional_tools/
 
+# Savefiles
+**/savefiles
 
 # FRONTEND GIT ignore
+
+# i am not dumb
+frontend/app/environments
+
 # Compiled output
 frontend/dist
 frontend/tmp
@@ -228,3 +242,6 @@ frontend/typings
 # System files
 frontend/.DS_Store
 Thumbs.db
+
+executions
+openai-realtime-console

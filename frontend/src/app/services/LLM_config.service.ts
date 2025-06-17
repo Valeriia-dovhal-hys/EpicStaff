@@ -1,42 +1,48 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { forkJoin, Observable, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiGetRequest } from '../shared/models/api-request.model';
 import {
   LLM_Config,
   CreateLLMConfigRequest,
   UpdateLLMConfigRequest,
+  GetLlmConfigRequest,
+  LLMConfigDto,
 } from '../shared/models/LLM_config.model';
+import { ConfigService } from './config/config.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LLM_Config_Service {
-  private apiUrl = 'http://127.0.0.1:8000/api/config-llm/';
-
   private headers = new HttpHeaders({
     'Content-Type': 'application/json',
   });
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private configService: ConfigService) {}
 
-  getAllConfigsLLM(): Observable<LLM_Config[]> {
+  // Dynamically retrieve the API URL from ConfigService
+  private get apiUrl(): string {
+    return this.configService.apiUrl + 'llm-configs/';
+  }
+
+  getAllConfigsLLM(): Observable<GetLlmConfigRequest[]> {
     return this.http
-      .get<ApiGetRequest<LLM_Config>>(`${this.apiUrl}?limit=2000`, {
+      .get<ApiGetRequest<GetLlmConfigRequest>>(this.apiUrl, {
         headers: this.headers,
       })
       .pipe(map((response) => response.results));
   }
 
-  getConfigById(id: number): Observable<LLM_Config> {
-    return this.http.get<LLM_Config>(`${this.apiUrl}${id}/`, {
+  getConfigById(id: number): Observable<GetLlmConfigRequest> {
+    return this.http.get<GetLlmConfigRequest>(`${this.apiUrl}${id}/`, {
       headers: this.headers,
     });
   }
 
   createConfig(configData: CreateLLMConfigRequest): Observable<LLM_Config> {
-    return this.http.post<LLM_Config>(`${this.apiUrl}`, configData, {
+    return this.http.post<LLMConfigDto>(this.apiUrl, configData, {
       headers: this.headers,
     });
   }

@@ -1,0 +1,220 @@
+// Replace the deprecated @import with @use
+@use "../../styles/flow-node-mixins.scss" as mixins;
+
+:host {
+  position: relative;
+  width: 330px;
+  min-height: 60px; // Minimum height, can expand if needed
+
+  .node-name-wrapper {
+    position: absolute;
+    top: -24px; /* Adjust based on your design */
+
+    width: 100%;
+    display: flex;
+
+    pointer-events: none; // So it doesn't interfere with clicking
+  }
+
+  .node-name-label {
+    background-color: rgba(0, 0, 0, 0.7); // Dark grey background
+    color: #ccc; // Light text
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .selected-background {
+    position: absolute;
+    width: calc(100% + 30px); // Expands based on :host width
+    height: calc(100% + 30px); // Adjusts dynamically
+    left: -15px;
+    top: -15px;
+    display: none;
+    background-color: var(--vp-selected-node-background-color);
+    border-radius: 28px; // Correct smooth outer radius
+  }
+  .interactive-node-body {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    min-height: 60px; // Ensures a base height but can grow
+    border-radius: 14px;
+    background-color: var(--vp-node-color);
+    border: 2px solid var(--vp-node-border-color);
+    cursor: pointer;
+
+    padding: 1rem;
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      .icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        i {
+          color: var(--python-node-accent-color);
+          font-size: 25px;
+        }
+      }
+
+      .title {
+        font-size: 16px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        color: inherit;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    .node-details {
+      margin-top: 1rem;
+    }
+  }
+
+  &:hover {
+    .selected-background {
+      background-color: var(--vp-hover-node-background-color);
+      display: block;
+    }
+    .node-name-label {
+      opacity: 1;
+    }
+    .port-wrapper .port-label {
+      opacity: 1;
+    }
+    .expand-collapse-toggle {
+      opacity: 1;
+    }
+    .edit-icon {
+      opacity: 1;
+    }
+    .ungroup-icon {
+      opacity: 1;
+    }
+  }
+
+  &.f-selected {
+    .selected-background {
+      display: block;
+    }
+
+    .interactive-node-body {
+      border-color: var(--vp-selected-node-border-color) !important;
+    }
+    // .port-wrapper .port-circle {
+    //   border-color: var(--vp-selected-node-border-color) !important;
+    // }
+  }
+}
+:host {
+  .expand-collapse-toggle {
+    @include mixins.icon-button-default(left);
+  }
+
+  .edit-icon {
+    @include mixins.icon-button-default(right);
+  }
+
+  .ungroup-icon {
+    @include mixins.icon-button-default(left);
+    left: -70px; // Shift the ungroup icon further left to avoid overlap
+  }
+  .port-wrapper {
+    @include mixins.port-wrapper-default;
+
+    .port-circle {
+      @include mixins.port-circle-default;
+    }
+  }
+
+  // Apply default port position mixins
+  .port-position-left {
+    @include mixins.port-position-left-default;
+  }
+  .port-position-right {
+    @include mixins.port-position-right-default;
+  }
+  .port-position-top {
+    @include mixins.port-position-top-default;
+  }
+  .port-position-bottom {
+    @include mixins.port-position-bottom-default;
+  }
+}
+:host(.type-agent) {
+  .port-position-top {
+    @include mixins.agent-port-top-indexes;
+  }
+
+  .port-position-bottom {
+    @include mixins.agent-port-bottom-indexes;
+  }
+
+  //   .port-position-left {
+  //     @include mixins.agent-port-left-indexes;
+  //   }
+}
+
+:host(.type-task) {
+  // Apply mixins for specific port positions
+  .port-position-top {
+    @include mixins.task-port-top-indexes;
+  }
+
+  .port-position-right {
+    @include mixins.task-port-right-indexes;
+  }
+
+  .port-position-bottom {
+    @include mixins.task-port-bottom-indexes;
+  }
+
+  .port-position-left {
+    @include mixins.task-port-left-indexes;
+  }
+}
+
+:host(.type-start) {
+  width: 122px;
+}
+
+:host(.type-project) {
+  .port-position-top {
+    @include mixins.project-port-top-indexes;
+  }
+}
+:host(.type-python) {
+  .port-position-top {
+    @include mixins.python-port-top-indexes;
+  }
+}
+:host(.type-table) {
+  .port-position-left {
+    @include mixins.table-port-left-indexes;
+  }
+}
+
+:host(.type-edge) {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  width: auto;
+  height: auto;
+
+  .edit-icon {
+    top: -5px;
+    right: 30px;
+  }
+}

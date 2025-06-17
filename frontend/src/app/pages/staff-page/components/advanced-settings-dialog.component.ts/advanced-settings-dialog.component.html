@@ -1,0 +1,189 @@
+<div class="dialog-container">
+  <!-- Header Section -->
+  <div class="header">
+    <h2>Advanced Settings for {{ agentData.agentRole }}</h2>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="scrollable-content">
+    <!-- Agent Creativity Section (Top) -->
+    <div class="form-section">
+      <!-- Temperature renamed to Agent Creativity Level and moved to top -->
+      <div class="form-group">
+        <label for="creativity">Agent Creativity Level:</label>
+        <div class="slider-container">
+          <span class="slider-value">{{
+            agentData.default_temperature?.toFixed(2)
+          }}</span>
+          <input
+            id="creativity"
+            [(ngModel)]="agentData.default_temperature"
+            type="range"
+            step="0.01"
+            min="0"
+            max="1"
+            class="gradient-slider"
+          />
+          <div class="slider-labels">
+            <span>Precise</span>
+            <span>Creative</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="fcm-llm">Function Calling LLM:</label>
+        <div class="select-container">
+          <select
+            id="fcm-llm"
+            [(ngModel)]="selectedLlmId"
+            (change)="onLlmChange()"
+          >
+            <option [ngValue]="null">Default to LLM</option>
+            <option *ngFor="let llm of combinedLLMs" [ngValue]="llm.id">
+              {{ llm.modelName }} ({{ llm.custom_name }})
+            </option>
+          </select>
+          <div class="select-arrow">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Knowledge Source Section -->
+    <div class="form-section">
+      <h3 class="section-title">Knowledge Source</h3>
+
+      <!-- Knowledge source selection -->
+      <div class="form-group">
+        <label for="knowledge-source">Select Knowledge Source:</label>
+        <div class="select-container">
+          <select
+            id="knowledge-source"
+            [(ngModel)]="agentData.knowledge_collection"
+            (change)="onKnowledgeSourceChange()"
+          >
+            <option [ngValue]="null">No knowledge source</option>
+            <option
+              *ngFor="let source of allKnowledgeSources"
+              [ngValue]="source.collection_id"
+            >
+              {{ source.collection_name }}
+            </option>
+          </select>
+          <div class="select-arrow">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Execution Settings -->
+    <div class="form-section">
+      <h3 class="section-title">Execution Settings</h3>
+
+      <div class="form-group">
+        <label for="max-iter">Maximum Iterations:</label>
+        <input
+          id="max-iter"
+          [(ngModel)]="agentData.max_iter"
+          type="number"
+          min="1"
+          placeholder="Enter maximum iterations"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="max-rpm">Maximum Requests Per Minute:</label>
+        <input
+          id="max-rpm"
+          [(ngModel)]="agentData.max_rpm"
+          type="number"
+          min="0"
+          placeholder="Enter maximum RPM"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="max-exec-time">Maximum Execution Time (seconds):</label>
+        <input
+          id="max-exec-time"
+          [(ngModel)]="agentData.max_execution_time"
+          type="number"
+          min="0"
+          placeholder="Enter maximum execution time"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="max-retry">Maximum Retry Limit:</label>
+        <input
+          id="max-retry"
+          [(ngModel)]="agentData.max_retry_limit"
+          type="number"
+          min="0"
+          placeholder="Enter maximum retry limit"
+        />
+      </div>
+    </div>
+
+    <!-- Advanced Options -->
+    <div class="form-section">
+      <h3 class="section-title">Advanced Options</h3>
+
+      <div class="form-group checkbox-group">
+        <label for="cache">Enable Response Caching:</label>
+        <input id="cache" [(ngModel)]="agentData.cache" type="checkbox" />
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label for="code-execution">Allow Code Execution:</label>
+        <input
+          id="code-execution"
+          [(ngModel)]="agentData.allow_code_execution"
+          type="checkbox"
+        />
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label for="respect-context">Respect Context Window:</label>
+        <input
+          id="respect-context"
+          [(ngModel)]="agentData.respect_context_window"
+          type="checkbox"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="actions">
+    <button (click)="dialogRef.close()">Cancel</button>
+    <button (click)="save()">Save Changes</button>
+  </div>
+</div>

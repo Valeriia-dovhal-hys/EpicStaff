@@ -1,14 +1,21 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  OnInit,
+  signal,
+} from '@angular/core';
 
-import { SidenavComponent } from './sidenav/sidenav.component';
-import { MatButtonModule } from '@angular/material/button';
+import { MainComponent } from './main/main.component';
+import { LeftSidebarComponent } from './sidenav/sidenav.component';
+import { ToastComponent } from './services/notifications/notification/toast.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, SidenavComponent, MatButtonModule],
+  imports: [LeftSidebarComponent, MainComponent, ToastComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {}

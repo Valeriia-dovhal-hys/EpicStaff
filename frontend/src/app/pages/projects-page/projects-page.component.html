@@ -1,0 +1,46 @@
+<div class="main-container">
+  <app-page-header
+    [headerTitle]="'Projects'"
+    [createButtonTitle]="'New Project'"
+    [projectCount]="projects.length"
+    [searchTerm]="searchTerm"
+    [showFavorites]="showFavorites"
+    [searchPlaceholder]="'search projects...'"
+    (searchInput)="onSearchInput($event)"
+    (toggleFavoriteFilter)="toggleFavoriteFilter()"
+    (openCreate)="openCreateFormDialog()"
+    [showFilter]="false"
+    [showSort]="false"
+    [showFavoriteToggle]="false"
+  ></app-page-header>
+
+  <div class="projects-page-wrapper">
+    <div class="loading-container" *ngIf="isLoading()">
+      <app-spinner
+        [text]="'Loading projects...'"
+        [accentColor]="'#6562f5'"
+        [isOverlay]="false"
+      ></app-spinner>
+    </div>
+
+    <div class="projects-page-grid" *ngIf="!isLoading()">
+      <app-new-project-card
+        (createProject)="openCreateFormDialog()"
+      ></app-new-project-card>
+
+      <ng-container *ngIf="filteredProjects.length > 0; else noProjects">
+        <app-project-list-item-card
+          *ngFor="let project of filteredProjects"
+          [project]="project"
+          (openProject)="navigateToProjectDetails($event)"
+          (deleteProject)="onDeleteProject($event)"
+        ></app-project-list-item-card>
+      </ng-container>
+      <ng-template #noProjects>
+        <div class="no-projects" *ngIf="searchTerm || showFavorites">
+          <p>No projects match your current filters</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

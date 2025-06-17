@@ -1,10 +1,7 @@
 services:
   django_app:
     image: django_app
-    command: >
-      sh -c "python manage.py migrate && 
-      python manage.py upload_models &&
-      python manage.py listen_redis & python manage.py runserver 0.0.0.0:8000"
+    command: ./entrypoint.sh
     container_name: django_app
     ports:
       - "8000:8000"
@@ -12,6 +9,9 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - POSTGRESQL_HOST=crewdb
+      - CODE_RESULT_CHANNEL=code_results
+      - CODE_EXEC_TASK_CHANNEL=code_exec_tasks
+      - ALLOWED_HOSTS=0.0.0.0, 127.0.0.1, localhost
     volumes:
       - crew_config:/home/user/root/app/env_config
 
@@ -22,19 +22,56 @@ services:
         condition: service_healthy
       manager:
         condition: service_started
-      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/ht/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
+  realtime:
+    container_name: realtime
+    image: realtime
+    ports:
+    - "8050:8050"
+    environment:
+      - KNOWLEDGE_SEARCH_GET_CHANNEL=knowledge:search:get
+      - KNOWLEDGE_SEARCH_RESPONSE_CHANNEL=knowledge:search:response
+      - REALTIME_AGENTS_SCHEMA_CHANNEL=realtime_agents:schema
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MANAGER_HOST=manager_container
+      - MANAGER_PORT=8000
+      - DB_NAME=crew
+      - DB_HOST_NAME=crewdb
+      - DB_PASSWORD=admin
+      - DB_USER=postgres
+      - DB_PORT=5432
+    networks:
+      - backend-network
+    depends_on:
+      manager:
+        condition: service_started
+      redis:
+        condition: service_started
+      knowledge:
+        condition: service_started
+      django_app:
+        condition: service_healthy
   manager:
     image: manager
     container_name: manager_container
     ports:
-      - "8001:8001"
+      - "8001:8000"
+    env_file:
+      - .env
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REBUILD_CREW=TRUE
+      - REBUILD_CREW=FALSE
+      - PULL_TOOL=FALSE
+      - PORT=8000
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock 
+      - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
     networks:
       - backend-network
@@ -44,7 +81,7 @@ services:
       - redis
 
   crewdb:
-    image: postgres
+    image: ankane/pgvector:v0.5.1
     container_name: crewdb
     ports:
       - "5432:5432"
@@ -70,19 +107,98 @@ services:
     ports:
       - "6379:6379"
 
-  frontend:
-    image: frontend
-    container_name: frontend
+  crew:
+    image: crew
+    container_name: crew
     ports:
-      - "4200:80"
+      - "8002:8000"
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MANAGER_HOST=manager_container
+      - MANAGER_PORT=8000
+      - HAYSTACK_TELEMETRY_ENABLED=False
+      - ANONYMIZED_TELEMETRY=False
+      - EC_TELEMETRY=False
+      - MONITORING_MODE=local
+      - PROCESS_REDIS_HOST=redis
+      - DB_NAME=crew
+      - DB_HOST_NAME=crewdb
+      - DB_PASSWORD=admin
+      - DB_USER=postgres
+      - DB_PORT=5432
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - /usr/bin/docker:/usr/bin/docker
+      - crew_config:/home/user/root/app/env_config/
     networks:
-      - frontend-network
+      - backend-network
+    tty: true
+    stdin_open: true
+    depends_on:
+      - redis
+
+  # frontend:
+  #   image: frontend
+  #   container_name: frontend
+  #   ports:
+  #     - "4200:80"
+  #   networks:
+  #     - frontend-network
+  #   volumes:
+  #     - ../frontend-config/frontend-config.json:/usr/share/nginx/html/config.json:ro
+
+  sandbox:
+    image: sandbox
+    container_name: sandbox
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CODE_RESULT_CHANNEL=code_results
+      - CODE_EXEC_TASK_CHANNEL=code_exec_tasks
+      - BASE_VENV_PATH=/home/user/root/app/venvs/
+      - OUTPUT_PATH=/home/user/root/app/executions/
+    volumes:
+      - sandbox_venvs:/home/user/root/app/venvs/
+      - sandbox_executions:/home/user/root/app/executions/
+      - ${CREW_SAVEFILES_PATH}:/home/user/root/app/savefiles/
+    networks:
+      - backend-network
+    tty: true
+    stdin_open: true
+    depends_on:
+      - redis
+
+  knowledge:
+    image: knowledge
+    container_name: knowledge
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KNOWLEDGE_SOURCES_CHANNEL=knowledge_sources
+      - KNOWLEDGE_SEARCH_GET_CHANNEL=knowledge:search:get
+      - KNOWLEDGE_SEARCH_RESPONSE_CHANNEL=knowledge:search:response
+      - DB_NAME=crew
+      - DB_USER=postgres
+      - DB_PASSWORD=admin
+      - DB_PORT=5432
+      - DB_HOST_NAME=crewdb
+    networks:
+      - backend-network
+    tty: true
+    stdin_open: true
+    depends_on:
+      - redis
+      - crewdb
+
 
 volumes:
+  sandbox_venvs:
+  sandbox_executions:
   crew_pgdata:
-    external: true
   crew_config:
-    external: true
 
 networks:
   backend-network:
@@ -90,4 +206,3 @@ networks:
 
   frontend-network:
     driver: bridge
-

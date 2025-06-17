@@ -1,0 +1,17 @@
+<div class="app-layout">
+  <div class="main-content">
+    <app-page-header
+      [headerTitle]="'Models'"
+      [createButtonTitle]="'Create Custom Model'"
+      [searchPlaceholder]="'this search will work soon'"
+      (openCreate)="openCreateCustomModel()"
+      [showFilter]="false"
+      [showSort]="false"
+      [showFavoriteToggle]="false"
+    ></app-page-header>
+
+    <div class="models-body">
+      <app-provider-list></app-provider-list>
+    </div>
+  </div>
+</div>

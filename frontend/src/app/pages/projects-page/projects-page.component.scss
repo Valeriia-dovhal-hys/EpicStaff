@@ -1,0 +1,39 @@
+$muted-text-color: #cccccc;
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .projects-page-wrapper {
+    height: calc(100% - 4.3rem);
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    padding: 1rem 3.8rem;
+    position: relative;
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
+      width: 100%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .projects-page-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1rem;
+
+      .no-projects {
+        p {
+          color: $muted-text-color;
+          margin-bottom: 1.5rem;
+        }
+      }
+    }
+  }
+}

@@ -6,22 +6,20 @@ from typing import Type
 from datamodel_code_generator import InputFileType, generate
 from datamodel_code_generator import DataModelType
 from types import ModuleType
-from pydantic.v1 import BaseModel as V1BaseModel
+from pydantic import BaseModel
 
 
-def generate_model_from_schema(json_schema) -> Type[V1BaseModel]:
-    schema_dict = json.loads(json_schema)
+def generate_model_from_schema(schema_dict: dict) -> Type[BaseModel]:
 
     with TemporaryDirectory() as temporary_directory_name:
         temporary_directory = Path(temporary_directory_name)
         output = Path(temporary_directory / "model.py")
         generate(
-            json_schema,
+            json.dumps(schema_dict),
             input_file_type=InputFileType.JsonSchema,
-            input_filename="example.json",
             output=output,
             # set up the output model types
-            output_model_type=DataModelType.PydanticBaseModel,
+            output_model_type=DataModelType.PydanticV2BaseModel,
         )
         class_definition: str = output.read_text()
 

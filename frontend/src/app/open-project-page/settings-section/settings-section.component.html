@@ -1,0 +1,193 @@
+<div class="settings-section">
+  <!-- Basic Settings Group -->
+  <div class="settings-group">
+    <div class="group-header">
+      <h3>Basic Configuration</h3>
+      <p>Configure general settings for your project</p>
+    </div>
+
+    <div class="settings-grid">
+      <!-- Memory Setting -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <div class="setting-title">Memory</div>
+          <div class="setting-description">
+            Enable or disable memory for this project
+          </div>
+        </div>
+        <div class="setting-value">
+          <div class="toggle-wrapper" (click)="toggleSetting('memory')">
+            <div class="toggle-option" [class.active]="settings.memory">
+              Enabled
+            </div>
+            <div class="toggle-option" [class.active]="!settings.memory">
+              Disabled
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Temperature Setting -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <div class="setting-title">Temperature</div>
+          <div class="setting-description">
+            Adjust for more precise or creative responses
+          </div>
+        </div>
+        <div class="setting-value">
+          <div class="slider-container">
+            <span class="slider-value">{{ temperaturePercent }}%</span>
+            <input
+              id="temperature"
+              [(ngModel)]="temperaturePercent"
+              type="range"
+              step="1"
+              min="0"
+              max="100"
+              class="gradient-slider"
+            />
+            <div class="slider-labels">
+              <span>Precise</span>
+              <span>Creative</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cache Setting -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <div class="setting-title">Cache</div>
+          <div class="setting-description">
+            Enable response caching for better performance
+          </div>
+        </div>
+        <div class="setting-value">
+          <div class="toggle-wrapper" (click)="toggleSetting('cache')">
+            <div class="toggle-option" [class.active]="settings.cache">
+              Enabled
+            </div>
+            <div class="toggle-option" [class.active]="!settings.cache">
+              Disabled
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full Output Setting -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <div class="setting-title">Full Output</div>
+          <div class="setting-description">Return complete model output</div>
+        </div>
+        <div class="setting-value">
+          <div class="toggle-wrapper" (click)="toggleSetting('full_output')">
+            <div class="toggle-option" [class.active]="settings.full_output">
+              Enabled
+            </div>
+            <div class="toggle-option" [class.active]="!settings.full_output">
+              Disabled
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Planning Setting -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <div class="setting-title">Planning</div>
+          <div class="setting-description">
+            Enable planning for this project
+          </div>
+        </div>
+        <div class="setting-value">
+          <div class="toggle-wrapper" (click)="toggleSetting('planning')">
+            <div class="toggle-option" [class.active]="settings.planning">
+              Enabled
+            </div>
+            <div class="toggle-option" [class.active]="!settings.planning">
+              Disabled
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Max RPM Setting -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <div class="setting-title">Max RPM</div>
+          <div class="setting-description">Maximum requests per minute</div>
+        </div>
+        <div class="setting-value">
+          <input
+            type="number"
+            [(ngModel)]="settings.max_rpm"
+            min="1"
+            max="1000"
+            (change)="onRpmChange()"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hierarchical Settings Group (conditionally displayed) -->
+  <div class="settings-group hierarchical-group">
+    <div class="group-header">
+      <h3>Hierarchical Process Settings</h3>
+      <p>Advanced settings available in hierarchical process mode</p>
+    </div>
+
+    <div class="settings-grid">
+      <!-- Default LLM Configuration -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <div class="setting-title">Default LLM Configuration</div>
+          <div class="setting-description">
+            Select the default language model
+          </div>
+        </div>
+        <div class="setting-value">
+          <div class="selector">
+            <select
+              [(ngModel)]="settings.manager_llm_config"
+              (change)="onLLMConfigChange()"
+            >
+              <option *ngFor="let llm of availableLLMs" [value]="llm.id">
+                {{ llm.custom_name }}
+              </option>
+            </select>
+            <mat-icon>expand_more</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Default Embedding Configuration -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <div class="setting-title">Default Embedding Configuration</div>
+          <div class="setting-description">
+            Select the default embedding model
+          </div>
+        </div>
+        <div class="setting-value">
+          <div class="selector">
+            <select
+              [(ngModel)]="settings.embedding_config"
+              (change)="onEmbeddingConfigChange()"
+            >
+              <option
+                *ngFor="let embedding of embeddingConfigs"
+                [value]="embedding.id"
+              >
+                {{ embedding.custom_name }}
+              </option>
+            </select>
+            <mat-icon>expand_more</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

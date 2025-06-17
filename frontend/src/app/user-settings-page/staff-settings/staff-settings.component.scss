@@ -1,0 +1,140 @@
+$accent-color: #9a73af;
+$background-color: #1a1a1a;
+$border-color: #2a2a2a;
+$text-color: #ebebeb;
+$muted-text-color: #cccccc;
+
+.settings-page {
+  height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .settings-page-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    position: relative;
+  }
+
+  .settings-page-header {
+    padding: 2rem 2rem 0;
+
+    .settings-page-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      .settings-page-title-wrap {
+        position: relative;
+        display: inline-block;
+
+        .settings-page-title {
+          font-size: 2rem;
+          font-weight: 600;
+          margin: 0;
+          color: #ffffff;
+          display: inline-block;
+        }
+      }
+
+      .settings-page-description {
+        font-size: 1rem;
+        color: #cccccc;
+        margin: 0;
+      }
+    }
+  }
+
+  .settings-page-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    padding-top: 0;
+
+    .settings-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+
+      .settings-section {
+        .section-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          margin-top: 1rem;
+
+          .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: $text-color;
+            margin: 0;
+          }
+
+          .edit-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid $accent-color;
+            border-radius: 0.375rem;
+            background-color: $background-color;
+            color: $accent-color;
+
+            &:hover {
+              background-color: $accent-color;
+              color: #ffffff;
+            }
+          }
+        }
+
+        .setting-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1.2rem 0;
+          border-bottom: 1px solid $border-color;
+
+          .label {
+            font-weight: 500;
+            color: #ffffff;
+            text-align: left;
+          }
+
+          .state-value {
+            color: $muted-text-color;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: right;
+            transition: color 0.2s ease;
+          }
+
+          &:hover {
+            .state-value {
+              color: $accent-color;
+            }
+          }
+        }
+
+        > .section-title {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #ffffff;
+          margin-bottom: 1rem;
+        }
+      }
+
+      .llm-section.hover-active .section-title,
+      .function-llm-section.hover-active .section-title {
+        color: $accent-color;
+      }
+    }
+  }
+}

@@ -14,10 +14,10 @@ ENV PEP517_BUILD_BACKEND=setuptools.build_meta
 COPY pyproject.toml .
 COPY poetry.lock .
 
-
 # Configure poetry to not create a virtual environment and install dependencies and delete cache
-RUN poetry config virtualenvs.create false && poetry install && rm -rf /root/.cache
+RUN poetry config virtualenvs.create false && poetry install --no-root && rm -rf /root/.cache
 
 #Coping file to workdir
 COPY . .
 
+RUN chmod +x ./entrypoint.sh

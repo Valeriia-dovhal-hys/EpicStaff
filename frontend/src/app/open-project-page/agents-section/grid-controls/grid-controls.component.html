@@ -1,0 +1,62 @@
+<div class="grid-controls">
+  <!-- Search and filters section -->
+  <div class="search-filters">
+    <!-- Search input with container -->
+    <div class="search-container">
+      <i class="ti ti-search search-icon"></i>
+      <input
+        type="text"
+        placeholder="Search agents..."
+        class="search-input"
+        [(ngModel)]="searchTerm"
+        (focus)="onSearchFocus()"
+      />
+      <!-- Close button that appears when dropdown is shown -->
+      <button
+        *ngIf="showDropdown"
+        class="close-button"
+        (click)="onCloseDropdown()"
+        aria-label="Clear search and close dropdown"
+      >
+        <span class="close-label">Clear search</span>
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <!-- Filter button -->
+    <!-- <button class="control-button filter-button">
+          <i class="ti ti-filter"></i>
+          <span>Filter</span>
+        </button> -->
+
+    <!-- Sort button -->
+    <!-- <button class="control-button sort-button">
+          <i class="ti ti-sort-ascending"></i>
+          <span>Sort</span>
+        </button> -->
+  </div>
+
+  <!-- Size switcher -->
+  <div class="size-switcher">
+    <span class="switcher-label">View:</span>
+    <div class="size-options">
+      <button
+        *ngFor="let size of sizeOptions"
+        [class.active]="currentSize === size"
+        (click)="onSizeChange(size)"
+        class="size-option"
+      >
+        <i class="ti ti-layout-grid size-icon" [ngClass]="'size-' + size"></i>
+        <span class="size-label">{{ size | titlecase }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search dropdown -->
+  <app-search-dropdown
+    *ngIf="showDropdown"
+    class="dropdown-container"
+    [currentSize]="currentSize"
+    [searchTerm]="searchTerm"
+  ></app-search-dropdown>
+</div>

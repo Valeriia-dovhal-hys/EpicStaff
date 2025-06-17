@@ -1,0 +1,54 @@
+<div class="main-container">
+  <app-page-header
+    [headerTitle]="'Tools'"
+    [createButtonTitle]="'Create Custom Tool'"
+    [projectCount]="filteredTools.length + filteredPythonTools.length"
+    (searchInput)="onSearchInput($event)"
+    (openCreate)="openCustomToolDialog()"
+    [searchPlaceholder]="'search tools...'"
+    [showFilter]="false"
+    [showSort]="false"
+    [showFavoriteToggle]="false"
+  ></app-page-header>
+
+  <div class="tools-page-wrapper">
+    <!-- Loading spinner container -->
+    <div class="loading-container" *ngIf="isLoading()">
+      <app-spinner
+        [text]="'Loading tools...'"
+        [accentColor]="'#6562f5'"
+        [isOverlay]="false"
+      ></app-spinner>
+    </div>
+
+    <!-- Tools grid - only show when not loading -->
+    <div class="tools-page-grid" *ngIf="!isLoading()">
+      <ng-container *ngIf="filteredPythonTools.length > 0">
+        <app-python-tool-card
+          *ngFor="let tool of filteredPythonTools; trackBy: trackByToolId"
+          [tool]="tool"
+          (toolEnabledUpdated)="onPythonToolEnabledUpdated($event)"
+          (configureClicked)="openPythonToolConfigurationDialog($event)"
+          (toolDeleted)="onPythonToolDelete($event)"
+        ></app-python-tool-card>
+      </ng-container>
+
+      <ng-container *ngIf="filteredTools.length > 0">
+        <app-tool-card
+          *ngFor="let tool of filteredTools; trackBy: trackByToolId"
+          [tool]="tool"
+          (toolEnabledUpdated)="onToolEnabledUpdated($event)"
+          (configureClicked)="openConfigurationDialog($event)"
+        ></app-tool-card>
+      </ng-container>
+
+      <ng-container
+        *ngIf="filteredTools.length === 0 && filteredPythonTools.length === 0"
+      >
+        <div class="no-tools">
+          <p>No tools match your search</p>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

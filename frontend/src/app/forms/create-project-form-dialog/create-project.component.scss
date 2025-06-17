@@ -1,0 +1,179 @@
+/* create-project.component.scss */
+
+.main-container {
+  max-height: 85vh;
+  background-color: var(--gray-900);
+  color: var(--gray-100);
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px !important;
+}
+
+.content {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  padding-bottom: 0;
+
+  /* Custom field with process toggle */
+  .custom-field {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    margin-bottom: 1.5rem; // Add consistent gap between form elements
+
+    label {
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--gray-300);
+      font-size: 0.875rem;
+
+      .required {
+        color: var(--accent-color);
+        margin-left: 2px;
+      }
+    }
+
+    input,
+    textarea,
+    select {
+      background-color: var(--gray-800);
+      border: 1px solid var(--gray-750);
+      border-radius: 8px;
+      padding: 0.625rem 0.875rem;
+      font-size: 0.9375rem;
+      color: var(--gray-200);
+      outline: none;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%239b9b9b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 0.875rem center;
+      background-size: 12px;
+      padding-right: 2.5rem;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--gray-600);
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(104, 95, 255, 0.2);
+      background-color: var(--gray-800);
+      color: var(--gray-100);
+    }
+
+    .error-message {
+      position: absolute;
+      bottom: -25px;
+      right: 0;
+      font-size: 0.75rem;
+      color: #ff6b6b;
+      padding: 2px 0;
+    }
+  }
+
+  /* Style the input with icon layout */
+  .input-with-icon {
+    display: flex;
+    align-items: center;
+
+    background-color: var(--gray-800);
+    border: 1px solid var(--gray-750);
+    border-radius: 8px;
+    padding: 0.125rem;
+    padding-left: 0.35rem;
+    &:focus-within {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(104, 95, 255, 0.2);
+    }
+
+    input {
+      background-color: transparent;
+      border: none;
+      box-shadow: none;
+      flex: 1;
+      padding-inline: 0.875rem;
+      &:focus {
+        border: none;
+        box-shadow: none;
+        background-color: transparent;
+      }
+    }
+  }
+
+  /* Hierarchical Settings */
+  .hierarchical-settings {
+    margin-top: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--gray-850);
+    border-radius: 8px;
+    background-color: var(--gray-800);
+
+    .info-message {
+      font-size: 0.8125rem;
+      color: var(--gray-400);
+      margin-bottom: 1rem;
+    }
+
+    .custom-field {
+      margin-bottom: 1.25rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  /* Toggle button for advanced settings */
+  .toggle-settings {
+    color: var(--accent-color);
+    font-weight: 500;
+    padding: 0;
+
+    margin-bottom: 1.45rem;
+    font-size: 0.875rem;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .toggle-field {
+    margin-bottom: 1.25rem;
+
+    .toggle-label {
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--gray-300);
+      font-size: 0.875rem;
+    }
+  }
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

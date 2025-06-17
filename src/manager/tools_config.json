@@ -3,7 +3,8 @@
     "image_name": "langchain_tools",
     "tool_dict": {
         "create_draft": {
-          "class_name": "GmailCreateDraft"
+          "class_name": "GmailCreateDraft",
+          "package": "langchain_community.tools.gmail.create_draft"
         }
     },
     "dependencies": [
@@ -48,10 +49,6 @@
         },
         "file_writer": {
           "class_name": "FileWriterTool",
-          "package": "crewai_tools"
-        },
-        "github_search": {
-          "class_name": "GithubSearchTool",
           "package": "crewai_tools"
         },
         "serper_dev": {
@@ -110,21 +107,43 @@
         "youtube_channel_search": {
           "class_name": "YoutubeChannelSearchTool",
           "package": "crewai_tools"
-        },
-        
-        "youtube_video_search": {
-          "class_name": "YoutubeVideoSearchTool",
-          "package": "crewai_tools"
         }
-
     },
     "dependencies": [
-      "crewai[tools]"
+      "crewai[tools]==0.86.0"
     ]
   },
   {
-    "image_name": "firecraw",
+    "image_name": "github_search",
     "tool_dict": {
+      "github_search": {
+        "class_name": "GithubSearchTool",
+        "package": "crewai_tools"
+      }
+    },
+    "dependencies": [
+      "crewai[tools]==0.86.0", "gitpython==3.1.38", "PyGithub==1.59.1"
+    ]
+  },
+  {
+    "image_name": "youtube_video_search",
+    "tool_dict": {
+      "youtube_video_search": {
+        "class_name": "YoutubeVideoSearchTool",
+        "package": "crewai_tools"
+      }
+    },
+    "dependencies": [
+      "crewai[tools]==0.86.0", "youtube-transcript-api"
+    ]
+  },
+  {
+    "image_name": "firecrawl",
+    "tool_dict": {
+        "firecrawl_crawl_website": {
+          "class_name": "FirecrawlCrawlWebsiteTool",
+          "package": "crewai_tools"
+        },
         "firecrawl_scrape_website": {
           "class_name": "FirecrawlScrapeWebsiteTool",
           "package": "crewai_tools"
@@ -135,7 +154,7 @@
         }
     },
     "dependencies": [
-      "crewai[tools]", "firecrawl-py"
+      "crewai[tools]==0.86.0", "firecrawl-py"
     ]
   },
   {
@@ -147,7 +166,7 @@
         }
     },
     "dependencies": [
-      "crewai[tools]", "firecrawl-py"
+      "crewai[tools]==0.86.0", "firecrawl-py"
     ]
   },
   {
@@ -159,22 +178,20 @@
         }
     },
     "dependencies": [
-      "crewai[tools]", "composio-core"
+      "crewai[tools]==0.86.0", "composio-core"
     ]
   },
   {
     "image_name": "browserbase_load",
     "tool_dict": {
       "browserbase_load": {
-        "composio": {
-          "class_name": "BrowserbaseLoadTool",
-          "package": "crewai_tools"
-        }
+        "class_name": "BrowserbaseLoadTool",
+        "package": "crewai_tools"
       }
     },
     
     "dependencies": [
-      "crewai[tools]", "browserbase"
+      "crewai[tools]==0.86.0", "browserbase"
     ]
   },
 
@@ -223,6 +240,38 @@
     },
     "dependencies": [
       "langchain_community", "duckduckgo-search"
+    ]
+  },
+  {
+    "image_name": "custom_tools",
+    "tool_dict": {
+        "custom_create_draft": {
+          "class_name": "CreateDraftTool"
+        },
+        "custom_file_append": {
+          "class_name": "AppendFileTool"
+        },
+        "custom_file_count_lines":{
+          "class_name": "FileCountLinesTool"
+        },
+        "custom_create_file":{
+          "class_name": "CreateFileTool"
+        },
+        "custom_edit_file":{
+          "class_name": "EditFileTool"
+        },
+        "custom_line_read_file":{
+          "class_name": "LineReadFileTool"
+        },
+        "custom_folder_tool":{
+          "class_name": "FolderTool"
+        },
+        "custom_cli": {
+          "class_name": "CLITool"
+        }
+    },
+    "dependencies": [
+      "crewai==0.86.0", "langchain", "open-interpreter"
     ]
   }
 ]

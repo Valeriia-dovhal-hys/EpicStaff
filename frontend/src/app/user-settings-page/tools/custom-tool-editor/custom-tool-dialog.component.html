@@ -1,0 +1,103 @@
+<div class="custom-tool-dialog">
+  <form [formGroup]="form" (ngSubmit)="createTool()">
+    <!-- Global dialog header -->
+    <div class="dialog-header">
+      <h2>
+        {{
+          selectedTool ? "Update " + selectedTool.name : "Create Custom Tool"
+        }}
+      </h2>
+
+      <button class="close-btn" type="button" (click)="close()">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <!-- Dialog Content -->
+    <div class="dialog-content">
+      <div class="name-section">
+        <h3>Name <span class="required">*</span></h3>
+        <!-- Wrap the input in a container for absolute positioning -->
+        <div class="input-container">
+          <input
+            #toolNameInput
+            type="text"
+            class="name-input-field"
+            placeholder="Enter tool name..."
+            formControlName="toolName"
+          />
+          <!-- Error message for required validation -->
+          <div
+            class="error-message"
+            *ngIf="
+              form.get('toolName')?.dirty &&
+              form.get('toolName')?.hasError('required')
+            "
+          >
+            Tool name is required.
+          </div>
+          <!-- Error message for unique name validation -->
+          <div
+            class="error-message"
+            *ngIf="
+              form.get('toolName')?.dirty &&
+              form.get('toolName')?.hasError('nonUniqueName')
+            "
+          >
+            Tool name must be unique.
+          </div>
+        </div>
+      </div>
+
+      <!-- Description Section -->
+      <div class="description-section">
+        <h3>Description<span class="required">*</span></h3>
+        <div class="input-container">
+          <textarea
+            class="description-textarea"
+            placeholder="Enter tool description..."
+            formControlName="toolDescription"
+          ></textarea>
+          <div
+            class="error-message"
+            *ngIf="
+              form.get('toolDescription')?.dirty &&
+              form.get('toolDescription')?.hasError('required')
+            "
+          >
+            Description is required.
+          </div>
+        </div>
+      </div>
+
+      <!-- Variables Section -->
+      <app-tool-variables
+        [argShema]="selectedTool?.args_schema"
+      ></app-tool-variables>
+
+      <!-- Code Editor Section -->
+      <app-code-editor
+        [pythonCode]="pythonCode"
+        (errorChange)="onEditorErrorChange($event)"
+      ></app-code-editor>
+
+      <!-- Libraries Section -->
+      <app-tool-libraries
+        [libraries]="selectedTool?.python_code?.libraries"
+      ></app-tool-libraries>
+    </div>
+
+    <!-- Global dialog footer -->
+    <div class="dialog-footer">
+      <button class="btn close" type="button" (click)="close()">Close</button>
+      <button
+        class="btn create"
+        type="submit"
+        [disabled]="form.invalid || editorHasError"
+        [class.disabled]="form.invalid || editorHasError"
+      >
+        {{ selectedTool ? "Update" : "Create" }}
+      </button>
+    </div>
+  </form>
+</div>

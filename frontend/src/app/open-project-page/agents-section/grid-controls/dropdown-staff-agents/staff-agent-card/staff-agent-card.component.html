@@ -1,0 +1,353 @@
+<div class="agent-card">
+  <div class="header">
+    <div class="header-left">
+      <div class="emoji-wrapper">
+        <span class="project-emoji">{{ getAgentEmoji() }}</span>
+      </div>
+      <h3 class="role-title" [title]="agent.role">{{ agent.role }}</h3>
+    </div>
+    <div class="header-icons">
+      <!-- <div
+        class="icon-container"
+        [class.active]="agent.memory"
+        [title]="agent.memory ? 'Memory Enabled' : 'Memory Disabled'"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="feature-icon memory-icon"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M12 6m-8 0a8 3 0 1 0 16 0a8 3 0 1 0 -16 0" />
+          <path d="M4 6v6a8 3 0 0 0 16 0v-6" />
+          <path d="M4 12v6a8 3 0 0 0 16 0v-6" />
+        </svg>
+      </div>
+
+      <div
+        class="icon-container"
+        [class.active]="agent.allow_delegation"
+        [title]="
+          agent.allow_delegation ? 'Delegation Enabled' : 'Delegation Disabled'
+        "
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="feature-icon delegation-icon"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+          <path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          <path d="M21 21v-2a4 4 0 0 0 -3 -3.85" />
+        </svg>
+      </div> -->
+
+      <div
+        class="icon-container menu-icon-container"
+        title="Menu Options"
+        (click)="toggleMenu($event)"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="feature-icon menu-icon"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+          <path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+          <path d="M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+        </svg>
+        <app-agent-menu
+          *ngIf="isMenuOpen"
+          [isOpen]="isMenuOpen"
+          [state]="cardState"
+          (close)="closeMenu()"
+          (advancedSettings)="onAdvancedSettings()"
+          (addToFavorites)="onAddToFavorites()"
+          (removeAgent)="onRemoveFromMenu()"
+          [agent]="agent"
+        >
+        </app-agent-menu>
+      </div>
+      <ng-container *ngIf="cardState !== 'default'">
+        <!-- Add Agent Icon (only shown in 'adding' state) -->
+        <div
+          *ngIf="cardState === 'adding'"
+          class="icon-container add-icon-container"
+          title="Add Agent"
+          (click)="onAddAgentClick()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="plus-icon"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 5l0 14" />
+            <path d="M5 12l14 0" />
+          </svg>
+        </div>
+
+        <!-- Remove Agent Icon (only shown in 'removing' state) -->
+        <div
+          *ngIf="cardState === 'removing'"
+          class="icon-container remove-icon-container"
+          title="Remove Agent"
+          (click)="onRemoveAgentClick()"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="close-icon"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M18 6l-12 12" />
+            <path d="M6 6l12 12" />
+          </svg>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+  <div class="body">
+    <!-- GOAL SECTION -->
+    <div class="section">
+      <h4 class="section-title">GOAL</h4>
+      <div class="collapsible-content">
+        <p class="section-content" [class.truncated]="!goalExpanded">
+          {{ agent.goal }}
+        </p>
+        <button
+          *ngIf="isTextTruncated(agent.goal)"
+          class="toggle-button"
+          (click)="goalExpanded = !goalExpanded"
+        >
+          {{ goalExpanded ? "Show Less" : "Show More" }}
+        </button>
+      </div>
+    </div>
+
+    <!-- BACKSTORY SECTION -->
+    <div class="section">
+      <h4 class="section-title">BACKSTORY</h4>
+      <div class="collapsible-content">
+        <p class="section-content" [class.truncated]="!backstoryExpanded">
+          {{ agent.backstory }}
+        </p>
+        <button
+          *ngIf="isTextTruncated(agent.backstory)"
+          class="toggle-button"
+          (click)="backstoryExpanded = !backstoryExpanded"
+        >
+          {{ backstoryExpanded ? "Show Less" : "Show More" }}
+        </button>
+      </div>
+    </div>
+    <div class="agent-features" *ngIf="agent">
+      <div
+        class="feature-tag"
+        [class.enabled]="agent.memory"
+        [class.disabled]="!agent.memory"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="feature-icon"
+        >
+          <path d="M7 7h10v10H7z"></path>
+          <path d="M17 1h4v4"></path>
+          <path d="M21 5L9 17"></path>
+          <path d="M3 17l4 4"></path>
+          <path d="M17 21h4v-4"></path>
+          <path d="M1 3h4v4"></path>
+        </svg>
+        <span>Memory</span>
+      </div>
+      <div
+        class="feature-tag"
+        [class.enabled]="agent.allow_delegation"
+        [class.disabled]="!agent.allow_delegation"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="feature-icon"
+        >
+          <path
+            d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10-4.5 10-10 10"
+          ></path>
+          <path d="M10 8l6 4-6 4V8z"></path>
+        </svg>
+        <span>Delegation</span>
+      </div>
+    </div>
+    <!-- DETAILS SECTION (Model, Tools, Tags) -->
+    <div class="section">
+      <div class="section-header" (click)="toggleSection('details')">
+        <h4 class="section-title">DETAILS</h4>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon"
+          [class.expanded]="sectionStates.details"
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+
+      <div
+        class="details-content"
+        [class.expanded]="sectionStates.details"
+        [@expandCollapse]="sectionStates.details ? 'expanded' : 'collapsed'"
+      >
+        <!-- MODEL SECTION -->
+        <div class="details-subsection">
+          <h5 class="subsection-title">MODEL</h5>
+          <div *ngIf="agent.fullLlmConfig; else noModel">
+            <p class="model-name">{{ agent.fullLlmConfig.modelName }}</p>
+            <p
+              class="model-custom-name"
+              *ngIf="agent.fullLlmConfig.custom_name"
+            >
+              {{ agent.fullLlmConfig.custom_name }}
+            </p>
+          </div>
+          <ng-template #noModel>
+            <p class="section-subtitle"><em>No LLM provided</em></p>
+          </ng-template>
+        </div>
+
+        <!-- TOOLS SECTION -->
+        <div class="details-subsection">
+          <h5 class="subsection-title">TOOLS</h5>
+          <div
+            *ngIf="
+              agent.mergedTools && agent.mergedTools.length > 0;
+              else noTools
+            "
+          >
+            <div class="tools-container">
+              <div class="tool-item" *ngFor="let tool of getDisplayedTools()">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="tool-icon"
+                >
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                  <path
+                    d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"
+                  />
+                  <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                </svg>
+                <span class="tool-name">{{ tool.name }}</span>
+              </div>
+
+              <button
+                *ngIf="shouldShowToolsToggle()"
+                class="toggle-button tools-toggle"
+                (click)="toolsExpanded = !toolsExpanded"
+              >
+                {{
+                  toolsExpanded
+                    ? "Show Less"
+                    : "Show More (" + (agent.mergedTools.length - 4) + ")"
+                }}
+              </button>
+            </div>
+          </div>
+          <ng-template #noTools>
+            <p class="section-subtitle"><em>No tools assigned</em></p>
+          </ng-template>
+        </div>
+
+        <!-- TAGS SECTION -->
+        <div
+          class="details-subsection"
+          *ngIf="agent.tags && agent.tags.length > 0"
+        >
+          <h5 class="subsection-title">TAGS</h5>
+          <div class="tags-container">
+            <div class="tag" *ngFor="let tag of getDisplayedTags()">
+              #{{ tag }}
+            </div>
+            <button
+              *ngIf="shouldShowTagsToggle()"
+              class="toggle-button tags-toggle"
+              (click)="tagsExpanded = !tagsExpanded"
+            >
+              {{
+                tagsExpanded
+                  ? "Show Less"
+                  : "Show More (" + (agent.tags.length - 6) + ")"
+              }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

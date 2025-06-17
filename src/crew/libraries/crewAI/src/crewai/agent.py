@@ -1,39 +1,40 @@
-import os
-from inspect import signature
-from typing import Any, List, Optional, Union
+import shutil
+import subprocess
+from typing import Any, Dict, List, Literal, Optional, Union
+
 from pydantic import Field, InstanceOf, PrivateAttr, model_validator
 
 from crewai.agents import CacheHandler
-from crewai.utilities import Converter, Prompts
-from crewai.tools.agent_tools import AgentTools
-from crewai.agents.crew_agent_executor import CrewAgentExecutor
 from crewai.agents.agent_builder.base_agent import BaseAgent
-from crewai.memory.contextual.contextual_memory import ContextualMemory
-from crewai.utilities.constants import TRAINED_AGENTS_DATA_FILE, TRAINING_DATA_FILE
-from crewai.utilities.training_handler import CrewTrainingHandler
-from crewai.utilities.token_counter_callback import TokenCalcHandler
+from crewai.agents.crew_agent_executor import CrewAgentExecutor
 from crewai.llm import LLM
+from crewai.memory.contextual.contextual_memory import ContextualMemory
+from crewai.memory.contextual.user_input_contextual_memory import (
+    UserInputContextualMemory,
+)
+from crewai.task import Task
+from crewai.tools import BaseTool
+from crewai.tools.agent_tools.agent_tools import AgentTools
+from crewai.tools.base_tool import Tool
+from crewai.utilities import Converter, Prompts
+from crewai.utilities.constants import TRAINED_AGENTS_DATA_FILE, TRAINING_DATA_FILE
+from crewai.utilities.converter import generate_model_description
+from crewai.utilities.llm_utils import create_llm
+from crewai.utilities.token_counter_callback import TokenCalcHandler
+from crewai.utilities.training_handler import CrewTrainingHandler
 
+agentops = None
 
-def mock_agent_ops_provider():
-    def track_agent(*args, **kwargs):
+try:
+    import agentops  # type: ignore # Name "agentops" is already defined
+    from agentops import track_agent  # type: ignore
+except ImportError:
+
+    def track_agent():
         def noop(f):
             return f
 
         return noop
-
-    return track_agent
-
-
-agentops = None
-
-if os.environ.get("AGENTOPS_API_KEY"):
-    try:
-        from agentops import track_agent
-    except ImportError:
-        track_agent = mock_agent_ops_provider()
-else:
-    track_agent = mock_agent_ops_provider()
 
 
 @track_agent()
@@ -58,6 +59,8 @@ class Agent(BaseAgent):
             allow_delegation: Whether the agent is allowed to delegate tasks to other agents.
             tools: Tools at agents disposal
             step_callback: Callback to be executed after each step of the agent execution.
+
+            knowledge_collection_id: A unique identifier of the knowledgecollection instance for agent. Now fields "knowledge_sources" and "knowledge" are unnecessary.
     """
 
     _times_executed: int = PrivateAttr(default=0)
@@ -81,7 +84,7 @@ class Agent(BaseAgent):
     llm: Union[str, InstanceOf[LLM], Any] = Field(
         description="Language model that will run the agent.", default=None
     )
-    function_calling_llm: Optional[Any] = Field(
+    function_calling_llm: Optional[Union[str, InstanceOf[LLM], Any]] = Field(
         description="Language model that will run the agent.", default=None
     )
     system_template: Optional[str] = Field(
@@ -111,66 +114,44 @@ class Agent(BaseAgent):
         default=2,
         description="Maximum number of retries for an agent to execute a task when an error occurs.",
     )
+    multimodal: bool = Field(
+        default=False,
+        description="Whether the agent is multimodal.",
+    )
+    code_execution_mode: Literal["safe", "unsafe"] = Field(
+        default="safe",
+        description="Mode for code execution: 'safe' (using Docker) or 'unsafe' (direct execution).",
+    )
+    embedder: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Embedder configuration for the agent.",
+    )
+    ask_human_input_callback: Optional[Any] = Field(
+        default=None,
+        description="Callback to be executed after Agent action if user_input is true",
+    )
+    search_knowledges: Optional[Any] = Field(
+        default=None,
+        description="KnowledgeSearchService method for searching in knowledge module with redis pub/sub",
+    )
+    user_input_contextual_memory: Optional[Any] = Field(
+        default=None,
+        description="user_input_contextual_memory",
+    )
 
     @model_validator(mode="after")
     def post_init_setup(self):
         self.agent_ops_agent_name = self.role
 
-        # Handle different cases for self.llm
-        if isinstance(self.llm, str):
-            # If it's a string, create an LLM instance
-            self.llm = LLM(model=self.llm)
-        elif isinstance(self.llm, LLM):
-            # If it's already an LLM instance, keep it as is
-            pass
-        elif self.llm is None:
-            # If it's None, use environment variables or default
-            model_name = os.environ.get("OPENAI_MODEL_NAME", "gpt-4o-mini")
-            llm_params = {"model": model_name}
-
-            api_base = os.environ.get("OPENAI_API_BASE") or os.environ.get(
-                "OPENAI_BASE_URL"
-            )
-            if api_base:
-                llm_params["base_url"] = api_base
-
-            api_key = os.environ.get("OPENAI_API_KEY")
-            if api_key:
-                llm_params["api_key"] = api_key
-
-            self.llm = LLM(**llm_params)
-        else:
-            # For any other type, attempt to extract relevant attributes
-            llm_params = {
-                "model": getattr(self.llm, "model_name", None)
-                or getattr(self.llm, "deployment_name", None)
-                or str(self.llm),
-                "temperature": getattr(self.llm, "temperature", None),
-                "max_tokens": getattr(self.llm, "max_tokens", None),
-                "logprobs": getattr(self.llm, "logprobs", None),
-                "timeout": getattr(self.llm, "timeout", None),
-                "max_retries": getattr(self.llm, "max_retries", None),
-                "api_key": getattr(self.llm, "api_key", None),
-                "base_url": getattr(self.llm, "base_url", None),
-                "organization": getattr(self.llm, "organization", None),
-            }
-            # Remove None values to avoid passing unnecessary parameters
-            llm_params = {k: v for k, v in llm_params.items() if v is not None}
-            self.llm = LLM(**llm_params)
-
-        # Similar handling for function_calling_llm
-        if self.function_calling_llm:
-            if isinstance(self.function_calling_llm, str):
-                self.function_calling_llm = LLM(model=self.function_calling_llm)
-            elif not isinstance(self.function_calling_llm, LLM):
-                self.function_calling_llm = LLM(
-                    model=getattr(self.function_calling_llm, "model_name", None)
-                    or getattr(self.function_calling_llm, "deployment_name", None)
-                    or str(self.function_calling_llm)
-                )
+        self.llm = create_llm(self.llm)
+        if self.function_calling_llm and not isinstance(self.function_calling_llm, LLM):
+            self.function_calling_llm = create_llm(self.function_calling_llm)
 
         if not self.agent_executor:
             self._setup_agent_executor()
+
+        if self.allow_code_execution:
+            self._validate_docker_installation()
 
         return self
 
@@ -181,9 +162,9 @@ class Agent(BaseAgent):
 
     def execute_task(
         self,
-        task: Any,
+        task: Task,
         context: Optional[str] = None,
-        tools: Optional[List[Any]] = None,
+        tools: Optional[List[BaseTool]] = None,
     ) -> str:
         """Execute a task with the agent.
 
@@ -200,6 +181,22 @@ class Agent(BaseAgent):
 
         task_prompt = task.prompt()
 
+        # If the task requires output in JSON or Pydantic format,
+        # append specific instructions to the task prompt to ensure
+        # that the final answer does not include any code block markers
+        if task.output_json or task.output_pydantic:
+            # Generate the schema based on the output format
+            if task.output_json:
+                # schema = json.dumps(task.output_json, indent=2)
+                schema = generate_model_description(task.output_json)
+
+            elif task.output_pydantic:
+                schema = generate_model_description(task.output_pydantic)
+
+            task_prompt += "\n" + self.i18n.slice("formatted_task_instructions").format(
+                output_format=schema
+            )
+
         if context:
             task_prompt = self.i18n.slice("task_with_context").format(
                 task=task_prompt, context=context
@@ -207,13 +204,41 @@ class Agent(BaseAgent):
 
         if self.crew and self.crew.memory:
             contextual_memory = ContextualMemory(
+                self.crew.memory_config,
                 self.crew._short_term_memory,
                 self.crew._long_term_memory,
                 self.crew._entity_memory,
+                self.crew._user_memory,
             )
             memory = contextual_memory.build_context_for_task(task, context)
             if memory.strip() != "":
                 task_prompt += self.i18n.slice("memory").format(memory=memory)
+            self.user_input_contextual_memory = UserInputContextualMemory(
+                memory_config=self.crew.memory_config, um=self.crew._user_memory
+            )
+
+        if self.knowledge_collection_id:
+            # TODO: remove hardcode: search_limit, distance_threshold
+            knowledge_result = self.search_knowledges(
+                sender="ag",
+                knowledge_collection_id=self.knowledge_collection_id,
+                query=task.prompt(),
+                search_limit=3,
+                distance_threshold=0.7,
+            )
+            task_prompt += knowledge_result
+
+        if self.crew:
+            if self.crew.knowledge_collection_id:
+                # TODO: remove hardcode: search_limit, distance_threshold
+                knowledge_result = self.search_knowledges(
+                    sender="cr",
+                    knowledge_collection_id=self.crew.knowledge_collection_id,
+                    query=task.prompt(),
+                    search_limit=3,
+                    distance_threshold=0.7,
+                )
+                task_prompt += knowledge_result
 
         tools = tools or self.tools or []
         self.create_agent_executor(tools=tools, task=task)
@@ -233,6 +258,9 @@ class Agent(BaseAgent):
                 }
             )["output"]
         except Exception as e:
+            if e.__class__.__module__.startswith("litellm"):
+                # Do not retry on litellm errors
+                raise e
             self._times_executed += 1
             if self._times_executed > self.max_retry_limit:
                 raise e
@@ -250,7 +278,9 @@ class Agent(BaseAgent):
 
         return result
 
-    def create_agent_executor(self, tools=None, task=None) -> None:
+    def create_agent_executor(
+        self, tools: Optional[List[BaseTool]] = None, task=None
+    ) -> None:
         """Create an agent executor for the agent.
 
         Returns:
@@ -292,10 +322,12 @@ class Agent(BaseAgent):
             step_callback=self.step_callback,
             function_calling_llm=self.function_calling_llm,
             respect_context_window=self.respect_context_window,
-            request_within_rpm_limit=self._rpm_controller.check_or_wait
-            if self._rpm_controller
-            else None,
+            request_within_rpm_limit=(
+                self._rpm_controller.check_or_wait if self._rpm_controller else None
+            ),
             callbacks=[TokenCalcHandler(self._token_process)],
+            ask_human_input_callback=self.ask_human_input_callback,
+            user_input_contextual_memory=self.user_input_contextual_memory,
         )
 
     def get_delegation_tools(self, agents: List[BaseAgent]):
@@ -303,11 +335,18 @@ class Agent(BaseAgent):
         tools = agent_tools.tools()
         return tools
 
+    def get_multimodal_tools(self) -> List[Tool]:
+        from crewai.tools.agent_tools.add_image_tool import AddImageTool
+
+        return [AddImageTool()]
+
     def get_code_execution_tools(self):
         try:
             from crewai_tools import CodeInterpreterTool
 
-            return [CodeInterpreterTool()]
+            # Set the unsafe_mode based on the code_execution_mode attribute
+            unsafe_mode = self.code_execution_mode == "unsafe"
+            return [CodeInterpreterTool(unsafe_mode=unsafe_mode)]
         except ModuleNotFoundError:
             self._logger.log(
                 "info", "Coding tools not available. Install crewai_tools. "
@@ -321,11 +360,11 @@ class Agent(BaseAgent):
         tools_list = []
         try:
             # tentatively try to import from crewai_tools import BaseTool as CrewAITool
-            from crewai_tools import BaseTool as CrewAITool
+            from crewai.tools import BaseTool as CrewAITool
 
             for tool in tools:
                 if isinstance(tool, CrewAITool):
-                    tools_list.append(tool.to_langchain())
+                    tools_list.append(tool.to_structured_tool())
                 else:
                     tools_list.append(tool)
         except ModuleNotFoundError:
@@ -380,32 +419,41 @@ class Agent(BaseAgent):
 
         return description
 
-    def _render_text_description_and_args(self, tools: List[Any]) -> str:
+    def _render_text_description_and_args(self, tools: List[BaseTool]) -> str:
         """Render the tool name, description, and args in plain text.
 
-        Output will be in the format of:
+            Output will be in the format of:
 
-        .. code-block:: markdown
+            .. code-block:: markdown
 
             search: This tool is used for search, args: {"query": {"type": "string"}}
             calculator: This tool is used for math, \
-    args: {"expression": {"type": "string"}}
+            args: {"expression": {"type": "string"}}
         """
         tool_strings = []
         for tool in tools:
-            args_schema = str(tool.args)
-            if hasattr(tool, "func") and tool.func:
-                sig = signature(tool.func)
-                description = (
-                    f"Tool Name: {tool.name}{sig}\nTool Description: {tool.description}"
-                )
-            else:
-                description = (
-                    f"Tool Name: {tool.name}\nTool Description: {tool.description}"
-                )
-            tool_strings.append(f"{description}\nTool Arguments: {args_schema}")
+            tool_strings.append(tool.description)
 
         return "\n".join(tool_strings)
+
+    def _validate_docker_installation(self) -> None:
+        """Check if Docker is installed and running."""
+        if not shutil.which("docker"):
+            raise RuntimeError(
+                f"Docker is not installed. Please install Docker to use code execution with agent: {self.role}"
+            )
+
+        try:
+            subprocess.run(
+                ["docker", "info"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        except subprocess.CalledProcessError:
+            raise RuntimeError(
+                f"Docker is not running. Please start Docker to use code execution with agent: {self.role}"
+            )
 
     @staticmethod
     def __tools_names(tools) -> str:

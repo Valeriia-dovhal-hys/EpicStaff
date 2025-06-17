@@ -1,0 +1,45 @@
+<div class="header">
+  <div class="title-section">
+    <h1 class="title">Flows</h1>
+    <span class="project-count">({{ projectCount }})</span>
+  </div>
+
+  <div class="header-actions">
+    <!-- Search Box -->
+    <div class="search-box" [class.filled]="searchTerm.trim().length > 0">
+      <mat-icon class="icon">search</mat-icon>
+      <input
+        type="text"
+        placeholder="Search projects..."
+        (input)="onSearchInput($event)"
+      />
+    </div>
+
+    <!-- Sort Button -->
+    <button class="action-btn sort-btn">
+      <mat-icon class="icon">sort</mat-icon>
+      <span>Sort</span>
+    </button>
+
+    <!-- Filter Button -->
+    <button class="action-btn filter-btn">
+      <mat-icon class="icon">filter_list</mat-icon>
+      <span>Filter</span>
+    </button>
+
+    <!-- Favorite Toggle -->
+    <button
+      class="action-btn favorite-btn"
+      [class.active]="showFavorites"
+      (click)="toggleFavorite()"
+    >
+      <mat-icon class="icon">star</mat-icon>
+    </button>
+
+    <!-- New Flow Button -->
+    <button class="new-flow-btn" (click)="openCreateForm()">
+      <mat-icon class="icon">add</mat-icon>
+      <span>New Flow</span>
+    </button>
+  </div>
+</div>

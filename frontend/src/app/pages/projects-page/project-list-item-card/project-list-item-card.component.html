@@ -1,0 +1,58 @@
+<!-- project-list-item-card.component.html -->
+<div class="project-card" (click)="onOpenProject()">
+  <!-- Header with title and emoji -->
+  <div class="card-header">
+    <div class="title-with-emoji">
+      <div class="emoji-wrapper">
+        <span class="project-emoji">{{ getProjectEmoji() }}</span>
+      </div>
+      <h3 class="project-title">{{ project.name }}</h3>
+    </div>
+  </div>
+
+  <!-- Description with ellipsis -->
+  <p
+    class="project-description"
+    [ngClass]="{ 'no-description': !project.description }"
+  >
+    {{ project.description || "No description provided" }}
+  </p>
+
+  <!-- Tags section and menu icon combined in a footer layout -->
+  <div class="footer">
+    <div class="project-tags">
+      <div class="tags-icon">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-tags"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path
+            d="M3 8v4.172a2 2 0 0 0 .586 1.414l5.71 5.71a2.41 2.41 0 0 0 3.408 0l3.592 -3.592a2.41 2.41 0 0 0 0 -3.408l-5.71 -5.71a2 2 0 0 0 -1.414 -.586h-4.172a2 2 0 0 0 -2 2z"
+          />
+          <path
+            d="M18 19l1.592 -1.592a4.82 4.82 0 0 0 0 -6.816l-4.592 -4.592"
+          />
+          <path d="M7 10h-.01" />
+        </svg>
+      </div>
+      <span class="tag" *ngFor="let label of project.labels">{{ label }}</span>
+    </div>
+    <div
+      class="menu-icon"
+      [ngClass]="{ 'is-open': isMenuOpen }"
+      #menuTrigger
+      (click)="toggleMenu($event)"
+    >
+      <i class="ti ti-dots"></i>
+    </div>
+  </div>
+</div>

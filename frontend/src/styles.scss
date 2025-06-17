@@ -1,3 +1,19 @@
-@import "./styles/reset.scss";
-@import "./styles/snackbar.style.scss";
-@import "handsontable/dist/handsontable.full.min.css";
+@use "handsontable/dist/handsontable.full.min.css";
+@use "./styles/_reset.scss";
+@use "./styles/json-viewer.scss";
+@use "./styles/_variables";
+@use "./styles/_scrollbar";
+@use "./styles/snackbar.style.scss";
+@use "./styles/markdown.scss";
+
+.dark-blur-backdrop {
+  backdrop-filter: blur(10px);
+  background-color: rgba(7, 7, 7, 0.404);
+}
+
+/* This ensures all route components will inherit full height */
+router-outlet + * {
+  display: block;
+  height: 100%;
+  width: 100%;
+}

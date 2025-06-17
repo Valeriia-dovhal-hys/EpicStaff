@@ -1,0 +1,8 @@
+ENV
+.env
+**/venv
+*/.venv
+*venvs
+know_venv/
+query_test.py
+demo_stands/

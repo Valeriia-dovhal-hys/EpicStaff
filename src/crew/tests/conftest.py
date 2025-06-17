@@ -16,8 +16,8 @@ def fake_redis_service() -> Generator[RedisService, None, None]:
 
     with patch('services.redis_service.Redis', fakeredis_client):
         service = RedisService(
-            container_manager_service=MagicMock(),
-            session_id=123
+            host="127.0.0.1",
+            port="6379"
         )
         yield service
         

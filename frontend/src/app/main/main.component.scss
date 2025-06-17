@@ -1,0 +1,12 @@
+.body {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+  width: calc(100% - 4.3rem);
+  margin-left: 4.3rem;
+  z-index: 0;
+  top: 0;
+  overflow: hidden; /* Prevents default scrolling on the body */
+  position: relative;
+}

@@ -3,9 +3,30 @@ export interface Tool {
   name: string;
   name_alias: string;
   description: string;
-  requires_model: boolean;
   enabled: boolean;
-  llm_model: number | null;
-  llm_config: number | null;
-  embedding_model: number | null;
+  tool_fields: ToolField[];
+}
+
+export type ToolFieldDataType =
+  | 'llm_config'
+  | 'embedding_config'
+  | 'string'
+  | 'boolean'
+  | 'integer'
+  | 'any';
+
+export interface ToolField {
+  name: string;
+  description: string;
+  data_type: ToolFieldDataType;
+  required: boolean;
+}
+
+export interface GetToolRequest {
+  id: number;
+  name: string;
+  name_alias: string;
+  description: string;
+  enabled: boolean;
+  tool_fields: ToolField[];
 }

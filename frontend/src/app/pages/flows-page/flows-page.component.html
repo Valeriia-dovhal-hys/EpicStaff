@@ -1,0 +1,37 @@
+<app-page-header
+  [headerTitle]="'Flows'"
+  [createButtonTitle]="'New Flow'"
+  [projectCount]="graphCount"
+  [searchPlaceholder]="'this search will work soon'"
+  (openCreate)="openCreateFlowDialog()"
+  [showFilter]="false"
+  [showSort]="false"
+  [showFavoriteToggle]="false"
+></app-page-header>
+
+<div class="flows-wrapper">
+  <div class="loading-container" *ngIf="isLoading()">
+    <app-spinner
+      [text]="'Loading flows...'"
+      [accentColor]="'#6562f5'"
+      [isOverlay]="false"
+    ></app-spinner>
+  </div>
+
+  <div class="flows-list" *ngIf="!isLoading()">
+    <ng-container *ngIf="graphs.length; else noResults">
+      <app-flow-item
+        *ngFor="let graph of graphs; trackBy: trackByGraphId"
+        [graph]="graph"
+        (openFlow)="onOpenFlow($event)"
+        (deleteFlow)="onDeleteFlow($event)"
+        (editFlow)="onEditFlow($event)"
+        (playFlow)="onPlayFlow($event)"
+        (viewSessions)="onViewSessions($event)"
+      ></app-flow-item>
+    </ng-container>
+    <ng-template #noResults>
+      <div class="projects-page-no-results">No graphs available.</div>
+    </ng-template>
+  </div>
+</div>

@@ -1,58 +1,80 @@
+from pathlib import Path
 from dotenv import load_dotenv
 import json
 import os
 from typing import Any, Type
 from dotenv import load_dotenv
+import yaml
 from base_models import Callable
 from pickle_encode import txt_to_obj
 from langchain_core.tools import BaseTool
 from pydantic.v1 import BaseModel as V1BaseModel
 from langchain_core.tools import create_schema_from_function
 from parse_model_data import CallableParser
-from models.models import ToolConfig
+from tool_factory import DynamicToolFactory
+from loguru import logger
 
 cp: CallableParser = CallableParser()
 
 
-def init_tool_classes() -> dict:
-    """
-    Initialize all tools using ALIAS_CALLABLE variable from dotenv file
-
-    Returns:
-        A dict with all tool classes in ALIAS_CALLABLE env variable
-    """
+def load_tool_alias_callable_dict() -> dict[str, Callable]:
     load_dotenv()
     tool_alias_callable_dict_txt = os.environ.get("ALIAS_CALLABLE")
     tool_alias_callable_dict: dict[str, Callable] = txt_to_obj(
         tool_alias_callable_dict_txt
     )
+    logger.debug(f"loaded tool alias: {tool_alias_callable_dict}")
+    return tool_alias_callable_dict
 
-    tool_alias_class_dict = dict()
-    for k, v in tool_alias_callable_dict.items():
-        tool_alias_class_dict[k] = create_tool(v)
-    return tool_alias_class_dict
+
+def register_tools_in_tool_factory(
+    tool_alias_callable_dict: dict[str, Callable]
+) -> None:
+
+    tool_factory = DynamicToolFactory()
+    for alias, tool_callable in tool_alias_callable_dict.items():
+        tool_class, tool_args, tool_kwargs = cp.eval_callable(
+            callable=tool_callable, eval=False
+        )
+
+        tool_factory.register_tool_class(
+            tool_alias=alias,
+            tool_class=tool_class,
+            default_args=tuple(tool_args),
+            default_kwargs=tool_kwargs,
+        )
+        logger.info(f"registered {alias}")
+
+
+def init_tools() -> None:
+    """
+    Initialize all tools in tool factory using ALIAS_CALLABLE variable from dotenv file
+    """
+    tool_alias_callable_dict = load_tool_alias_callable_dict()
+    register_tools_in_tool_factory(tool_alias_callable_dict)
 
 
 def run_tool(
-    tool_class,
-    run_args: list[str],
+    tool,
     run_kwargs: dict[str, Any],
-    tool_config: ToolConfig | None = None,
 ):
     """
-    Run tool with args and kwargs and tool_config
+    Run tool with args and kwargs
     """
-    return tool_class(config=tool_config.model_dump())._run(*run_args, **run_kwargs)
+
+    return tool._run(**run_kwargs)
 
 
-def create_tool(callable: Callable) -> BaseTool:
+def create_tool_class(callable: Callable) -> tuple[BaseTool, tuple, dict]:
     """
-    Create BaseTool using `base_models.Callable`, evaluating nested callables
+    Create BaseTool class `base_models.Callable`, evaluating nested callables
     """
-    return cp.eval_callable(callable=callable)
+    return cp.eval_callable(callable=callable, eval=False)
 
 
-def get_tool_data(tool) -> dict:
+def get_tool_data(
+    tool: BaseTool
+) -> dict:
     """
     Creates tool dict schema from tool using it's name, description and args_schema.
 
@@ -60,16 +82,31 @@ def get_tool_data(tool) -> dict:
     """
     tool_dict = tool.dict(include={"name", "description", "args_schema"})
 
-    if "args_schema" in tool_dict.keys():
-        if tool_dict["args_schema"] is None:
 
-            tool_dict["args_schema"] = create_schema_from_function(
-                model_name=tool.__class__.__name__, func=tool._run
-            )
+    args_schema = tool_dict.get("args_schema")
+    if args_schema is None:
+        args_schema = create_schema_from_function(
+            f"{tool.__class__.__name__}Input", tool._run
+        )
 
-    schema: Type[V1BaseModel] = tool_dict["args_schema"]
+    return {
+        "name": tool_dict["name"],
+        "description": tool_dict["description"],
+        "args_schema": args_schema.schema(),
+    }
 
-    tool_dict["args_schema_json_schema"] = json.dumps(schema.schema())
-    tool_dict.pop("args_schema")
 
-    return tool_dict
+def load_env_from_yaml_config(yaml_config_path):
+    loaded = False
+    try:
+        with open(Path(yaml_config_path).resolve()) as f:
+            cfg: dict = yaml.load(f, Loader=yaml.FullLoader)
+        for k, v in cfg.items():
+            os.environ[k] = v
+            logger.info(f"loaded {k}")
+
+        loaded = True
+    except Exception as e:
+        logger.error(e)
+
+    return loaded

@@ -1,11 +1,35 @@
-import json
-
+from tables.exceptions import GraphEntryPointException
+from tables.models.graph_models import (
+    ConditionalEdge,
+    GraphSessionMessage,
+    LLMNode,
+    StartNode,
+)
+from tables.models.llm_models import LLMConfig
+from tables.validators import validate_tool_configs
 from utils.singleton_meta import SingletonMeta
 from utils.logger import logger
-from tables.services.crew_service import CrewService
+from tables.services.converter_service import ConverterService
 from tables.services.redis_service import RedisService
-from tables.serializers.nested_model_serializers import NestedSessionSerializer
-from tables.models import Session
+
+from tables.request_models import (
+    ConditionalEdgeData,
+    CrewNodeData,
+    EdgeData,
+    GraphData,
+    GraphSessionMessageData,
+    LLMNodeData,
+    PythonNodeData,
+    SessionData,
+)
+
+from tables.models import (
+    CrewNode,
+    Session,
+    Edge,
+    Graph,
+    PythonNode,
+)
 
 
 class SessionManagerService(metaclass=SingletonMeta):
@@ -13,15 +37,13 @@ class SessionManagerService(metaclass=SingletonMeta):
     def __init__(
         self,
         redis_service: RedisService,
-        crew_service: CrewService,
+        converter_service: ConverterService,
     ) -> None:
         self.redis_service = redis_service
-        self.crew_service = crew_service
-
+        self.converter_service = converter_service
 
     def get_session(self, session_id: int) -> Session:
         return Session.objects.get(id=session_id)
-
 
     def stop_session(self, session_id: int) -> None:
         session: Session = self.get_session(session_id=session_id)
@@ -30,64 +52,128 @@ class SessionManagerService(metaclass=SingletonMeta):
         session.status = Session.SessionStatus.END
         session.save()
 
-
     def get_session_status(self, session_id: int) -> Session.SessionStatus:
         session: Session = self.get_session(session_id=session_id)
         return session.status
 
+    def create_session(
+        self,
+        graph_id: int,
+        variables: dict | None = None,
+    ) -> Session:
 
-    def create_session(self, crew_id: int) -> int:
+        start_node = StartNode.objects.filter(graph_id=graph_id).first()
+
+        if variables is not None:
+            pass
+        elif start_node.variables is not None:
+            variables = start_node.variables
+        else:
+            variables = dict()
+
         session = Session.objects.create(
-            crew_id=crew_id, status=Session.SessionStatus.RUN
+            graph_id=graph_id,
+            status=Session.SessionStatus.PENDING,
+            variables=variables,
         )
-        return session.pk
-    
+        return session
 
-    def validate_session(self, schema: dict):
-        
-        crew_name = schema["crew"]["name"]
-        tasks = schema["crew"]["tasks"]
-        agents = schema["crew"]["agents"]
-        
-        if len(tasks) == 0: raise ValueError(f"No tasks provided for {crew_name}")
-        if len(agents) == 0: raise ValueError(f"No agents provided {crew_name}")
+    def create_session_data(
+        self,
+        session: Session,
+    ) -> SessionData:
+        graph: Graph = session.graph
 
+        crew_node_list = CrewNode.objects.filter(graph=graph.pk)
+        python_node_list = PythonNode.objects.filter(graph=graph.pk)
+        edge_list = Edge.objects.filter(graph=graph.pk)
+        conditional_edge_list = ConditionalEdge.objects.filter(graph=graph.pk)
+        llm_node_list = LLMNode.objects.filter(graph=graph.pk)
 
-        agent_roles = [agent["role"] for agent in agents]
-        
-        for task in tasks:
-            if task["agent"]["role"] not in agent_roles:
-                task_name = task["name"]
-                agent_role = task["agent"]["role"]
-                raise ValueError(
-                    f"Agent {agent_role} assigned for task {task_name} not found in crew {crew_name}"
-                )
+        crew_node_data_list: list[CrewNodeData] = []
 
-    def create_session_schema_json(self, session_id: int) -> str:
-        session = self.get_session(session_id=session_id)
+        for item in crew_node_list:
 
-        serialized_session = NestedSessionSerializer(session).data
-        serialized_session["crew"] = self.crew_service.convert_crew_to_pydantic(
-            crew_id=session.crew.pk
-        ).model_dump()
+            crew_node_data_list.append(
+                self.converter_service.convert_crew_node_to_pydantic(crew_node=item)
+            )
 
-        self.crew_service.inject_tasks(serialized_session["crew"])
-        try:
-            self.validate_session(serialized_session)
-            session_json = json.dumps(serialized_session)
-            return session_json
-        except ValueError as e:
-            logger.error(f"Session schema validation failed for session ID {session_id}: {e}")
-            raise
+        python_node_data_list: list[PythonNodeData] = []
+        for item in python_node_list:
+            python_node_data_list.append(
+                self.converter_service.convert_python_node_to_pydantic(python_node=item)
+            )
 
+        llm_node_data_list: list[LLMNodeData] = []
 
+        for item in llm_node_list:
+            llm_node_data_list.append(
+                self.converter_service.convert_llm_node_to_pydantic(llm_node=item)
+            )
 
-    def run_session(self, session_id: int) -> None:
-        session_schema_json = self.create_session_schema_json(session_id=session_id)
+        edge_data_list: list[EdgeData] = []
+
+        for item in edge_list:
+            edge_data_list.append(
+                EdgeData(start_key=item.start_key, end_key=item.end_key)
+            )
+
+        conditional_edge_data_list: list[ConditionalEdgeData] = []
+        for item in conditional_edge_list:
+            conditional_edge_data_list.append(
+                self.converter_service.convert_conditional_edge_to_pydantic(item)
+            )
+
+        start_edge = Edge.objects.filter(start_key="__start__", graph=graph).first()
+
+        if start_edge is None:
+            raise GraphEntryPointException()
+
+        entry_point = start_edge.end_key
+        graph_data = GraphData(
+            name=graph.name,
+            crew_node_list=crew_node_data_list,
+            python_node_list=python_node_data_list,
+            llm_node_list=llm_node_data_list,
+            edge_list=edge_data_list,
+            conditional_edge_list=conditional_edge_data_list,
+            entry_point=entry_point,
+        )
+        session_data = SessionData(
+            id=session.pk, graph=graph_data, initial_state=session.variables
+        )
+
+        # TODO: rewrite validate_session for graphs
+
+        return session_data
+
+    def run_session(self, graph_id: int, variables: dict | None = None) -> int:
+        session: Session = self.create_session(graph_id=graph_id, variables=variables)
+        session_data: SessionData = self.create_session_data(session=session)
+
+        session.graph_schema = session_data.graph.model_dump()
+        session.save()
 
         # CheckStatus
-        self.redis_service.set_session_data(
-            session_id=session_id,
-            session_json_schema=session_schema_json,
+        self.redis_service.publish_session_data(
+            session_data=session_data,
         )
-        self.redis_service.publish_start_session(session_id=session_id)
+        logger.info(f"Session data published in Redis for session ID: {session.pk}.")
+        
+        return session.pk
+    @staticmethod
+    def register_message(data: dict) -> None:
+        if data["message_data"]["message_type"] == "user":
+            graph_session_message_data = GraphSessionMessageData.model_validate(data)
+            session = Session.objects.get(id=graph_session_message_data.session_id)
+            GraphSessionMessage.objects.create(
+                session=session,
+                name=graph_session_message_data.name,
+                execution_order=graph_session_message_data.execution_order,
+                message_data=graph_session_message_data.message_data,
+            )
+
+        else:
+            raise ValueError(
+                f"Unsupported message_type: {data["message_data"]["message_type"]}"
+            )

@@ -1,0 +1,49 @@
+<div class="panel-content">
+  <!-- Description Section -->
+
+  <div class="description" [class.editing]="isEditingDescription">
+    <textarea
+      [(ngModel)]="internalDescription"
+      placeholder="Enter project description..."
+      #descriptionTextarea
+      [rows]="getTextareaRows(internalDescription)"
+      (focus)="onFocusDescription()"
+      (blur)="onBlurDescription()"
+      (input)="adjustTextareaHeight(descriptionTextarea)"
+    ></textarea>
+  </div>
+
+  <!-- Tags Section with Inline Flow -->
+  <div class="section-title">Tags</div>
+  <div class="tags-section">
+    <div class="tags-container">
+      <!-- Existing Tags -->
+      <div
+        class="tag"
+        *ngFor="let tag of internalTags"
+        [class.shake-animation]="tag === duplicateTagName"
+      >
+        <span>#{{ tag }}</span>
+        <button (click)="onRemoveTag(tag)">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+
+      <!-- Tag Input -->
+      <input
+        class="tag-input"
+        [class.has-content]="newTag.length > 0"
+        [class.duplicate]="duplicateTagName !== null"
+        placeholder="Add a tag..."
+        [(ngModel)]="newTag"
+        (keyup.enter)="onAddTag()"
+      />
+
+      <!-- Add Tag Button -->
+      <button class="add-tag-button" (click)="onAddTag()">
+        <i class="ti ti-plus"></i>
+        Add
+      </button>
+    </div>
+  </div>
+</div>

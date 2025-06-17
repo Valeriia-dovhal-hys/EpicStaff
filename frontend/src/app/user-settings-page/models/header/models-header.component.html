@@ -1,0 +1,46 @@
+<div class="header">
+  <div class="title-section">
+    <h1 class="title">Models</h1>
+    <!-- Badge removed per your comment -->
+
+    <span>(slightly deprecated)</span>
+  </div>
+
+  <div class="header-actions">
+    <!-- Search Box -->
+    <div class="search-box" [class.filled]="searchTerm.trim().length > 0">
+      <mat-icon class="icon">search</mat-icon>
+      <input
+        type="text"
+        placeholder="Search models..."
+        (input)="onSearchInput($event)"
+      />
+    </div>
+
+    <!-- Sort Button -->
+    <button class="action-btn sort-btn">
+      <mat-icon class="icon">sort</mat-icon>
+      <span>Sort</span>
+    </button>
+
+    <!-- Filter Button -->
+    <button class="action-btn filter-btn">
+      <mat-icon class="icon">filter_list</mat-icon>
+      <span>Filter</span>
+    </button>
+
+    <!-- Favorite Button -->
+    <button class="action-btn favorite-btn">
+      <mat-icon class="icon">star</mat-icon>
+    </button>
+
+    <!-- Create Custom Model Button -->
+    <button
+      class="action-btn create-model-btn"
+      (click)="openCustomModelDialog()"
+    >
+      <mat-icon class="icon">add</mat-icon>
+      <span>Create Custom Model</span>
+    </button>
+  </div>
+</div>

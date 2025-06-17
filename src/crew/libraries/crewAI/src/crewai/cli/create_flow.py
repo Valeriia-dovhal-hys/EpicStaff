@@ -2,6 +2,8 @@ from pathlib import Path
 
 import click
 
+from crewai.telemetry import Telemetry
+
 
 def create_flow(name):
     """Create a new flow."""
@@ -14,6 +16,10 @@ def create_flow(name):
     if project_root.exists():
         click.secho(f"Error: Folder {folder_name} already exists.", fg="red")
         return
+
+    # Initialize telemetry
+    telemetry = Telemetry()
+    telemetry.flow_creation_span(class_name)
 
     # Create directory structure
     (project_root / "src" / folder_name).mkdir(parents=True)
@@ -38,8 +44,15 @@ def create_flow(name):
     ]
 
     def process_file(src_file, dst_file):
-        with open(src_file, "r") as file:
-            content = file.read()
+        if src_file.suffix in [".pyc", ".pyo", ".pyd"]:
+            return
+
+        try:
+            with open(src_file, "r", encoding="utf-8") as file:
+                content = file.read()
+        except Exception as e:
+            click.secho(f"Error processing file {src_file}: {e}", fg="red")
+            return
 
         content = content.replace("{{name}}", name)
         content = content.replace("{{flow_name}}", class_name)

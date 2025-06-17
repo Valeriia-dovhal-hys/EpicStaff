@@ -1,12 +1,12 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, computed, input } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-main',
   standalone: true,
-  imports: [],
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterOutlet, CommonModule],
   templateUrl: './main.component.html',
-  styleUrls: ['./main.component.scss'],
+  styleUrl: './main.component.scss',
 })
 export class MainComponent {}

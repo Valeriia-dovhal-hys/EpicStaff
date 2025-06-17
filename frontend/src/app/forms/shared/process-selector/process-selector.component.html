@@ -1,0 +1,17 @@
+<div class="switch-container">
+  <div
+    class="switch-option sequential-option"
+    [class.active]="selectedValue === 'sequential'"
+    (click)="setProcessType('sequential')"
+  >
+    Sequential
+  </div>
+  <div
+    class="switch-option hierarchical-option"
+    [class.active]="selectedValue === 'hierarchical'"
+    (click)="setProcessType('hierarchical')"
+  >
+    Hierarchical
+  </div>
+  <div class="switch-slider"></div>
+</div>

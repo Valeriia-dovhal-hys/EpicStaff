@@ -1,0 +1,54 @@
+<div class="dialog-container">
+  <div class="header">
+    <h2>
+      <span class="material-icons header-icon">tune</span>
+      Advanced Settings for {{ taskData.taskName || "New Task" }}
+    </h2>
+  </div>
+  <div class="scrollable-content">
+    <div class="form-section">
+      <div class="form-group">
+        <label>Properties for Output Model Settings</label>
+        <!-- Dynamic property fields -->
+        <div
+          *ngFor="let field of propertyFields; let i = index"
+          class="property-row"
+        >
+          <input
+            type="text"
+            [(ngModel)]="field.name"
+            placeholder="Property name"
+            class="property-input"
+          />
+          <select [(ngModel)]="field.type" class="property-type">
+            <option value="string">string</option>
+            <option value="number">number</option>
+          </select>
+          <input
+            type="text"
+            [(ngModel)]="field.value"
+            placeholder="Property value"
+            class="property-input"
+          />
+          <button
+            type="button"
+            class="remove-btn"
+            (click)="removeProperty(i)"
+            title="Remove Property"
+          >
+            <span class="material-icons">delete</span>
+          </button>
+        </div>
+        <button type="button" class="add-property" (click)="addProperty()">
+          <span class="material-icons">add_circle</span> Add Property
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <button type="button" class="cancel-btn" (click)="dialogRef.close()">
+      Cancel
+    </button>
+    <button type="button" class="save-btn" (click)="save()">Save</button>
+  </div>
+</div>

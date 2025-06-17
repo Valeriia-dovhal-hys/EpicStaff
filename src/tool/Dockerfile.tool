@@ -11,13 +11,15 @@ COPY ./poetry.lock .
 
 ARG PIP_REQUIREMENTS
 
-RUN poetry config virtualenvs.create false && poetry install && poetry add $PIP_REQUIREMENTS && rm -rf /root/.cache
+RUN poetry config virtualenvs.create false 
+RUN poetry install --no-root 
+RUN poetry add $PIP_REQUIREMENTS
+RUN rm -rf /root/.cache
+
 ARG ALIAS_CALLABLE
 
 RUN echo "ALIAS_CALLABLE=$ALIAS_CALLABLE" > ./.env
 
-
-CMD ["python", "app.py"]
-
 COPY . .
 
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

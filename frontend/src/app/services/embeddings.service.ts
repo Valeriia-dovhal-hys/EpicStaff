@@ -4,14 +4,18 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiGetRequest } from '../shared/models/api-request.model';
 import { EmbeddingModel } from '../shared/models/embedding.model';
+import { ConfigService } from './config/config.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class EmbeddingModelsService {
-  private apiUrl = 'http://127.0.0.1:8000/api/embedding-models/';
+  constructor(private http: HttpClient, private configService: ConfigService) {}
 
-  constructor(private http: HttpClient) {}
+  // Dynamically retrieve the API URL from ConfigService
+  private get apiUrl(): string {
+    return this.configService.apiUrl + 'embedding-models/';
+  }
 
   getEmbeddingModels(): Observable<EmbeddingModel[]> {
     return this.http
@@ -20,7 +24,7 @@ export class EmbeddingModelsService {
   }
 
   getEmbeddingModelById(id: number): Observable<EmbeddingModel> {
-    const url = `${this.apiUrl}${id}/`;
+    const url: string = `${this.apiUrl}${id}/`;
     return this.http.get<EmbeddingModel>(url);
   }
 }

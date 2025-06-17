@@ -1,0 +1,40 @@
+<div class="create-flow-dialog">
+  <div class="header">
+    <h2>{{ dialogTitle }}</h2>
+  </div>
+
+  <div class="body">
+    <form [formGroup]="flowForm">
+      <div class="form-group">
+        <label for="name">Flow Name</label>
+        <input id="name" formControlName="name" placeholder="Enter flow name" />
+        <!-- <div
+          *ngIf="flowForm.get('name')?.invalid && flowForm.get('name')?.dirty"
+          class="error"
+        >
+          Flow name is required.
+        </div> -->
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          placeholder="Enter flow description (optional)"
+        ></textarea>
+      </div>
+    </form>
+  </div>
+
+  <div class="footer">
+    <button class="cancel-btn" (click)="onCancel()">Cancel</button>
+    <button
+      class="create-btn"
+      [disabled]="!flowForm.valid"
+      (click)="onSubmit()"
+    >
+      {{ submitButtonText }}
+    </button>
+  </div>
+</div>

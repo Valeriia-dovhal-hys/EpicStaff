@@ -8,11 +8,10 @@ RUN pip install poetry
 COPY ./manager/pyproject.toml .
 COPY ./manager/poetry.lock .
 
-RUN poetry config virtualenvs.create false && poetry install && rm -rf /root/.cache
+RUN poetry config virtualenvs.create false && poetry install --no-root && rm -rf /root/.cache
 
 COPY ./manager .
 COPY ./tool ./tool
-COPY ./crew ./crew
 
 
-CMD ["sh", "-c", "python load_config_to_redis.py && python app.py"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

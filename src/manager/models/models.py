@@ -3,6 +3,9 @@ from enum import Enum
 from pydantic import BaseModel, HttpUrl
 
 
+
+# TODO we use session status in the manager and crew, so we should move it to a shared location
+#  look at SessionCallbackFactory in crew
 class SessionStatus(Enum):
     END = "end"
     RUN = "run"
@@ -72,10 +75,13 @@ class EmbedderData(BaseModel):
 class ToolConfig(BaseModel):
     llm: LLMData | None = None
     embedder: EmbedderData | None = None
+    tool_init_configuration: dict[str, Any] | None = None
 
 
 class RunToolParamsModel(BaseModel):
     tool_config: ToolConfig | None = None
-    run_args: list[str]
     run_kwargs: dict[str, Any]
 
+
+class ToolInitConfigurationModel(BaseModel):
+    tool_init_configuration: dict[str, Any] | None = None

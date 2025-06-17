@@ -1,0 +1,19 @@
+FROM python:3.12.3
+
+WORKDIR /home/user/root/app
+
+RUN pip install --upgrade --no-cache-dir pip setuptools wheel
+
+RUN pip install poetry
+
+COPY ./pyproject.toml .
+COPY ./poetry.lock .
+
+RUN poetry config virtualenvs.create false 
+RUN apt-get update && apt-get install -y portaudio19-dev
+RUN poetry install --no-root
+RUN rm -rf /root/.cache
+
+COPY . .
+
+CMD python run_server.py

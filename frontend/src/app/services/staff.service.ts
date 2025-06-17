@@ -1,52 +1,68 @@
-// src/app/services/agents.service.ts
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { forkJoin, map, Observable } from 'rxjs';
 import {
   Agent,
+  AgentDto,
   CreateAgentRequest,
   GetAgentRequest,
+  UpdateAgentRequest,
 } from '../shared/models/agent.model';
 import { ApiGetRequest } from '../shared/models/api-request.model';
+import { GetProjectRequest } from '../pages/projects-page/models/project.model';
+import { ConfigService } from './config/config.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AgentsService {
-  private apiUrl = 'http://127.0.0.1:8000/api/agents/';
-
   private headers = new HttpHeaders({
     'Content-Type': 'application/json',
   });
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private configService: ConfigService) {}
+
+  // Dynamically retrieve the API URL from ConfigService
+  private get apiUrl(): string {
+    return this.configService.apiUrl + 'agents/';
+  }
 
   // GET all agents
   getAgents(): Observable<GetAgentRequest[]> {
+    const url = this.apiUrl;
     return this.http
-      .get<ApiGetRequest<GetAgentRequest>>(this.apiUrl)
-      .pipe(
-        map((response: ApiGetRequest<GetAgentRequest>) => response.results)
-      );
+      .get<ApiGetRequest<GetAgentRequest>>(url)
+      .pipe(map((response) => response.results));
   }
 
-  // GET agent by ID
+  // GET agents by project (crew) ID
+  getAgentsByProjectId(projectId: string): Observable<GetAgentRequest[]> {
+    const url = `${this.apiUrl}?crew_id=${projectId}`;
+    return this.http
+      .get<ApiGetRequest<GetAgentRequest>>(url)
+      .pipe(map((response) => response.results));
+  }
+
   getAgentById(agentId: number): Observable<GetAgentRequest> {
     return this.http.get<GetAgentRequest>(`${this.apiUrl}${agentId}/`);
   }
 
   // POST create agent
-  createAgent(agent: CreateAgentRequest): Observable<Agent> {
-    return this.http.post<Agent>(this.apiUrl, agent, {
+  createAgent(agent: CreateAgentRequest): Observable<AgentDto> {
+    return this.http.post<AgentDto>(this.apiUrl, agent, {
       headers: this.headers,
     });
   }
 
   // PUT update agent
-  updateAgent(agent: Agent): Observable<Agent> {
-    return this.http.put<Agent>(`${this.apiUrl}${agent.id}/`, agent, {
-      headers: this.headers,
-    });
+  updateAgent(agent: UpdateAgentRequest): Observable<UpdateAgentRequest> {
+    return this.http.put<UpdateAgentRequest>(
+      `${this.apiUrl}${agent.id}/`,
+      agent,
+      {
+        headers: this.headers,
+      }
+    );
   }
 
   // DELETE agent

@@ -1,0 +1,38 @@
+<div class="icon-picker-container">
+  <div class="icon-selector" (click)="toggleIconPicker()">
+    <div class="selected-icon" *ngIf="selectedIcon">
+      <span *ngIf="isEmoji(selectedIcon)">{{ selectedIcon }}</span>
+      <mat-icon *ngIf="!isEmoji(selectedIcon)">{{ selectedIcon }}</mat-icon>
+    </div>
+    <div class="icon-placeholder" *ngIf="!selectedIcon">
+      <mat-icon>mood</mat-icon>
+    </div>
+  </div>
+
+  <!-- Icon Picker Popup -->
+  <div class="icon-picker-popup" *ngIf="showIconPicker" @fadeInOut>
+    <div class="icon-categories">
+      <button
+        *ngFor="let category of iconCategories"
+        [class.active]="selectedCategory === category.name"
+        (click)="selectCategory(category.name)"
+      >
+        <mat-icon>{{ category.icon }}</mat-icon>
+      </button>
+    </div>
+    <div class="icons-grid">
+      <div
+        class="icon-item"
+        *ngFor="let icon of filteredIcons"
+        (click)="selectIcon(icon)"
+      >
+        <span *ngIf="isEmoji(icon)">{{ icon }}</span>
+        <mat-icon *ngIf="!isEmoji(icon)">{{ icon }}</mat-icon>
+      </div>
+    </div>
+    <div class="icon-picker-footer">
+      <button type="button" (click)="clearIcon()">Clear</button>
+      <button type="button" (click)="toggleIconPicker()">Close</button>
+    </div>
+  </div>
+</div>
