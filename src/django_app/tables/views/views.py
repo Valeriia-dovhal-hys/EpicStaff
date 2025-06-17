@@ -2,7 +2,6 @@ from utils.logger import logger
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from django.db import transaction
 
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
@@ -10,7 +9,6 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.exceptions import NotFound, ValidationError
 
 from tables.services.config_service import YamlConfigService
 from tables.services.session_manager_service import SessionManagerService
@@ -21,7 +19,6 @@ from tables.services.redis_service import RedisService
 from tables.models import (
     SessionMessage,
     Session,
-    Crew,
 )
 from tables.serializers.model_serializers import SessionSerializer
 from tables.serializers.serializers import (
@@ -248,47 +245,3 @@ class AnswerToLLM(APIView):
         # TODO: business logic
 
         return Response(data={"status": session.status}, status=status.HTTP_200_OK)
-    
-
-class CrewDeleteAPIView(APIView):
-
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                name="delete_sessions",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_STRING,
-                description="Delete all sessions associated (true/false). Default is false.",
-                required=False,
-            )
-        ],
-        responses={
-            200: "Crew deleted successfully",
-            400: "Invalid value for delete_sessions",
-            404: "Crew not found",
-        },
-    )
-    def delete(self, request, id):
-        
-        delete_sessions = request.query_params.get('delete_sessions', 'false').lower()
-        if delete_sessions not in {'true', 'false'}:
-            raise ValidationError({"error": "Invalid value for delete_sessions. Use 'true' or 'false'."})
-
-        delete_sessions = delete_sessions == 'true'
-
-        crew = Crew.objects.filter(id=id).first()
-        if not crew:
-            raise NotFound({"error": "Crew not found"})
-
-        try:
-            with transaction.atomic():
-                if delete_sessions:
-                    Session.objects.filter(crew=crew).delete()
-                else:
-                    Session.objects.filter(crew=crew).update(crew=None)
-
-                crew.delete()
-
-            return Response({"message": "Crew deleted successfully"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

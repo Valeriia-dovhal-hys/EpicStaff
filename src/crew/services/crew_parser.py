@@ -1,111 +1,26 @@
 import os
 from textwrap import dedent
-from crewai import Agent, Crew, Task
+from crewai import Agent, Crew, Task, LLM
 from langchain_core.tools import BaseTool
 
 
 from models.request_models import (
+    LLMData,
     AgentData,
-    ConfigLLMData,
     CrewData,
-    EmbeddingModelData,
-    LLMModelData,
     TaskData,
-    ToolData,
 )
 from services.proxy_tool_factory import ProxyToolFactory
-from utils import get_llm
-
 
 class CrewParser:
 
-    def __init__(
-        self, manager_host="manager_container", manager_port=8000
-    ):
-        self.proxy_tool_factory = ProxyToolFactory(
-            host=manager_host, port=manager_port
-        )
+    def __init__(self, manager_host="manager_container", manager_port=8000):
+        self.proxy_tool_factory = ProxyToolFactory(host=manager_host, port=manager_port)
 
-    def parse_llm(self, llm_data: LLMModelData, llm_config_data: ConfigLLMData):
-
-        return get_llm(
-            model_name=llm_data.name,
-            temperature=llm_config_data.temperature,
-            num_ctx=llm_config_data.num_ctx,
-            provider=llm_data.llm_provider.name,
-            base_url=llm_data.base_url,
-            deployment=llm_data.deployment,
-        )
-
-    def parse_tool(self, tool_data: ToolData) -> BaseTool:
-        tool_alias: str = tool_data.name_alias
-        tool_config = dict()
-
-        llm_model_data = tool_data.llm_model
-        llm_config_data = tool_data.llm_config
-        if llm_model_data is not None and llm_config_data is not None:
-            tool_config["llm"] = dict(
-                provider=llm_model_data.llm_provider.name,
-                config=dict(
-                    model=llm_model_data.name,
-                    temperature=llm_config_data.temperature,
-                    # top_p=1,
-                    # stream=true,
-                ))
-            
-
-        embedding_model_data = tool_data.embedding_model
-
-        if embedding_model_data is not None:
-            tool_config["embedder"] = dict(
-                provider=embedding_model_data.embedding_provider.name,
-                config=dict(
-                    model=embedding_model_data.name,
-                    # task_type="retrieval_document",
-                    # title="Embeddings",
-            ))
-
-        proxy_tool_class = self.proxy_tool_factory.create_proxy_class(
-            tool_alias, tool_config=tool_config
-        )
-
-        return proxy_tool_class()
-
-    def parse_embedder(self, embedding_model_data: EmbeddingModelData) -> dict | None:
-
-        if embedding_model_data is None or embedding_model_data.name is None:
-            return None
-
-        model = embedding_model_data.name
-        deployment_name = embedding_model_data.deployment
-        provider = embedding_model_data.embedding_provider.name
-        base_url = embedding_model_data.base_url
-
-        embedder_config = {
-            "model": model,
-        }
-
-        if provider == "azure-openai":
-            embedder_config["deployment_name"] = (
-                deployment_name  # Set azure specific config
-            )
-            # os.environ["AZURE_OPENAI_DEPLOYMENT"] = deployment_name #Wrokarond since azure
-            os.environ["OPENAI_API_KEY"] = os.environ["AZURE_OPENAI_KEY"]
-        elif provider == "openai":
-            embedder_config["api_key"] = os.environ.get("SECRET_OPENAI_API_KEY")
-            os.environ["OPENAI_BASE_URL"] = "https://api.openai.com/v1"
-        elif provider == "ollama":
-            if base_url is not None:
-                embedder_config["base_url"] = base_url
-        else:  # Any other openai compatible e.g. ollama or llama-cpp
-            provider = "openai"
-            api_key = "NA"
-            embedder_config["base_url"] = base_url
-            embedder_config["api_key"] = api_key
-
-        return {"provider": provider, "config": embedder_config}
-
-        # Groq doesn't have an embedder
+    def parse_llm(self, llm: LLMData):
+        llm_config = {"provider": llm.provider, **llm.config.model_dump()}
+    
+        return LLM(**llm_config)
 
     def parse_agent(self, agent_data: AgentData) -> Agent:
 
@@ -113,26 +28,20 @@ class CrewParser:
         goal = agent_data.goal
         backstory = agent_data.backstory
 
-        llm_data = agent_data.llm_model
-        llm_config_data = agent_data.llm_config
         llm = None
-        if llm_data is not None and llm_config_data is not None:
-            llm = self.parse_llm(llm_data=llm_data, llm_config_data=llm_config_data)
-
-        tool_data_list = agent_data.tools
+        if agent_data.llm is not None:
+            llm = self.parse_llm(agent_data.llm)
+        
         tool_list: list[BaseTool] = []
-        if tool_data_list is not None:
-            for tool_data in tool_data_list:
-                tool_list.append(self.parse_tool(tool_data))
+        if agent_data.tools is not None:
+            for tool_data in agent_data.tools:
+                tool_list.append(self.proxy_tool_factory.create_proxy_class(tool_data=tool_data)())
 
-        function_calling_llm = agent_data.fcm_llm_model
-        function_calling_llm_config_data = agent_data.fcm_llm_config
+
         function_calling_llm = None
-        if function_calling_llm and function_calling_llm_config_data:
-            function_calling_llm = self.parse_llm(
-                llm_model_data=function_calling_llm,
-                llm_config=function_calling_llm_config_data,
-            )
+        if agent_data.function_calling_llm is not None:
+            function_calling_llm = self.parse_llm(agent_data.function_calling_llm)
+
 
         allow_delegation = agent_data.allow_delegation
         memory = agent_data.memory
@@ -185,13 +94,12 @@ class CrewParser:
             self.parse_agent(agent_data) for agent_data in agent_data_list
         ]
 
-        embedder = self.parse_embedder(crew_data.embedding_model)
+        embedder = crew_data.embedder
         if embedder is not None:
-            crew_config["embedder"] = embedder
+            crew_config["embedder"] = embedder.model_dump(exclude_none=True)
 
         manager_llm = self.parse_llm(
-            llm_data=crew_data.manager_llm_model,
-            llm_config_data=crew_data.manager_llm_config,
+            llm=crew_data.manager_llm
         )
 
         if manager_llm is not None:

@@ -22,7 +22,6 @@ from .views.views import (
     RunSession,
     GetUpdates,
     StopSession,
-    CrewDeleteAPIView,
     delete_environment_config,
 )
 
@@ -57,7 +56,6 @@ urlpatterns = [
         SessionMessageListView.as_view(),
         name="messages",
     ),
-    path('crews/<int:id>/delete/', CrewDeleteAPIView.as_view(), name='delete-crew'),
     path(
         "environment/config",
         EnvironmentConfig.as_view(),
