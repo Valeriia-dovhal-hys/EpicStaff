@@ -1,141 +1,93 @@
-<!-- needs to be refactored the way we display this sections -->
-
 <div class="project-container">
+  @if(isLoading()) {
+  <div class="loading-container">
+    <app-spinner
+      [text]="'Loading project...'"
+      [accentColor]="'#685fff'"
+      [isOverlay]="false"
+    ></app-spinner>
+  </div>
+  } @else {
   <app-header></app-header>
 
-  <div class="content-area">
-    @if(isLoading()) {
-    <div class="loading-container">
-      <app-spinner
-        [text]="'Loading project...'"
-        [accentColor]="'#685fff'"
-        [isOverlay]="false"
-      ></app-spinner>
+  <!-- <div class="tabs-container">
+    <div class="tabs-navigation">
+      <div
+        class="tab-item"
+        [class.active]="activeTab === 'overview'"
+        (click)="setActiveTab('overview')"
+      >
+        Overview
+      </div>
+      <div
+        class="tab-item"
+        [class.active]="activeTab === 'draft'"
+        (click)="setActiveTab('draft')"
+      >
+        Draft
+      </div>
     </div>
-    } @else {
+  </div> -->
+
+  <div class="content-area">
+    <!-- Overview Tab Content -->
+    @if(activeTab === 'overview') {
     <div class="section-list">
-      <!-- Section 1: Details -->
-      <div class="section-item" [class.expanded]="isSectionExpanded('details')">
-        <div class="section-header" (click)="toggleSection('details')">
-          <i class="toggle-icon play-icon ti ti-player-play-filled"></i>
-          <span class="section-title">Details</span>
-        </div>
-        <div
-          class="section-content"
-          [@slideAnimation]="
-            isSectionExpanded('details') ? 'expanded' : 'collapsed'
-          "
-          [style.overflow]="isSectionExpanded('details') ? 'visible' : 'hidden'"
-        >
-          <app-details-content
-            [description]="project.description ?? ''"
-          ></app-details-content>
-        </div>
-      </div>
-
-      <!-- Section 2: Variables -->
+      @for (section of sections; track section.id) {
       <div
         class="section-item"
-        [class.expanded]="isSectionExpanded('variables')"
+        [class.expanded]="isSectionExpanded(section.id)"
       >
-        <div class="section-header" (click)="toggleSection('variables')">
-          <i class="toggle-icon play-icon ti ti-player-play-filled"></i>
-          <span class="section-title">Variables</span>
-        </div>
-        <div
-          class="section-content"
-          [@slideAnimation]="
-            isSectionExpanded('variables') ? 'expanded' : 'collapsed'
-          "
-          [style.overflow]="
-            isSectionExpanded('variables') ? 'visible' : 'hidden'
-          "
-        >
-          <app-variables-content></app-variables-content>
-        </div>
-      </div>
-
-      <!-- Section 3: Agents -->
-      <div class="section-item" [class.expanded]="isSectionExpanded('agents')">
-        <div class="section-header" (click)="toggleSection('agents')">
+        <div class="section-header" (click)="toggleSection(section.id)">
           <i class="toggle-icon play-icon ti ti-player-play-filled"></i>
           <span class="section-title">
-            Agents
-            <span
-              class="item-count"
-              *ngIf="projectStateService.agentCount() > 0"
-            >
-              {{ projectStateService.agentCount() }}
-            </span>
+            {{ section.title }}
+            @if (section.showCount && section.count !== undefined &&
+            section.count > 0) {
+            <span class="item-count">{{ section.count }}</span>
+            }
           </span>
-          <!-- <span class="add-button" (click)="onAddAgent($event)">
+          @if (section.showAddButton) {
+          <span class="add-button" (click)="onAddAction($event, section.id)">
             <i class="ti ti-plus"></i>
-          </span> -->
-        </div>
-        <div
-          class="section-content"
-          [@slideAnimation]="
-            isSectionExpanded('agents') ? 'expanded' : 'collapsed'
-          "
-          [style.overflow]="isSectionExpanded('agents') ? 'visible' : 'hidden'"
-        >
-          <app-agents-section></app-agents-section>
-        </div>
-      </div>
-
-      <!-- Section 4: Tasks -->
-      <div class="section-item" [class.expanded]="isSectionExpanded('tasks')">
-        <div class="section-header" (click)="toggleSection('tasks')">
-          <i class="toggle-icon play-icon ti ti-player-play-filled"></i>
-          <span class="section-title">
-            Tasks
-            <span
-              class="item-count"
-              *ngIf="projectStateService.taskCount() > 0"
-            >
-              {{ projectStateService.taskCount() }}
-            </span>
           </span>
-          <!-- <span class="add-button" (click)="onAddTask($event)">
-            <i class="ti ti-plus"></i>
-          </span> -->
+          }
         </div>
         <div
           class="section-content"
-          [@slideAnimation]="
-            isSectionExpanded('tasks') ? 'expanded' : 'collapsed'
-          "
-          [style.overflow]="isSectionExpanded('tasks') ? 'visible' : 'hidden'"
-        >
-          <app-tasks-section [project]="project"></app-tasks-section>
-        </div>
-      </div>
-
-      <!-- Section 5: Settings -->
-      <div
-        class="section-item"
-        [class.expanded]="isSectionExpanded('settings')"
-      >
-        <div class="section-header" (click)="toggleSection('settings')">
-          <i class="toggle-icon play-icon ti ti-player-play-filled"></i>
-          <span class="section-title">Settings</span>
-        </div>
-        <div
-          class="section-content"
-          [@slideAnimation]="
-            isSectionExpanded('settings') ? 'expanded' : 'collapsed'
-          "
-          [style.overflow]="
-            isSectionExpanded('settings') ? 'visible' : 'hidden'
+          [@expandCollapse]="
+            isSectionExpanded(section.id) ? 'expanded' : 'collapsed'
           "
         >
+          <!-- Special handling for SettingsSectionComponent -->
+          @if (section.id === 'settings') {
           <app-settings-section
             [project]="project"
             (settingsChanged)="onSettingsChanged($event)"
-          ></app-settings-section>
+          >
+          </app-settings-section>
+          } @else {
+          <ng-container
+            [ngComponentOutlet]="section.component"
+            [ngComponentOutletInputs]="section.inputs"
+          >
+          </ng-container>
+          }
         </div>
       </div>
+      }
+    </div>
+    }
+
+    <!-- Draft Tab Content -->
+    @if(activeTab === 'draft') {
+    <div class="draft-content">
+      <app-flow-graph
+        [flowState]="mockFlowData"
+        nodesMode="project-graph"
+      ></app-flow-graph>
     </div>
     }
   </div>
+  }
 </div>

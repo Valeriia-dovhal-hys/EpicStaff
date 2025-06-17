@@ -10,12 +10,12 @@ import { CommonModule } from '@angular/common';
 import {
   GraphMessage,
   MessageType,
-} from '../graph-messages/graph-session-message.model';
-import { UpdateSessionStatusMessageData } from '../graph-messages/graph-session-message.model';
+} from '../../models/graph-session-message.model';
+import { UpdateSessionStatusMessageData } from '../../models/graph-session-message.model';
 import { CrewNode } from '../../../flows-page/components/flow-visual-programming/models/crew-node.model';
 import { GetLLMNodeRequest } from '../../../flows-page/components/flow-visual-programming/models/llm-node.model';
 import { PythonNode } from '../../../flows-page/components/flow-visual-programming/models/python-node.model';
-import { GraphDto } from '../../../flows-page/models/graph.model';
+import { GraphDto } from '../../../../features/flows/models/graph.model';
 
 interface NodeStatus {
   node: CrewNode | PythonNode | GetLLMNodeRequest;
@@ -41,7 +41,7 @@ interface NodeStatus {
                   [ngClass]="getStatusIcon(item.status)"
                   aria-hidden="true"
                 ></i>
-                {{ item.status | titlecase }}
+                {{ getStatusText(item.status) }}
               </div>
             </li>
           </ul>
@@ -52,16 +52,17 @@ interface NodeStatus {
       </div>
     </div>
   `,
-  styles: [
-    `
+  styles: `
       .flow-container {
-        height: calc(100% - 4.3rem);
-        display: flex;
-        flex-direction: column;
-        color: var(--white);
-        margin-top: 1rem;
+        height: 100%;
+        width: 400px !important;
+        
+        overflow-y: auto;
+        
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
       }
-
+  
       .flow-content {
         flex: 1;
         overflow: auto;
@@ -70,12 +71,13 @@ interface NodeStatus {
         flex-direction: column;
         width: 100%;
         max-width: 100%;
+        padding: 1rem 3.8rem;
+  
+        & > div {
+          width: 100%;
+        }
       }
-
-      .flow-content > div {
-        width: 100%;
-      }
-
+  
       .section-title {
         font-size: 18px;
         font-weight: 500;
@@ -83,7 +85,7 @@ interface NodeStatus {
         color: var(--white);
         letter-spacing: -0.02em;
       }
-
+  
       ul {
         list-style: none;
         padding: 0;
@@ -91,7 +93,7 @@ interface NodeStatus {
         width: 100%;
         display: block;
       }
-
+  
       li {
         padding: 0.75rem 1rem;
         margin-bottom: 1rem;
@@ -99,17 +101,17 @@ interface NodeStatus {
         background: var(--gray-850);
         border: 1px solid var(--gray-800);
         transition: background-color 0.2s, border-color 0.2s;
+  
+        &:last-child {
+          margin-bottom: 0.5rem;
+        }
+  
+        &:hover {
+          background: var(--gray-800);
+          border-color: var(--gray-750);
+        }
       }
-
-      li:last-child {
-        margin-bottom: 0.5rem;
-      }
-
-      li:hover {
-        background: var(--gray-800);
-        border-color: var(--gray-750);
-      }
-
+  
       .node-name {
         font-size: 1rem;
         font-weight: 500;
@@ -117,7 +119,7 @@ interface NodeStatus {
         white-space: nowrap;
         margin-bottom: 0.5rem;
       }
-
+  
       .status-badge {
         font-size: 0.8rem;
         margin-top: 0rem;
@@ -127,39 +129,39 @@ interface NodeStatus {
         display: inline-flex;
         align-items: center;
         gap: 6px;
+  
+        i {
+          font-size: 14px;
+        }
       }
-
-      .status-badge i {
-        font-size: 14px;
-      }
-
+  
       /* Updated colors and styles to match the dialog and header component */
       .status-complete {
         background-color: rgba(80, 205, 137, 0.15);
         color: #6bdb9a;
       }
-
+  
       .status-in_progress {
         background-color: rgba(41, 121, 255, 0.15);
         color: #5e9eff;
         animation: pulse 1.5s infinite ease-in-out;
       }
-
+  
       .status-error {
         background-color: rgba(255, 76, 76, 0.15);
         color: #ff7a7a;
       }
-
+  
       .status-waiting {
         background-color: rgba(255, 170, 0, 0.15);
         color: #ffc14d;
       }
-
+  
       .status-not_started {
         background-color: rgba(150, 150, 150, 0.15);
         color: #9898a9;
       }
-
+  
       @keyframes pulse {
         0% {
           opacity: 1;
@@ -171,7 +173,7 @@ interface NodeStatus {
           opacity: 1;
         }
       }
-
+  
       .placeholder {
         color: var(--gray-500);
         font-style: italic;
@@ -182,36 +184,31 @@ interface NodeStatus {
         border-radius: 6px;
         margin-top: 1rem;
       }
-
+  
       /* Item active state */
       .item-active {
         border-left: 3px solid #5e9eff !important;
       }
     `,
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlowRepresentationComponent implements OnChanges {
   @Input() graphData: GraphDto | null = null;
   @Input() messages: GraphMessage[] = [];
 
-  // Holds the ordered nodes from the graph (following the edge chain)
   orderedNodes: (CrewNode | PythonNode | GetLLMNodeRequest)[] = [];
-  // Holds each node with its computed execution status
+
   orderedNodesStatus: NodeStatus[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['graphData'] && this.graphData) {
-      this.orderedNodes = this.getOrderedNodes(this.graphData);
+      //   this.orderedNodes = this.getOrderedNodes(this.graphData);
     }
     if ((changes['messages'] || changes['graphData']) && this.graphData) {
       this.calculateNodesStatus();
     }
   }
 
-  /**
-   * Builds an ordered list of nodes starting at the entry point and following the edges.
-   */
   private getOrderedNodes(
     graph: GraphDto
   ): (CrewNode | PythonNode | GetLLMNodeRequest)[] {
@@ -223,7 +220,7 @@ export class FlowRepresentationComponent implements OnChanges {
     graph.llm_node_list.forEach((node) => (nodesMap[node.node_name] = node));
 
     const ordered: (CrewNode | PythonNode | GetLLMNodeRequest)[] = [];
-    let currentNodeName = graph.entry_point;
+    let currentNodeName = graph.start_node_list[0].node_name;
     if (!currentNodeName) return ordered;
 
     while (true) {
@@ -258,7 +255,6 @@ export class FlowRepresentationComponent implements OnChanges {
       );
       let status: NodeStatus['status'] = 'not_started';
       if (nodeMessages.length > 0) {
-        // Check for error first.
         if (
           nodeMessages.some(
             (msg) => msg.message_data?.message_type === MessageType.ERROR
@@ -276,10 +272,7 @@ export class FlowRepresentationComponent implements OnChanges {
           )
         ) {
           status = 'complete';
-        }
-        // If there's an update message with wait_for_user, mark as waiting.
-        // But only if no finish message exists.
-        else if (
+        } else if (
           nodeMessages.some(
             (msg) =>
               msg.message_data?.message_type ===
@@ -289,9 +282,7 @@ export class FlowRepresentationComponent implements OnChanges {
           )
         ) {
           status = 'waiting';
-        }
-        // Otherwise, if there's a start message, mark as in_progress.
-        else if (
+        } else if (
           nodeMessages.some(
             (msg) => msg.message_data?.message_type === MessageType.START
           )
@@ -343,5 +334,22 @@ export class FlowRepresentationComponent implements OnChanges {
 
   getItemClass(status: NodeStatus['status']): string {
     return status === 'in_progress' ? 'item-active' : '';
+  }
+
+  getStatusText(status: NodeStatus['status']): string {
+    switch (status) {
+      case 'complete':
+        return 'Completed';
+      case 'in_progress':
+        return 'Running';
+      case 'error':
+        return 'Error';
+      case 'waiting':
+        return 'Waiting for User';
+      case 'not_started':
+        return 'Not Active';
+      default:
+        return '';
+    }
   }
 }

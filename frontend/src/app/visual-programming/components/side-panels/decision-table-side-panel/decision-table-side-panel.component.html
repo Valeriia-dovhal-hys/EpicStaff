@@ -1,0 +1,30 @@
+<div class="wrapper">
+  <!-- Header -->
+  <app-side-panel-header
+    [node]="node"
+    (close)="onClose()"
+  ></app-side-panel-header>
+
+  <!-- Form -->
+  <form [formGroup]="form">
+    <div class="content">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" formControlName="name" placeholder="Enter name" />
+      </div>
+
+      <div class="form-group">
+        <label>Conditions:</label>
+        <app-condition-groups-form
+          [initialGroups]="node.data.table.condition_groups || []"
+        ></app-condition-groups-form>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <button type="button" (click)="onClose()">Cancel</button>
+      <button type="button" (click)="onSave()">Save</button>
+    </div>
+  </form>
+</div>

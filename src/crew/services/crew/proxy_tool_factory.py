@@ -1,5 +1,6 @@
 import time
 from typing import Any, Type
+from crewai.tools.base_tool import Tool
 from models.request_models import CodeResultData, CodeTaskData
 from services.redis_service import RedisService
 from models.response_models import ToolResponse
@@ -33,10 +34,11 @@ class ProxyToolFactory:
         self.python_code_executor_service = python_code_executor_service
         self.loop = asyncio.get_event_loop()
 
-    def create_python_code_proxy_tool_class(
+    def create_python_code_proxy_tool(
         self, python_code_tool_data: PythonCodeToolData, global_kwargs: dict[str, Any]
     ):
         args_schema = generate_model_from_schema(python_code_tool_data.args_schema)
+        args_schema.model_rebuild()
         name = python_code_tool_data.name
         description = python_code_tool_data.description
 
@@ -58,29 +60,11 @@ class ProxyToolFactory:
             else:
                 return result["stderr"]
 
-        annotations = {"name": str, "description": str, "args_schema": Type[BaseModel]}
-
-        tool_class = type(
-            "ProxyTool",
-            (BaseTool,),
-            {
-                "name": name,
-                "args_schema": args_schema,
-                "description": description,
-                "_run": _run,
-                "__annotations__": annotations,
-                "__module__": __name__,
-            },
-        )  # TODO: Change ProxyTool name
-        logger.info(
-            "Tool fields: "
-            + "\n".join(
-                [f"{name}: {value}" for name, value in tool_class.__fields__.items()]
-            )
+        return Tool(
+            name=name, description=description, args_schema=args_schema, func=_run
         )
-        return tool_class
 
-    def create_proxy_class(self, tool_data: ToolData) -> Type[BaseTool]:
+    def create_proxy_tool(self, tool_data: ToolData) -> Type[BaseTool]:
 
         tool_init_configuration = None
         if tool_data.tool_config is not None:
@@ -97,6 +81,8 @@ class ProxyToolFactory:
         data["args_schema"] = generate_model_from_schema(
             data["args_schema"]
         )  # TODO: rename
+        data["args_schema"].model_rebuild()
+        
         logger.info(data)
 
         proxy_tool_factory = self  # VERY BAD CODE!!
@@ -117,26 +103,9 @@ class ProxyToolFactory:
                 tool_data=tool_data, run_kwargs=kw
             )
 
-        data["_run"] = _run
-
-        annotations = {"name": str, "description": str, "args_schema": Type[BaseModel]}
-
-        tool_class = type(
-            "ProxyTool",
-            (BaseTool,),
-            {
-                **data,
-                "__annotations__": annotations,
-                "__module__": __name__,
-            },
-        )  # TODO: Change ProxyTool name
-        logger.info(
-            "Tool fields: "
-            + "\n".join(
-                [f"{name}: {value}" for name, value in tool_class.__fields__.items()]
-            )
+        return Tool(
+            name=data["name"], description=data["description"], args_schema=data["args_schema"], func=_run
         )
-        return tool_class
 
     def run_tool_in_container(
         self,

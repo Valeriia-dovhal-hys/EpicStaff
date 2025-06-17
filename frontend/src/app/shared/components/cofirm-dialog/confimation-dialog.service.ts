@@ -16,7 +16,7 @@ export class ConfirmationDialogService {
     const dialogRef = this.dialog.open<boolean>(ConfirmationDialogComponent, {
       width: '400px',
       data: options,
-      backdropClass: 'dark-blur-backdrop', // Add custom backdrop class here
+      // Add custom backdrop class here
     });
 
     // Map undefined to false to ensure we always return a boolean

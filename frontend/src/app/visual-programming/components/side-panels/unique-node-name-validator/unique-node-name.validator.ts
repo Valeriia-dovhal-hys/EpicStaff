@@ -2,7 +2,7 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 export function uniqueNodeNameValidator(
   getExistingNames: () => string[],
-  currentName?: string
+  getCurrentName?: () => string | undefined
 ): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const value = control.value;
@@ -11,9 +11,10 @@ export function uniqueNodeNameValidator(
     }
 
     const nodeName = value.trim();
+    const currentOriginalName = getCurrentName ? getCurrentName() : undefined;
 
     // If the node name hasn't changed, skip the uniqueness check.
-    if (currentName && nodeName === currentName.trim()) {
+    if (currentOriginalName && nodeName === currentOriginalName.trim()) {
       return null;
     }
 

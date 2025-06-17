@@ -6,7 +6,8 @@ import { StartNodeModel } from '../../../core/models/node.model';
   standalone: true,
   template: `
     <div class="start-node">
-      <i class="ti ti-player-play"></i>
+      <i class="ti ti-player-play-filled"></i>
+
       <span>Start</span>
     </div>
   `,

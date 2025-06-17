@@ -1,0 +1,64 @@
+<div class="dialog">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-title">
+      <app-icon icon="ui/tags-filled" size="1.1rem"></app-icon>
+      <h2>Tags</h2>
+    </div>
+    <button class="close-btn" (click)="cancel()">
+      <app-icon icon="ui/x" size="1.2rem"></app-icon>
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="search">
+    <app-search
+      placeholder="Search or create tags..."
+      [value]="searchTerm()"
+      (valueChange)="onSearchChange($event)"
+      width="100%"
+    ></app-search>
+  </div>
+
+  <!-- Tags List -->
+  <div class="tags-container">
+    <!-- Create New Tag (if search doesn't match existing) -->
+    <div
+      class="tag create-tag"
+      *ngIf="canCreateNewTag()"
+      (click)="createTagFromSearch()"
+    >
+      <span>Create "{{ searchTerm() }}"</span>
+    </div>
+
+    <!-- Existing Tags -->
+    <div
+      class="tag"
+      [class.selected]="isTagSelected(tag)"
+      *ngFor="let tag of filteredTags()"
+      (click)="toggleTag(tag)"
+    >
+      <span>{{ tag.name }}</span>
+      <app-icon
+        [icon]="isTagSelected(tag) ? 'ui/check' : 'ui/plus'"
+        size="0.9rem"
+      ></app-icon>
+    </div>
+
+    <!-- Empty State -->
+    <div
+      class="empty"
+      *ngIf="filteredTags().length === 0 && !canCreateNewTag()"
+    >
+      No tags found
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <button class="btn cancel" (click)="cancel()">Cancel</button>
+    <button class="btn save" (click)="save()">
+      Save ({{ selectedTagIds().size }})
+    </button>
+  </div>
+</div>

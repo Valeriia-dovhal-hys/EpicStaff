@@ -1,4 +1,3 @@
-// side-panel-mapping.ts
 import { ComponentType } from '@angular/cdk/portal';
 import { NodeType } from './node-type';
 import { AgentSidePanelComponent } from '../../components/side-panels/agent-panel/agent-side-panel.component';
@@ -8,8 +7,8 @@ import { TaskSidePanelComponent } from '../../components/side-panels/task-panel/
 import { ProjectSidePanelComponent } from '../../components/side-panels/project-panel/project-side-panel.component';
 import { PythonSidePanelComponent } from '../../components/side-panels/python-node/python-side-panel.component';
 import { ConditionalEdgeSidePanelComponent } from '../../components/side-panels/coniditonal-edge/conditional-edge-side-panel.component';
-
-import { DecisionTableSidePanelComponent } from '../../components/side-panels/conditonal-table/decision-table-side-panel.component';
+import { DecisionTableSidePanelComponent } from '../../components/side-panels/decision-table-side-panel/decision-table-side-panel.component';
+import { StartNodeSidePanelComponent } from '../../components/side-panels/start-panel/start-node-side-panel.component';
 
 export const SIDE_PANEL_MAPPING: { [key in NodeType]?: ComponentType<any> } = {
   [NodeType.AGENT]: AgentSidePanelComponent,
@@ -20,4 +19,5 @@ export const SIDE_PANEL_MAPPING: { [key in NodeType]?: ComponentType<any> } = {
   [NodeType.PYTHON]: PythonSidePanelComponent,
   [NodeType.EDGE]: ConditionalEdgeSidePanelComponent,
   [NodeType.TABLE]: DecisionTableSidePanelComponent,
+  [NodeType.START]: StartNodeSidePanelComponent,
 };

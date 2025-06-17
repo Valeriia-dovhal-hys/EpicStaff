@@ -1,11 +1,20 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Dialog } from '@angular/cdk/dialog';
 import { FullAgent } from '../../../../../../services/full-agent.service';
 import { ChatsService } from '../../../../services/chats.service';
 import { ConsoleService } from '../../../../services/console.service';
 
 import { TinyAudioVisualizerComponent } from '../chat-controls/frequency-circle/frequency-circle.component';
+import { RealtimeSettingsDialogComponent } from '../../../chats-sidebar/chats-sidebar-item/realtime-settings-dialog/realtime-settings-dialog.component';
 
 @Component({
   selector: 'app-chat-header',
@@ -13,6 +22,7 @@ import { TinyAudioVisualizerComponent } from '../chat-controls/frequency-circle/
   imports: [CommonModule, FormsModule, TinyAudioVisualizerComponent],
   templateUrl: './chat-header.component.html',
   styleUrls: ['./chat-header.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatHeaderComponent implements OnInit {
   @Input() communicationType: 'audio' | 'text' = 'audio';
@@ -23,18 +33,15 @@ export class ChatHeaderComponent implements OnInit {
   @Output() voiceChange = new EventEmitter<string>();
 
   showSettings = false;
-  threshold = 0.65;
-  searchLimit = 300;
 
   constructor(
     public chatsService: ChatsService,
-    public consoleService: ConsoleService
+    public consoleService: ConsoleService,
+    private dialog: Dialog
   ) {}
 
   ngOnInit(): void {
-    // Initialize values from ConsoleService
-    this.threshold = this.consoleService.threshold();
-    this.searchLimit = this.consoleService.searchLimit();
+    // No initialization needed for settings values anymore
   }
 
   get agent(): FullAgent | null {
@@ -51,21 +58,26 @@ export class ChatHeaderComponent implements OnInit {
     this.voiceChange.emit(select.value);
   }
 
+  openSettings(event: Event) {
+    event.stopPropagation(); // Prevent any parent click events
+
+    if (this.agent) {
+      // Get the realtime agent for the selected agent
+      //   const realtimeAgent = this.chatsService.getRealtimeAgentByAgentId(
+      //     this.agent.id
+      //   );
+
+      this.dialog.open(RealtimeSettingsDialogComponent, {
+        data: {
+          agent: this.agent,
+        },
+        width: '100%',
+      });
+    }
+  }
+
+  // Keeping this method for backward compatibility if needed
   toggleSettings() {
     this.showSettings = !this.showSettings;
-  }
-
-  onThresholdChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.threshold = parseFloat(input.value);
-    // Update the service value
-    this.consoleService.updateThreshold(this.threshold);
-  }
-
-  onSearchLimitChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.searchLimit = parseFloat(input.value);
-    // Update the service value
-    this.consoleService.updateSearchLimit(this.searchLimit);
   }
 }

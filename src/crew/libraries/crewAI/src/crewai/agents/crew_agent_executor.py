@@ -32,6 +32,9 @@ class ToolResult:
     result_as_answer: bool
 
 
+KNOWLEDGE_KEYWORD = "\nUse this information for answer:"
+
+
 class CrewAgentExecutor(CrewAgentExecutorMixin):
     _logger: Logger = Logger()
 
@@ -536,8 +539,6 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
         self, current_answer: AgentFinish, initial_feedback: str
     ) -> AgentFinish:
         """Process feedback for regular use with potential multiple iterations."""
-        # Excluding knowledges from user feedback. KNOWLEDGE_KEYWORD same as in src\knowledge\utils\extract_knowledge_context.py
-        KNOWLEDGE_KEYWORD = "\nUse this information for answer:"
         feedback = initial_feedback
         answer = current_answer
 

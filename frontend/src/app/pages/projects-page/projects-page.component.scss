@@ -6,10 +6,12 @@ $muted-text-color: #cccccc;
   height: 100%;
 
   .projects-page-wrapper {
-    height: calc(100% - 4.3rem);
+    height: 100%;
+
     overflow-y: auto !important;
     overflow-x: hidden;
-    padding: 1rem 3.8rem;
+    padding: 1rem 3rem;
+    padding-top: 0;
     position: relative;
     .loading-container {
       display: flex;

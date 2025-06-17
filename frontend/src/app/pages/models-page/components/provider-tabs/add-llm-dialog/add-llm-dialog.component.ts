@@ -9,22 +9,14 @@ import {
 } from '@angular/forms';
 import { LLM_Provider } from '../../../../../shared/models/LLM_provider.model';
 import { GetLlmModelRequest } from '../../../../../shared/models/LLM.model';
-import { LLM_Config_Service } from '../../../../../services/LLM_config.service';
+import { LLM_Config_Service } from '../../../../../services/GetLlmConfigRequest.service';
 import { FullLLMConfig } from '../../../../../services/full-llm-config.service';
 import { ToastService } from '../../../../../services/notifications/toast.service';
+import { CreateLLMConfigRequest } from '../../../../../shared/models/GetLlmConfigRequest.model';
 
 export interface AddLLMDialogData {
   provider: LLM_Provider;
   models: GetLlmModelRequest[];
-}
-
-export interface CreateLLMConfigRequest {
-  temperature?: number;
-  num_ctx?: number;
-  is_visible?: boolean;
-  model: number;
-  api_key: string;
-  custom_name: string;
 }
 
 @Component({
@@ -410,8 +402,7 @@ export class AddLLMDialogComponent implements OnInit {
         model: modelId,
         custom_name: formValue.customName,
         api_key: formValue.apiKey,
-        temperature: 0.7, // Default values
-        num_ctx: 4096,
+
         is_visible: true,
       };
 

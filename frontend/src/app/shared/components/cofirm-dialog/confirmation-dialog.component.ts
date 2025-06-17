@@ -30,16 +30,4 @@ export class ConfirmationDialogComponent {
   onConfirm(): void {
     this.dialogRef.close(true);
   }
-
-  getIconClass(): string {
-    switch (this.data.type) {
-      case 'warning':
-        return 'ti ti-alert-triangle';
-      case 'danger':
-        return 'ti ti-alert-octagon';
-      case 'info':
-      default:
-        return 'ti ti-info-circle';
-    }
-  }
 }

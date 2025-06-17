@@ -236,16 +236,17 @@
   margin-left: 0.5rem;
 }
 
-.delete-button i.material-icons {
+.delete-button i {
   font-size: 1.125rem;
   color: var(--gray-500);
+  transition: color 0.2s ease;
 }
 
 .delete-button:hover {
   background-color: rgba(103, 103, 103, 0.1);
 }
 
-.delete-button:hover i.material-icons {
+.delete-button:hover i {
   color: var(--error-color);
 }
 
@@ -285,8 +286,9 @@
   opacity: 0.7;
 }
 
-.create-config-button i.material-icons {
+.create-config-button i {
   font-size: 1.25rem;
+  margin-right: 0.5rem;
 }
 
 /* Form Container */

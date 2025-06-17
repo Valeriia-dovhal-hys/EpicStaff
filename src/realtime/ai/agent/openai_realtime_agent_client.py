@@ -1,3 +1,5 @@
+import uuid
+
 from models.ai_models import RealtimeTool
 import websockets
 import json
@@ -9,7 +11,8 @@ from ai.agent.event_handlers.agent_server_event_handler import ServerEventHandle
 
 from services.tool_manager_service import ToolManagerService
 from fastapi import WebSocket
-from loguru import logger 
+from loguru import logger
+
 
 class TurnDetectionMode(Enum):
     SERVER_VAD = "server_vad"
@@ -211,9 +214,9 @@ class OpenaiRealtimeAgentClient:
         if self.ws:
             await self.ws.close()
 
-    async def send_server(self, event):
+    async def send_server(self, event: dict):
         await self.ws.send(json.dumps(event))
-        
+
     async def send_conversation_item_to_server(self, text: str):
 
         event = {

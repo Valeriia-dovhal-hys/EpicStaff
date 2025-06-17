@@ -12,7 +12,6 @@ import { ConfigService } from './config/config.service';
 export class LLM_Providers_Service {
   constructor(private http: HttpClient, private configService: ConfigService) {}
 
-  // Dynamically retrieve the API URL from ConfigService
   private get apiUrl(): string {
     return this.configService.apiUrl + 'providers/';
   }

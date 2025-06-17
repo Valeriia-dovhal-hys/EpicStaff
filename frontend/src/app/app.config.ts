@@ -15,8 +15,6 @@ import { ConfigService } from './services/config/config.service';
 
 // A factory function for APP_INITIALIZER
 export function initializeApp(configService: ConfigService) {
-  // Return a function that returns a promise.
-  // Angular will wait for this promise before bootstrapping the app.
   return () => configService.loadConfig();
 }
 
@@ -32,7 +30,6 @@ export const appConfig: ApplicationConfig = {
       MonacoEditorModule.forRoot()
     ),
 
-    // IMPORTANT: Provide APP_INITIALIZER to load the config before the app starts
     {
       provide: APP_INITIALIZER,
       useFactory: initializeApp,

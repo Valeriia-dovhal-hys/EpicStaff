@@ -23,14 +23,14 @@ export class UndoRedoService {
   /**
    * Returns a snapshot of the current flow state.
    */
-  public snapshotCurrentState(): FlowModel {
+  private snapshotCurrentState(): FlowModel {
     return this._deepClone(this.flowService.getFlowState());
   }
 
   /**
    * Apply a given flow state to the FlowService.
    */
-  public applyFlowState(flowState: FlowModel): void {
+  private applyFlowState(flowState: FlowModel): void {
     this.flowService.setFlow(flowState);
   }
 
@@ -39,6 +39,8 @@ export class UndoRedoService {
    * It saves the current state to the undo stack and clears the redo stack.
    */
   public stateChanged(): void {
+    console.log('state changed triggered');
+
     this.undoStack.push(this.snapshotCurrentState());
     this.redoStack = [];
   }

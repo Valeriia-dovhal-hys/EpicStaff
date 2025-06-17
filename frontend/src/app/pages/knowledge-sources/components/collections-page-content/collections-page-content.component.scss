@@ -1,85 +1,22 @@
 :host {
+  display: block;
   width: 100%;
+  height: 100%;
+  overflow: hidden; /* Prevent any overflow from the host */
 }
 
 .files-area {
-  flex: 1;
-  overflow: auto;
-  border-radius: 16px;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
 
-  .collection-header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.8rem 3.8rem;
-    font-size: 14px;
-    border-bottom: 1px solid var(--gray-800);
-
-    .collection-info {
-      display: flex;
-      flex-direction: column;
-
-      .collection-name {
-        color: rgba(255, 255, 255, 0.9);
-        margin: 0 0 4px 0;
-        font-size: 16px;
-        font-weight: 600;
-      }
-
-      .embedding-info {
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.5);
-        display: flex;
-        align-items: center;
-
-        .label {
-          color: rgba(255, 255, 255, 0.5);
-          margin-right: 4px;
-        }
-
-        .value {
-          color: rgba(255, 255, 255, 0.8);
-          background-color: rgba(30, 30, 30, 0.6);
-          padding: 2px 8px;
-          border-radius: 4px;
-        }
-      }
-    }
-
-    .upload-button {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      background-color: transparent;
-
-      border-radius: 8px;
-      color: var(--accent-color, #685fff);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background-color: rgba(104, 95, 255, 0.1);
-      }
-
-      svg {
-        width: 16px;
-        height: 16px;
-      }
-    }
-  }
+  background: none !important;
+  border-radius: 0 !important;
 
   .files-list {
-    padding: 1rem 3.8rem;
-    overflow-y: auto;
+    padding: 1rem 3rem;
+    overflow-y: auto; /* Only this element should scroll */
     flex: 1;
-    margin-bottom: 8px;
   }
 
   .zero-files {
@@ -94,7 +31,7 @@
     p {
       font-size: 16px;
       color: rgba(255, 255, 255, 0.8);
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .upload-button {
@@ -113,15 +50,16 @@
       color: rgba(255, 255, 255, 0.7);
     }
 
-    .supported-file-types {
-      font-size: 12px;
+    .supported-file-types,
+    .search-info {
+      font-size: 14px;
       color: rgba(255, 255, 255, 0.5);
+    }
 
-      .file-type {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-        padding: 2px 6px;
-      }
+    .file-type {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      padding: 2px 6px;
     }
   }
 }

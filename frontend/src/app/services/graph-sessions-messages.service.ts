@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { GraphMessage } from '../pages/running-graph/components/graph-messages/graph-session-message.model';
+import { GraphMessage } from '../pages/running-graph/models/graph-session-message.model';
 import { ConfigService } from './config/config.service';
 
 export interface GraphSessionMessagesResponse {
@@ -23,11 +23,6 @@ export class GraphSessionMessagesService {
     return this.configService.apiUrl;
   }
 
-  /**
-   * Get all messages for a specific session
-   * @param sessionId The ID of the session
-   * @returns Observable of GraphMessage array
-   */
   getGraphSessionMessages(
     sessionId: string | number
   ): Observable<GraphMessage[]> {

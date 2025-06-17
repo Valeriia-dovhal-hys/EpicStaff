@@ -2,7 +2,7 @@ import {
   GetPythonCodeRequest,
   CreatePythonCodeRequest,
   CustomPythonCode,
-} from '../../../../../user-settings-page/tools/custom-tool-editor/models/python-code.model';
+} from '../../../../../features/tools/models/python-code.model';
 
 export interface ConditionalEdge {
   id: number;

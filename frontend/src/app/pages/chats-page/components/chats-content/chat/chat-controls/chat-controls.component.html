@@ -1,9 +1,9 @@
-<!-- chat-controls.component.html with consistent styling -->
+<!-- chat-controls.component.html -->
 <div class="chat-controls">
   <!-- Text input area that shows when keyboard mode is active -->
   <div
     class="text-input-container"
-    *ngIf="isKeyboardMode && isConversationSetuped"
+    *ngIf="isKeyboardMode() && isConversationSetuped"
   >
     <textarea
       class="message-input"
@@ -18,9 +18,14 @@
 
   <!-- Initial controls for starting conversation -->
   <div class="controls-container" *ngIf="!isConversationSetuped">
-    <button class="start-speaking-btn" (click)="onStartSpeaking()">
-      <i class="ti ti-microphone"></i>
-      Start Speaking
+    <button
+      class="start-speaking-btn"
+      (click)="onStartSpeaking()"
+      [disabled]="!canStartSpeaking()"
+    >
+      <i class="ti ti-microphone" *ngIf="!isConnecting()"></i>
+      <i class="ti ti-loader ti-spin" *ngIf="isConnecting()"></i>
+      {{ isConnecting() ? "Connecting..." : "Start Speaking" }}
     </button>
     <app-microphone-selector></app-microphone-selector>
   </div>
@@ -34,16 +39,13 @@
 
     <div class="recording-controls">
       <!-- Switch to keyboard/mic button -->
-      <!-- <button
+      <button
         class="control-btn"
-        [class.active]="isKeyboardMode"
+        [class.active]="isKeyboardMode()"
         (click)="toggleInputMode()"
       >
         <i class="ti ti-keyboard"></i>
-      </button> -->
-
-      <!-- Divider -->
-      <!-- <span class="control-divider"></span> -->
+      </button>
 
       <!-- Pause/Resume microphone button -->
       <button

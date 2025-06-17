@@ -1,19 +1,52 @@
-<div class="create-flow-dialog">
-  <div class="header">
-    <h2>{{ dialogTitle }}</h2>
+<div class="dialog-container">
+  <div class="dialog-header">
+    <h2 class="dialog-title">{{ dialogTitle }}</h2>
+    <button class="close-button" (click)="onCancel()" [disabled]="isSubmitting">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <line
+          x1="18"
+          y1="6"
+          x2="6"
+          y2="18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+        <line
+          x1="6"
+          y1="6"
+          x2="18"
+          y2="18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
   </div>
 
-  <div class="body">
+  <div class="dialog-content">
     <form [formGroup]="flowForm">
-      <div class="form-group">
-        <label for="name">Flow Name</label>
-        <input id="name" formControlName="name" placeholder="Enter flow name" />
-        <!-- <div
-          *ngIf="flowForm.get('name')?.invalid && flowForm.get('name')?.dirty"
-          class="error"
-        >
-          Flow name is required.
-        </div> -->
+      <!-- Name field with icon selector -->
+      <div class="form-group name-with-icon">
+        <label for="name">Flow Name <span class="required">*</span></label>
+        <div class="input-with-icon">
+          <!-- Icon Picker Component -->
+          <!-- <app-icon-picker
+            [selectedIcon]="selectedIcon"
+            (iconSelected)="onIconSelected($event)"
+          ></app-icon-picker> -->
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            placeholder="Enter flow name"
+            class="text-input"
+          />
+        </div>
+        @if (flowForm.get('name')?.invalid && flowForm.get('name')?.touched) {
+        <div class="error-message">Flow name is required.</div>
+        }
       </div>
 
       <div class="form-group">
@@ -22,19 +55,33 @@
           id="description"
           formControlName="description"
           placeholder="Enter flow description (optional)"
+          class="text-input"
+          rows="3"
         ></textarea>
       </div>
     </form>
+    @if (errorMessage) {
+    <div class="dialog-error-message">{{ errorMessage }}</div>
+    }
   </div>
 
-  <div class="footer">
-    <button class="cancel-btn" (click)="onCancel()">Cancel</button>
+  <div class="dialog-footer">
     <button
-      class="create-btn"
-      [disabled]="!flowForm.valid"
+      class="button secondary"
+      (click)="onCancel()"
+      [disabled]="isSubmitting"
+    >
+      Cancel
+    </button>
+    <button
+      class="button primary"
+      [disabled]="!flowForm.valid || isSubmitting"
       (click)="onSubmit()"
     >
+      @if (isSubmitting) {
+      <span class="spinner"></span> Save } @else {
       {{ submitButtonText }}
+      }
     </button>
   </div>
 </div>

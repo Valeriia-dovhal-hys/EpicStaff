@@ -1,17 +1,18 @@
-import copy
 from loguru import logger
 import websockets
 import json
 from typing import Optional, Dict, Any
 
 from ai.transcription.event_handlers.transcription_client_event_handler import (
-    TransciptionClientEventHandler,
+    TranscriptionClientEventHandler,
 )
 from ai.transcription.event_handlers.transcription_server_event_handler import (
     TranscriptionServerEventHandler,
 )
 
 from fastapi import WebSocket
+
+from services.chat_buffer import ChatSummarizedBuffer
 
 
 class OpenaiRealtimeTranscriptionClient:
@@ -23,7 +24,7 @@ class OpenaiRealtimeTranscriptionClient:
         model: str,
         language: str | None,
         voice_recognition_prompt: str | None,
-        buffer: list[str],
+        buffer: ChatSummarizedBuffer,
         temperature: float = 0.8,
     ):
         self.api_key = api_key
@@ -38,11 +39,12 @@ class OpenaiRealtimeTranscriptionClient:
         self.turn_detection_mode = "server_vad"
 
         self.buffer = buffer
+        self.words_qty_in_buffer: int = 0
 
         self.server_event_handler = TranscriptionServerEventHandler(
             self, transcription_buffer=self.buffer
         )
-        self.client_event_handler = TransciptionClientEventHandler(self, buffer=buffer)
+        self.client_event_handler = TranscriptionClientEventHandler(self, buffer=buffer)
 
     async def connect(self) -> None:
         """Establish WebSocket connection with the Realtime transcription API."""
@@ -126,8 +128,8 @@ class OpenaiRealtimeTranscriptionClient:
     async def send_server(self, event: dict):
         await self.ws.send(json.dumps(event))
 
-    def get_transcription_buffer(self) -> list[str]:
-        return copy.copy(self.buffer)
+    def get_transcription_buffer(self) -> ChatSummarizedBuffer:
+        return self.buffer
 
-    def flush_buffer(self):
-        self.buffer.clear()
+    # def flush_buffer(self):
+    #     self.buffer.flush()

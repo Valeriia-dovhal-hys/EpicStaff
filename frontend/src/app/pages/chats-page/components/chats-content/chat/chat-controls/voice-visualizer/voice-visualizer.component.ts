@@ -5,9 +5,10 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ConsoleService } from '../../../../../services/console.service';
+import { WavRecorderService } from '../../../../../services/wav-recorder.service';
 
 @Component({
   selector: 'app-voice-visualizer',
@@ -24,8 +25,7 @@ import { ConsoleService } from '../../../../../services/console.service';
     `
       :host {
         display: block;
-        width: 100%;
-        max-width: 320px;
+        width: fit-content;
       }
 
       .visualizer {
@@ -33,7 +33,6 @@ import { ConsoleService } from '../../../../../services/console.service';
         align-items: center;
         border-radius: 8px;
         width: 100%;
-        height: 48px;
       }
 
       .wave-container {
@@ -60,14 +59,16 @@ export class VoiceVisualizerComponent implements OnInit, OnDestroy {
   canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private animationFrameId: number | null = null;
-
-  constructor(private consoleService: ConsoleService) {}
+  private wavRecorderService = inject(WavRecorderService);
 
   ngOnInit(): void {
     this.startVisualization();
   }
 
   private startVisualization() {
+    if (!this.wavRecorderService.isRecording()) {
+      return;
+    }
     const canvas = this.canvasRef.nativeElement;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
@@ -76,7 +77,7 @@ export class VoiceVisualizerComponent implements OnInit, OnDestroy {
 
     const draw = () => {
       try {
-        const analysis = this.consoleService.getFrequencyData(
+        const analysis = this.wavRecorderService.getFrequencyData(
           'voice',
           -100,
           -30

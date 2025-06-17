@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 import shutil
 import pytest
 from django.core.management import call_command
+from django.core.cache import cache
 from tables.models.realtime_models import RealtimeAgent
 from tables.models.llm_models import (
     RealtimeConfig,
@@ -14,6 +15,7 @@ from tables.models.llm_models import (
 from tables.models.crew_models import DefaultAgentConfig, DefaultCrewConfig
 from tables.services.config_service import YamlConfigService
 from tables.services.redis_service import RedisService
+from tables.services.session_manager_service import SessionManagerService
 
 from tables.models import (
     LLMConfig,
@@ -28,6 +30,10 @@ from tables.models import (
     ToolConfig,
     ToolConfigField,
     Session,
+    Graph,
+    CrewNode,
+    Edge,
+    StartNode,
 )
 
 from django.utils.crypto import get_random_string
@@ -39,6 +45,11 @@ import fakeredis
 @pytest.fixture(autouse=True)
 def reset_db():
     call_command("flush", "--noinput")
+
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    cache.clear()
 
 
 @pytest.fixture
@@ -203,6 +214,32 @@ def crew(
     crew.save()
 
     return crew
+
+
+@pytest.fixture
+def graph() -> Graph:
+    return Graph.objects.create(name="test")
+
+
+@pytest.fixture
+def session_data(crew: Crew, graph: Graph) -> dict:
+    CrewNode.objects.create(node_name="crew_node_1", crew=crew, graph=graph)
+    StartNode.objects.create(graph=graph, variables={})
+    Edge.objects.create(graph=graph, start_key="__start__", end_key="crew_node_1")
+    return {
+        "graph_id": graph.pk,
+        "variables": {
+            "additionalProp1": "string",
+            "additionalProp2": "string",
+            "additionalProp3": "string",
+        },
+    }
+
+
+@pytest.fixture
+def session(session_data) -> tuple[Session | dict]:
+    session_manager = SessionManagerService()
+    return session_manager.create_session(**session_data)
 
 
 @pytest.fixture

@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GraphMessage } from '../../graph-session-message.model';
+import { GraphMessage } from '../../../../models/graph-session-message.model';
 import { NgxJsonViewerModule } from 'ngx-json-viewer';
 import { expandCollapseAnimation } from '../../../../../../shared/animations/animations-expand-collapse';
 import { GetAgentRequest } from '../../../../../../shared/models/agent.model';
@@ -28,7 +28,8 @@ import { GetAgentRequest } from '../../../../../../shared/models/agent.model';
           <i class="ti ti-robot"></i>
         </div>
         <div class="header-text">
-          Action done by <span class="agent-name">{{ getAgentName() }}</span>
+          Agent <span class="agent-name">{{ getAgentName() }}</span> used tool
+          <span class="tool-name-header">{{ getTool() }}</span>
         </div>
       </div>
 
@@ -85,7 +86,7 @@ import { GetAgentRequest } from '../../../../../../shared/models/agent.model';
                 <div class="tool-input-container" *ngIf="hasToolInput()">
                   <ngx-json-viewer
                     *ngIf="isValidJson(getToolInput())"
-                    [json]="getParsedJson()"
+                    [json]="getParsedJson('tool')"
                     [expanded]="false"
                   ></ngx-json-viewer>
                   <div
@@ -98,239 +99,259 @@ import { GetAgentRequest } from '../../../../../../shared/models/agent.model';
               </div>
             </div>
           </div>
+
+          <!-- Tool Output Section at same level as Thought and Tool -->
+          <div class="result-container" *ngIf="getResult()">
+            <div class="section-heading" (click)="toggleSection('result')">
+              <i
+                class="ti"
+                [ngClass]="
+                  isResultExpanded
+                    ? 'ti-caret-down-filled'
+                    : 'ti-caret-right-filled'
+                "
+              ></i>
+              Tool Output
+            </div>
+            <div
+              class="collapsible-content"
+              [@expandCollapse]="isResultExpanded ? 'expanded' : 'collapsed'"
+            >
+              <div class="result-content">
+                <ngx-json-viewer
+                  *ngIf="isValidJson(getResult())"
+                  [json]="getParsedJson('result')"
+                  [expanded]="false"
+                ></ngx-json-viewer>
+                <div
+                  class="formatted-content"
+                  *ngIf="!isValidJson(getResult())"
+                >
+                  {{ getResult() }}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- Result Section as Separate Message Bubble -->
-    <div class="result-message-container">
-      <div class="result-content">
-        {{ getResult() }}
-      </div>
-    </div>
   `,
-  styles: [
-    `
-      :host {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
+  styles: `
+    :host {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
 
-      .agent-flow-container {
-        background-color: var(--gray-850);
-        border-radius: 8px;
-        padding: 1.25rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        border-left: 4px solid #8e5cd9;
-      }
+    .agent-flow-container {
+        background-color: var(--color-nodes-background); 
+      border-radius: 8px;
+      padding: 1.25rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border-left: 4px solid #8e5cd9;
+    }
 
-      .agent-header {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        user-select: none;
-      }
+    .agent-header {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
 
-      .play-arrow {
-        margin-right: 16px;
-        display: flex;
-        align-items: center;
-      }
+    .play-arrow {
+      margin-right: 16px;
+      display: flex;
+      align-items: center;
 
-      .play-arrow i {
+      i {
         color: #8e5cd9;
         font-size: 1.1rem;
         transition: transform 0.3s ease;
       }
+    }
 
-      .icon-container {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background-color: #8e5cd9;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 20px;
-        flex-shrink: 0;
-      }
+    .icon-container {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #8e5cd9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 20px;
+      flex-shrink: 0;
 
-      .icon-container i {
+      i {
         color: var(--gray-900);
         font-size: 1.25rem;
       }
+    }
 
-      .header-text {
-        flex: 1;
-        color: var(--gray-100);
-        font-size: 1.1rem;
-        font-weight: 600;
-        white-space: nowrap;
+    .header-text {
+      flex: 1;
+      color: var(--gray-100);
+      font-size: 1.1rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .agent-name {
+      color: #8e5cd9;
+      font-weight: 600;
+    }
+
+    .tool-name-header {
+      color: #8e5cd9;
+      font-weight: 400;
+    }
+
+    .agent-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding-left: 5.5rem;
+      margin-top: 1.25rem;
+      overflow: hidden;
+    }
+
+    /* Collapsible content container */
+    .collapsible-content {
+      overflow: hidden;
+      position: relative;
+
+      &.ng-animating {
         overflow: hidden;
-        text-overflow: ellipsis;
       }
+    }
 
-      .agent-name {
-        color: #8e5cd9;
-        font-weight: 400;
-      }
+    .section-heading {
+      font-weight: 500;
+      color: var(--gray-300);
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
 
-      .agent-content {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        padding-left: 5.5rem;
-        margin-top: 1.25rem;
-        overflow: hidden;
-      }
-
-      /* Collapsible content container */
-      .collapsible-content {
-        overflow: hidden;
-        position: relative;
-      }
-
-      .collapsible-content.ng-animating {
-        overflow: hidden;
-      }
-
-      .section-heading {
-        font-weight: 500;
-        color: var(--gray-300);
-        margin-bottom: 0.5rem;
-        cursor: pointer;
-        user-select: none;
-        display: flex;
-        align-items: center;
-      }
-
-      .section-heading i {
+      i {
         margin-right: 8px;
         color: #8e5cd9;
         font-size: 1.1rem;
         margin-left: -3px;
         transition: transform 0.3s ease;
       }
+    }
 
-      .thought-bubble {
-        background-color: var(--gray-800);
-        border: 1px solid var(--gray-750);
-        border-radius: 8px;
-        padding: 1rem;
-        position: relative;
-        color: var(--gray-200);
-        font-style: italic;
-        margin-left: 23px;
-      }
+    .thought-bubble {
+      background-color: var(--gray-800);
+      border: 1px solid var(--gray-750);
+      border-radius: 8px;
+      padding: 1rem;
+      position: relative;
+      color: var(--gray-200);
+      font-style: italic;
+      margin-left: 23px;
+    }
 
-      .thought-quote {
-        color: #8e5cd9;
-        font-size: 1.5rem;
-        font-weight: bold;
-        vertical-align: sub;
-        line-height: 0;
-      }
+    .thought-quote {
+      color: #8e5cd9;
+      font-size: 1.5rem;
+      font-weight: bold;
+      vertical-align: sub;
+      line-height: 0;
+    }
 
-      .tool-wrapper {
-        margin-left: 23px;
-      }
+    .tool-wrapper {
+      margin-left: 23px;
+    }
 
-      .tool-name {
-        font-weight: 600;
-        color: #8e5cd9;
-        margin-bottom: 0.5rem;
-      }
+    .tool-name {
+      font-weight: 600;
+      color: #8e5cd9;
+      margin-bottom: 0.5rem;
+    }
 
-      .tool-input-container {
-        background-color: var(--gray-800);
-        border: 1px solid var(--gray-750);
-        border-radius: 8px;
-        padding: 1rem;
-        overflow: auto;
-        max-height: 400px;
-        padding-inline: 3px;
-      }
+    .tool-input-container {
+      background-color: var(--gray-800);
+      border: 1px solid var(--gray-750);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow: auto;
+      max-height: 400px;
+      padding-inline: 3px;
+    }
 
-      .input-label {
-        font-weight: 500;
-        color: var(--gray-300);
-        margin-bottom: 0.5rem;
-      }
+    .input-label {
+      font-weight: 500;
+      color: var(--gray-300);
+      margin-bottom: 0.5rem;
+    }
 
-      .formatted-content {
-        font-family: 'Courier New', monospace;
-        font-size: 0.85rem;
-        white-space: pre-wrap;
-        word-break: break-word;
-        color: var(--gray-200);
-      }
+    .formatted-content {
+   
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--gray-200);
+    }
 
-      /* Task Result Styling - Message Bubble */
-      .result-message-container {
-        max-width: 85%;
-        position: relative;
-      }
+    /* Tool Output Styling */
+    .result-container {
+      /* Remove margin to align with other sections */
+    }
 
-      .result-content {
-        background-color: var(--gray-800);
-        border-radius: 18px;
-        border-top-left-radius: 4px;
-        padding: 1rem;
-        color: #e3e3e3;
-        word-break: break-word;
-        overflow-y: auto;
-        transition: max-height 0.3s ease;
-        box-shadow: 0 4px 12px rgba(14, 14, 14, 0.25);
-        position: relative;
-        white-space: pre-wrap;
-      }
+    .result-content {
+        background-color: var(--gray-850);
 
-      .result-content.collapsed {
-        max-height: 300px;
-        overflow: hidden;
-      }
+      border: 1px solid var(--gray-750);
+      border-radius: 8px;
+      padding: 1rem;
+      color: #e3e3e3;
+      word-break: break-word;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      margin-left: 23px;
+    }
 
-      .toggle-button {
-        background-color: transparent;
-        border: none;
-        color: #8e5cd9;
-        font-size: 0.85rem;
-        cursor: pointer;
-        padding: 0.5rem;
-        text-align: center;
-        width: 100%;
-        margin-top: 0.25rem;
-      }
-
-      .toggle-button:hover {
-        text-decoration: underline;
-      }
-    `,
-  ],
+    .code-content {
+    
+        
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--gray-200);
+      font-size: 0.85rem;
+    }
+  `,
 })
 export class AgentMessageComponent implements OnInit {
-  @Input() message!: GraphMessage;
-  @Input() agent: GetAgentRequest | null = null; // Add input for agent data
+  @Input() public message!: GraphMessage;
+  @Input() public agent: GetAgentRequest | null = null; // Add input for agent data
 
-  isMessageExpanded = false;
-  isThoughtExpanded = true;
-  isToolExpanded = true;
-  isResultExpanded = true;
-  isCollapsed = true;
-  parsedJson: any = null;
+  private toolJsonData: any = null;
+  private resultJsonData: any = null;
 
-  ngOnInit() {
+  public isMessageExpanded = false;
+  public isThoughtExpanded = true;
+  public isToolExpanded = true;
+  public isResultExpanded = false;
+
+  public ngOnInit(): void {
     if (this.hasToolInput()) {
-      this.tryParseJson();
+      this.tryParseToolJson();
+    }
+
+    if (this.getResult()) {
+      this.tryParseResultJson();
     }
   }
 
-  toggleMessage(): void {
+  public toggleMessage(): void {
     this.isMessageExpanded = !this.isMessageExpanded;
   }
 
-  toggleSection(section: 'thought' | 'tool' | 'result'): void {
+  public toggleSection(section: 'thought' | 'tool' | 'result'): void {
     if (section === 'thought') {
       this.isThoughtExpanded = !this.isThoughtExpanded;
     } else if (section === 'tool') {
@@ -340,7 +361,7 @@ export class AgentMessageComponent implements OnInit {
     }
   }
 
-  getAgentName(): string {
+  public getAgentName(): string {
     // If we have the agent data, use the agent's role
     if (this.agent && this.agent.role) {
       // Limit agent name to 50 characters
@@ -361,7 +382,7 @@ export class AgentMessageComponent implements OnInit {
     return 'Agent';
   }
 
-  getAgentId(): string {
+  public getAgentId(): string {
     if (!this.message.message_data) return 'Unknown';
 
     if (
@@ -374,7 +395,7 @@ export class AgentMessageComponent implements OnInit {
     return 'Unknown';
   }
 
-  getProjectId(): string {
+  public getProjectId(): string {
     if (!this.message.message_data) return 'Unknown';
 
     if (
@@ -387,7 +408,7 @@ export class AgentMessageComponent implements OnInit {
     return 'Unknown';
   }
 
-  hasThought(): boolean {
+  public hasThought(): boolean {
     if (!this.message.message_data) return false;
 
     return (
@@ -397,12 +418,12 @@ export class AgentMessageComponent implements OnInit {
     );
   }
 
-  getThought(): string {
+  public getThought(): string {
     if (!this.hasThought()) return '';
     return (this.message.message_data as any).thought;
   }
 
-  cleanThought(thought: string): string {
+  public cleanThought(thought: string): string {
     // Remove markdown code block syntax if present
     return thought
       .replace(/```[\s\S]*?```/g, '')
@@ -413,7 +434,7 @@ export class AgentMessageComponent implements OnInit {
       .trim();
   }
 
-  hasTool(): boolean {
+  public hasTool(): boolean {
     if (!this.message.message_data) return false;
 
     return (
@@ -423,12 +444,12 @@ export class AgentMessageComponent implements OnInit {
     );
   }
 
-  getTool(): string {
+  public getTool(): string {
     if (!this.hasTool()) return '';
     return (this.message.message_data as any).tool;
   }
 
-  hasToolInput(): boolean {
+  public hasToolInput(): boolean {
     if (!this.message.message_data) return false;
 
     return (
@@ -438,22 +459,32 @@ export class AgentMessageComponent implements OnInit {
     );
   }
 
-  getToolInput(): string {
+  public getToolInput(): string {
     if (!this.hasToolInput()) return '';
     return (this.message.message_data as any).tool_input;
   }
 
-  tryParseJson(): void {
+  private tryParseToolJson(): void {
     if (this.hasToolInput()) {
       try {
-        this.parsedJson = JSON.parse(this.getToolInput());
+        this.toolJsonData = JSON.parse(this.getToolInput());
       } catch (e) {
-        this.parsedJson = null;
+        this.toolJsonData = null;
       }
     }
   }
 
-  isValidJson(str: string): boolean {
+  private tryParseResultJson(): void {
+    if (this.getResult()) {
+      try {
+        this.resultJsonData = JSON.parse(this.getResult());
+      } catch (e) {
+        this.resultJsonData = null;
+      }
+    }
+  }
+
+  public isValidJson(str: string): boolean {
     try {
       JSON.parse(str);
       return true;
@@ -462,14 +493,21 @@ export class AgentMessageComponent implements OnInit {
     }
   }
 
-  getParsedJson() {
-    if (!this.parsedJson) {
-      this.tryParseJson();
+  public getParsedJson(type: 'tool' | 'result'): any {
+    if (type === 'tool') {
+      if (this.toolJsonData === null) {
+        this.tryParseToolJson();
+      }
+      return this.toolJsonData;
+    } else {
+      if (this.resultJsonData === null) {
+        this.tryParseResultJson();
+      }
+      return this.resultJsonData;
     }
-    return this.parsedJson;
   }
 
-  formatJson(jsonString: string): string {
+  public formatJson(jsonString: string): string {
     try {
       const parsed = JSON.parse(jsonString);
       // Using more explicit formatting to ensure proper indentation and brackets
@@ -480,7 +518,8 @@ export class AgentMessageComponent implements OnInit {
     }
   }
 
-  getResult(): string {
-    return (this.message.message_data as any).result.trim();
+  public getResult(): string {
+    if (!this.message.message_data) return '';
+    return (this.message.message_data as any).result?.trim() || '';
   }
 }

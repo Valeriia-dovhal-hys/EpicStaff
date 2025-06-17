@@ -28,7 +28,7 @@
       </div>
 
       <!-- Temperature Setting -->
-      <div class="setting-item">
+      <!-- <div class="setting-item">
         <div class="setting-label">
           <div class="setting-title">Temperature</div>
           <div class="setting-description">
@@ -53,10 +53,10 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Cache Setting -->
-      <div class="setting-item">
+      <!-- <div class="setting-item">
         <div class="setting-label">
           <div class="setting-title">Cache</div>
           <div class="setting-description">
@@ -73,10 +73,10 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Full Output Setting -->
-      <div class="setting-item">
+      <!-- <div class="setting-item">
         <div class="setting-label">
           <div class="setting-title">Full Output</div>
           <div class="setting-description">Return complete model output</div>
@@ -91,10 +91,10 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Planning Setting -->
-      <div class="setting-item">
+      <!-- <div class="setting-item">
         <div class="setting-label">
           <div class="setting-title">Planning</div>
           <div class="setting-description">
@@ -111,7 +111,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Max RPM Setting -->
       <div class="setting-item">
@@ -154,11 +154,11 @@
               [(ngModel)]="settings.manager_llm_config"
               (change)="onLLMConfigChange()"
             >
-              <option *ngFor="let llm of availableLLMs" [value]="llm.id">
+              <option *ngFor="let llm of availableLLMs()" [value]="llm.id">
                 {{ llm.custom_name }}
               </option>
             </select>
-            <mat-icon>expand_more</mat-icon>
+            <i class="ti ti-chevron-down"></i>
           </div>
         </div>
       </div>
@@ -178,13 +178,13 @@
               (change)="onEmbeddingConfigChange()"
             >
               <option
-                *ngFor="let embedding of embeddingConfigs"
+                *ngFor="let embedding of embeddingConfigs()"
                 [value]="embedding.id"
               >
                 {{ embedding.custom_name }}
               </option>
             </select>
-            <mat-icon>expand_more</mat-icon>
+            <i class="ti ti-chevron-down"></i>
           </div>
         </div>
       </div>

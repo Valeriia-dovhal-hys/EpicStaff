@@ -9,9 +9,6 @@
     (searchInput)="onSearchInput($event)"
     (toggleFavoriteFilter)="toggleFavoriteFilter()"
     (openCreate)="openCreateFormDialog()"
-    [showFilter]="false"
-    [showSort]="false"
-    [showFavoriteToggle]="false"
   ></app-page-header>
 
   <div class="projects-page-wrapper">
@@ -29,12 +26,14 @@
       ></app-new-project-card>
 
       <ng-container *ngIf="filteredProjects.length > 0; else noProjects">
+        @for (project of filteredProjects; track project.id) {
         <app-project-list-item-card
-          *ngFor="let project of filteredProjects"
           [project]="project"
           (openProject)="navigateToProjectDetails($event)"
           (deleteProject)="onDeleteProject($event)"
         ></app-project-list-item-card>
+
+        }
       </ng-container>
       <ng-template #noProjects>
         <div class="no-projects" *ngIf="searchTerm || showFavorites">

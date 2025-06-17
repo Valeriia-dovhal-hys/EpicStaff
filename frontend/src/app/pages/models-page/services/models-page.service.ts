@@ -57,14 +57,15 @@ export class ModelsPageService {
   //-------------------------------------------------
   // DATA SETTERS
   //-------------------------------------------------
-
-  // LLM setters
-  setLLMConfigs(configs: FullLLMConfig[]): void {
-    this.llmConfigs.set(configs);
+  setProviders(providers: LLM_Provider[]): void {
+    this.providers.set(providers);
   }
 
   setLLMModels(models: LLM_Model[]): void {
     this.llmModels.set(models);
+  }
+  setLLMConfigs(configs: FullLLMConfig[]): void {
+    this.llmConfigs.set(configs);
   }
 
   // Embedding setters
@@ -202,5 +203,14 @@ export class ModelsPageService {
     this.realtimeConfigs.update((configs) =>
       configs.filter((config) => config.id !== id)
     );
+  }
+
+  //update configs
+  updateLLMConfig(updatedConfig: FullLLMConfig): void {
+    this.llmConfigs.update((configs) => {
+      return configs.map((config) =>
+        config.id === updatedConfig.id ? updatedConfig : config
+      );
+    });
   }
 }

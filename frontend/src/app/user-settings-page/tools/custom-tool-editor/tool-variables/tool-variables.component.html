@@ -2,10 +2,12 @@
   <div class="header">
     <h3>Inputs Description</h3>
     <!-- Plus icon to add a new variable -->
-    <i
-      class="ti ti-plus"
+    <app-icon
+      icon="ui/plus"
+      size="1rem"
+      class="add-icon"
       (click)="onAddVariable(); $event.preventDefault()"
-    ></i>
+    ></app-icon>
   </div>
 
   <!-- Display the variables as a list of editable rows -->
@@ -15,27 +17,28 @@
       class="variable-item"
     >
       <input
+        #nameInput
         type="text"
         placeholder="Input name"
         [(ngModel)]="variable.name"
         class="variable-input name-input"
-        (keyup.enter)="onKeyUpEnter(i); $event.preventDefault()"
+        (keydown.enter)="onKeyUpEnter(i); $event.preventDefault()"
       />
       <input
         type="text"
         placeholder="Input Description"
         [(ngModel)]="variable.description"
         class="variable-input desc-input"
-        (keyup.enter)="onKeyUpEnter(i); $event.preventDefault()"
+        (keydown.enter)="onKeyUpEnter(i); $event.preventDefault()"
       />
 
-      <!-- Allow deletion if there’s more than one row -->
+      <!-- Allow deletion if there's more than one row -->
       <button
         class="delete-variable-btn"
         (click)="removeVariable(i); $event.preventDefault()"
         *ngIf="variables.length > 1"
       >
-        <i class="ti ti-trash"></i>
+        <app-icon icon="ui/x" size="1rem"></app-icon>
       </button>
     </div>
   </div>

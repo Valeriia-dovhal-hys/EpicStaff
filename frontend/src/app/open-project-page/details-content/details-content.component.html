@@ -1,6 +1,5 @@
 <div class="panel-content">
   <!-- Description Section -->
-
   <div class="description" [class.editing]="isEditingDescription">
     <textarea
       [(ngModel)]="internalDescription"
@@ -24,7 +23,7 @@
         [class.shake-animation]="tag === duplicateTagName"
       >
         <span>#{{ tag }}</span>
-        <button (click)="onRemoveTag(tag)">
+        <button (click)="onRemoveTag(tag)" title="Remove tag">
           <i class="ti ti-x"></i>
         </button>
       </div>

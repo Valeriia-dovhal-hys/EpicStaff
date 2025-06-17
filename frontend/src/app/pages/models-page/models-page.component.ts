@@ -17,6 +17,7 @@ import { ProviderListComponent } from './components/provider-list/provider-list.
 import { EmbeddingModelsService } from '../../services/embeddings.service';
 import { LLM_Models_Service } from '../../services/LLM_models.service';
 import { ToastService } from '../../services/notifications/toast.service';
+import { LLM_Providers_Service } from '../../services/LLM_providers.service';
 
 @Component({
   selector: 'app-models-page',
@@ -33,8 +34,10 @@ export class ModelsPageComponent implements OnInit {
   private fullRealtimeConfigService = inject(FullRealtimeConfigService);
   private llmModelsService = inject(LLM_Models_Service);
   private embeddingModelsService = inject(EmbeddingModelsService);
+  private providersService = inject(LLM_Providers_Service);
   private destroyRef = inject(DestroyRef);
   private toastService = inject(ToastService);
+
   ngOnInit(): void {
     this.fetchAllData();
   }
@@ -50,6 +53,7 @@ export class ModelsPageComponent implements OnInit {
       realtime: this.fullRealtimeConfigService.getFullRealtimeConfigs(),
       llmModels: this.llmModelsService.getLLMModels(),
       embeddingModels: this.embeddingModelsService.getEmbeddingModels(),
+      providers: this.providersService.getProviders(),
     })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
@@ -58,6 +62,7 @@ export class ModelsPageComponent implements OnInit {
       .subscribe({
         next: (result) => {
           // Update signals in the service with the fetched data
+          this.modelsPageService.setProviders(result.providers);
           this.modelsPageService.setLLMConfigs(result.llmConfigs);
           this.modelsPageService.setEmbeddingConfigs(result.embeddingConfigs);
 
@@ -68,10 +73,11 @@ export class ModelsPageComponent implements OnInit {
             result.realtime.fullConfigs
           );
           this.modelsPageService.setRealtimeModels(result.realtime.models);
-          console.log('All models and configs loaded successfully');
+          console.log('All providers, models and configs loaded successfully');
         },
         error: (error) => {
           console.error('Error fetching data:', error);
+          this.toastService.error('Failed to load data');
         },
       });
   }

@@ -1,0 +1,99 @@
+.btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background: var(--accent-color);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btn--icon-left {
+  padding-left: 2.4rem;
+}
+
+.btn--icon-right {
+  padding-right: 2.4rem;
+}
+
+.btn-primary {
+  background: var(--accent-color);
+  border: 1px solid transparent;
+  &:hover {
+    background: var(--accent-color-hover);
+  }
+  &:active {
+    background: var(--accent-color-active);
+  }
+}
+
+.btn-secondary {
+  background: var(--color-nodes-background);
+  border: 1px solid var(--color-divider-subtle);
+  &:hover {
+    background: var(--color-secondary-btn-background-hover);
+  }
+  //   &:active {
+  //     background: rgba(104, 95, 255, 0.15);
+  //   }
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--accent-color);
+  border: 1px solid transparent;
+  &:hover {
+    background: var(--color-ghost-btn-hover);
+  }
+  &:active {
+    background: var(--color-ghost-btn-active);
+  }
+}
+
+.btn--icon {
+  padding: 0.6rem;
+  .btn-icon.left,
+  .btn-icon.right {
+    margin-left: 0;
+    margin-right: 0;
+    position: static;
+    top: auto;
+    left: auto;
+    right: auto;
+    transform: none;
+  }
+}
+
+.btn-icon.left {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 0;
+  pointer-events: none;
+}
+
+.btn-icon.right {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 0;
+  pointer-events: none;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}

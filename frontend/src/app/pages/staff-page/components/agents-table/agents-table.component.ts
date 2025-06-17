@@ -36,7 +36,6 @@ import { LLMPopupComponent } from '../cell-renderers/cell-popup/llm-popup/llm-po
 import { ToolsPopupComponent } from '../cell-renderers/cell-popup/tools-popup/tools-popup.component';
 import { TagsPopupComponent } from '../cell-renderers/cell-popup/tags-popup/tags-popup.component';
 import {
-  EnhancedLLMConfig,
   FullAgent,
   FullAgentService,
   TableFullAgent,
@@ -66,6 +65,9 @@ import { ClickOutsideDirective } from '../../../../shared/directives/click-outsi
 import { ToastService } from '../../../../services/notifications/toast.service';
 import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
 import { ConfigCellRendererComponent } from '../cell-renderers/cell-popup/realtime-and-llm-config-cell-renderer/realtime-config-cell-renderer.component';
+import { map, switchMap } from 'rxjs';
+import { CreateRealtimeAgentRequest } from '../../../../shared/models/realtime-agent.model';
+import { RealtimeAgentService } from '../../../../services/realtime-agent.service';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -121,7 +123,7 @@ export class AgentsTableComponent {
     private agentsService: AgentsService,
     private renderer: Renderer2,
     private toastService: ToastService,
-
+    private realtimeAgentService: RealtimeAgentService,
     public dialog: Dialog
   ) {}
 
@@ -209,10 +211,22 @@ export class AgentsTableComponent {
       default_temperature: 0,
       tags: [],
       knowledge_collection: null,
-      realtime_config: null,
+      // Replace realtime_config with realtime_agent object using provided defaults
+      realtime_agent: {
+        distance_threshold: '0.65',
+        search_limit: 3,
+        wake_word: '',
+        stop_prompt: 'stop',
+        language: null,
+        voice_recognition_prompt: null,
+        voice: 'alloy',
+        realtime_config: null,
+        realtime_transcription_config: null,
+      },
       // Additional fields from FullAgent
       fullLlmConfig: undefined,
       fullFcmLlmConfig: undefined,
+      fullRealtimeConfig: undefined,
       fullConfiguredTools: [],
       fullPythonTools: [],
       mergedTools: [],
@@ -221,25 +235,20 @@ export class AgentsTableComponent {
   }
 
   myTheme = themeQuartz.withParams({
-    accentColor: '#685fff', // Match the accent color we've been using
-    backgroundColor: '#171717', // Match the main background color
+    accentColor: '#685fff', // --accent-color
+    backgroundColor: '#1e1e20', // --color-background-body
     browserColorScheme: 'dark',
-
-    chromeBackgroundColor: {
-      ref: 'foregroundColor',
-      mix: 0.07,
-      onto: 'backgroundColor',
-    },
+    borderColor: '#c8ceda24', // --color-divider-regular
+    chromeBackgroundColor: '#222225', // --color-sidenav-background
     columnBorder: true,
-    foregroundColor: '#FFF',
-    headerBackgroundColor: '#1c1c1c', // Slightly lighter than background to match section headers
+    foregroundColor: '#d9d9de', // --color-text-primary
+    headerBackgroundColor: '#222225', // --color-sidenav-background
     headerFontSize: 16,
     headerFontWeight: 500,
-    headerTextColor: '#DEDEDE',
-    cellTextColor: '#DEDEDE',
+    headerTextColor: '#d9d9de', // --color-text-primary
+    cellTextColor: '#d9d9de', // --color-text-primary
     spacing: 3.3,
-
-    oddRowBackgroundColor: '#1c1c1c', // Subtle row striping
+    oddRowBackgroundColor: '#222226', // More subtle, closer to main background
   });
 
   // Column definitions
@@ -472,6 +481,7 @@ export class AgentsTableComponent {
     animateRows: false,
 
     suppressColumnVirtualisation: false, // Enable column virtualization for performance
+    stopEditingWhenCellsLoseFocus: true,
 
     onFirstDataRendered: (params) => {
       console.log('hello data rendered');
@@ -567,11 +577,28 @@ export class AgentsTableComponent {
       // Process merged tools
       const mergedTools = agentData.mergedTools || [];
 
+      // Create or update the realtime_agent object
+      const realtime_agent = {
+        ...(agentData.realtime_agent || {}),
+        realtime_config: realtimeConfigId,
+        // Include other realtime_agent properties if they exist in agentData
+        distance_threshold: agentData.realtime_agent?.distance_threshold,
+        search_limit: agentData.realtime_agent?.search_limit,
+        wake_word: agentData.realtime_agent?.wake_word,
+        stop_prompt: agentData.realtime_agent?.stop_prompt,
+        language: agentData.realtime_agent?.language,
+        voice_recognition_prompt:
+          agentData.realtime_agent?.voice_recognition_prompt,
+        voice: agentData.realtime_agent?.voice,
+        realtime_transcription_config:
+          agentData.realtime_agent?.realtime_transcription_config,
+      };
+
       return {
         ...agentData,
         llm_config: llmConfigId,
         fcm_llm_config: agentData.fcm_llm_config || llmConfigId, // Maintain existing logic
-        realtime_config: realtimeConfigId,
+        realtime_agent: realtime_agent, // Use the properly structured realtime_agent object
         configured_tools: mergedTools
           .filter((tool: any) => tool.type === 'tool-config')
           .map((tool: any) => tool.id),
@@ -619,7 +646,7 @@ export class AgentsTableComponent {
         python_code_tools: parsedData.python_code_tools || [],
         llm_config: parsedData.llm_config,
         fcm_llm_config: parsedData.fcm_llm_config,
-        realtime_config: parsedData.realtime_config, // Add realtime config
+        realtime_agent: parsedData.realtime_agent, // Use the nested structure
         allow_delegation: parsedData.allow_delegation ?? false,
         memory: parsedData.memory ?? false,
         max_iter: parsedData.max_iter ?? undefined,
@@ -645,27 +672,21 @@ export class AgentsTableComponent {
             // Get the original temp ID before changing it
             const tempId = this.rowData[rowIndex].id;
 
-            // Create a new row object with the updated ID
+            // Create a new full agent object with the new ID
             const updatedRow = {
               ...this.rowData[rowIndex],
               id: newAgent.id,
             };
 
-            // Update the row in the data array
+            // Replace the row in our data array
             this.rowData[rowIndex] = updatedRow;
 
-            // Get the row node using the original temp ID
-            const rowNode = this.gridApi.getRowNode(tempId.toString());
-
-            if (rowNode) {
-              // Update the node's data directly
-              rowNode.setData(updatedRow);
-            } else {
-              console.warn('Could not find row node with temp ID:', tempId);
-            }
-
-            // Refresh the grid to show the changes
-            this.gridApi.refreshCells({ force: true });
+            // Instead of trying to update an existing node, remove and add the row
+            this.gridApi.applyTransaction({
+              remove: [{ id: tempId }],
+              add: [updatedRow],
+              addIndex: rowIndex,
+            });
 
             // Create an empty agent
             const emptyAgent = this.createEmptyFullAgent();
@@ -679,14 +700,16 @@ export class AgentsTableComponent {
         },
         error: (error) => {
           console.error('Error creating agent:', error);
+          this.toastService.error(
+            'Error creating agent: ' + (error.message || 'Unknown error')
+          );
         },
         complete: () => {
           console.log('Agent creation process completed.');
         },
       });
-      return; // Prevent saving the row if it's still being validated
+      return;
     }
-
     // For rows with a valid id, validate all fields that require validation
     let allValid = true; // Flag to check if all fields are valid
     fieldsToValidate.forEach((field) => {
@@ -727,7 +750,7 @@ export class AgentsTableComponent {
       python_code_tools: parsedUpdateData.python_code_tools || [],
       llm_config: parsedUpdateData.llm_config,
       fcm_llm_config: parsedUpdateData.fcm_llm_config,
-      realtime_config: parsedUpdateData.realtime_config, // Add realtime config
+      realtime_agent: parsedUpdateData.realtime_agent, // Use the nested structure instead of realtime_config
       allow_delegation: parsedUpdateData.allow_delegation ?? false,
       memory: parsedUpdateData.memory ?? false,
       max_iter: parsedUpdateData.max_iter ?? undefined,
@@ -787,7 +810,7 @@ export class AgentsTableComponent {
     updatedData: Partial<TableFullAgent>,
     agentData: TableFullAgent
   ): void {
-    const index = this.rowData.findIndex((agent) => agent === agentData);
+    const index = this.rowData.findIndex((agent) => agent.id === agentData.id);
     if (index === -1) {
       console.error('Agent not found in rowData for update:', agentData);
       return;
@@ -843,10 +866,25 @@ export class AgentsTableComponent {
         realtimeConfigId = realtimeConfig.id;
       }
     }
-    // Finally check the realtime_config field directly
-    else if (updatedAgent.realtime_config) {
-      realtimeConfigId = updatedAgent.realtime_config;
+    // Finally check the realtime_agent.realtime_config field directly
+    else if (updatedAgent.realtime_agent?.realtime_config) {
+      realtimeConfigId = updatedAgent.realtime_agent.realtime_config;
     }
+
+    // Create or update the realtime_agent object
+    const realtime_agent = {
+      ...(updatedAgent.realtime_agent || {
+        distance_threshold: '0.65',
+        search_limit: 3,
+        wake_word: '',
+        stop_prompt: 'stop',
+        language: null,
+        voice_recognition_prompt: null,
+        voice: 'alloy',
+        realtime_transcription_config: null,
+      }),
+      realtime_config: realtimeConfigId,
+    };
 
     // Prepare the payload for the backend update request
     const updateAgentData: UpdateAgentRequest = {
@@ -860,7 +898,7 @@ export class AgentsTableComponent {
       fcm_llm_config: updatedAgent.fullFcmLlmConfig?.id
         ? updatedAgent.fullFcmLlmConfig?.id
         : updatedAgent.fcm_llm_config ?? null,
-      realtime_config: realtimeConfigId, // Add realtime config
+      realtime_agent: realtime_agent, // Use the nested structure instead of realtime_config
       allow_delegation: updatedAgent.allow_delegation ?? false,
       memory: updatedAgent.memory ?? false,
       max_iter: updatedAgent.max_iter ?? 20,
@@ -1085,10 +1123,25 @@ export class AgentsTableComponent {
         realtimeConfigId = realtimeConfig.id;
       }
     }
-    // Finally check the realtime_config field directly
-    else if (newAgentData.realtime_config) {
-      realtimeConfigId = newAgentData.realtime_config;
+    // Finally check the realtime_agent.realtime_config field directly
+    else if (newAgentData.realtime_agent?.realtime_config) {
+      realtimeConfigId = newAgentData.realtime_agent.realtime_config;
     }
+
+    // Create or update the realtime_agent object
+    const realtime_agent = {
+      ...(newAgentData.realtime_agent || {
+        distance_threshold: '0.65',
+        search_limit: 3,
+        wake_word: '',
+        stop_prompt: 'stop',
+        language: null,
+        voice_recognition_prompt: null,
+        voice: 'alloy',
+        realtime_transcription_config: null,
+      }),
+      realtime_config: realtimeConfigId,
+    };
 
     const createAgentData: CreateAgentRequest = {
       role: newAgentData.role,
@@ -1098,7 +1151,7 @@ export class AgentsTableComponent {
       python_code_tools: newAgentData.python_code_tools || [],
       llm_config: newAgentData.llm_config ?? null,
       fcm_llm_config: newAgentData.fcm_llm_config ?? null,
-      realtime_config: realtimeConfigId, // Add realtime config
+      realtime_agent: realtime_agent, // Use the nested structure instead of realtime_config
       allow_delegation: newAgentData.allow_delegation ?? false,
       memory: newAgentData.memory ?? false,
       max_iter: newAgentData.max_iter ?? 20,

@@ -1,7 +1,10 @@
-<!-- chat-messages.component.html with trackBy added -->
+<!-- chat-messages.component.html with expandable tool arguments and JSON viewer -->
 <div class="chat-messages">
-  <div *ngIf="!this.consoleService.isConversationConnected()" class="awaiting-connection">
-    awaiting connection...
+  <div
+    *ngIf="!this.consoleService.isConversationConnected()"
+    class="awaiting-connection"
+  >
+    press start speaking to start conversation ...
   </div>
 
   <div
@@ -18,9 +21,43 @@
         *ngFor="let item of group.items; trackBy: trackByItemId"
         class="message-item"
       >
-        <!-- Tool Call -->
+        <!-- Tool Call with Expandable Arguments -->
         <div *ngIf="item.formatted?.tool" class="message-text tool-call">
-          {{ item.formatted.tool?.name }}({{ item.formatted.tool?.arguments }})
+          <div class="tool-call-name">
+            {{ item.formatted.tool?.name }}
+
+            <!-- Loading animation - only shown if no matching function_call_output exists -->
+            <div
+              *ngIf="!(groupedMessages() | hasToolOutput : item.id)"
+              class="loading-dots"
+            >
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+
+          <div class="tool-arguments">
+            <div
+              class="tool-arguments-header"
+              (click)="toggleArgumentsVisibility(item.id)"
+            >
+              <i
+                class="ti ti-player-play-filled"
+                [ngClass]="{ expanded: isArgumentsExpanded(item.id) }"
+              ></i>
+              <span>Arguments</span>
+            </div>
+            <div
+              class="tool-arguments-content"
+              *ngIf="isArgumentsExpanded(item.id)"
+            >
+              <ngx-json-viewer
+                [json]="getParsedJson(item.formatted.tool?.arguments)"
+                [expanded]="false"
+              ></ngx-json-viewer>
+            </div>
+          </div>
         </div>
 
         <!-- Tool Response -->

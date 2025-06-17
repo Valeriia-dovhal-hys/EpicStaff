@@ -3,14 +3,18 @@ from loguru import logger
 import cachetools
 
 from storage.knowledge_storage import KnowledgeStorage
-from utils.extract_knowledge_context import extract_knowledge_context
 from chunkers.token_chunker import TokenChunker
 from chunkers.markdown_chunker import MarkdownChunker
 from chunkers.character_chunker import CharacterChunker
 from chunkers.json_chunker import JSONChunker
 from chunkers.html_chunker import HTMLChunker
+from chunkers.csv_chunker import CSVChunker
 from settings import Status
 from embedder.openai import OpenAIEmbedder
+from embedder.gemini import GoogleGenAIEmbedder
+from embedder.cohere import CohereEmbedder
+from embedder.mistral import MistralEmbedder
+from embedder.together_ai import TogetherAIEmbedder
 
 from dotenv import load_dotenv
 
@@ -29,8 +33,8 @@ def get_required_env_var(key: str) -> str:
 
 POSTGRES_KNOWLEDGE_CONFIG = {
     "dbname": get_required_env_var("DB_NAME"),
-    "user": get_required_env_var("DB_USER"),
-    "password": get_required_env_var("DB_PASSWORD"),
+    "user": get_required_env_var("DB_KNOWLEDGE_USER"),
+    "password": get_required_env_var("DB_KNOWLEDGE_PASSWORD"),
     "port": get_required_env_var("DB_PORT"),
     "host": get_required_env_var("DB_HOST_NAME"),
 }
@@ -64,9 +68,14 @@ class CollectionProcessor:
             limit=search_limit,
             distance_threshold=distance_threshold,
         )
-        results = extract_knowledge_context(knowledge_snippets)
+        if knowledge_snippets:
+            logger.info(f"KNOWLEDGES: {knowledge_snippets[0][:150]}...")
 
-        return {"uuid": uuid, "collection_id": self.collection_id, "results": results}
+        return {
+            "uuid": uuid,
+            "collection_id": self.collection_id,
+            "results": knowledge_snippets,
+        }
 
     def process_collection(self):
 
@@ -81,19 +90,18 @@ class CollectionProcessor:
                 chunk_strategy,
                 chunk_size,
                 chunk_overlap,
+                additional_params,
             ) in documents:
                 try:
                     self.storage.update_document_status(Status.PROCESSING, document_id)
                     text = self._get_text_content(binary_content)
+                    additional_params.update({"file_name": file_name})
                     chunker = self._get_chunk_strategy(
-                        chunk_strategy, chunk_size, chunk_overlap
+                        chunk_strategy, chunk_size, chunk_overlap, additional_params
                     )
 
                     chunks = chunker.chunk(text)
                     for chunk in chunks:
-                        # TODO: Change this. prompt eng
-                        if file_name.split(".")[-1].lower() == "csv":
-                            chunk = f"File name: {file_name}\n\n{chunk}"
 
                         vector = self.embedder.embed(chunk)
                         self.storage.save_embedding(
@@ -118,15 +126,18 @@ class CollectionProcessor:
         content = bytes(binary_content).decode("utf-8")
         return content
 
-    def _get_chunk_strategy(self, chunk_strategy, chunk_size, chunk_overlap):
+    def _get_chunk_strategy(
+        self, chunk_strategy, chunk_size, chunk_overlap, additional_params
+    ):
         strategies = {
             "token": TokenChunker,
             "character": CharacterChunker,
             "markdown": MarkdownChunker,
             "html": HTMLChunker,
             "json": JSONChunker,
+            "csv": CSVChunker,
         }
-        return strategies[chunk_strategy](chunk_size, chunk_overlap)
+        return strategies[chunk_strategy](chunk_size, chunk_overlap, additional_params)
 
     def _create_default_embedding_function(self):
 
@@ -141,11 +152,15 @@ class CollectionProcessor:
             provider = embedder_config["provider"].lower()
             provider_to_class = {
                 "openai": OpenAIEmbedder,
-                # TODO: Add other providers here when implemented
+                "gemini": GoogleGenAIEmbedder,
+                "cohere": CohereEmbedder,
+                "mistral": MistralEmbedder,
+                "together_ai": TogetherAIEmbedder,
             }
             embedder_class = provider_to_class.get(provider)
             if embedder_class is None:
                 raise ValueError(f"Embedder provider '{provider}' is not supported.")
+            logger.info(f"Embedder class: {embedder_class.__name__}")
 
             return embedder_class(
                 api_key=embedder_config["api_key"],

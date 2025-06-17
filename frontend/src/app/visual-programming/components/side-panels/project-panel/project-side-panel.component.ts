@@ -1,183 +1,239 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+  OnDestroy,
+  ChangeDetectorRef,
+  signal,
+} from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
-  FormArray,
   Validators,
-  FormsModule,
+  FormArray,
+  AbstractControl,
   ReactiveFormsModule,
 } from '@angular/forms';
-import {
-  CdkDragDrop,
-  DragDropModule,
-  moveItemInArray,
-} from '@angular/cdk/drag-drop';
 import { ProjectNodeModel } from '../../../core/models/node.model';
-import { NgIf, NgFor } from '@angular/common';
-import { trigger, transition, style, animate } from '@angular/animations';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { uniqueNodeNameValidator } from '../unique-node-name-validator/unique-node-name.validator';
 import { FlowService } from '../../../services/flow.service';
+import { NgIf, NgFor, NgClass } from '@angular/common';
+import { InputMapComponent } from '../../../components/input-map/input-map.component';
+import { Dialog } from '@angular/cdk/dialog';
+import { DialogModule } from '@angular/cdk/dialog';
+import { ConfirmationDialogComponent } from '../../../../shared/components/cofirm-dialog/confirmation-dialog.component';
+import { SidePanelService } from '../../../services/side-panel.service';
+import { ShortcutListenerDirective } from '../../../core/directives/shortcut-listener.directive';
+
+interface InputMapPair {
+  key: string;
+  value: string;
+}
 
 @Component({
   selector: 'app-project-side-panel',
   standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    DragDropModule,
+    InputMapComponent,
+    NgIf,
+    DialogModule,
+    ShortcutListenerDirective,
+  ],
   templateUrl: './project-side-panel.component.html',
   styleUrls: ['./project-side-panel.component.scss'],
-  imports: [FormsModule, ReactiveFormsModule, NgFor, DragDropModule],
-  animations: [
-    trigger('expandInOut', [
-      transition(':enter', [
-        style({ height: 0, opacity: 0 }),
-        animate('200ms ease-out', style({ height: '*', opacity: 1 })),
-      ]),
-      transition(':leave', [
-        animate('200ms ease-in', style({ height: 0, opacity: 0 })),
-      ]),
-    ]),
-  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProjectSidePanelComponent implements OnInit {
-  @Input() node!: ProjectNodeModel;
-  @Output() closePanel = new EventEmitter<void>();
-  @Output() nodeUpdated = new EventEmitter<ProjectNodeModel>();
+export class ProjectSidePanelComponent implements OnInit, OnDestroy {
+  @Input() public node!: ProjectNodeModel;
+  @Output() private closePanel = new EventEmitter<void>();
+  @Output() private nodeUpdated = new EventEmitter<ProjectNodeModel>();
 
-  public projectForm!: FormGroup;
-  public sliderValue: number = 50;
-  public advancedSettingsOpen: boolean = false;
+  public projectForm: FormGroup;
+  public readonly hasUnsavedChanges = signal<boolean>(false);
+  private initialFormValue: any;
 
-  constructor(private fb: FormBuilder, private flowService: FlowService) {}
+  private readonly destroy$ = new Subject<void>();
 
-  ngOnInit(): void {
-    this.projectForm = this.fb.group({
-      node_name: [
-        this.node.node_name,
-        [
-          Validators.required,
-          uniqueNodeNameValidator(
-            () =>
-              this.flowService
-                .nodes()
-                .map((n) => n.node_name)
-                .filter((name): name is string => !!name),
-            this.node.node_name
-          ),
-        ],
-      ],
-      input_map: this.fb.array(this.initInputMapFormArray()),
-      output_variable_path: [this.node.output_variable_path || ''],
-      description: [this.node.data.description],
-      process: [this.node.data.process, Validators.required],
-      // Hierarchical settings (only used if process === 'hierarchical')
-      planning_llm_config: [this.node.data.planning_llm_config],
-      manager_llm_config: [this.node.data.manager_llm_config],
-      embedding_config: [this.node.data.embedding_config],
-      default_temperature: [this.node.data.default_temperature],
-      // Advanced settings (toggled via button)
-      memory: [this.node.data.memory],
-      cache: [this.node.data.cache],
-      full_output: [this.node.data.full_output],
-      planning: [this.node.data.planning],
-    });
-    this.sliderValue = this.node.data.default_temperature || 50;
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly flowService: FlowService,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly dialog: Dialog,
+    private readonly sidePanelService: SidePanelService
+  ) {
+    this.projectForm = this.initializeProjectForm();
+  }
+  public get activeColor(): string {
+    return this.node?.color || '#685fff';
   }
 
-  private initInputMapFormArray(): FormGroup[] {
-    // Convert the input_map object to an array of key-value pairs
-    if (!this.node.input_map || Object.keys(this.node.input_map).length === 0) {
-      // If input_map is empty, return an array with one empty key-value pair
-      return [this.createInputMapPairGroup('', '')];
-    }
-
-    return Object.entries(this.node.input_map).map(([key, value]) => {
-      return this.createInputMapPairGroup(key, value);
-    });
+  public ngOnInit(): void {
+    this.initializeFormValues();
+    this.initializeInputMap();
+    this.setupFormChangeTracking();
   }
 
-  private createInputMapPairGroup(key: string, value: any): FormGroup {
-    return this.fb.group({
-      key: [key || ''],
-      value: [value !== undefined ? value : ''],
-    });
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   public get inputMapPairs(): FormArray {
     return this.projectForm.get('input_map') as FormArray;
   }
 
-  public addInputMapPair(): void {
-    this.inputMapPairs.push(this.createInputMapPairGroup('', ''));
-  }
-
-  public removeInputMapPair(index: number): void {
-    this.inputMapPairs.removeAt(index);
-  }
-
-  public dropInputMapPair(event: CdkDragDrop<any[]>): void {
-    moveItemInArray(
-      this.inputMapPairs.controls,
-      event.previousIndex,
-      event.currentIndex
-    );
-  }
-
-  // Convert input_map form array to a key-value object
-  private buildInputMapObject(): Record<string, any> {
-    const inputMapObject: Record<string, any> = {};
-
-    this.inputMapPairs.controls.forEach((control) => {
-      const key = control.get('key')?.value;
-      const value = control.get('value')?.value;
-      // Only add the pair if the key is not empty (ignoring whitespace)
-      if (key && key.trim() !== '') {
-        inputMapObject[key.trim()] = value;
+  public close(): void {
+    this.sidePanelService.tryClosePanel().then((closed) => {
+      if (closed) {
+        this.closePanel.emit();
       }
     });
-
-    return inputMapObject;
   }
 
-  onSliderInput(event: Event): void {
-    const inputElement = event.target as HTMLInputElement;
-    this.sliderValue = +inputElement.value;
-    this.projectForm.patchValue({ default_temperature: this.sliderValue });
-  }
+  public onSave(): void {
+    if (this.isFormValid()) {
+      const validInputPairs = this.getValidInputPairs();
+      this.setValidatorsForInputPairs(validInputPairs);
 
-  toggleAdvancedSettings(): void {
-    this.advancedSettingsOpen = !this.advancedSettingsOpen;
-  }
-
-  onSubmit(): void {
-    if (this.projectForm.valid) {
-      const formValue = this.projectForm.getRawValue();
-
-      // Build the input_map object from the form array
-      const inputMapObject = this.buildInputMapObject();
-
-      const updatedNode: ProjectNodeModel = {
-        ...this.node,
-        node_name: formValue.node_name,
-        input_map: inputMapObject,
-        output_variable_path: formValue.output_variable_path.trim() || null,
-        data: {
-          ...this.node.data,
-          description: formValue.description,
-          process: formValue.process,
-          planning_llm_config: formValue.planning_llm_config,
-          manager_llm_config: formValue.manager_llm_config,
-          embedding_config: formValue.embedding_config,
-          default_temperature: formValue.default_temperature,
-          memory: formValue.memory,
-          cache: formValue.cache,
-          full_output: formValue.full_output,
-          planning: formValue.planning,
-        },
-      };
-      this.nodeUpdated.emit(updatedNode);
-      this.close();
+      if (this.projectForm.valid) {
+        const inputMapValue = this.createInputMapFromPairs(validInputPairs);
+        const updatedNode = this.createUpdatedNode(inputMapValue);
+        this.nodeUpdated.emit(updatedNode);
+        this.updateInitialFormValue();
+        this.hasUnsavedChanges.set(false);
+        this.sidePanelService.setHasUnsavedChanges(false);
+        this.projectForm.markAsPristine();
+        this.cdr.detectChanges();
+      }
     }
   }
 
-  close(): void {
-    this.closePanel.emit();
+  private initializeProjectForm(): FormGroup {
+    return this.fb.group({
+      node_name: ['', [Validators.required]],
+      input_map: this.fb.array([]),
+      output_variable_path: [''],
+    });
+  }
+
+  private initializeFormValues(): void {
+    if (this.node) {
+      this.projectForm.patchValue({
+        node_name: this.node.node_name,
+        output_variable_path: this.node.output_variable_path,
+      });
+      this.updateInitialFormValue();
+      this.hasUnsavedChanges.set(false);
+    }
+  }
+
+  private updateInitialFormValue(): void {
+    this.initialFormValue = this.projectForm.getRawValue();
+  }
+
+  private setupFormChangeTracking(): void {
+    this.projectForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.checkForChanges();
+      });
+  }
+
+  private checkForChanges(): void {
+    const formChanged = !this.isEqual(
+      this.projectForm.getRawValue(),
+      this.initialFormValue
+    );
+    this.hasUnsavedChanges.set(formChanged);
+    this.sidePanelService.setHasUnsavedChanges(formChanged);
+  }
+
+  private isEqual(obj1: any, obj2: any): boolean {
+    return JSON.stringify(obj1) === JSON.stringify(obj2);
+  }
+
+  private initializeInputMap(): void {
+    if (this.node.input_map) {
+      Object.entries(this.node.input_map).forEach(([key, value]) => {
+        this.inputMapPairs.push(
+          this.fb.group({
+            key: [key, Validators.required],
+            value: [value, Validators.required],
+          })
+        );
+      });
+    }
+  }
+
+  private ensureMinimumInputMapPairs(): void {
+    if (this.inputMapPairs.length === 0) {
+      this.inputMapPairs.push(
+        this.fb.group({
+          key: [''],
+          value: [''],
+        })
+      );
+    }
+  }
+
+  private getValidInputPairs(): AbstractControl[] {
+    return this.inputMapPairs.controls.filter((control) => {
+      const value = control.value;
+      return value.key.trim() !== '' || value.value.trim() !== '';
+    });
+  }
+
+  private setValidatorsForInputPairs(pairs: AbstractControl[]): void {
+    pairs.forEach((control) => {
+      control.get('key')?.setValidators([Validators.required]);
+      control.get('value')?.setValidators([Validators.required]);
+      control.get('key')?.updateValueAndValidity();
+      control.get('value')?.updateValueAndValidity();
+    });
+  }
+
+  private createInputMapFromPairs(
+    pairs: AbstractControl[]
+  ): Record<string, string> {
+    return pairs.reduce(
+      (acc: Record<string, string>, curr: AbstractControl) => {
+        const pair = curr.value as InputMapPair;
+        if (pair.key?.trim()) {
+          acc[pair.key.trim()] = pair.value;
+        }
+        return acc;
+      },
+      {}
+    );
+  }
+
+  private createUpdatedNode(
+    inputMapValue: Record<string, string>
+  ): ProjectNodeModel {
+    return {
+      ...this.node,
+      node_name: this.projectForm.value.node_name,
+      input_map: inputMapValue,
+      output_variable_path: this.projectForm.value.output_variable_path,
+      data: {
+        ...(this.node.data || {}),
+      },
+    };
+  }
+
+  private isFormValid(): boolean {
+    return this.projectForm.valid;
+  }
+
+  public hasUnsavedChangesFn(): boolean {
+    return this.hasUnsavedChanges();
   }
 }

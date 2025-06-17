@@ -3,6 +3,8 @@ import {
   Input,
   OnInit,
   OnDestroy,
+  OnChanges,
+  SimpleChanges,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Output,
@@ -13,12 +15,12 @@ import { MarkdownModule } from 'ngx-markdown';
 import { GraphSessionMessagesService } from '../../../../services/graph-sessions-messages.service';
 import { AgentsService } from '../../../../services/staff.service';
 import { TasksService } from '../../../../services/tasks.service';
-import { ProjectsService } from '../../../projects-page/services/projects.service';
+import { ProjectsStorageService } from '../../../../features/projects/services/projects-storage.service';
 import { LoadingDotsComponent } from './components/loading-animation/loading-animation.component';
 
 import { GetAgentRequest } from '../../../../shared/models/agent.model';
 import { GetTaskRequest } from '../../../../shared/models/task.model';
-import { GetProjectRequest } from '../../../projects-page/models/project.model';
+import { GetProjectRequest } from '../../../../features/projects/models/project.model';
 import { forkJoin, interval, Subject, of } from 'rxjs';
 import {
   takeUntil,
@@ -26,18 +28,19 @@ import {
   catchError,
   map,
   takeWhile,
+  startWith,
 } from 'rxjs/operators';
 
 import {
   GraphSessionStatus,
   GraphSession,
   GraphSessionService,
-} from '../../../../services/graph-sessions-status.service';
+} from '../../../../features/flows/services/flows-sessions.service';
 import {
   GraphMessage,
   MessageType,
   UpdateSessionStatusMessageData,
-} from './graph-session-message.model';
+} from '../../models/graph-session-message.model';
 import { StartMessageComponent } from './components/start-message/start-message.component';
 import { AgentMessageComponent } from './components/agent-message/agent-message.component';
 import { TaskMessageComponent } from './components/task-message/task-message.component';
@@ -48,9 +51,13 @@ import { AgentFinishMessageComponent } from './components/agent-finish/agent-fin
 import { ErrorMessageComponent } from './components/error-message/error-message.component';
 import { ProjectTransitionComponent } from './components/transition/project-transition.component';
 import { WaitForUserInputComponent } from './components/user-input-component/user-input-component.component';
-import { SessionStatusMessageData } from './update-session-status.model';
+import { SessionStatusMessageData } from '../../models/update-session-status.model';
 import { AnswerToLLMService } from '../../../../services/answerToLLMService.service';
 import { UserMessageComponent } from './components/user-message/user-message.component';
+import { NoMessagesComponent } from '../no-messages/no-messages.component';
+import { isMessageType } from './helper_functions/message-helper';
+import { MemoryService } from '../memory-sidebar/service/memory.service';
+import { RunGraphPageService } from '../../run-graph-page.service';
 
 @Component({
   selector: 'app-graph-messages',
@@ -67,17 +74,15 @@ import { UserMessageComponent } from './components/user-message/user-message.com
     LlmMessageComponent,
     AgentFinishMessageComponent,
     ErrorMessageComponent,
-
     ProjectTransitionComponent,
     WaitForUserInputComponent,
     UserMessageComponent,
-    NgStyle,
   ],
   templateUrl: './graph-messages.component.html',
   styleUrls: ['./graph-messages.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GraphMessagesComponent implements OnInit, OnDestroy {
+export class GraphMessagesComponent implements OnInit, OnDestroy, OnChanges {
   @Input() sessionId: string | null = null;
   @Output() sessionStatusChanged = new EventEmitter<GraphSessionStatus>();
   @Output() messagesChanged = new EventEmitter<GraphMessage[]>();
@@ -92,7 +97,7 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
 
   // Animation control for messages
   public animatedIndices: { [key: number]: boolean } = {};
-  private messageAnimationDelay = 500; // milliseconds between message animations
+  private messageAnimationDelay = 500;
 
   // Loading state
   public isLoading = true;
@@ -114,17 +119,37 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
     private messagesService: GraphSessionMessagesService,
     private agentsService: AgentsService,
     private tasksService: TasksService,
-    private projectsService: ProjectsService,
+    private projectsService: ProjectsStorageService,
     private sessionService: GraphSessionService,
     private cdr: ChangeDetectorRef,
-    private answerToLLMService: AnswerToLLMService
+    private answerToLLMService: AnswerToLLMService,
+    private memoryService: MemoryService,
+    private runGraphPageService: RunGraphPageService // Use RunGraphPageService
   ) {}
 
   public ngOnInit(): void {
     if (this.sessionId) {
-      // Initial data loading with automatic unsubscription
-      // Polling will be set up in the success callback
       this.loadInitialData();
+    }
+  }
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes['sessionId'] && !changes['sessionId'].firstChange) {
+      // Clean up previous subscriptions and state
+      this.shouldPoll = false;
+      this.destroy$.next();
+      this.isLoading = true;
+      this.session = null;
+      this.messages = [];
+      this.animatedIndices = {};
+      this.updateSessionStatusData = null;
+      this.statusWaitForUser = false;
+      this.showUserInputWithDelay = false;
+      this.cdr.markForCheck();
+      // Load new session data
+      if (this.sessionId) {
+        this.loadInitialData();
+      }
     }
   }
 
@@ -138,11 +163,13 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
     if (!this.sessionId) return;
 
     forkJoin({
-      session: this.sessionService.getSessionById(this.sessionId),
+      session: this.sessionService.getSessionById(+this.sessionId),
       messages: this.messagesService.getGraphSessionMessages(this.sessionId),
       agents: this.agentsService.getAgents(),
       tasks: this.tasksService.getTasks(),
       projects: this.projectsService.getProjects(),
+
+      memories: this.memoryService.getMemoriesForSession(this.sessionId), // Fetch memories
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -152,7 +179,8 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
           if (this.session) {
             this.sessionStatusChanged.emit(this.session.status);
             this.shouldPoll =
-              this.session.status === GraphSessionStatus.RUNNING;
+              this.session.status === GraphSessionStatus.RUNNING ||
+              this.session.status === GraphSessionStatus.PENDING;
           }
 
           this.messages = [...results.messages].sort(
@@ -166,11 +194,11 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
           this.tasks = results.tasks;
           this.projects = results.projects;
 
+          // Store the fetched memories in the RunGraphPageService
+          this.runGraphPageService.setMemories(results.memories);
+
           this.updateLookupMaps();
           this.processMessages();
-
-          // Animate messages with sequential delay
-          this.animateInitialMessages();
 
           this.setupPolling();
 
@@ -188,87 +216,21 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
       });
   }
 
-  private animateInitialMessages(): void {
-    this.animatedIndices = {};
-    this.messages.forEach((_, index) => {
-      this.animatedIndices[index] = true;
-    });
-    this.cdr.markForCheck();
-  }
-  private updateLookupMaps(): void {
-    // Clear existing maps
-    this.agentMap.clear();
-    this.taskMap.clear();
-    this.projectMap.clear();
-
-    // Populate agent map
-    this.agents.forEach((agent) => {
-      this.agentMap.set(agent.id, agent);
-    });
-
-    // Populate task map
-    this.tasks.forEach((task) => {
-      this.taskMap.set(task.id, task);
-    });
-
-    // Populate project map
-    this.projects.forEach((project) => {
-      this.projectMap.set(project.id, project);
-    });
-
-    console.log('Lookup maps updated:', {
-      agents: this.agentMap.size,
-      tasks: this.taskMap.size,
-      projects: this.projectMap.size,
-    });
-  }
-
-  private processMessages(): void {
-    if (this.messages.length > 0) {
-      const lastMessage: GraphMessage = this.messages[this.messages.length - 1];
-
-      if (
-        lastMessage.message_data &&
-        lastMessage.message_data.message_type === 'update_session_status'
-      ) {
-        // Cast the message_data to SessionStatusMessageData interface
-        this.updateSessionStatusData =
-          lastMessage.message_data as SessionStatusMessageData;
-
-        // Check if status is "wait_for_user" and update statusWaitForUser flag
-        if (this.updateSessionStatusData.status === 'wait_for_user') {
-          this.shouldPoll = false;
-          this.statusWaitForUser = true;
-
-          // For initial load, show input immediately
-          if (this.isLoading) {
-            this.showUserInputWithDelay = true;
-          }
-          // For polling updates, the animation will be handled in setupPolling
-        } else {
-          this.statusWaitForUser = false;
-          this.showUserInputWithDelay = false;
-        }
-      } else {
-        this.updateSessionStatusData = null;
-        this.statusWaitForUser = false;
-        this.showUserInputWithDelay = false;
-      }
-    }
-  }
   private setupPolling(): void {
     interval(2000)
       .pipe(
         takeUntil(this.destroy$),
+        startWith(0), // Start immediately
         takeWhile(() => this.shouldPoll),
         switchMap(() => {
           if (!this.sessionId) return of(null);
 
           return forkJoin({
-            session: this.sessionService.getSessionById(this.sessionId),
+            session: this.sessionService.getSessionById(+this.sessionId),
             messages: this.messagesService.getGraphSessionMessages(
               this.sessionId
             ),
+            memories: this.memoryService.getMemoriesForSession(this.sessionId), // Poll memories
           }).pipe(
             catchError((err) => {
               console.error('Error during polling:', err);
@@ -317,20 +279,46 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
             this.animateNewMessages(oldMessageCount);
           }
 
-          // Handle user input component animation
-          if (this.statusWaitForUser) {
-            // If this is a new "waiting for user" state or we have new messages
-            if (!wasWaitingForUser || newMessagesCount > 0) {
-              this.setupUserInputWithDelay(newMessagesCount);
-            }
-          }
-
+          this.runGraphPageService.setMemories(results.memories);
           this.cdr.markForCheck();
         },
       });
   }
 
-  // Method to animate only new messages
+  private processMessages(): void {
+    if (this.messages.length > 0) {
+      const lastMessage: GraphMessage = this.messages[this.messages.length - 1];
+
+      if (
+        lastMessage.message_data &&
+        lastMessage.message_data.message_type === 'update_session_status'
+      ) {
+        // Cast the message_data to SessionStatusMessageData interface
+        this.updateSessionStatusData =
+          lastMessage.message_data as SessionStatusMessageData;
+
+        // Check if status is "wait_for_user" and update statusWaitForUser flag
+        if (this.updateSessionStatusData.status === 'wait_for_user') {
+          this.shouldPoll = false;
+          this.statusWaitForUser = true;
+
+          // For initial load, show input immediately
+          if (this.isLoading) {
+            this.showUserInputWithDelay = true;
+          }
+          // For polling updates, the animation will be handled in setupPolling
+        } else {
+          this.statusWaitForUser = false;
+          this.showUserInputWithDelay = false;
+        }
+      } else {
+        this.updateSessionStatusData = null;
+        this.statusWaitForUser = false;
+        this.showUserInputWithDelay = false;
+      }
+    }
+  }
+
   private animateNewMessages(previousCount: number): void {
     for (let i = previousCount; i < this.messages.length; i++) {
       setTimeout(() => {
@@ -338,14 +326,6 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }, (i - previousCount) * this.messageAnimationDelay);
     }
-  }
-  public trackByMessageId(index: number, message: GraphMessage): number {
-    return message.id;
-  }
-
-  // Modified helper method to accept string instead of enum
-  public isMessageType(message: GraphMessage, type: string): boolean {
-    return message.message_data?.message_type === type;
   }
 
   public getAgentFromMessage(message: GraphMessage): GetAgentRequest | null {
@@ -361,6 +341,34 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
     }
 
     return null;
+  }
+
+  private updateLookupMaps(): void {
+    // Clear existing maps
+    this.agentMap.clear();
+    this.taskMap.clear();
+    this.projectMap.clear();
+
+    // Populate agent map
+    this.agents.forEach((agent) => {
+      this.agentMap.set(agent.id, agent);
+    });
+
+    // Populate task map
+    this.tasks.forEach((task) => {
+      this.taskMap.set(task.id, task);
+    });
+
+    // Populate project map
+    this.projects.forEach((project) => {
+      this.projectMap.set(project.id, project);
+    });
+
+    console.log('Lookup maps updated:', {
+      agents: this.agentMap.size,
+      tasks: this.taskMap.size,
+      projects: this.projectMap.size,
+    });
   }
 
   public getProjectFromMessage(
@@ -390,8 +398,8 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
 
     // If current message is 'start' and previous is 'finish', show transition
     return (
-      this.isMessageType(currentMessage, MessageType.START) &&
-      this.isMessageType(prevMessage, MessageType.FINISH)
+      isMessageType(currentMessage, MessageType.START) &&
+      isMessageType(prevMessage, MessageType.FINISH)
     );
   }
 
@@ -415,19 +423,16 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
       crew_id: this.updateSessionStatusData.crew_id,
       execution_order: this.updateSessionStatusData.status_data.execution_order,
       name: this.updateSessionStatusData.status_data.name,
-      answer: message, // user's typed input
+      answer: message,
     };
 
-    // Call the service method
     this.answerToLLMService.sendAnswerToLLM(requestData).subscribe({
       next: (response) => {
         console.log('Answer to LLM sent successfully:', response);
         this.shouldPoll = true;
+        this.statusWaitForUser = false;
 
-        // Refresh data to get the updated status
-        this.refreshData();
-
-        // Setup polling again
+        // this.refreshData();
         this.setupPolling();
 
         this.cdr.markForCheck();
@@ -436,68 +441,5 @@ export class GraphMessagesComponent implements OnInit, OnDestroy {
         console.error('Error sending answer to LLM:', error);
       },
     });
-  }
-
-  private refreshData(): void {
-    if (!this.sessionId) return;
-
-    forkJoin({
-      session: this.sessionService.getSessionById(this.sessionId),
-      messages: this.messagesService.getGraphSessionMessages(this.sessionId),
-    })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (results) => {
-          const oldStatus = this.session?.status;
-          this.session = results.session;
-          console.log('refresh adata sesision', this.session);
-
-          if (this.session && oldStatus !== this.session.status) {
-            this.sessionStatusChanged.emit(this.session.status);
-            this.shouldPoll =
-              this.session.status === GraphSessionStatus.RUNNING;
-          }
-
-          const oldMessageCount = this.messages.length;
-
-          this.messages = results.messages.sort(
-            (a, b) =>
-              new Date(a.created_at).getTime() -
-              new Date(b.created_at).getTime()
-          );
-          this.processMessages();
-
-          // If new messages arrived, animate them
-          if (this.messages.length > oldMessageCount) {
-            this.animateNewMessages(oldMessageCount);
-          }
-
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          console.error('Error refreshing data:', err);
-        },
-      });
-  }
-  private setupUserInputWithDelay(newMessagesCount: number): void {
-    // Only apply delay if we have new messages and we're not in initial load
-    if (newMessagesCount > 0 && !this.isLoading) {
-      // Calculate delay based only on the number of NEW messages
-      const animationDelay = newMessagesCount * this.messageAnimationDelay;
-
-      // Reset the animation flag
-      this.showUserInputWithDelay = false;
-      this.cdr.markForCheck();
-
-      // Apply animation after the calculated delay
-      setTimeout(() => {
-        this.showUserInputWithDelay = true;
-        this.cdr.markForCheck();
-      }, animationDelay);
-    } else {
-      // No delay needed - either initial load or no new messages
-      this.showUserInputWithDelay = true;
-      this.cdr.markForCheck();
-    }
   }
 }

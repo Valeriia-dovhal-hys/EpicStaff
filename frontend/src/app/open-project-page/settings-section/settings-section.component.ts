@@ -5,13 +5,13 @@ import {
   OnInit,
   Output,
   EventEmitter,
+  signal,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
-import { GetProjectRequest } from '../../pages/projects-page/models/project.model';
+import { GetProjectRequest } from '../../features/projects/models/project.model';
 import { LLM_Config_Service } from '../../services/LLM_config.service';
 import { EmbeddingConfigsService } from '../../services/embedding_configs.service';
 import { GetLlmConfigRequest } from '../../shared/models/LLM_config.model';
@@ -49,7 +49,7 @@ export class Settings {
   templateUrl: './settings-section.component.html',
   styleUrls: ['./settings-section.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatIconModule, FormsModule, MatSlideToggleModule],
+  imports: [CommonModule, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush, // Added for better performance
 })
 export class SettingsSectionComponent implements OnInit {
@@ -57,12 +57,16 @@ export class SettingsSectionComponent implements OnInit {
   @Output() settingsChanged = new EventEmitter<Partial<GetProjectRequest>>();
 
   settings: Settings;
-  availableLLMs: GetLlmConfigRequest[] = [];
-  embeddingConfigs: GetEmbeddingConfigRequest[] = [];
+
+  // Signals for reactive data
+  availableLLMs = signal<GetLlmConfigRequest[]>([]);
+  embeddingConfigs = signal<GetEmbeddingConfigRequest[]>([]);
+  isLoading = signal(true);
 
   constructor(
     private llmConfigService: LLM_Config_Service,
-    private embeddingConfigService: EmbeddingConfigsService
+    private embeddingConfigService: EmbeddingConfigsService,
+    private cdr: ChangeDetectorRef
   ) {
     this.settings = new Settings(); // Initialize the settings object
   }
@@ -73,25 +77,44 @@ export class SettingsSectionComponent implements OnInit {
       this.settings = new Settings(this.project); // Pass project data to the Settings model
     }
 
+    this.loadConfigurations();
+  }
+
+  private loadConfigurations(): void {
+    this.isLoading.set(true);
+
     // Fetch LLM configs
     this.llmConfigService.getAllConfigsLLM().subscribe({
       next: (configs) => {
-        this.availableLLMs = configs;
+        this.availableLLMs.set(configs);
+        this.checkLoadingComplete();
       },
       error: (error) => {
         console.error('Error fetching LLM configs:', error);
+        this.checkLoadingComplete();
       },
     });
 
     // Fetch embedding configs
     this.embeddingConfigService.getEmbeddingConfigs().subscribe({
       next: (configs) => {
-        this.embeddingConfigs = configs;
+        this.embeddingConfigs.set(configs);
+        this.checkLoadingComplete();
       },
       error: (error) => {
         console.error('Error fetching embedding configs:', error);
+        this.checkLoadingComplete();
       },
     });
+  }
+
+  private checkLoadingComplete(): void {
+    // Check if both configs are loaded
+    if (this.availableLLMs().length > 0 && this.embeddingConfigs().length > 0) {
+      this.isLoading.set(false);
+      // Trigger change detection to update the UI
+      this.cdr.markForCheck();
+    }
   }
 
   onSettingChange<T extends keyof Settings>(
@@ -110,6 +133,9 @@ export class SettingsSectionComponent implements OnInit {
 
     // Emit the changed setting
     this.settingsChanged.emit({ [projectKey]: newValue });
+
+    // Trigger change detection for OnPush strategy
+    this.cdr.markForCheck();
   }
 
   // Custom getter/setter for temperature as percentage

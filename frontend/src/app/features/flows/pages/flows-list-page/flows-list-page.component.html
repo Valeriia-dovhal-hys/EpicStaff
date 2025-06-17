@@ -1,0 +1,50 @@
+<div class="flows-list-page">
+  <div class="sticky-header">
+    <header class="header">
+      <div class="header-titles">
+        <h1 class="title">
+          Flows
+          <span class="subtitle-inline"
+            >A flow is a sequence of projects and custom logic built for
+            automating complex tasks.</span
+          >
+        </h1>
+      </div>
+      <div class="header-actions">
+        <app-button type="ghost" [leftIcon]="'ui/upload'"> Import </app-button>
+        <app-button
+          type="primary"
+          class="btn-primary create-btn"
+          [leftIcon]="'ui/plus'"
+          (click)="openCreateFlowDialog()"
+        >
+          Create flow
+        </app-button>
+      </div>
+    </header>
+    <nav class="tabs">
+      <div class="tabs-left">
+        @for (tab of tabs; track tab.link) {
+        <app-tab-button
+          routerLink="{{ tab.link }}"
+          routerLinkActive="active"
+          #rla="routerLinkActive"
+          [active]="rla.isActive"
+        >
+          {{ tab.label }}
+        </app-tab-button>
+        }
+      </div>
+      <div class="tabs-right">
+        <app-filters-list
+          [searchPlaceholder]="'Search flows...'"
+          [showTags]="false"
+          (change)="onFiltersChange($event)"
+        ></app-filters-list>
+      </div>
+    </nav>
+  </div>
+  <section class="body">
+    <router-outlet></router-outlet>
+  </section>
+</div>

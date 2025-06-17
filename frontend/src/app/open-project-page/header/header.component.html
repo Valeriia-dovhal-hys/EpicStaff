@@ -1,49 +1,27 @@
+<!-- Updated header.component.html -->
 <div class="header">
   <div class="title-section">
-    <button mat-icon-button class="back-button" routerLink="/projects">
-      <i class="ti ti-arrow-left"></i>
-    </button>
-
-    <h1 class="title" *ngIf="project">
-      <span class="project-prefix">Projects /</span>
-      <span class="project-name" (click)="openEditTitleDialog()">{{
-        project.name
-      }}</span>
-    </h1>
-
-    <div class="process-toggle" *ngIf="project">
-      <div
-        class="toggle-option"
-        [class.active]="project.process === 'sequential'"
-        (click)="setProcessType('sequential')"
-      >
-        <i class="ti ti-list"></i>
-        <span>Sequential</span>
+    <div class="title" *ngIf="project">
+      <div class="project-prefix" routerLink="/projects">
+        <app-icon [icon]="'ui/arrow-left'" size="20" class="back-arrow" />
+        <span>Projects</span>
       </div>
-      <div
-        class="toggle-option"
-        [class.active]="project.process === 'hierarchical'"
-        (click)="setProcessType('hierarchical')"
-      >
-        <i class="ti ti-hierarchy"></i>
-        <span>Hierarchical</span>
+      <span class="separator"> / </span>
+      <div class="project-name" (click)="openEditTitleDialog()">
+        {{ project.name }}
       </div>
     </div>
   </div>
 
   <div class="action-buttons">
-    currently can be runned only in flow
-    <!-- <button
-      class="draft-button"
-      [routerLink]="['/project/draft', project?.id]"
+    <app-button
+      type="secondary"
+      [leftIcon]="'ui/plus'"
+      class="create-flow-btn"
+      (click)="onCreateFlowWithProject()"
       [disabled]="!project"
     >
-      <i class="ti ti-notes"></i>
-      <span>Create Draft</span>
-    </button> -->
-    <!-- <button class="run-button" (click)="onRunClick()" [disabled]="!project">
-      <i class="ti ti-player-play"></i>
-      <span>Run</span>
-    </button> -->
+      Create flow from this project
+    </app-button>
   </div>
 </div>

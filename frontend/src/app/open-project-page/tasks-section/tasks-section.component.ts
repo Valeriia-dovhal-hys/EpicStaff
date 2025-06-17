@@ -7,13 +7,12 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
 import { FullTask } from '../models/full-task.model';
 import { FullAgent } from '../../services/full-agent.service';
 import { ProjectStateService } from '../services/project-state.service';
 import { Subscription } from 'rxjs';
 import { TasksTableComponent } from './tasks-table/tasks-table.component';
-import { GetProjectRequest } from '../../pages/projects-page/models/project.model';
+import { GetProjectRequest } from '../../features/projects/models/project.model';
 import {
   CreateTaskRequest,
   UpdateTaskRequest,
@@ -26,7 +25,7 @@ import { TasksService } from '../../services/tasks.service'; // Import the Tasks
   standalone: true,
   templateUrl: './tasks-section.component.html',
   styleUrls: ['./tasks-section.component.scss'],
-  imports: [CommonModule, MatIconModule, TasksTableComponent],
+  imports: [CommonModule, TasksTableComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TasksSectionComponent implements OnInit, OnDestroy {

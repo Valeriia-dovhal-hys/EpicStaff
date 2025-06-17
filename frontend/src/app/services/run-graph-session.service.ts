@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
-import { GraphService } from '../pages/flows-page/services/graphs.service';
+import { FlowsApiService } from '../features/flows/services/flows-api.service';
 import { CrewNodeService } from '../pages/flows-page/components/flow-visual-programming/services/crew-node.service';
 import { ConfigService } from './config/config.service';
 
@@ -17,17 +17,15 @@ interface RunGraphResponse {
 export class RunGraphService {
   constructor(
     private http: HttpClient,
-    private graphService: GraphService,
+    private graphService: FlowsApiService,
     private crewNodeService: CrewNodeService,
     private configService: ConfigService
   ) {}
 
-  // Dynamically retrieve the API base URL from ConfigService
   private get apiUrl(): string {
     return this.configService.apiUrl;
   }
 
-  // Renamed from runSession to runGraph and returns sessionId
   runGraph(graphId: number, initialState?: any): Observable<RunGraphResponse> {
     const url = `${this.apiUrl}run-session/`;
     const headers = new HttpHeaders({
@@ -40,7 +38,6 @@ export class RunGraphService {
     return this.http.post<RunGraphResponse>(url, body, { headers });
   }
 
-  // If you want to bring back the runProject method, here's how it might look:
   /*
   runProject(projectId: number, initialState?: any): Observable<{ graphId: number; sessionId: number }> {
     // Create a new graph with the provided properties

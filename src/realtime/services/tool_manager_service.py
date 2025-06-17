@@ -42,7 +42,8 @@ class ToolManagerService(metaclass=SingletonMeta):
         if chat_executor is not None:
 
             stop_agent_tool_executor = StopAgentToolExecutor(
-                stop_prompt=realtime_agent_chat_data.stop_prompt, chat_executor=chat_executor
+                stop_prompt=realtime_agent_chat_data.stop_prompt,
+                chat_executor=chat_executor,
             )
             self.connection_tool_executors[connection_key].append(
                 stop_agent_tool_executor

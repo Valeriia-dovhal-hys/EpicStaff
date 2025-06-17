@@ -44,275 +44,8 @@ import {
     ModelSearchComponent,
     AddModelButtonComponent,
   ],
-  template: `
-    <div class="tabs-container">
-      <div class="tabs-header">
-        <button
-          class="tab-button"
-          [class.active]="activeTab === 'llm'"
-          (click)="selectTab('llm')"
-        >
-          LLM Models ({{ llmModelsCount }})
-        </button>
-        @if(this.modelsPageService.hasEmbeddingModels(provider.id)){
-        <button
-          class="tab-button"
-          [class.active]="activeTab === 'embedding'"
-          (click)="selectTab('embedding')"
-        >
-          Embedding Models ({{ embeddingModelsCount }})
-        </button>
-        } @if(this.modelsPageService.hasRealtimeModels(provider.id)){
-        <button
-          class="tab-button"
-          [class.active]="activeTab === 'realtime'"
-          (click)="selectTab('realtime')"
-        >
-          Realtime Models ({{ realtimeModelsCount }})
-        </button>
-        }
-      </div>
-
-      <div class="tab-content">
-        @if (activeTab === 'llm') {
-        <div class="tab-actions">
-          <app-model-search
-            placeholder="Search LLM models..."
-            (search)="onSearchLLM($event)"
-          ></app-model-search>
-          <app-add-model-button
-            buttonText="Add LLM"
-            (add)="onAddLLM()"
-          ></app-add-model-button>
-        </div>
-        <div class="models-list">
-          @if (filteredLLMConfigs().length === 0) {
-          <div class="no-models">
-            @if(llmSearchTerm() && llmModelsCount > 0) { No matching LLM models
-            found } @else { No LLM models created}
-          </div>
-          } @else { @for (config of filteredLLMConfigs(); track config.id) {
-          <div class="model-item">
-            <div class="model-info">
-              <div class="model-name">{{ config.modelDetails?.name }}</div>
-              <div class="model-custom-name">{{ config.custom_name }}</div>
-            </div>
-            <div class="model-actions">
-              <button
-                class="action-btn delete-btn"
-                (click)="onDeleteModel($event, config)"
-              >
-                <i class="ti ti-x"></i>
-              </button>
-            </div>
-          </div>
-          } }
-        </div>
-        } @if (activeTab === 'embedding') {
-        <div class="tab-actions">
-          <app-model-search
-            placeholder="Search embedding models..."
-            (search)="onSearchEmbedding($event)"
-          ></app-model-search>
-          <app-add-model-button
-            buttonText="Add Embedding"
-            (add)="onAddEmbedding()"
-          ></app-add-model-button>
-        </div>
-        <div class="models-list">
-          @if (filteredEmbeddingConfigs().length === 0) {
-          <div class="no-models">
-            @if(embeddingSearchTerm() && embeddingModelsCount > 0) { No matching
-            embedding models found } @else { No embedding models created }
-          </div>
-          } @else { @for (config of filteredEmbeddingConfigs(); track config.id)
-          {
-          <div class="model-item">
-            <div class="model-info">
-              <div class="model-name">{{ config.modelDetails?.name }}</div>
-              <div class="model-custom-name">{{ config.custom_name }}</div>
-            </div>
-            <div class="model-actions">
-              <button
-                class="action-btn delete-btn"
-                (click)="onDeleteModel($event, config)"
-              >
-                <i class="ti ti-x"></i>
-              </button>
-            </div>
-          </div>
-          } }
-        </div>
-        } @if (activeTab === 'realtime') {
-        <div class="tab-actions">
-          <app-model-search
-            placeholder="Search realtime models..."
-            (search)="onSearchRealtime($event)"
-          ></app-model-search>
-          <app-add-model-button
-            buttonText="Add Realtime"
-            (add)="onAddRealtime()"
-          ></app-add-model-button>
-        </div>
-        <div class="models-list">
-          @if (filteredRealtimeConfigs().length === 0) {
-          <div class="no-models">
-            @if(realtimeSearchTerm() && realtimeModelsCount > 0) { No matching
-            realtime models found } @else { No realtime models created }
-          </div>
-          } @else { @for (config of filteredRealtimeConfigs(); track config.id)
-          {
-          <div class="model-item">
-            <div class="model-info">
-              <div class="model-name">{{ config.modelDetails?.name }}</div>
-              <div class="model-custom-name">{{ config.custom_name }}</div>
-            </div>
-            <div class="model-actions">
-              <button
-                class="action-btn delete-btn"
-                (click)="onDeleteModel($event, config)"
-              >
-                <i class="ti ti-x"></i>
-              </button>
-            </div>
-          </div>
-          } }
-        </div>
-        }
-      </div>
-    </div>
-  `,
-  styles: [
-    `
-      .tabs-container {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-
-        .tabs-header {
-          display: flex;
-          border-bottom: 1px solid var(--gray-700);
-          margin-bottom: 1rem;
-
-          .tab-button {
-            background: transparent;
-            border: none;
-            color: var(--gray-400);
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            position: relative;
-            font-size: 14px;
-
-            &:hover {
-              color: var(--gray-100);
-            }
-
-            &.active {
-              color: var(--accent-color);
-
-              &:after {
-                content: '';
-                position: absolute;
-                bottom: -1px;
-                left: 0;
-                width: 100%;
-                height: 2px;
-                background-color: var(--accent-color);
-              }
-            }
-          }
-        }
-
-        .tab-content {
-          padding: 0;
-
-          .tab-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            gap: 1rem;
-          }
-        }
-
-        .models-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-
-          .model-item {
-            padding: 0.75rem;
-            background-color: var(--gray-800);
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            .model-info {
-              .model-name {
-                line-height: 1;
-                font-weight: 500;
-                margin-bottom: 0.5rem;
-                color: var(--gray-100);
-              }
-
-              .model-custom-name {
-                font-size: 14px;
-                color: var(--gray-400);
-              }
-            }
-
-            .model-actions {
-              display: flex;
-              gap: 0.5rem;
-
-              .action-btn {
-                background-color: transparent;
-                border-radius: 4px;
-                padding: 0.25rem 0.75rem;
-                color: var(--gray-300);
-                font-size: 12px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                transition: all 0.2s ease;
-
-                &:hover {
-                  background-color: var(--gray-700);
-                  color: var(--gray-100);
-                }
-
-                &.delete-btn {
-                  padding: 0.25rem;
-
-                  &:hover {
-                    background-color: var(--gray-700);
-                    color: white;
-                  }
-
-                  i {
-                    font-size: 14px;
-                    width: 14px;
-                    height: 14px;
-                  }
-                }
-              }
-            }
-          }
-
-          .no-models {
-            color: var(--gray-500);
-            font-style: italic;
-            padding: 1rem 0;
-            text-align: center;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-          }
-        }
-      }
-    `,
-  ],
+  templateUrl: './provider-tabs.component.html',
+  styleUrls: ['./provider-tabs.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProviderTabsComponent {
@@ -414,6 +147,18 @@ export class ProviderTabsComponent {
       this.deleteEmbeddingConfig(config);
     } else if (this.activeTab === 'realtime') {
       this.deleteRealtimeConfig(config);
+    }
+  }
+
+  onConfigureModel(event: Event, config: any): void {
+    event.stopPropagation();
+
+    if (this.activeTab === 'llm') {
+      this.configureLLMModel(config);
+    } else if (this.activeTab === 'embedding') {
+      this.configureEmbeddingModel(config);
+    } else if (this.activeTab === 'realtime') {
+      this.configureRealtimeModel(config);
     }
   }
 
@@ -571,5 +316,62 @@ export class ProviderTabsComponent {
         console.error('Error deleting Realtime config:', error);
       },
     });
+  }
+
+  private configureLLMModel(config: FullLLMConfig): void {
+    if (!config.id) {
+      console.error('Cannot configure LLM model: No ID provided');
+      return;
+    }
+
+    // Get available models for this provider
+    const availableModels = this.modelsPageService
+      .llmModels()
+      .filter((model) => model.llm_provider === this.provider.id);
+
+    // Open add LLM dialog with explicit type parameter - in edit mode
+    const dialogRef = this.dialog.open<FullLLMConfig>(AddLLMDialogComponent, {
+      data: {
+        provider: this.provider,
+        models: availableModels,
+        existingConfig: config,
+        isEditMode: true,
+      } as AddLLMDialogData,
+    });
+
+    // Handle dialog result with correct typing
+    dialogRef.closed.subscribe({
+      next: (result) => {
+        // Cast the result to the expected type
+        const updatedConfig = result as FullLLMConfig | undefined;
+        if (updatedConfig) {
+          console.log('LLM config updated successfully:', updatedConfig);
+          // Add updateLLMConfig method to ModelsPageService
+          this.modelsPageService.updateLLMConfig(updatedConfig);
+        }
+      },
+    });
+  }
+
+  private configureEmbeddingModel(config: FullEmbeddingConfig): void {
+    if (!config.id) {
+      console.error('Cannot configure Embedding model: No ID provided');
+      return;
+    }
+
+    console.log('Configure Embedding model:', config);
+    // Implement configuration logic for Embedding models
+    // This could open a dialog or navigate to a configuration page
+  }
+
+  private configureRealtimeModel(config: FullRealtimeConfig): void {
+    if (!config.id) {
+      console.error('Cannot configure Realtime model: No ID provided');
+      return;
+    }
+
+    console.log('Configure Realtime model:', config);
+    // Implement configuration logic for Realtime models
+    // This could open a dialog or navigate to a configuration page
   }
 }

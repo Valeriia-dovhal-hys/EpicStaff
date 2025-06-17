@@ -1,4 +1,4 @@
-FROM python:3.12.3
+FROM python:3.12.10
 
 WORKDIR /home/user/root/app
 

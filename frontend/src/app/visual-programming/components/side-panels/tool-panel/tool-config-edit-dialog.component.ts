@@ -16,7 +16,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ToolsService } from '../../../../user-settings-page/tools/services/tools.service';
+import { ToolsService } from '../../../../features/tools/services/tools.service';
 import { Tool, ToolField } from '../../../../shared/models/tool.model';
 // Import the specific node model for tool nodes.
 import { ToolNodeModel } from '../../../core/models/node.model';

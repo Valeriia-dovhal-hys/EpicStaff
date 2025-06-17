@@ -9,6 +9,7 @@ from models.request_models import RealtimeAgentChatData
 from tool_executors.base_tool_executor import BaseToolExecutor
 from tests.conftest import CONNECTION_KEY
 
+
 class DummyToolExecutor(BaseToolExecutor):
     def __init__(self, name="dummy_tool"):
         super().__init__(tool_name=name)
@@ -83,4 +84,3 @@ def mock_ws_client():
     ws_client = AsyncMock(spec=WebSocket)
 
     return ws_client
-

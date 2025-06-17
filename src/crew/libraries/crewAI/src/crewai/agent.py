@@ -6,7 +6,7 @@ from pydantic import Field, InstanceOf, PrivateAttr, model_validator
 
 from crewai.agents import CacheHandler
 from crewai.agents.agent_builder.base_agent import BaseAgent
-from crewai.agents.crew_agent_executor import CrewAgentExecutor
+from crewai.agents.crew_agent_executor import CrewAgentExecutor, KNOWLEDGE_KEYWORD
 from crewai.llm import LLM
 from crewai.memory.contextual.contextual_memory import ContextualMemory
 from crewai.memory.contextual.user_input_contextual_memory import (
@@ -160,6 +160,10 @@ class Agent(BaseAgent):
             self.cache_handler = CacheHandler()
         self.set_cache_handler(self.cache_handler)
 
+    def _extract_knowledges(self, knowledge_snippets: list) -> str:
+        snippet = "\n\n".join(knowledge_snippets)
+        return snippet
+
     def execute_task(
         self,
         task: Task,
@@ -216,29 +220,41 @@ class Agent(BaseAgent):
             self.user_input_contextual_memory = UserInputContextualMemory(
                 memory_config=self.crew.memory_config, um=self.crew._user_memory
             )
-
+        agent_knowledge_snippet = ""
         if self.knowledge_collection_id:
             # TODO: remove hardcode: search_limit, distance_threshold
-            knowledge_result = self.search_knowledges(
+            agent_knowledges = self.search_knowledges(
                 sender="ag",
                 knowledge_collection_id=self.knowledge_collection_id,
                 query=task.prompt(),
                 search_limit=3,
                 distance_threshold=0.7,
             )
-            task_prompt += knowledge_result
+            agent_knowledge_snippet = self._extract_knowledges(agent_knowledges)
+            task_prompt += (
+                f'{KNOWLEDGE_KEYWORD} \n\n"{agent_knowledge_snippet}"'
+                if agent_knowledge_snippet
+                else ""
+            )
 
         if self.crew:
             if self.crew.knowledge_collection_id:
                 # TODO: remove hardcode: search_limit, distance_threshold
-                knowledge_result = self.search_knowledges(
+                crew_knowledges = self.search_knowledges(
                     sender="cr",
                     knowledge_collection_id=self.crew.knowledge_collection_id,
                     query=task.prompt(),
                     search_limit=3,
                     distance_threshold=0.7,
                 )
-                task_prompt += knowledge_result
+                crew_knowledge_snippet = self._extract_knowledges(crew_knowledges)
+                if crew_knowledge_snippet:
+                    if not agent_knowledge_snippet:
+                        task_prompt += (
+                            f'{KNOWLEDGE_KEYWORD} \n\n"{crew_knowledge_snippet}"'
+                        )
+                    else:
+                        task_prompt += f'\n"{crew_knowledge_snippet}"'
 
         tools = tools or self.tools or []
         self.create_agent_executor(tools=tools, task=task)

@@ -46,12 +46,21 @@ class RedisPubSub:
         try:
             logger.info(f"Received message from session_status_handler: {message}")
             data = json.loads(message["data"])
-
             with transaction.atomic():
                 session = Session.objects.get(id=data["session_id"])
-                session.status = data["status"]
-                session.status_data = data.get("status_data", {})
-                session.save()
+                if data[
+                    "status"
+                ] == Session.SessionStatus.EXPIRED and session.status in [
+                    Session.SessionStatus.END,
+                    Session.SessionStatus.ERROR,
+                ]:
+                    logger.info(
+                        f'Unable change status from {session.status} to {data["status"]}'
+                    )
+                else:
+                    session.status = data["status"]
+                    session.status_data = data.get("status_data", {})
+                    session.save()
         except Exception as e:
             logger.error(f"Error handling session_status message: {e}")
 
@@ -70,7 +79,7 @@ class RedisPubSub:
             data = json.loads(message["data"])
             graph_session_message_data = GraphSessionMessageData.model_validate(data)
             GraphSessionMessage.objects.create(
-                session_id = graph_session_message_data.session_id,
+                session_id=graph_session_message_data.session_id,
                 created_at=graph_session_message_data.timestamp,
                 name=graph_session_message_data.name,
                 execution_order=graph_session_message_data.execution_order,

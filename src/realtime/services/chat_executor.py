@@ -2,13 +2,14 @@ import asyncio
 import json
 from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
-from sqlalchemy.ext.asyncio import AsyncSession
+
+from ai.summarization.openai_summarization_client import OpenaiSummarizationClient
 from models.request_models import RealtimeAgentChatData
-from models.ai_models import RealtimeTool
 from ai.agent.openai_realtime_agent_client import (
-    OpenaiRealtimeAgentClient,
     TurnDetectionMode,
 )
+from services.summarize_buffer import ChatSummarizedBufferClient
+from services.chat_buffer import ChatSummarizedBuffer
 from utils.shorten import shorten_dict
 from services.python_code_executor_service import PythonCodeExecutorService
 from services.redis_service import RedisService
@@ -20,6 +21,7 @@ from ai.agent.openai_realtime_agent_client import (
     OpenaiRealtimeAgentClient,
 )
 from services.chat_mode import ChatMode
+from utils.tokenizer import Tokenizer
 
 
 class ChatExecutor:
@@ -33,7 +35,7 @@ class ChatExecutor:
         tool_manager_service: ToolManagerService,
         connections: dict[
             WebSocket,
-            list[OpenaiRealtimeAgentClient, OpenaiRealtimeTranscriptionClient],
+            tuple[OpenaiRealtimeAgentClient, OpenaiRealtimeTranscriptionClient],
         ],
     ):
         self.client_websocket = client_websocket
@@ -50,13 +52,39 @@ class ChatExecutor:
             realtime_agent_chat_data=realtime_agent_chat_data, chat_executor=self
         )
 
+    def initialize_buffer(
+        self, max_buffer_tokens, max_chunks_tokens, model="gpt-4o"
+    ) -> (ChatSummarizedBuffer, ChatSummarizedBufferClient):
+        tokenizer: Tokenizer = Tokenizer(model)
+        buffer: ChatSummarizedBuffer = ChatSummarizedBuffer(
+            tokenizer,
+            max_buffer_tokens,
+            max_chunks_tokens,
+        )
+
+        # Note! Summarization works only when you pass openai api key
+        # in 'self.realtime_agent_chat_data.rt_api_key' param
+        summ_client = OpenaiSummarizationClient(
+            api_key=self.realtime_agent_chat_data.rt_api_key, model=model
+        )
+
+        summ_buffer_client = ChatSummarizedBufferClient(
+            buffer=buffer, summ_client=summ_client
+        )
+        return buffer, summ_buffer_client
+
     async def initialize_clients(
         self,
-    ) -> tuple[OpenaiRealtimeAgentClient, OpenaiRealtimeTranscriptionClient]:
-        buffer = []
+        buffer: ChatSummarizedBuffer,
+    ) -> tuple[
+        OpenaiRealtimeAgentClient,
+        OpenaiRealtimeTranscriptionClient,
+    ]:
+
         rt_tools = await self.tool_manager_service.get_realtime_tool_models(
             connection_key=self.realtime_agent_chat_data.connection_key
         )
+
         rt_agent_client = OpenaiRealtimeAgentClient(
             api_key=self.realtime_agent_chat_data.rt_api_key,
             connection_key=self.realtime_agent_chat_data.connection_key,
@@ -90,8 +118,15 @@ class ChatExecutor:
             rt_agent_client_message_handler = None
             rt_transcription_client_message_handler = None
 
+            # Initialize buffer
+            buffer, summ_buffer_client = self.initialize_buffer(
+                max_buffer_tokens=2000, max_chunks_tokens=4000
+            )
+
             # Initialize OpenAI handler with callbacks
-            rt_agent_client, rt_transcription_client = await self.initialize_clients()
+            rt_agent_client, rt_transcription_client = await self.initialize_clients(
+                buffer
+            )
 
             await rt_agent_client.connect()
             await rt_transcription_client.connect()
@@ -109,33 +144,47 @@ class ChatExecutor:
 
             logger.info("WebSocket connection established")
 
-            last_buffer_element_index = 0
+            previous_input = ""
+            wake_words: list[str] = [w.strip("!?., ") for w in self.wake_word.lower().split()]
             # Main communication loop
             while True:
                 if self.current_chat_mode == ChatMode.LISTEN:
                     client = rt_transcription_client
-                    buffer: list[str] = (
-                        rt_transcription_client.get_transcription_buffer()
-                    )
+                    last_input: list[str] = buffer.get_last_input()
+                    # logger.debug(f"Last input: {last_input}")
+                    # logger.debug(f"ALL TRIGGERS: {wake_words}")
 
-                    buffer_delta: list[str] = buffer[last_buffer_element_index:]
-                    for line in buffer_delta:
-                        normalized_line = line.strip().lower()
+                    if last_input != previous_input:
+                        # Cheks for triggers in the last input only once when last input was changed
+                        logger.debug(f"Last input was changed: {last_input}")
+                        previous_input = last_input  # cache last input
                         if any(
-                            trigger in normalized_line
-                            for trigger in [
-                                self.wake_word.lower().strip()
-                            ]  # TODO: REFACTOR
+                            trigger in last_input for trigger in wake_words
                         ):
+                            final_buffer = buffer.get_final_buffer()
+
                             await rt_agent_client.send_conversation_item_to_server(
-                                "\n".join(buffer)
+                                final_buffer
                             )
                             await rt_agent_client.request_response()
-                            rt_transcription_client.flush_buffer()
-                            last_buffer_element_index = 0
+
+                            buffer.flush()
                             self.current_chat_mode = ChatMode.CONVERSATION
 
-                    last_buffer_element_index = len(buffer)
+                    # Only for logger
+                    buffer_data: list[str] = buffer.get_buffer()
+                    chunks_data: list[str] = buffer.get_chunks()
+                    logger.debug(
+                        f"Current buffer ({len(buffer)} tokens): {buffer_data}"
+                        f"\n"
+                        f"Current chunks ({len(chunks_data)} chunks, {buffer._chunks_tokens_count} tokens): {chunks_data}"
+                    )
+                    # Only for logger
+
+                    if not buffer.check_free_buffer():
+                        # Summarize buffer
+                        logger.debug(f"Starting summarization of the buffer process...")
+                        await summ_buffer_client.summarize_buffer()
 
                 else:
                     client = rt_agent_client

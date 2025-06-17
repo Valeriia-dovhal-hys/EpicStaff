@@ -6,13 +6,13 @@
   --vp-selected-connection-color: #5672cd;
   --vp-selection-area-color: rgba(100, 108, 255, 0.14);
 
-  --vp-minimap-color: #ffffff;
-  --vp-minimap-node-color: rgba(60, 60, 67);
-  --vp-minimap-selected-node-color: #3451b2;
-  --vp-minimap-view-color: rgba(100, 108, 255, 0.14);
+  --vp-minimap-color: #1a1d24;
+  --vp-minimap-node-color: #384152;
+  --vp-minimap-selected-node-color: #4d7cfe;
+  --vp-minimap-view-color: rgba(255, 255, 255, 0.1);
 
-  --vp-node-color: hsl(240, 3%, 8%);
-  --vp-node-border-color: hsl(0, 0%, 15%);
+  --vp-node-color: #242424;
+  --vp-node-border-color: #333;
   --vp-node-selected-color: hsl(0, 0%, 57%);
   //nodes
   --agent-node-accent-color: #8e5cd9;
@@ -59,7 +59,7 @@
     --vp-minimap-selected-node-color: #a8b1ff;
     --vp-minimap-view-color: rgba(100, 108, 255, 0.16);
 
-    --vp-node-color: #1b1b1f;
+    --vp-node-color: #242424;
     --vp-selected-node-background-color: rgba(101, 117, 133, 0.16);
     --vp-hover-node-background-color: rgba(101, 117, 133, 0.16);
     --vp-selected-node-border-color: #3e63dd;

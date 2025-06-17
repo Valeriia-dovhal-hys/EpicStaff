@@ -220,6 +220,24 @@ class LLMNodeData(BaseModel):
     output_variable_path: str | None = None
 
 
+class ConditionData(BaseModel):
+    condition: str
+
+class ConditionGroupData(BaseModel):
+    group_name: str
+    group_type: Literal["simple", "complex"]
+    expression: str | None = None
+    manipulation: str | None = None
+    condition_list: list[ConditionData] = []
+    next_node: str | None = None
+
+class DecisionTableNodeData(BaseModel):
+    node_name: str
+    conditional_group_list: list[ConditionGroupData] = []
+    default_next_node: str | None = None
+    next_error_node: str | None = None
+
+
 class EdgeData(BaseModel):
     start_key: str
     end_key: str
@@ -239,6 +257,7 @@ class GraphData(BaseModel):
     llm_node_list: list[LLMNodeData] = []
     edge_list: list[EdgeData] = []
     conditional_edge_list: list[ConditionalEdgeData] = []
+    decision_table_node_list: list[DecisionTableNodeData] = []
     entry_point: str
 
 

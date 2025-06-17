@@ -5,7 +5,7 @@ import {
   GraphMessage,
   UserMessageData,
   MessageType,
-} from '../../graph-session-message.model';
+} from '../../../../models/graph-session-message.model';
 
 @Component({
   selector: 'app-user-message',
@@ -14,10 +14,7 @@ import {
   template: `
     <div class="user-message-container">
       <div class="message-bubble">
-        <markdown
-          [data]="userMessageData?.text"
-          class="markdown-content"
-        ></markdown>
+        <markdown [data]="getMessageText()" class="markdown-content"></markdown>
       </div>
     </div>
   `,
@@ -64,5 +61,12 @@ export class UserMessageComponent {
       return this.message.message_data as UserMessageData;
     }
     return null;
+  }
+
+  getMessageText(): string {
+    if (this.userMessageData?.text === '</done/>') {
+      return 'Done';
+    }
+    return this.userMessageData?.text || '';
   }
 }

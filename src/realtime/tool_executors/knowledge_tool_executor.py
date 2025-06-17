@@ -59,7 +59,15 @@ class KnowledgeSearchToolExecutor(BaseToolExecutor):
             data = json.loads(message["data"])
 
             if data["uuid"] == execution_uuid:
-                return data["results"]
+
+                knowledges = "\n\n".join(data["results"])
+                result = (
+                    f"\nUse this information for answer: {knowledges}"
+                    if knowledges
+                    else ""
+                )
+                return result
+
             await asyncio.sleep(0.1)
 
     def _gen_knowledge_realtime_tool_model(self) -> RealtimeTool:

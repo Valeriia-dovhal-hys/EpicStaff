@@ -1,0 +1,154 @@
+/* Styles for FlowSessionsTableComponent */
+
+.sessions-table-wrapper {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid var(--color-divider-regular);
+  background: var(--color-nodes-actionbar-bg);
+  height: 65vh;
+  max-height: 1000px;
+  /* Adjust max-height as needed for your dialog size */
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0;
+
+  th,
+  td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-divider-subtle);
+  }
+
+  th {
+    background-color: var(--color-sidenav-background);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  td {
+    color: var(--color-text-secondary);
+  }
+  .actions-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.view-btn,
+.delete-btn {
+  border: none;
+  outline: none;
+  padding: 6px 14px;
+  margin-right: 8px;
+  border-radius: 6px;
+  font-size: 0.95em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.view-btn {
+  background: var(--accent-color);
+  color: #fff;
+}
+.view-btn:hover {
+  background: var(--accent-color-hover);
+}
+
+.delete-btn {
+  background: #e0575b !important;
+  color: #fff !important;
+  border: none;
+  outline: none;
+  padding: 6px 14px;
+  margin-right: 8px;
+  border-radius: 6px;
+  font-size: 0.95em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.delete-btn:hover {
+  background: #b32b36 !important;
+  color: #fff !important;
+}
+
+.delete-icon-btn {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.delete-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.delete-icon-btn:hover .icon-tabler-x {
+  stroke: #e0575b;
+}
+
+.session-search-input {
+  padding: 6px 12px;
+  border: 1px solid var(--color-divider-regular, #ccc);
+  border-radius: 6px;
+  font-size: 1em;
+  outline: none;
+  transition: border 0.18s;
+  min-width: 220px;
+  max-width: 320px;
+  background: var(--color-background-body, #fff);
+  color: var(--color-text-primary, #222);
+}
+.session-search-input:focus {
+  border-color: var(--accent-color);
+}
+
+.stop-icon-btn {
+  background: transparent;
+  border: none;
+  padding: 0px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s;
+  width: 32px;
+  height: 32px;
+}
+.stop-icon-btn svg {
+  display: block;
+}
+.stop-icon-btn:hover rect {
+  fill: #d94c4a;
+}
+
+.stop-btn {
+  background: #e0575b;
+  color: #fff;
+  border: none;
+  outline: none;
+  padding: 6px 14px;
+  margin-right: 8px;
+  border-radius: 6px;
+  font-size: 0.95em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.stop-btn:hover {
+  background: #b32b36;
+  color: #fff;
+}

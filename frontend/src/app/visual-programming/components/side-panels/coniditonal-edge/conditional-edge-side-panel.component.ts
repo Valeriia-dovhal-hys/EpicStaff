@@ -6,6 +6,9 @@ import {
   Output,
   ViewChild,
   ChangeDetectionStrategy,
+  OnDestroy,
+  HostListener,
+  signal,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -13,6 +16,7 @@ import {
   FormArray,
   ReactiveFormsModule,
   Validators,
+  AbstractControl,
 } from '@angular/forms';
 import {
   CdkDragDrop,
@@ -22,9 +26,28 @@ import {
 import { EdgeNodeModel } from '../../../core/models/node.model';
 import { ToolLibrariesComponent } from '../../../../user-settings-page/tools/custom-tool-editor/tool-libraries/tool-libraries.component';
 import { CodeEditorComponent } from '../../../../user-settings-page/tools/custom-tool-editor/code-editor/code-editor.component';
-import { NgIf, NgFor } from '@angular/common';
 import { FlowService } from '../../../services/flow.service';
 import { uniqueNodeNameValidator } from '../unique-node-name-validator/unique-node-name.validator';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { InputMapComponent } from '../../../components/input-map/input-map.component';
+import { CustomPythonCode } from '../../../../features/tools/models/python-code.model';
+import { Dialog } from '@angular/cdk/dialog';
+import { DialogModule } from '@angular/cdk/dialog';
+import { ConfirmationDialogComponent } from '../../../../shared/components/cofirm-dialog/confirmation-dialog.component';
+import { SidePanelService } from '../../../services/side-panel.service';
+
+interface InputMapPair {
+  key: string;
+  value: string;
+}
+
+// interface PythonCodeData {
+//   name: string;
+//   libraries: string[];
+//   code: string;
+//   entrypoint: string;
+// }
 
 @Component({
   selector: 'app-conditional-edge-side-panel',
@@ -35,148 +58,224 @@ import { uniqueNodeNameValidator } from '../unique-node-name-validator/unique-no
     CodeEditorComponent,
     ToolLibrariesComponent,
     ReactiveFormsModule,
-    NgIf,
-    NgFor,
     DragDropModule,
+    InputMapComponent,
+    DialogModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ConditionalEdgeSidePanelComponent implements OnInit {
-  @Input() node!: EdgeNodeModel;
-  @Output() closePanel = new EventEmitter<void>();
-  @Output() nodeUpdated = new EventEmitter<EdgeNodeModel>();
+export class ConditionalEdgeSidePanelComponent implements OnInit, OnDestroy {
+  @Input() public node!: EdgeNodeModel;
+  @Output() private closePanel = new EventEmitter<void>();
+  @Output() private nodeUpdated = new EventEmitter<EdgeNodeModel>();
 
-  public conditionalEdgeForm!: FormGroup;
+  public readonly hasUnsavedChanges = signal<boolean>(false);
+
+  public conditionalEdgeForm: FormGroup;
+  public pythonCode: string = '';
   public codeEditorHasError: boolean = false;
+  private initialFormValue: any;
+  private initialPythonCode: string = '';
 
-  // Initial Python code template
-  public pythonCode: string =
+  private readonly destroy$ = new Subject<void>();
+  private readonly DEFAULT_PYTHON_CODE =
     'def main(arg1: str, arg2: str) -> dict:\n    return {\n        "result": arg1 + arg2,\n    }\n';
 
-  // Get references to child components
-  @ViewChild(ToolLibrariesComponent)
-  librariesComponent!: ToolLibrariesComponent;
-  @ViewChild(CodeEditorComponent)
-  codeEditorComponent!: CodeEditorComponent;
-
-  constructor(private fb: FormBuilder, private flowService: FlowService) {}
-
-  ngOnInit(): void {
-    // Initialize the form with existing data
-    this.conditionalEdgeForm = this.fb.group({
-      node_name: [
-        this.node.node_name,
-        [
-          Validators.required,
-          uniqueNodeNameValidator(
-            () =>
-              this.flowService
-                .nodes()
-                .map((n) => n.node_name)
-                .filter((name): name is string => !!name),
-            this.node.node_name
-          ),
-        ],
-      ],
-      input_map: this.fb.array(this.initInputMapFormArray()),
-      output_variable_path: [this.node.output_variable_path || ''],
-    });
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly flowService: FlowService,
+    private readonly dialog: Dialog,
+    private readonly sidePanelService: SidePanelService
+  ) {
+    this.conditionalEdgeForm = this.initializeForm();
   }
 
-  private initInputMapFormArray(): FormGroup[] {
-    // Convert the input_map object to an array of key-value pairs
-    if (!this.node.input_map || Object.keys(this.node.input_map).length === 0) {
-      // If input_map is empty, return an array with one empty key-value pair
-      return [this.createInputMapPairGroup('', '')];
-    }
-
-    return Object.entries(this.node.input_map).map(([key, value]) => {
-      return this.createInputMapPairGroup(key, value);
-    });
+  @HostListener('document:keydown.escape')
+  public handleEscapeKey(): void {
+    this.close();
   }
 
-  private createInputMapPairGroup(key: string, value: any): FormGroup {
-    return this.fb.group({
-      key: [key || ''],
-      value: [value !== undefined ? value : ''],
-    });
+  public ngOnInit(): void {
+    this.initializeFormValues();
+    this.setupFormChangeTracking();
+  }
+
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   public get inputMapPairs(): FormArray {
     return this.conditionalEdgeForm.get('input_map') as FormArray;
   }
 
-  public addInputMapPair(): void {
-    this.inputMapPairs.push(this.createInputMapPairGroup('', ''));
+  public get activeColor(): string {
+    return this.node?.color || '#685fff';
   }
 
-  public removeInputMapPair(index: number): void {
-    this.inputMapPairs.removeAt(index);
-  }
-
-  public dropInputMapPair(event: CdkDragDrop<any[]>): void {
-    moveItemInArray(
-      this.inputMapPairs.controls,
-      event.previousIndex,
-      event.currentIndex
+  public close(): void {
+    console.log(
+      'close  panel triggered in conditional edge side panel',
+      this.sidePanelService.getCurrentState()
     );
-  }
 
-  // Receives error state from the code editor component
-  onCodeErrorChange(hasError: boolean): void {
+    this.sidePanelService.tryClosePanel().then((closed) => {
+      if (closed) {
+        console.log('close panel emitted in conditional edge side panel');
+        this.closePanel.emit();
+      }
+    });
+  }
+  public onCodeErrorChange(hasError: boolean): void {
     this.codeEditorHasError = hasError;
   }
 
-  // Convert input_map form array to a key-value object
-  private buildInputMapObject(): Record<string, any> {
-    const inputMapObject: Record<string, any> = {};
-
-    this.inputMapPairs.controls.forEach((control) => {
-      const key = control.get('key')?.value;
-      const value = control.get('value')?.value;
-      // Only add the pair if the key is not empty (ignoring whitespace)
-      if (key && key.trim() !== '') {
-        inputMapObject[key.trim()] = value;
-      }
-    });
-
-    return inputMapObject;
+  public onPythonCodeChange(newCode: string): void {
+    this.pythonCode = newCode;
+    this.checkForChanges();
   }
 
-  onSave(): void {
-    if (!this.codeEditorHasError && this.conditionalEdgeForm.valid) {
-      const formValue = this.conditionalEdgeForm.getRawValue();
-
-      // Build the input_map object from the form array
-      const inputMapObject = this.buildInputMapObject();
-
-      const updatedNode: EdgeNodeModel = {
-        ...this.node,
-        // Update node_name using the form value
-        node_name: formValue.node_name,
-        // Add the input_map as an object and output_variable_path
-        input_map: inputMapObject,
-        output_variable_path: formValue.output_variable_path.trim() || null,
-        data: {
-          ...this.node.data,
-          python_code: {
-            libraries: this.librariesComponent
-              ? this.librariesComponent.libraries
-              : [],
-            code: this.codeEditorComponent
-              ? this.codeEditorComponent.pythonCode
-              : '',
-            entrypoint: 'main',
-          },
-        },
-      };
-
+  public onSave(): void {
+    if (this.isFormValid()) {
+      const inputMapValue = this.createInputMapFromPairs();
+      const updatedNode = this.createUpdatedNode(inputMapValue);
       this.nodeUpdated.emit(updatedNode);
-      this.close();
+      this.hasUnsavedChanges.set(false);
+      this.sidePanelService.setHasUnsavedChanges(false);
+      this.conditionalEdgeForm.markAsPristine();
+      this.initialFormValue = this.conditionalEdgeForm.getRawValue();
+      this.initialPythonCode = this.pythonCode;
     }
   }
 
-  close(): void {
-    this.closePanel.emit();
+  private initializeForm(): FormGroup {
+    return this.fb.group({
+      node_name: ['', [Validators.required]],
+      input_map: this.fb.array([]),
+      output_variable_path: [''],
+    });
+  }
+
+  private initializeFormValues(): void {
+    if (this.node) {
+      this.conditionalEdgeForm.patchValue({
+        node_name: this.node.node_name,
+        output_variable_path: this.node.output_variable_path,
+      });
+
+      this.pythonCode =
+        this.node.data?.python_code?.code || this.DEFAULT_PYTHON_CODE;
+      this.initialPythonCode = this.pythonCode;
+
+      this.initializeInputMap();
+      this.conditionalEdgeForm.markAsPristine();
+      this.initialFormValue = this.conditionalEdgeForm.getRawValue();
+      this.hasUnsavedChanges.set(false);
+    }
+  }
+
+  private initializeInputMap(): void {
+    if (this.node?.input_map && Object.keys(this.node.input_map).length > 0) {
+      this.initializeExistingInputMap();
+    } else {
+      this.addEmptyInputMapPair();
+    }
+  }
+
+  private initializeExistingInputMap(): void {
+    Object.entries(this.node.input_map).forEach(([key, value]) => {
+      this.inputMapPairs.push(
+        this.fb.group({
+          key: [key],
+          value: [value],
+        })
+      );
+    });
+  }
+
+  private addEmptyInputMapPair(): void {
+    this.inputMapPairs.push(
+      this.fb.group({
+        key: [''],
+        value: [''],
+      })
+    );
+  }
+  private setupFormChangeTracking(): void {
+    // Track form changes
+    this.conditionalEdgeForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.checkForChanges();
+      });
+  }
+
+  private checkForChanges(): void {
+    const formChanged = !this.isEqual(
+      this.conditionalEdgeForm.getRawValue(),
+      this.initialFormValue
+    );
+    const codeChanged = this.pythonCode !== this.initialPythonCode;
+    const hasChanges = formChanged || codeChanged;
+    this.hasUnsavedChanges.set(hasChanges);
+    this.sidePanelService.setHasUnsavedChanges(hasChanges);
+  }
+
+  private isEqual(obj1: any, obj2: any): boolean {
+    return JSON.stringify(obj1) === JSON.stringify(obj2);
+  }
+
+  private isFormValid(): boolean {
+    return this.conditionalEdgeForm.valid && !this.codeEditorHasError;
+  }
+
+  private createInputMapFromPairs(): Record<string, string> {
+    return this.inputMapPairs.controls
+      .filter(this.isNonEmptyPair)
+      .reduce(this.reducePairsToMap, {});
+  }
+
+  private isNonEmptyPair(control: AbstractControl): boolean {
+    const value = control.value as InputMapPair;
+    return value.key.trim() !== '' || value.value.trim() !== '';
+  }
+
+  private reducePairsToMap(
+    acc: Record<string, string>,
+    curr: AbstractControl
+  ): Record<string, string> {
+    const pair = curr.value as InputMapPair;
+    if (pair.key?.trim()) {
+      acc[pair.key.trim()] = pair.value;
+    }
+    return acc;
+  }
+
+  private createUpdatedNode(
+    inputMapValue: Record<string, string>
+  ): EdgeNodeModel {
+    const pythonCodeData: CustomPythonCode = {
+      name: this.node.node_name,
+      libraries: this.node.data?.python_code?.libraries || [],
+      code: this.pythonCode,
+      entrypoint: 'main',
+    };
+
+    return {
+      ...this.node,
+      node_name: this.conditionalEdgeForm.value.node_name,
+      input_map: inputMapValue,
+      output_variable_path: this.conditionalEdgeForm.value.output_variable_path,
+      data: {
+        ...this.node.data,
+        source: this.node.data.source,
+        then: this.node.data.then,
+        python_code: pythonCodeData,
+      },
+    };
+  }
+
+  public hasUnsavedChangesFn(): boolean {
+    return this.hasUnsavedChanges();
   }
 }

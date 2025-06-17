@@ -15,6 +15,9 @@ async def main():
     redis_host = os.environ.get("REDIS_HOST", "127.0.0.1")
     redis_port = int(os.environ.get("REDIS_PORT", 6379))
     session_schema_channel = os.environ.get("SESSION_SCHEMA_CHANNEL", "sessions:schema")
+    session_timeout_channel = os.environ.get(
+        "SESSION_TIMEOUT_CHANNEL", "sessions:timeout"
+    )
     crewai_output_channel = os.environ.get(
         "CREWAI_OUTPUT_CHANNEL", "sessions:crewai_output"
     )
@@ -35,6 +38,7 @@ async def main():
         redis_service=redis_service,
         crew_parser_service=crew_parser_service,
         session_schema_channel=session_schema_channel,
+        session_timeout_channel=session_timeout_channel,
         python_code_executor_service=python_code_executor_service,
         crewai_output_channel=crewai_output_channel,
         knowledge_search_service=knowledge_search_service,
@@ -46,7 +50,9 @@ async def main():
         await redis_service.connect()
         logger.info("Redis connection established.")
 
+        logger.info("Starting Session Manager Service...")
         session_manager_service.start()
+        logger.info("Session Manager Service started.")
         # Run indefinitely
         while True:
             await asyncio.sleep(0.1)

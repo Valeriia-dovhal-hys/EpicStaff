@@ -1,54 +1,87 @@
 <div class="dialog-container">
+  <!-- Header Section -->
   <div class="header">
-    <h2>
-      <span class="material-icons header-icon">tune</span>
+    <h2 class="dialog-title">
       Advanced Settings for {{ taskData.taskName || "New Task" }}
     </h2>
+    <button class="close-button" (click)="dialogRef.close()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <line
+          x1="18"
+          y1="6"
+          x2="6"
+          y2="18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+        <line
+          x1="6"
+          y1="6"
+          x2="18"
+          y2="18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
   </div>
+
+  <!-- Scrollable Content -->
   <div class="scrollable-content">
+    <!-- Output Model Section -->
     <div class="form-section">
-      <div class="form-group">
-        <label>Properties for Output Model Settings</label>
-        <!-- Dynamic property fields -->
-        <div
-          *ngFor="let field of propertyFields; let i = index"
-          class="property-row"
-        >
-          <input
-            type="text"
-            [(ngModel)]="field.name"
-            placeholder="Property name"
-            class="property-input"
-          />
-          <select [(ngModel)]="field.type" class="property-type">
-            <option value="string">string</option>
-            <option value="number">number</option>
-          </select>
-          <input
-            type="text"
-            [(ngModel)]="field.value"
-            placeholder="Property value"
-            class="property-input"
-          />
-          <button
-            type="button"
-            class="remove-btn"
-            (click)="removeProperty(i)"
-            title="Remove Property"
+      <h3 class="section-title">Output Model</h3>
+      <div class="form-group json-group">
+        <app-json-editor
+          [jsonData]="jsonConfig"
+          (jsonChange)="jsonConfig = $event"
+          (validationChange)="onJsonValidChange($event)"
+          [fullHeight]="false"
+          [editorHeight]="400"
+        ></app-json-editor>
+      </div>
+    </div>
+
+    <!-- Context Section -->
+    <div class="form-section">
+      <h3 class="section-title">Task Context</h3>
+      <div class="full-width-container">
+        <div class="context-list">
+          <div
+            class="context-item"
+            *ngFor="let task of availableTasks; let i = index"
+            [ngClass]="{ selected: isTaskSelected(task.id) }"
+            (click)="toggleTaskSelection(task.id)"
           >
-            <span class="material-icons">delete</span>
-          </button>
+            <span class="task-order">{{ formatOrder(task.order) }}</span>
+            <span class="task-name">{{ task.name }}</span>
+            <div class="task-meta">
+              <span class="task-id">ID: {{ task.id }}</span>
+              <span class="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  [checked]="isTaskSelected(task.id)"
+                  (click)="$event.stopPropagation()"
+                  (change)="toggleTaskSelection(task.id)"
+                  class="transparent-checkbox"
+                />
+                <span class="checkmark" *ngIf="isTaskSelected(task.id)"></span>
+              </span>
+            </div>
+          </div>
+          <div *ngIf="availableTasks.length === 0" class="empty-state">
+            No task contexts available
+          </div>
         </div>
-        <button type="button" class="add-property" (click)="addProperty()">
-          <span class="material-icons">add_circle</span> Add Property
-        </button>
       </div>
     </div>
   </div>
+
+  <!-- Action Buttons -->
   <div class="actions">
-    <button type="button" class="cancel-btn" (click)="dialogRef.close()">
-      Cancel
-    </button>
-    <button type="button" class="save-btn" (click)="save()">Save</button>
+    <button (click)="dialogRef.close()">Cancel</button>
+    <button (click)="save()" [disabled]="!isJsonValid">Save Changes</button>
   </div>
 </div>

@@ -8,7 +8,7 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
+import { DialogRef, DIALOG_DATA, DialogModule } from '@angular/cdk/dialog';
 import {
   ReactiveFormsModule,
   FormGroup,
@@ -23,32 +23,40 @@ import { CommonModule } from '@angular/common';
 import { ToolVariablesComponent } from './tool-variables/tool-variables.component';
 import { ToolLibrariesComponent } from './tool-libraries/tool-libraries.component';
 import { CodeEditorComponent } from './code-editor/code-editor.component';
-import { PythonCodeToolService } from './services/pythonCodeToolService.service';
+import { CustomToolsStorageService } from '../../../features/tools/services/custom-tools/custom-tools-storage.service';
+import { ToastService } from '../../../services/notifications/toast.service';
+import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
+import { ButtonComponent } from '../../../shared/components/buttons/button/button.component';
 
 // Models
 import {
   ArgsSchema,
   CreatePythonCodeToolRequest,
+  GetPythonCodeToolRequest,
   UpdatePythonCodeToolRequest,
-} from './models/python-code-tool.model';
+} from '../../../features/tools/models/python-code-tool.model';
 import { PythonCodeToolCard } from '../models/pythonTool-card.model';
 
 // **Import** the utility function
 import { buildArgsSchema } from './arg-shema-builder/build-args-schema.util';
 
 interface DialogData {
-  pythonTools: PythonCodeToolCard[];
-  selectedTool?: PythonCodeToolCard;
+  pythonTools: GetPythonCodeToolRequest[];
+  selectedTool?: GetPythonCodeToolRequest;
 }
 
 @Component({
   selector: 'app-custom-tool-dialog',
+  standalone: true,
   imports: [
     ReactiveFormsModule,
     CommonModule,
     ToolVariablesComponent,
     ToolLibrariesComponent,
     CodeEditorComponent,
+    DialogModule,
+    AppIconComponent,
+    ButtonComponent,
   ],
   templateUrl: './custom-tool-dialog.component.html',
   styleUrls: ['./custom-tool-dialog.component.scss'],
@@ -70,12 +78,13 @@ export class CustomToolDialogComponent implements OnInit, AfterViewInit {
   public editorHasError = false;
   public selectedVariables: Array<{ name: string; description: string }> = [];
   public selectedLibraries: string[] = [];
-  public selectedTool?: PythonCodeToolCard;
+  public selectedTool?: GetPythonCodeToolRequest;
 
   constructor(
     private dialogRef: DialogRef<any>,
     private cdr: ChangeDetectorRef,
-    private pythonCodeToolService: PythonCodeToolService,
+    private customToolsStorageService: CustomToolsStorageService,
+    private toastService: ToastService,
     @Inject(DIALOG_DATA) public data: DialogData
   ) {
     if (data.selectedTool) {
@@ -190,26 +199,34 @@ export class CustomToolDialogComponent implements OnInit, AfterViewInit {
         description: toolDescription,
         args_schema: argsSchemaObj,
       };
-      this.pythonCodeToolService
-        .updatePythonCodeTool(String(this.selectedTool.id), updateTool)
+      this.customToolsStorageService
+        .updateTool(String(this.selectedTool.id), updateTool)
         .subscribe({
-          next: (result: any) => {
+          next: (result: GetPythonCodeToolRequest) => {
             console.log('Tool updated successfully:', result);
+            this.toastService.success(`Custom Tool updated successfully!`);
             this.dialogRef.close(result);
           },
-          error: (error) => {
+          error: (error: any) => {
             console.error('Error updating tool:', error);
+            this.toastService.error(
+              'Failed to update custom tool. Please try again.'
+            );
           },
         });
     } else {
       // Create scenario
-      this.pythonCodeToolService.createPythonCodeTool(toolData).subscribe({
-        next: (result: any) => {
+      this.customToolsStorageService.createTool(toolData).subscribe({
+        next: (result: GetPythonCodeToolRequest) => {
           console.log('Tool created successfully in dialog:', result);
+          this.toastService.success(`Custom Tool created successfully!`);
           this.dialogRef.close(result);
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error creating tool:', error);
+          this.toastService.error(
+            'Failed to create custom tool. Please try again.'
+          );
         },
       });
     }

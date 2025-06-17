@@ -2,9 +2,11 @@ import json
 import redis.asyncio as aioredis
 from redis import Redis
 from loguru import logger
+from typing import List, Union
 from redis.client import PubSub
 
 from utils.singleton_meta import SingletonMeta
+
 
 class RedisService(metaclass=SingletonMeta):
     def __init__(self, host: str, port: int):
@@ -12,7 +14,7 @@ class RedisService(metaclass=SingletonMeta):
         self.port = port
 
         self.aioredis_client: aioredis.Redis | None = None
-        self.sync_redis_client: Redis| None = None
+        self.sync_redis_client: Redis | None = None
 
     async def connect(self):
         try:
@@ -29,18 +31,36 @@ class RedisService(metaclass=SingletonMeta):
         except Exception as e:
             logger.error(f"Failed to connect to Redis: {e}")
             raise e
-        
+
     async def close(self):
         if self.aioredis_client:
             await self.aioredis_client.close()
         if self.sync_redis_client:
             self.sync_redis_client.close()
 
-    async def async_subscribe(self, channel: str) -> PubSub:
+    async def async_subscribe(self, channels: Union[str, List[str]]) -> PubSub:
+        """
+        Subscribe to one or multiple channels asynchronously.
+
+        Args:
+            channels: A single channel name or a list of channel names
+        Returns:
+            PubSub: The subscription object
+        """
         if not self.aioredis_client:
             raise RuntimeError("Redis client is not connected.")
+
         pubsub = self.aioredis_client.pubsub()
-        await pubsub.subscribe(channel)
+
+        if isinstance(channels, str):
+            # Single channel
+            await pubsub.subscribe(channels)
+            logger.info(f"Subscribed to channel: {channels}")
+        else:
+            # Multiple channels
+            await pubsub.subscribe(*channels)
+            logger.info(f"Subscribed to channels: {', '.join(channels)}")
+
         return pubsub
 
     def sync_subscribe(self, channel: str) -> PubSub:
@@ -49,7 +69,7 @@ class RedisService(metaclass=SingletonMeta):
         pubsub = self.sync_redis_client.pubsub()
         pubsub.subscribe(channel)
         return pubsub
-    
+
     async def async_publish(self, channel: str, message: object):
         await self.aioredis_client.publish(channel, json.dumps(message))
         logger.info(f"Message published to channel '{channel}'.")

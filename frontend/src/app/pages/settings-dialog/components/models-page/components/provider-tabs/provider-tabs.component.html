@@ -1,0 +1,140 @@
+<div class="tabs-container">
+  <div class="tabs-header">
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'llm'"
+      (click)="selectTab('llm')"
+    >
+      LLM Models ({{ llmModelsCount }})
+    </button>
+    @if(this.modelsPageService.hasEmbeddingModels(provider.id)){
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'embedding'"
+      (click)="selectTab('embedding')"
+    >
+      Embedding Models ({{ embeddingModelsCount }})
+    </button>
+    } @if(this.modelsPageService.hasRealtimeModels(provider.id)){
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'realtime'"
+      (click)="selectTab('realtime')"
+    >
+      Realtime Models ({{ realtimeModelsCount }})
+    </button>
+    }
+  </div>
+
+  <div class="tab-content">
+    @if (activeTab === 'llm') {
+    <div class="tab-actions">
+      <app-model-search
+        placeholder="Search LLM models..."
+        (search)="onSearchLLM($event)"
+      ></app-model-search>
+      <app-add-model-button
+        buttonText="Add LLM"
+        (add)="onAddLLM()"
+      ></app-add-model-button>
+    </div>
+    <div class="models-list">
+      @if (filteredLLMConfigs().length === 0) {
+      <div class="no-models">
+        @if(llmSearchTerm() && llmModelsCount > 0) { No matching LLM models
+        found } @else { No LLM models created}
+      </div>
+      } @else { @for (config of filteredLLMConfigs(); track config.id) {
+      <div class="model-item">
+        <div class="model-info">
+          <div class="model-name">{{ config.modelDetails?.name }}</div>
+          <div class="model-custom-name">{{ config.custom_name }}</div>
+        </div>
+        <div class="model-actions">
+          <!-- <button
+            class="action-btn configure-btn"
+            (click)="onConfigureModel($event, config)"
+          >
+            Configure
+          </button> -->
+          <button
+            class="action-btn delete-btn"
+            (click)="onDeleteModel($event, config)"
+          >
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
+      </div>
+      } }
+    </div>
+    } @if (activeTab === 'embedding') {
+    <div class="tab-actions">
+      <app-model-search
+        placeholder="Search embedding models..."
+        (search)="onSearchEmbedding($event)"
+      ></app-model-search>
+      <app-add-model-button
+        buttonText="Add Embedding"
+        (add)="onAddEmbedding()"
+      ></app-add-model-button>
+    </div>
+    <div class="models-list">
+      @if (filteredEmbeddingConfigs().length === 0) {
+      <div class="no-models">
+        @if(embeddingSearchTerm() && embeddingModelsCount > 0) { No matching
+        embedding models found } @else { No embedding models created }
+      </div>
+      } @else { @for (config of filteredEmbeddingConfigs(); track config.id) {
+      <div class="model-item">
+        <div class="model-info">
+          <div class="model-name">{{ config.modelDetails?.name }}</div>
+          <div class="model-custom-name">{{ config.custom_name }}</div>
+        </div>
+        <div class="model-actions">
+          <button
+            class="action-btn delete-btn"
+            (click)="onDeleteModel($event, config)"
+          >
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
+      </div>
+      } }
+    </div>
+    } @if (activeTab === 'realtime') {
+    <div class="tab-actions">
+      <app-model-search
+        placeholder="Search realtime models..."
+        (search)="onSearchRealtime($event)"
+      ></app-model-search>
+      <app-add-model-button
+        buttonText="Add Realtime"
+        (add)="onAddRealtime()"
+      ></app-add-model-button>
+    </div>
+    <div class="models-list">
+      @if (filteredRealtimeConfigs().length === 0) {
+      <div class="no-models">
+        @if(realtimeSearchTerm() && realtimeModelsCount > 0) { No matching
+        realtime models found } @else { No realtime models created }
+      </div>
+      } @else { @for (config of filteredRealtimeConfigs(); track config.id) {
+      <div class="model-item">
+        <div class="model-info">
+          <div class="model-name">{{ config.modelDetails?.name }}</div>
+          <div class="model-custom-name">{{ config.custom_name }}</div>
+        </div>
+        <div class="model-actions">
+          <button
+            class="action-btn delete-btn"
+            (click)="onDeleteModel($event, config)"
+          >
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
+      </div>
+      } }
+    </div>
+    }
+  </div>
+</div>

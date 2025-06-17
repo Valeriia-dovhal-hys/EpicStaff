@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import {
   CreatePythonCodeRequest,
   GetPythonCodeRequest,
-} from '../models/python-code.model';
+} from '../../../../features/tools/models/python-code.model';
 import { ConfigService } from '../../../../services/config/config.service';
 
 @Injectable({

@@ -177,17 +177,6 @@ def test_create_task(api_client, crew, wikipedia_agent):
 
 
 @pytest.mark.django_db
-def test_create_session(api_client, crew):
-    url = reverse("session-list")
-    data = {"crew": crew.pk, "status": "run"}
-
-    response = api_client.post(url, data, format="json")
-
-    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED, response.content
-    assert Session.objects.count() == 0
-
-
-@pytest.mark.django_db
 def test_get_agents_empty(api_client):
     url = reverse("agent-list")
 
@@ -456,40 +445,6 @@ def test_get_tasks_with_data(api_client, crew, wikipedia_agent):
         assert False, "Task not found"
 
 
-@pytest.mark.django_db
-def test_get_sessions_empty(api_client):
-    url = reverse("session-list")
-
-    response = api_client.get(url)
-
-    assert response.status_code == status.HTTP_200_OK, response.content
-    assert response.data == {
-        "count": 0,
-        "next": None,
-        "previous": None,
-        "results": [],
-    }
-
-
-@pytest.mark.django_db
-def test_get_sessions_with_data(api_client, crew, redis_client_mock):
-    # First create a session using run-session endpoint
-    data = {"crew_id": crew.pk}
-    url = reverse("run-session")
-
-    response = api_client.post(url, data, format="json")
-
-    # Now retrieve all sessions
-    url = reverse("session-list")
-
-    response = api_client.get(url)
-
-    assert response.status_code == status.HTTP_200_OK, response.content
-    assert response.data["count"] == 1
-    assert len(response.data["results"]) == 1
-    assert response.data["results"][0]["crew"] == crew.pk
-
-
 # =====================================
 
 
@@ -653,52 +608,6 @@ def test_get_task_by_id(api_client, crew, wikipedia_agent):
 @pytest.mark.django_db
 def test_get_task_by_invalid_id(api_client):
     url = reverse("task-detail", args=[999])
-
-    response = api_client.get(url)
-
-    assert response.status_code == status.HTTP_404_NOT_FOUND, response.content
-
-
-@pytest.mark.django_db
-def test_create_session(api_client, crew, redis_client_mock):
-
-    data = {"crew_id": crew.pk}
-    url = reverse("run-session")
-    response = api_client.post(url, data, format="json")
-
-    assert response.status_code == status.HTTP_201_CREATED, response.content
-    assert "session_id" in response.data
-
-
-@pytest.mark.django_db
-def test_get_session_by_id(api_client, crew, redis_client_mock):
-
-    # Create a session first
-    data = {"crew_id": crew.pk}
-    url = reverse("run-session")
-    post_response = api_client.post(url, data, format="json")
-    session_id = post_response.data["session_id"]
-
-    # Retrieve the session by ID
-    url = reverse("session-detail", args=[session_id])
-    response = api_client.get(url)
-
-    # Fetch session from DB and serialize it
-    session = Session.objects.get(id=session_id)
-    crew_data = NestedSessionSerializer(session).data["crew"]
-    converter_service.inject_tasks(crew_data)
-    for task in crew_data.get("tasks", []):
-        if "crew" in task:
-            del task["crew"]
-
-    assert response.status_code == status.HTTP_200_OK, response.content
-    assert response.data["crew"] == crew.pk
-    assert response.data["crew_schema"]["tasks"] == crew_data["tasks"]
-
-
-@pytest.mark.django_db
-def test_get_session_by_invalid_id(api_client):
-    url = reverse("session-detail", args=[999])
 
     response = api_client.get(url)
 

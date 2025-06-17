@@ -6,7 +6,6 @@ from tables.models import DefaultBaseModel, AbstractDefaultFillableModel, Proces
 
 class DefaultCrewConfig(DefaultBaseModel):
 
-    memory = models.BooleanField(default=False)
     embedding_config = models.ForeignKey(
         "EmbeddingConfig",
         on_delete=models.SET_NULL,
@@ -22,16 +21,12 @@ class DefaultCrewConfig(DefaultBaseModel):
         default=None,
         related_name="default_manager_crews",
     )
+    process = models.CharField(
+        max_length=255, choices=Process.choices, default=Process.SEQUENTIAL
+    )
+    memory = models.BooleanField(default=False)
     max_rpm = models.IntegerField(null=True, default=100)
     cache = models.BooleanField(default=True)
-    planning_llm_config = models.ForeignKey(
-        "LLMConfig",
-        on_delete=models.SET_NULL,
-        blank=True,
-        default=None,
-        null=True,
-        related_name="default_planning_crews",
-    )
     default_temperature = models.FloatField(default=0.7, null=False)
 
     def __str__(self):
@@ -253,6 +248,7 @@ class Tool(models.Model):
     name_alias = models.TextField()
     description = models.TextField()
     enabled = models.BooleanField(default=True)
+    favorite = models.BooleanField(default=False)
 
     def __str__(self):
         return self.description
@@ -270,6 +266,26 @@ class ToolConfig(models.Model):
 
     def get_tool_config_field(self, name: str) -> ToolConfigField:
         return ToolConfigField.objects.filter(tool=self.tool, name=name).first()
+
+
+class DefaultToolConfig(DefaultBaseModel):
+    llm_config = models.ForeignKey(
+        "DefaultLLMConfig",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="default_tool_llm_config",
+        default=None,
+    )
+    embedding_config = models.ForeignKey(
+        "DefaultEmbeddingConfig",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="default_tool_embedding_config",
+        default=None,
+    )
+
+    def __str__(self):
+        return "Default Tool Config"
 
 
 class TemplateAgent(models.Model):

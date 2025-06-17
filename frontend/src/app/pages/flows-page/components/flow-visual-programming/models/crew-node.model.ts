@@ -1,4 +1,4 @@
-import { GetProjectRequest } from '../../../../projects-page/models/project.model';
+import { GetProjectRequest } from '../../../../../features/projects/models/project.model';
 
 export interface CrewNode {
   id: number;

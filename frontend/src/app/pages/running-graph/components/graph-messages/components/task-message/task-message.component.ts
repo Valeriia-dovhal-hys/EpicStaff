@@ -1,17 +1,18 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MarkdownModule } from 'ngx-markdown';
+import { NgxJsonViewerModule } from 'ngx-json-viewer';
 import {
   GraphMessage,
   TaskMessageData,
   MessageType,
-} from '../../graph-session-message.model';
+} from '../../../../models/graph-session-message.model';
 import { expandCollapseAnimation } from '../../../../../../shared/animations/animations-expand-collapse';
 
 @Component({
   selector: 'app-task-message',
   standalone: true,
-  imports: [CommonModule, MarkdownModule],
+  imports: [CommonModule, MarkdownModule, NgxJsonViewerModule],
   animations: [expandCollapseAnimation],
   template: `
     <div class="agent-flow-container">
@@ -106,16 +107,28 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
               class="collapsible-content"
               [@expandCollapse]="isRawExpanded ? 'expanded' : 'collapsed'"
             >
-              <div class="result-wrapper">
-                <!-- Markdown Output -->
+              <div class="result-content">
+                <!-- JSON Viewer when raw data is valid JSON -->
+                <ngx-json-viewer
+                  *ngIf="isValidJson(getRawData())"
+                  [json]="parsedRawData"
+                  [expanded]="false"
+                ></ngx-json-viewer>
+
+                <!-- Markdown Output when raw data is not valid JSON -->
                 <div
                   class="markdown-content"
                   [ngClass]="{ collapsed: isCollapsed && shouldShowToggle() }"
+                  *ngIf="!isValidJson(getRawData())"
                 >
-                  <markdown [data]="this.taskMessageData?.raw"></markdown>
+                  <markdown [data]="getRawData()"></markdown>
                 </div>
                 <button
-                  *ngIf="shouldShowToggle() && isRawExpanded"
+                  *ngIf="
+                    shouldShowToggle() &&
+                    isRawExpanded &&
+                    !isValidJson(getRawData())
+                  "
                   class="toggle-button"
                   (click)="toggleCollapse()"
                 >
@@ -128,33 +141,31 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
       </div>
     </div>
   `,
-  styles: [
-    `
-      .agent-flow-container {
-        background-color: var(--gray-850);
-        border-radius: 8px;
-        padding: 1.25rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        border-left: 4px solid #30a46c;
-      }
+  styles: `
+    .agent-flow-container {
+      background-color: var(--color-nodes-background);
+      border-radius: 8px;
+      padding: 1.25rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border-left: 4px solid #30a46c;
+    }
 
-      .agent-header {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        user-select: none;
-      }
+    .agent-header {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
 
       .play-arrow {
         margin-right: 16px;
         display: flex;
         align-items: center;
-      }
 
-      .play-arrow i {
-        color: #30a46c;
-        font-size: 1.1rem;
-        transition: transform 0.3s ease;
+        i {
+          color: #30a46c;
+          font-size: 1.1rem;
+          transition: transform 0.3s ease;
+        }
       }
 
       .icon-container {
@@ -167,11 +178,11 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
         justify-content: center;
         margin-right: 20px;
         flex-shrink: 0;
-      }
 
-      .icon-container i {
-        color: var(--gray-900);
-        font-size: 1.25rem;
+        i {
+          color: var(--gray-900);
+          font-size: 1.25rem;
+        }
       }
 
       h3 {
@@ -183,70 +194,70 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 100%;
-      }
 
-      .task-name {
-        color: #30a46c;
-        font-weight: 400;
-        margin: 0 5px;
+        .task-name {
+          color: #30a46c;
+          font-weight: 400;
+          margin: 0 5px;
+        }
       }
+    }
 
-      .agent-content {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        padding-left: 5.5rem;
-        margin-top: 1.25rem;
+    .agent-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding-left: 5.5rem;
+      margin-top: 1.25rem;
+      overflow: hidden;
+    }
+
+    /* Collapsible content container */
+    .collapsible-content {
+      overflow: hidden;
+      position: relative;
+
+      &.ng-animating {
         overflow: hidden;
       }
+    }
 
-      /* Collapsible content container */
-      .collapsible-content {
-        overflow: hidden;
-        position: relative;
-      }
+    /* Section styling */
+    .section-heading {
+      font-weight: 500;
+      color: var(--gray-300);
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
 
-      .collapsible-content.ng-animating {
-        overflow: hidden;
-      }
-
-      /* Section styling */
-      .section-heading {
-        font-weight: 500;
-        color: var(--gray-300);
-        margin-bottom: 0.5rem;
-        cursor: pointer;
-        user-select: none;
-        display: flex;
-        align-items: center;
-      }
-
-      .section-heading i {
+      i {
         margin-right: 8px;
         color: #30a46c;
         font-size: 1.1rem;
         margin-left: -3px;
         transition: transform 0.3s ease;
       }
+    }
 
-      .details-content {
-        background-color: var(--gray-800);
-        border: 1px solid var(--gray-750);
-        border-radius: 8px;
-        padding: 1rem;
-        color: var(--gray-200);
-        margin-left: 23px;
-      }
+    .details-content {
+      background-color: var(--gray-800);
+      border: 1px solid var(--gray-750);
+      border-radius: 8px;
+      padding: 1rem;
+      color: var(--gray-200);
+      margin-left: 23px;
 
       .subsection-heading {
         font-weight: 500;
         color: #30a46c;
         margin-bottom: 0.5rem;
         margin-top: 1rem;
-      }
 
-      .subsection-heading:first-child {
-        margin-top: 0;
+        &:first-child {
+          margin-top: 0;
+        }
       }
 
       .description-content,
@@ -261,54 +272,48 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
       .agent-section {
         margin-top: 1rem;
       }
+    }
 
-      .result-wrapper {
-        margin-left: 23px;
-      }
+    .result-content {
+      background-color: var(--gray-800);
+      border: 1px solid var(--gray-750);
+      border-radius: 8px;
+      padding: 1rem;
+      color: var(--gray-200);
+      margin-left: 23px;
+      overflow-y: auto;
+      max-height: 400px;
+    }
 
-      .markdown-content {
-        background-color: var(--gray-800);
-        border: 1px solid var(--gray-750);
-        border-radius: 8px;
-        padding: 1rem;
-        color: var(--gray-200);
-        overflow-y: auto;
-        transition: max-height 0.3s ease;
-      }
+    .markdown-content {
+      transition: max-height 0.3s ease;
 
-      .markdown-content.collapsed {
+      &.collapsed {
         max-height: 200px;
+        overflow-y: hidden;
       }
+    }
 
-      .toggle-button {
-        background-color: transparent;
-        border: none;
-        color: #30a46c;
-        font-size: 0.85rem;
-        cursor: pointer;
-        padding: 0.5rem;
-        text-align: center;
-        width: 100%;
-        margin-top: 0.25rem;
-      }
+    .toggle-button {
+      background-color: transparent;
+      border: none;
+      color: #30a46c;
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      text-align: center;
+      width: 100%;
+      margin-top: 0.25rem;
 
-      .toggle-button:hover {
+      &:hover {
         text-decoration: underline;
       }
+    }
 
-      pre {
-        margin: 0;
-      }
-
-      .formatted-json {
-        white-space: pre-wrap;
-        word-break: break-word;
-        font-size: 1rem;
-        overflow-x: hidden;
-        max-width: 100%;
-      }
-    `,
-  ],
+    pre {
+      margin: 0;
+    }
+  `,
 })
 export class TaskMessageComponent implements OnInit {
   @Input() message!: GraphMessage;
@@ -316,9 +321,13 @@ export class TaskMessageComponent implements OnInit {
   isDetailsExpanded = false;
   isRawExpanded = true;
   isCollapsed = true;
+  parsedRawData: any = null;
 
   ngOnInit() {
-    // Any initialization logic here
+    // Attempt to parse the raw data as JSON during initialization
+    if (this.hasRawData()) {
+      this.tryParseRawJson();
+    }
   }
 
   toggleMessage(): void {
@@ -338,13 +347,11 @@ export class TaskMessageComponent implements OnInit {
   }
 
   shouldShowToggle(): boolean {
-    if (!this.taskMessageData?.raw) return false;
+    if (!this.getRawData()) return false;
 
-    // Using the same logic as in AgentFinishMessageComponent
     // Show toggle button if content is longer than approximately 5 lines
     return (
-      this.taskMessageData.raw.split('\n').length > 5 ||
-      this.taskMessageData.raw.length > 500
+      this.getRawData().split('\n').length > 5 || this.getRawData().length > 500
     );
   }
 
@@ -361,7 +368,30 @@ export class TaskMessageComponent implements OnInit {
   }
 
   hasRawData(): boolean {
-    return !!this.taskMessageData?.raw && this.taskMessageData.raw !== '';
+    return !!this.getRawData() && this.getRawData() !== '';
+  }
+
+  getRawData(): string {
+    return this.taskMessageData?.raw || '';
+  }
+
+  isValidJson(str: string): boolean {
+    try {
+      JSON.parse(str);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  tryParseRawJson(): void {
+    if (this.hasRawData()) {
+      try {
+        this.parsedRawData = JSON.parse(this.getRawData());
+      } catch (e) {
+        this.parsedRawData = null;
+      }
+    }
   }
 
   get taskMessageData(): TaskMessageData | null {

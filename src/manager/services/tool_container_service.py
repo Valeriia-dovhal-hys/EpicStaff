@@ -157,6 +157,7 @@ class ToolContainerService:
             network=self.network_name,
             detach=True,
             name=container_name,
+            labels={"com.docker.compose.project": "epicstaff-tools"},
             environment={"SAVE_FILE_PATH": "/home/user/root/app/savefiles"},
             mounts=[
                 Mount(

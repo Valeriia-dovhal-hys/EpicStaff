@@ -1,6 +1,7 @@
 from tables.exceptions import GraphEntryPointException
 from tables.models.graph_models import (
     ConditionalEdge,
+    DecisionTableNode,
     GraphSessionMessage,
     LLMNode,
     StartNode,
@@ -15,6 +16,7 @@ from tables.services.redis_service import RedisService
 from tables.request_models import (
     ConditionalEdgeData,
     CrewNodeData,
+    DecisionTableNodeData,
     EdgeData,
     GraphData,
     GraphSessionMessageData,
@@ -71,10 +73,12 @@ class SessionManagerService(metaclass=SingletonMeta):
         else:
             variables = dict()
 
+        time_to_live = Graph.objects.get(pk=graph_id).time_to_live
         session = Session.objects.create(
             graph_id=graph_id,
             status=Session.SessionStatus.PENDING,
             variables=variables,
+            time_to_live=time_to_live,
         )
         return session
 
@@ -89,7 +93,7 @@ class SessionManagerService(metaclass=SingletonMeta):
         edge_list = Edge.objects.filter(graph=graph.pk)
         conditional_edge_list = ConditionalEdge.objects.filter(graph=graph.pk)
         llm_node_list = LLMNode.objects.filter(graph=graph.pk)
-
+        decision_table_node_list = DecisionTableNode.objects.filter(graph=graph.pk)
         crew_node_data_list: list[CrewNodeData] = []
 
         for item in crew_node_list:
@@ -129,6 +133,14 @@ class SessionManagerService(metaclass=SingletonMeta):
         if start_edge is None:
             raise GraphEntryPointException()
 
+
+        decision_table_node_data_list: list[DecisionTableNodeData] = []
+        for decision_table_node_list_item in decision_table_node_list:
+            decision_table_node_data = self.converter_service.convert_decision_table_node_to_pydantic(
+                decision_table_node=decision_table_node_list_item
+            )
+            decision_table_node_data_list.append(decision_table_node_data)
+
         entry_point = start_edge.end_key
         graph_data = GraphData(
             name=graph.name,
@@ -137,6 +149,7 @@ class SessionManagerService(metaclass=SingletonMeta):
             llm_node_list=llm_node_data_list,
             edge_list=edge_data_list,
             conditional_edge_list=conditional_edge_data_list,
+            decision_table_node_list=decision_table_node_data_list,
             entry_point=entry_point,
         )
         session_data = SessionData(
@@ -154,13 +167,14 @@ class SessionManagerService(metaclass=SingletonMeta):
         session.graph_schema = session_data.graph.model_dump()
         session.save()
 
-        # CheckStatus
+        # Subscribers: crew, manager
         self.redis_service.publish_session_data(
             session_data=session_data,
         )
         logger.info(f"Session data published in Redis for session ID: {session.pk}.")
-        
+
         return session.pk
+
     @staticmethod
     def register_message(data: dict) -> None:
         if data["message_data"]["message_type"] == "user":

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, forkJoin, of, map, switchMap } from 'rxjs';
 import { Tool } from '../shared/models/tool.model';
-import { ToolsService } from '../user-settings-page/tools/services/tools.service';
+import { ToolsService } from '../features/tools/services/tools.service';
 import { ToolConfigService } from './tool_config.service';
 import {
   CreateToolConfigRequest,
@@ -24,6 +24,7 @@ export class FullToolConfigService {
   ) {}
 
   // Fetch tools and their related tool configs in parallel, and create missing tool configs if needed
+  // Only return configs for tools that have enabled = true
   getFullToolConfigs(): Observable<FullToolConfig[]> {
     console.log('Starting to fetch tools and tool configs...');
 
@@ -35,8 +36,12 @@ export class FullToolConfigService {
         console.log('Fetched tools:', tools);
         console.log('Fetched tool configurations:', toolConfigs);
 
-        // Filter tools that need configurations:
-        const toolsNeedingConfigs = tools.filter(
+        // Filter only enabled tools
+        const enabledTools = tools.filter((tool) => tool.enabled === true);
+        console.log('Enabled tools:', enabledTools);
+
+        // Filter tools that need configurations (only from enabled tools):
+        const toolsNeedingConfigs = enabledTools.filter(
           (tool) =>
             tool.tool_fields.length === 0 && // Only tools with empty tool_fields
             !toolConfigs.some((config) => config.tool === tool.id) // And no existing configs
@@ -49,7 +54,7 @@ export class FullToolConfigService {
           console.log(
             'No tools need new configurations. Returning updated tools directly.'
           );
-          const updatedTools = tools.map((tool) => {
+          const updatedTools = enabledTools.map((tool) => {
             const relatedToolConfigs = toolConfigs.filter(
               (config) => config.tool === tool.id
             );
@@ -84,7 +89,7 @@ export class FullToolConfigService {
             console.log('Created tool configurations:', createdConfigs);
 
             // After creating the tool configs, associate them with their tools
-            const updatedTools = tools.map((tool) => {
+            const updatedTools = enabledTools.map((tool) => {
               const relatedToolConfigs = toolConfigs.filter(
                 (config) => config.tool === tool.id
               );

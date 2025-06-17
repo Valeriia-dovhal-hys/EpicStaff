@@ -1,0 +1,136 @@
+.tabs-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  .tabs-header {
+    display: flex;
+    border-bottom: 1px solid var(--gray-700);
+    margin-bottom: 1rem;
+
+    .tab-button {
+      background: transparent;
+      border: none;
+      color: var(--gray-400);
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      position: relative;
+      font-size: 14px;
+
+      &:hover {
+        color: var(--gray-100);
+      }
+
+      &.active {
+        color: var(--accent-color);
+
+        &:after {
+          content: "";
+          position: absolute;
+          bottom: -1px;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background-color: var(--accent-color);
+        }
+      }
+    }
+  }
+
+  .tab-content {
+    padding: 0;
+
+    .tab-actions {
+      display: flex;
+
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 1rem;
+    }
+  }
+
+  .models-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .model-item {
+      padding: 0.75rem;
+      background-color: var(--gray-800);
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .model-info {
+        .model-name {
+          line-height: 1;
+          font-weight: 500;
+          margin-bottom: 0.5rem;
+          color: var(--gray-100);
+        }
+
+        .model-custom-name {
+          font-size: 14px;
+          color: var(--gray-400);
+        }
+      }
+
+      .model-actions {
+        display: flex;
+        gap: 0.5rem;
+
+        .action-btn {
+          background-color: transparent;
+          border-radius: 4px;
+          padding: 0.25rem 0.75rem;
+          color: var(--gray-300);
+          font-size: 12px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background-color: var(--gray-700);
+            color: var(--gray-100);
+          }
+
+          &.configure-btn {
+            color: var(--accent-color);
+            margin-bottom: 4px;
+            &:hover {
+              background-color: var(--gray-700);
+              color: var(--accent-color);
+            }
+          }
+
+          &.delete-btn {
+            padding: 0.25rem;
+
+            &:hover {
+              background-color: var(--gray-700);
+              color: white;
+            }
+
+            i {
+              font-size: 14px;
+              width: 14px;
+              height: 14px;
+            }
+          }
+        }
+      }
+    }
+
+    .no-models {
+      color: var(--gray-500);
+      font-style: italic;
+      padding: 1rem 0;
+      text-align: center;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+  }
+}

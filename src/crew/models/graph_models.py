@@ -90,3 +90,15 @@ class UpdateSessionStatusMessageData:
     status: str
     status_data: dict = field(default_factory=dict)
     message_type: str = "update_session_status"
+
+
+@dataclass
+class ConditionGroupMessageData:
+    group_name: int
+    result: bool
+
+@dataclass
+class ConditonGroupManipulationMessageData:
+    group_name: int
+    state: dict
+    

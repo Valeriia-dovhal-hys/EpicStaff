@@ -17,7 +17,7 @@ from tables.models import (
 )
 
 from tables.models.realtime_models import RealtimeAgentChat
-from tables.models.graph_models import ConditionalEdge, CrewNode, Graph, PythonNode
+from tables.models.graph_models import Condition, ConditionGroup, ConditionalEdge, CrewNode, DecisionTableNode, Graph, PythonNode
 from tables.request_models import *
 from tables.request_models import CrewData
 from utils.singleton_meta import SingletonMeta
@@ -332,6 +332,37 @@ class ConverterService(metaclass=SingletonMeta):
             llm_data=llm_data,
             input_map=llm_node.input_map,
             output_variable_path=llm_node.output_variable_path,
+        )
+    
+    def convert_condition_to_pydantic(self, condition: Condition) -> ConditionData:
+        return ConditionData(condition=condition.condition)
+
+    def convert_condition_group_to_pydantic(self, condition_group: ConditionGroup):
+        return ConditionGroupData(
+            group_name=condition_group.group_name,
+            group_type=condition_group.group_type,
+            expression=condition_group.expression,
+            manipulation=condition_group.manipulation,
+            
+            condition_list=[
+                ConditionData(condition=condition.condition)
+                for condition in condition_group.conditions.all()
+            ],
+            next_node=condition_group.next_node,
+        )
+
+    def convert_decision_table_node_to_pydantic(self, decision_table_node: DecisionTableNode):
+        condition_group_list = [
+            self.convert_condition_group_to_pydantic(condition_group)
+            for condition_group in decision_table_node.condition_groups.all()
+        ]
+        
+        return DecisionTableNodeData(
+            node_name=decision_table_node.node_name,
+            conditional_group_list=condition_group_list,
+            default_next_node=decision_table_node.default_next_node,
+            next_error_node=decision_table_node.next_error_node,
+
         )
 
     def convert_crew_node_to_pydantic(self, crew_node: CrewNode):

@@ -1,4 +1,4 @@
-set /p REGISTRY_DIR=<../image_registry.txt
+set REGISTRY_DIR=registry.gitlab.hysdev.com/sheetsui/crewai-sheetsui
 set /p IMAGE_TAG=<../image_tag.txt
 
 docker pull %REGISTRY_DIR%/frontend:%IMAGE_TAG%

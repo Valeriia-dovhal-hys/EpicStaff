@@ -1,5 +1,29 @@
-/* Global Scrollbar Styles */
+/* Firefox */
 html {
-  /* For Firefox */
-  scrollbar-color: var(--gray-750) var(--gray-900);
+  scrollbar-color: var(--color-action-btn-background)
+    var(--color-nodes-background);
+  scrollbar-width: thin;
+}
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #23242a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #22242b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2d2f3a;
+}
+
+::-webkit-scrollbar-corner {
+  background: #23242a;
 }

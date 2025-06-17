@@ -1,0 +1,46 @@
+<div class="knowledge-selector" clickOutside (clickOutside)="isOpen = false">
+  <label *ngIf="label">{{ label }}</label>
+  <div
+    class="selector"
+    [class.disabled]="disabled"
+    [class.loading]="loading"
+    (click)="toggleDropdown()"
+  >
+    <div class="selected-collection">{{ getSelectedCollectionName() }}</div>
+    <div class="selector-arrow" [class.open]="isOpen">
+      <svg
+        width="10"
+        height="6"
+        viewBox="0 0 10 6"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M1 1L5 5L9 1"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+  </div>
+
+  <div class="dropdown-menu" *ngIf="isOpen">
+    <div
+      class="dropdown-item"
+      [class.selected]="selectedCollectionId === null"
+      (click)="selectCollection(null)"
+    >
+      No knowledge source
+    </div>
+    <div
+      *ngFor="let collection of collections"
+      class="dropdown-item"
+      [class.selected]="collection.collection_id === selectedCollectionId"
+      (click)="selectCollection(collection.collection_id)"
+    >
+      {{ collection.collection_name }}
+    </div>
+  </div>
+</div>

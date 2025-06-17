@@ -141,6 +141,7 @@ venv.bak/
 *venv
 venvs/
 run_program/manager.env
+!src/.env
 
 # Spyder project settings
 .spyderproject
@@ -199,8 +200,7 @@ additional_tools/
 
 # FRONTEND GIT ignore
 
-# i am not dumb
-frontend/app/environments
+
 
 # Compiled output
 frontend/dist
@@ -212,7 +212,9 @@ frontend/bazel-out
 frontend/node_modules
 frontend/npm-debug.log
 frontend/yarn-error.log
-
+node_modules/
+package-lock.json
+package.json
 # IDEs and editors
 frontend/.idea/
 frontend/.project

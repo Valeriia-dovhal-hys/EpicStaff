@@ -9,8 +9,12 @@
 .knowledge-body {
   flex-grow: 1;
   display: flex;
-  overflow-y: auto;
+
+  overflow: hidden;
   position: relative;
+
+  background: none;
+  border-radius: 0;
 }
 
 .loading-container {
@@ -23,4 +27,10 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+// Remove border-radius and background from .files-area if needed
+:host ::ng-deep .files-area {
+  background: none !important;
+  border-radius: 0 !important;
 }

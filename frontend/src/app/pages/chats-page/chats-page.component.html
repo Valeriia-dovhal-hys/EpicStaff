@@ -1,5 +1,12 @@
 <div class="chats">
-  <app-chats-header headerTitle="Chats"></app-chats-header>
+  <app-page-header
+    headerTitle="Chats"
+    [showCreate]="false"
+    [showFavoriteToggle]="false"
+    [showSearch]="false"
+    [showFilter]="false"
+    [showSort]="false"
+  ></app-page-header>
 
   <main class="chats__body">
     <ng-container *ngIf="isLoading()">

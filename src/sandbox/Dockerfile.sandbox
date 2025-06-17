@@ -1,4 +1,4 @@
-FROM python:3.12.3
+FROM python:3.12.10
 
 WORKDIR /home/user/root/app
 
@@ -6,13 +6,14 @@ RUN pip install --upgrade --no-cache-dir pip setuptools wheel
 
 RUN pip install poetry
 
-COPY ./pyproject.toml .
-COPY ./poetry.lock .
+COPY ./sandbox/pyproject.toml .
+COPY ./sandbox/poetry.lock .
 
 RUN poetry config virtualenvs.create false 
 RUN poetry install --no-root
 RUN rm -rf /root/.cache
 
-COPY . .
+COPY ./sandbox .
+COPY shared/ shared/
 
 CMD python main.py

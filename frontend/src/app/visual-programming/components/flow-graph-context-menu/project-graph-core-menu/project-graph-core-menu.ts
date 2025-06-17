@@ -8,9 +8,6 @@ import {
 import { NgFor } from '@angular/common';
 import { NodeType } from '../../../core/enums/node-type';
 
-/**
- * Define each block with a label, icon, and a type (e.g. NodeType or 'group' or any additional string).
- */
 interface ProjectGraphBlock {
   label: string;
   icon: string;
@@ -23,7 +20,7 @@ interface ProjectGraphBlock {
     | 'MEMORY_NODE'
     | 'FUNCTION_NODE'
     | 'CUSTOM_TRIGGER_NODE';
-  color: string; // Add color field
+  color: string;
 }
 
 @Component({
@@ -108,7 +105,7 @@ export class ProjectGraphCoreMenuComponent {
       type: NodeType.TASK,
       color: '#30a46c',
     },
-    { label: 'Group', icon: 'ti ti-users', type: 'group', color: '#2a6bbf' },
+    // { label: 'Group', icon: 'ti ti-users', type: 'group', color: '#2a6bbf' },
     {
       label: 'Prompt Node',
       icon: 'ti ti-message',

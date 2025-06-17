@@ -7,7 +7,7 @@ export interface BasePort {
   position: 'left' | 'right' | 'top' | 'bottom';
   color?: string;
 }
-
+//this is for some reason used for falttened port
 export interface ViewPort extends BasePort {
   id: CustomPortId;
 }

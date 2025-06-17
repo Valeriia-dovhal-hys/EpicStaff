@@ -22,6 +22,7 @@ export class RealtimeConversation {
     "conversation.item.created": (event) => {
       const { item } = event;
       // deep copy values
+      console.log("item.created", item);
       const newItem = JSON.parse(JSON.stringify(item));
       if (!this.itemLookup[newItem.id]) {
         this.itemLookup[newItem.id] = newItem;
@@ -61,6 +62,7 @@ export class RealtimeConversation {
           newItem.status = "in_progress";
         }
       } else if (newItem.type === "function_call") {
+        newItem.arguments = "";
         newItem.formatted.tool = {
           type: "function",
           name: newItem.name,
@@ -235,6 +237,21 @@ export class RealtimeConversation {
       item.arguments += delta;
       item.formatted.tool.arguments += delta;
       return { item, delta: { arguments: delta } };
+    },
+    "response.function_call_arguments.done": (event) => {
+      console.log("response.function_call_arguments.done ➞", event);
+      const { item_id, arguments: finalArgs } = event;
+      const item = this.itemLookup[item_id];
+      if (!item) {
+        throw new Error(
+          `response.function_call_arguments.done: Item "${item_id}" not found`
+        );
+      }
+      // set the completed argument string
+      item.arguments = finalArgs;
+      item.formatted.tool.arguments = finalArgs;
+      // notify caller with the full payload
+      return { item, delta: { arguments: finalArgs } };
     },
   };
 

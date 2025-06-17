@@ -9,7 +9,7 @@ import {
   UpdateAgentRequest,
 } from '../shared/models/agent.model';
 import { ApiGetRequest } from '../shared/models/api-request.model';
-import { GetProjectRequest } from '../pages/projects-page/models/project.model';
+import { GetProjectRequest } from '../features/projects/models/project.model';
 import { ConfigService } from './config/config.service';
 
 @Injectable({

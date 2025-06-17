@@ -11,12 +11,12 @@ PGVECTOR_MEMORY_CONFIG = {
         "vector_store": {
             "provider": "pgvector",
             "config": {
-                "user": os.environ.get("DB_USER", "postgres"),
-                "password": os.environ.get("DB_PASSWORD", "admin"),
+                "user": os.environ.get("DB_CREW_USER", "postgres"),
+                "password": os.environ.get("DB_CREW_PASSWORD", "admin"),
                 "port": os.environ.get("DB_PORT", "5432"),
                 "collection_name": "tables_memorydatabase",
                 "host": os.environ.get("DB_HOST_NAME", None),
-                "dbname": "crew",
+                "dbname": os.environ.get("DB_NAME", "crew"),
             },
         },
     },

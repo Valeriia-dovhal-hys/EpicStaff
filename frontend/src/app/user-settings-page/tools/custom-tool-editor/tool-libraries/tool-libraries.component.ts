@@ -6,13 +6,14 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
+import { AppIconComponent } from '../../../../shared/components/app-icon/app-icon.component';
 
 @Component({
-    selector: 'app-tool-libraries',
-    imports: [FormsModule, NgFor],
-    templateUrl: './tool-libraries.component.html',
-    styleUrls: ['./tool-libraries.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-tool-libraries',
+  imports: [FormsModule, NgFor, AppIconComponent],
+  templateUrl: './tool-libraries.component.html',
+  styleUrls: ['./tool-libraries.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ToolLibrariesComponent {
   private _libraries: string[] = [];

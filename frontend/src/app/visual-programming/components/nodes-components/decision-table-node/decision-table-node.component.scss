@@ -1,0 +1,43 @@
+.decision-table-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1rem;
+}
+
+.group-names-row {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.group-name {
+  background: #e3e7f1;
+  color: #2a2a2a;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.add-condition-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #5672cd;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(86, 114, 205, 0.08);
+}
+
+.add-condition-button:hover {
+  background: #4056a1;
+}

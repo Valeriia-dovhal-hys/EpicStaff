@@ -7,12 +7,12 @@ from tables.models import (
     Provider,
     RealtimeModel,
     RealtimeTranscriptionModel,
+    DefaultRealtimeAgentConfig,
 )
-from django.db import transaction
-from tables.models.crew_models import Agent, DefaultAgentConfig, DefaultCrewConfig
+from tables.models.crew_models import Agent, DefaultAgentConfig, DefaultCrewConfig, DefaultToolConfig
 from tables.models.embedding_models import DefaultEmbeddingConfig
 from tables.models.llm_models import DefaultLLMConfig
-
+from litellm import models_by_provider, provider_list
 
 class Command(BaseCommand):
     help = "Upload predefined models to database"
@@ -26,93 +26,45 @@ class Command(BaseCommand):
         upload_tools()
         upload_default_llm_config()
         upload_default_embedding_config()
+        upload_default_realtime_agent_config()
         upload_default_agent_config()
         upload_default_crew_config()
+        upload_default_tool_config()
 
         upload_realtime_agents()
 
 
 def upload_providers():
-    provider_names = {
-        "anthropic",
-        "azure_openai",
-        "groq",
-        "huggingface",
-        "ollama",
-        "openai",
-        "openai_compatible",
-    }
+    
+    current_provider_names = set(models_by_provider.keys())
 
-    for name in provider_names:
+    # Add new providers
+    for name in current_provider_names:
         Provider.objects.get_or_create(name=name)
+    # Delete providers not in the current list
+    Provider.objects.exclude(name__in=current_provider_names).delete()
 
 
 def upload_llm_models():
-    openai_provider = Provider.objects.get(name="openai")
-    azure_provider = Provider.objects.get(name="azure_openai")
-    anthropic_provider = Provider.objects.get(name="anthropic")
-    groq_provider = Provider.objects.get(name="groq")
-    ollama_provider = Provider.objects.get(name="ollama")
+    current_model_tuples = set()
 
-    llm_models = [
-        {
-            "name": "gpt-3.5-turbo",
-            "llm_provider": openai_provider,
-        },
-        {
-            "name": "gpt-4o",
-            "llm_provider": openai_provider,
-        },
-        {
-            "name": "gpt-4o-mini",
-            "llm_provider": openai_provider,
-        },
-        {
-            "name": "gpt-4-turbo-preview",
-            "llm_provider": openai_provider,
-        },
-        {
-            "name": "gpt-35-turbo-instruct",
-            "llm_provider": azure_provider,
-            "deployment": "gpt-35-turbo-instruct",
-            "base_url": "https://yuriw-sweden.openai.azure.com/",
-        },
-        {
-            "name": "gpt-4-1106-azure",
-            "llm_provider": azure_provider,
-            "base_url": "https://yuriw-sweden.openai.azure.com/",
-        },
-        {
-            "name": "claude-3-opus-20240229",
-            "llm_provider": anthropic_provider,
-        },
-        {
-            "name": "llama3-70b-8192",
-            "llm_provider": groq_provider,
-        },
-        {
-            "name": "gemma-7b-it",
-            "llm_provider": groq_provider,
-        },
-        {
-            "name": "mixtral-8x7b-32768",
-            "llm_provider": groq_provider,
-        },
-        {
-            "name": "mixtral-8x7b-32768",
-            "llm_provider": ollama_provider,
-        },
-    ]
-
-    for model_data in llm_models:
-        LLMModel.objects.get_or_create(
-            predefined=True,
-            name=model_data.get("name"),
-            llm_provider=model_data.get("llm_provider"),
-            base_url=model_data.get("base_url"),
-            deployment=model_data.get("deployment"),
-        )
-
+    # Add new models and collect all valid model entries
+    for provider_name, llm_model_name_list in models_by_provider.items():
+        provider, _ = Provider.objects.get_or_create(name=provider_name)
+        for llm_model_name in llm_model_name_list:
+            current_model_tuples.add((provider.pk, llm_model_name))
+            LLMModel.objects.get_or_create(
+                predefined=True,
+                name=llm_model_name,
+                llm_provider=provider,
+                # base_url=model_data.get("base_url"),
+                # deployment=model_data.get("deployment"),
+            )
+    LLMModel.objects.filter(predefined=True).exclude(
+        llm_provider_id__in=[pid for pid, _ in current_model_tuples],
+        name__in=[name for _, name in current_model_tuples]
+    ).delete()
+        
 
 def upload_realtime_agent_models():
 
@@ -169,18 +121,11 @@ def upload_realtime_transcription_models():
 
 def upload_embedding_models():
     openai_provider = Provider.objects.get(name="openai")
-    azure_provider = Provider.objects.get(name="azure_openai")
 
     embedding_models = [
         {
             "name": "text-embedding-3-small",
             "embedding_provider": openai_provider,
-        },
-        {
-            "name": "text-embedding-ada-002",
-            "base_url": "https://yuriw-sweden.openai.azure.com/",
-            "deployment": "text-embedding-ada-002",
-            "embedding_provider": azure_provider,
         },
     ]
 
@@ -1060,26 +1005,31 @@ def upload_realtime_agents():
     pass
 
 
-@transaction.atomic
 def upload_default_llm_config():
-
     DefaultLLMConfig.objects.filter().delete()
     DefaultLLMConfig.objects.create(id=1)
 
 
-@transaction.atomic
 def upload_default_embedding_config():
     DefaultEmbeddingConfig.objects.filter().delete()
     DefaultEmbeddingConfig.objects.create(id=1)
 
 
-@transaction.non_atomic_requests
 def upload_default_agent_config():
-    DefaultAgentConfig.objects.filter().delete()
+    DefaultAgentConfig.objects.all().delete()
     DefaultAgentConfig.objects.create(id=1)
 
 
-@transaction.non_atomic_requests
+def upload_default_realtime_agent_config():
+    DefaultRealtimeAgentConfig.objects.all().delete()
+    DefaultRealtimeAgentConfig.objects.create(id=1)
+
+
 def upload_default_crew_config():
-    DefaultCrewConfig.objects.filter().delete()
+    DefaultCrewConfig.objects.all().delete()
     DefaultCrewConfig.objects.create(id=1)
+
+
+def upload_default_tool_config():
+    DefaultToolConfig.objects.all().delete()
+    DefaultToolConfig.objects.create(id=1)

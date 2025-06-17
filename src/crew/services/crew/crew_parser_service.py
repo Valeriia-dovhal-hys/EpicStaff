@@ -82,7 +82,7 @@ class CrewParserService(metaclass=SingletonMeta):
             "search_knowledges": self.knowledge_search_service.search_knowledges,
         }
 
-        return Agent(config=agent_config)
+        return Agent(**agent_config)
 
     def parse_task(
         self,
@@ -141,16 +141,16 @@ class CrewParserService(metaclass=SingletonMeta):
             crew_config["memory_config"] = full_memory_config
 
         config_id_tool_map = {
-            tool_data.tool_config.id: self.proxy_tool_factory.create_proxy_class(
+            tool_data.tool_config.id: self.proxy_tool_factory.create_proxy_tool(
                 tool_data=tool_data
-            )()
+            )
             for tool_data in crew_data.tools
         }
         id_python_code_tool_map = {
-            python_code_tool_data.id: self.proxy_tool_factory.create_python_code_proxy_tool_class(
+            python_code_tool_data.id: self.proxy_tool_factory.create_python_code_proxy_tool(
                 python_code_tool_data=python_code_tool_data,
                 global_kwargs=global_kwargs,
-            )()
+            )
             for python_code_tool_data in crew_data.python_code_tools
         }
 

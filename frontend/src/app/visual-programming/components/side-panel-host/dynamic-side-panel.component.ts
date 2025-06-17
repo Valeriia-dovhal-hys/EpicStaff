@@ -9,6 +9,7 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { NodeModel } from '../../core/models/node.model';
 import { SIDE_PANEL_MAPPING } from '../../core/enums/side-panel-mapping';
@@ -39,7 +40,11 @@ export class DynamicSidePanelHostComponent implements OnChanges {
   @ViewChild('panelContainer', { read: ViewContainerRef, static: true })
   container!: ViewContainerRef;
 
+  public isExpanded = false;
+
   private componentRef?: ComponentRef<any>;
+
+  constructor(private readonly cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['node'] && this.node) {
@@ -73,6 +78,8 @@ export class DynamicSidePanelHostComponent implements OnChanges {
           }
         );
       }
+
+      // Subscribe to nodeExpanded output
     } else {
       console.warn('No side panel mapped for node type:', this.node.type);
     }

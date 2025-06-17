@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { ConfigService } from '../../../../services/config/config.service';
@@ -51,7 +51,21 @@ export class RealtimeModelConfigsService {
       })
       .pipe(map((response) => response.results));
   }
+  getConfigsByProviderId(
+    providerId: number
+  ): Observable<RealtimeModelConfig[]> {
+    const params = new HttpParams().set(
+      'model_provider_id',
+      providerId.toString()
+    );
 
+    return this.http
+      .get<ApiGetResponse<RealtimeModelConfig>>(this.apiUrl, {
+        headers: this.headers,
+        params,
+      })
+      .pipe(map((response) => response.results));
+  }
   // GET a realtime model config by ID
   getConfigById(id: number): Observable<RealtimeModelConfig> {
     return this.http.get<RealtimeModelConfig>(`${this.apiUrl}${id}/`, {

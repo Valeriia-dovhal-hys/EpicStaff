@@ -4,3 +4,4 @@ ENV
 */.venv
 crew_venv/
 demo_stands/
+.venv/

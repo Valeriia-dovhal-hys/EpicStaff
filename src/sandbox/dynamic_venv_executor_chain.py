@@ -97,8 +97,13 @@ class InstallLibrariesHandler(AbstractHandler):
     async def handle(self, context: Dict[str, Any]) -> Any:
         """Install libraries asynchronously."""
         python_executable = context["python_executable"]
+        
+        context["libraries"] = set(context["libraries"])
+        # Install libraries
+        predefined_libraries = {"/home/user/root/app/shared/dotdict"}
+        context["libraries"].update(predefined_libraries)
 
-        lib_hash = self._calculate_hash(context["libraries"])
+        lib_hash = self._calculate_hash(list(context["libraries"]))
         hash_changed = self._hash_changed(
             lib_hash=lib_hash, hash_file=context["hash_file"]
         )
@@ -214,14 +219,19 @@ class ExecuteCodeHandler(AbstractHandler):
         wrapped_code = f"""
 import sys
 import json
-
+from dotdict import DotDict
 try:
     for k, v in {global_kwargs}.items():
         globals()[k] = v
-
+    
 {code}
-    sys_result_variable = {entrypoint}(**{func_kwargs})
+    
+    __sys_dot_kwargs = DotDict({func_kwargs})
+    
+    sys_result_variable = {entrypoint}(**__sys_dot_kwargs)
     with open(r'{result_file_path.as_posix()}', 'w', encoding='utf-8') as file:
+        if isinstance(sys_result_variable, DotDict):
+            sys_result_variable = sys_result_variable.model_dump()
         file.write(json.dumps(sys_result_variable))
 except Exception as e:
     print(str(e), file=sys.stderr)

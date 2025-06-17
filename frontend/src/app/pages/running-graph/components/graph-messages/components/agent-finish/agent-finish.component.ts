@@ -5,7 +5,7 @@ import {
   AgentFinishMessageData,
   GraphMessage,
   MessageType,
-} from '../../graph-session-message.model';
+} from '../../../../models/graph-session-message.model';
 import { expandCollapseAnimation } from '../../../../../../shared/animations/animations-expand-collapse';
 import { GetAgentRequest } from '../../../../../../shared/models/agent.model';
 
@@ -81,7 +81,7 @@ import { GetAgentRequest } from '../../../../../../shared/models/agent.model';
     >
       <div class="result-content">
         <markdown
-          [data]="agentFinishMessageData?.output"
+          [data]="cleanOutput(agentFinishMessageData?.output)"
           class="markdown-content"
         >
         </markdown>
@@ -97,7 +97,7 @@ import { GetAgentRequest } from '../../../../../../shared/models/agent.model';
       }
 
       .agent-flow-container {
-        background-color: var(--gray-850);
+        background-color: var(--color-nodes-background);
         border-radius: 8px;
         padding: 1.25rem;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -107,7 +107,7 @@ import { GetAgentRequest } from '../../../../../../shared/models/agent.model';
       .agent-header {
         display: flex;
         align-items: center;
-
+        cursor: pointer;
         user-select: none;
       }
 
@@ -214,13 +214,11 @@ import { GetAgentRequest } from '../../../../../../shared/models/agent.model';
       /* Task Result Styling - Message Bubble */
       .result-message-container {
         max-width: 85%;
-
         position: relative;
       }
 
       .result-content {
-        background-color: var(--gray-800);
-
+        background-color: var(--gray-850);
         border-radius: 18px;
         border-top-left-radius: 4px;
         padding: 1rem;
@@ -291,6 +289,17 @@ export class AgentFinishMessageComponent implements OnInit {
       .replace(/```$/, '')
       .replace(/^Thought: /g, '')
       .replace(/Thought: /g, '')
+      .trim();
+  }
+
+  cleanOutput(output: string | undefined): string {
+    if (!output) return '';
+    return output
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/^```/, '')
+      .replace(/```$/, '')
+      .replace(/^Output: /g, '')
+      .replace(/Output: /g, '')
       .trim();
   }
 

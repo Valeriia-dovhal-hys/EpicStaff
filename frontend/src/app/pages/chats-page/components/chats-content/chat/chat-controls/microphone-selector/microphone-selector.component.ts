@@ -4,10 +4,11 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  inject,
   effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ConsoleService } from '../../../../../services/console.service';
+import { WavRecorderService } from '../../../../../services/wav-recorder.service';
 
 const STORAGE_KEY_DEVICE_ID = 'selected_microphone_id';
 
@@ -22,25 +23,19 @@ const STORAGE_KEY_DEVICE_ID = 'selected_microphone_id';
 export class MicrophoneSelectorComponent implements OnInit {
   public showDevicesList = false;
   public selectedDeviceId = '';
-  public isLoading = true;
-  public hasDevices = false;
 
-  constructor(
-    public consoleService: ConsoleService,
-    private cdr: ChangeDetectorRef
-  ) {
-    // Watch for changes in the loading state
-    effect(() => {
-      this.isLoading = this.consoleService.isLoadingDevices();
-      this.cdr.markForCheck();
-    });
+  // Inject WavRecorderService
+  private wavRecorderService = inject(WavRecorderService);
+  private cdr = inject(ChangeDetectorRef);
 
+  constructor() {
     // Watch for changes in the devices list
     effect(() => {
-      const devices = this.consoleService.audioDevices();
-      this.hasDevices = devices.length > 0;
+      // This effect will run whenever audioDevices signal changes
+      const devices = this.wavRecorderService.audioDevices();
 
-      if (this.hasDevices && !this.isLoading) {
+      // If we have devices and no device is selected, initialize one
+      if (devices.length > 0 && !this.selectedDeviceId) {
         this.initializeDevice();
       }
 
@@ -84,8 +79,8 @@ export class MicrophoneSelectorComponent implements OnInit {
   public toggleDevicesList(event: Event): void {
     event.stopPropagation();
 
-    // Only toggle if we have devices and they're loaded
-    if (this.hasDevices && !this.isLoading) {
+    // Only toggle if we have devices
+    if (this.hasDevices) {
       this.showDevicesList = !this.showDevicesList;
       this.cdr.markForCheck();
     }
@@ -106,8 +101,16 @@ export class MicrophoneSelectorComponent implements OnInit {
   }
 
   public get audioInputDevices(): MediaDeviceInfo[] {
-    return this.consoleService
+    return this.wavRecorderService
       .audioDevices()
       .filter((device) => device.kind === 'audioinput');
+  }
+
+  public get hasDevices(): boolean {
+    return this.audioInputDevices.length > 0;
+  }
+
+  public get isInitialized(): boolean {
+    return this.wavRecorderService.isInitialized();
   }
 }

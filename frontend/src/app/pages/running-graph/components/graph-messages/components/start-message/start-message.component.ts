@@ -1,6 +1,6 @@
 import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GraphMessage } from '../../graph-session-message.model';
+import { GraphMessage } from '../../../../models/graph-session-message.model';
 import { NgxJsonViewerModule } from 'ngx-json-viewer';
 import { expandCollapseAnimation } from '../../../../../../shared/animations/animations-expand-collapse';
 
@@ -70,7 +70,7 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
     `
       .start-container {
         position: relative;
-        background-color: var(--gray-850);
+        background-color: var(--color-nodes-background);
         border-radius: 8px;
         padding: 1.25rem;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

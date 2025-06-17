@@ -45,8 +45,7 @@ $transition-default: all 0.2s ease;
   flex-direction: column;
   min-height: 500px;
   max-height: 60vh;
-  min-width: 400px;
-  max-width: 90vw;
+  width: 450px; // Set fixed width of 450px
   overflow: hidden;
   border-radius: 8px;
   background-color: #1e1e1e;
@@ -63,13 +62,14 @@ $transition-default: all 0.2s ease;
   flex-direction: column;
   padding: 16px;
   padding-bottom: 0;
+
   .list-header {
     display: flex;
     align-items: center;
-
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 8px;
+
     input {
       flex: 1;
       padding: 7px 14px;
@@ -147,7 +147,6 @@ $transition-default: all 0.2s ease;
       height: 2px;
       background-color: $accent-blue;
       transform: scaleX(0);
-      transition: transform 0.25s cubic-bezier(0.45, 0.05, 0.55, 0.95);
     }
 
     &:hover {
@@ -275,7 +274,6 @@ $transition-default: all 0.2s ease;
       background-color: $bg-item;
       font-size: 13px;
       border-radius: 6px;
-
       cursor: pointer;
       transition: $transition-default;
       border: 1px solid transparent;
@@ -287,16 +285,24 @@ $transition-default: all 0.2s ease;
       .tool-icon {
         font-size: 14px;
         opacity: 0.9;
+        flex-shrink: 0;
       }
 
       .tool-name {
         flex: 1;
         font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; // Added ellipsis for text overflow
+        max-width: 300px;
+        margin-right: auto; // Push subsequent items to the right
       }
 
       .chevron-icon {
         color: $text-secondary;
         transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        flex-shrink: 0;
+        margin-left: auto; // Push to the right if there's no checkbox
       }
 
       .expanded {
@@ -316,6 +322,8 @@ $transition-default: all 0.2s ease;
         align-items: center;
         justify-content: center;
         transition: $transition-default;
+        flex-shrink: 0;
+        margin-left: 8px; // Add some space between the name and checkbox
 
         &:checked {
           background-color: $accent-blue;
@@ -347,6 +355,7 @@ $transition-default: all 0.2s ease;
       overflow: hidden;
       transform-origin: top;
       animation: slideDown 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
       input[type="checkbox"] {
         appearance: none;
         -webkit-appearance: none;
@@ -360,6 +369,7 @@ $transition-default: all 0.2s ease;
         align-items: center;
         justify-content: center;
         transition: $transition-default;
+        flex-shrink: 0;
 
         &:checked {
           background-color: $accent-blue;
@@ -376,6 +386,7 @@ $transition-default: all 0.2s ease;
           background-color: lighten($bg-input, 5%);
         }
       }
+
       .tool-config-item {
         display: flex;
         align-items: center;
@@ -390,6 +401,10 @@ $transition-default: all 0.2s ease;
         .config-name {
           flex: 1;
           font-size: 12px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis; // Added ellipsis for config names
+          margin-right: auto; // Push status indicator and checkbox to right
         }
 
         .status-indicator {
@@ -397,6 +412,8 @@ $transition-default: all 0.2s ease;
           height: 6px;
           border-radius: 50%;
           display: inline-block;
+          flex-shrink: 0;
+          margin-left: 8px; // Add space between name and indicator
 
           &.green {
             background-color: $status-green;
@@ -406,36 +423,6 @@ $transition-default: all 0.2s ease;
           &.red {
             background-color: $status-red;
             box-shadow: 0 0 5px rgba($status-red, 0.5);
-          }
-
-          input[type="checkbox"] {
-            appearance: none;
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            background-color: $bg-input;
-            border: 1px solid $border-color;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: $transition-default;
-
-            &:checked {
-              background-color: $accent-blue;
-              border-color: $accent-blue;
-
-              &::after {
-                content: "✓";
-                color: white;
-                font-size: 10px;
-              }
-            }
-
-            &:hover:not(:checked) {
-              background-color: lighten($bg-input, 5%);
-            }
           }
         }
 
@@ -485,7 +472,6 @@ $transition-default: all 0.2s ease;
   .python-tool-item {
     background-color: $bg-item;
     border-radius: 6px;
-
     display: flex;
     align-items: center;
     gap: 12px;
@@ -505,6 +491,7 @@ $transition-default: all 0.2s ease;
     .tool-icon {
       font-size: 14px;
       opacity: 0.9;
+      flex-shrink: 0;
     }
 
     .tool-name {
@@ -512,6 +499,11 @@ $transition-default: all 0.2s ease;
       font-weight: 500;
       position: relative;
       cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis; // Added ellipsis for python tool names
+      max-width: 300px;
+      margin-right: auto; // Push checkbox to the right
     }
 
     input[type="checkbox"] {
@@ -527,6 +519,8 @@ $transition-default: all 0.2s ease;
       align-items: center;
       justify-content: center;
       transition: $transition-default;
+      flex-shrink: 0;
+      margin-left: 8px; // Add space between name and checkbox
 
       &:checked {
         background-color: $accent-blue;
@@ -700,7 +694,6 @@ $transition-default: all 0.2s ease;
 // Footer Section
 .footer {
   padding: 1rem;
-
   border-top: 1px solid $border-color;
   display: flex;
   justify-content: flex-end;

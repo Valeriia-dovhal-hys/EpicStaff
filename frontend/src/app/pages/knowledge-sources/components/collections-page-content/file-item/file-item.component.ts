@@ -122,7 +122,8 @@ import { ConfirmationDialogService } from '../../../../../shared/components/cofi
         align-items: center;
         padding: 16px 24px;
         border-radius: 12px;
-        background-color: rgba(25, 25, 25, 0.4);
+
+        background-color: rgba(255, 255, 255, 0.03);
         margin-bottom: 16px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         transition: background-color 0.2s ease, border-color 0.2s ease;

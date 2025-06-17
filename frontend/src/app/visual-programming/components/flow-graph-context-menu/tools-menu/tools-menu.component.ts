@@ -22,7 +22,7 @@ import { NodeType } from '../../../core/enums/node-type';
         *ngFor="let tool of filteredTools; trackBy: trackByToolId"
         (click)="onToolClicked(tool)"
       >
-        <i class="ti ti-tool"></i>
+        <i class="ti ti-tools"></i>
         <span class="tool-name">
           {{ tool.name }}
           <span
@@ -61,7 +61,7 @@ import { NodeType } from '../../../core/enums/node-type';
       }
       li i {
         font-size: 18px;
-        color: #bbb;
+        color: #9f6a00;
       }
 
       .tool-name {

@@ -1,4 +1,3 @@
-// project-list-item-card.component.ts
 import {
   Component,
   Input,
@@ -28,17 +27,19 @@ import { PortalModule, ComponentPortal } from '@angular/cdk/portal';
 import { Subject, takeUntil } from 'rxjs';
 import { ProjectMenuService } from './project-menu.service';
 import { ToastService } from '../../../services/notifications/toast.service';
+import { EMOJI_CATEGORIES } from '../../../shared/constants/emoji.constants';
 
 @Component({
   selector: 'app-project-list-item-card',
   templateUrl: './project-list-item-card.component.html',
-  styleUrls: ['./project-list-item-card.component.scss'],
+  styleUrl: './project-list-item-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [CommonModule, OverlayModule, PortalModule, NgClass],
 })
 export class ProjectListItemCardComponent implements OnInit, OnDestroy {
   @Input() project!: ProjectListItem;
+  @Input() index: number = 0;
 
   @Output() startRun = new EventEmitter<ProjectListItem>();
   @Output() deleteProject = new EventEmitter<ProjectListItem>();
@@ -54,17 +55,6 @@ export class ProjectListItemCardComponent implements OnInit, OnDestroy {
   private projectEmoji: string = '';
   private overlayRef: OverlayRef | null = null;
   private destroy$ = new Subject<void>();
-
-  // Collection of various emojis for different project categories
-  private emojis = {
-    technology: ['💻', '⚙️', '🔌', '🖥️', '📱', '🤖', '📡'],
-    finance: ['💰', '💹', '📊', '📈', '💸', '🏦', '💲'],
-    research: ['🔬', '🧪', '📝', '🔍', '🧠', '📚', '🧮'],
-    education: ['🎓', '📚', '✏️', '🧑‍🏫', '🔤', '📖', '🧮'],
-    marketing: ['📣', '📢', '🎯', '📱', '📈', '🔍', '💬'],
-    ai: ['🤖', '🧠', '⚙️', '💻', '📊', '🔮', '🧩'],
-    general: ['🚀', '💡', '✨', '🎯', '🔧', '📌', '🔔'],
-  };
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -108,84 +98,14 @@ export class ProjectListItemCardComponent implements OnInit, OnDestroy {
   }
 
   private generateProjectEmoji(): string {
-    if (!this.project || !this.project.labels) {
-      return this.getRandomEmoji('general');
-    }
-
-    const labels = this.project.labels.map((label) => label.toLowerCase());
-
-    if (
-      labels.some((label) =>
-        this.contains(label, [
-          'tech',
-          'computer',
-          'software',
-          'code',
-          'digital',
-        ])
-      )
-    ) {
-      return this.getRandomEmoji('technology');
-    } else if (
-      labels.some((label) =>
-        this.contains(label, [
-          'finance',
-          'money',
-          'economic',
-          'banking',
-          'invest',
-        ])
-      )
-    ) {
-      return this.getRandomEmoji('finance');
-    } else if (
-      labels.some((label) =>
-        this.contains(label, ['research', 'science', 'study', 'analysis'])
-      )
-    ) {
-      return this.getRandomEmoji('research');
-    } else if (
-      labels.some((label) =>
-        this.contains(label, [
-          'education',
-          'learning',
-          'teaching',
-          'school',
-          'course',
-        ])
-      )
-    ) {
-      return this.getRandomEmoji('education');
-    } else if (
-      labels.some((label) =>
-        this.contains(label, ['marketing', 'sales', 'promotion', 'advertising'])
-      )
-    ) {
-      return this.getRandomEmoji('marketing');
-    } else if (
-      labels.some((label) =>
-        this.contains(label, [
-          'ai',
-          'ml',
-          'artificial intelligence',
-          'machine learning',
-        ])
-      )
-    ) {
-      return this.getRandomEmoji('ai');
-    } else {
-      return this.getRandomEmoji('general');
-    }
+    return this.getEmojiByProjectId('technology');
   }
 
-  private contains(str: string, terms: string[]): boolean {
-    return terms.some((term) => str.includes(term));
-  }
-
-  private getRandomEmoji(category: keyof typeof this.emojis): string {
-    const categoryEmojis = this.emojis[category];
-    const randomIndex = Math.floor(Math.random() * categoryEmojis.length);
-    return categoryEmojis[randomIndex];
+  private getEmojiByProjectId(category: keyof typeof EMOJI_CATEGORIES): string {
+    const categoryEmojis = EMOJI_CATEGORIES[category];
+    // Use project ID to ensure consistent emoji assignment
+    const emojiIndex = this.project.id % categoryEmojis.length;
+    return categoryEmojis[emojiIndex];
   }
 
   getProjectEmoji(): string {

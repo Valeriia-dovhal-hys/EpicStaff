@@ -2,16 +2,35 @@
   <app-page-header
     [headerTitle]="'Tools'"
     [createButtonTitle]="'Create Custom Tool'"
-    [projectCount]="filteredTools.length + filteredPythonTools.length"
+    [projectCount]="
+      activeToolType === 'common'
+        ? filteredTools.length
+        : filteredPythonTools.length
+    "
     (searchInput)="onSearchInput($event)"
     (openCreate)="openCustomToolDialog()"
     [searchPlaceholder]="'search tools...'"
-    [showFilter]="false"
-    [showSort]="false"
-    [showFavoriteToggle]="false"
   ></app-page-header>
 
   <div class="tools-page-wrapper">
+    <!-- Tool type toggle buttons -->
+    <div class="tool-type-toggle">
+      <button
+        class="toggle-btn"
+        [ngClass]="{ active: activeToolType === 'common' }"
+        (click)="setActiveToolType('common')"
+      >
+        <i class="ti ti-tools"></i> Built In Tools
+      </button>
+      <button
+        class="toggle-btn python-btn"
+        [ngClass]="{ active: activeToolType === 'python' }"
+        (click)="setActiveToolType('python')"
+      >
+        <i class="ti ti-brand-python"></i> Python Tools
+      </button>
+    </div>
+
     <!-- Loading spinner container -->
     <div class="loading-container" *ngIf="isLoading()">
       <app-spinner
@@ -23,30 +42,21 @@
 
     <!-- Tools grid - only show when not loading -->
     <div class="tools-page-grid" *ngIf="!isLoading()">
-      <ng-container *ngIf="filteredPythonTools.length > 0">
-        <app-python-tool-card
-          *ngFor="let tool of filteredPythonTools; trackBy: trackByToolId"
-          [tool]="tool"
-          (toolEnabledUpdated)="onPythonToolEnabledUpdated($event)"
-          (configureClicked)="openPythonToolConfigurationDialog($event)"
-          (toolDeleted)="onPythonToolDelete($event)"
-        ></app-python-tool-card>
+      <!-- Common tools section -->
+      <ng-container *ngIf="activeToolType === 'common'">
+        <ng-container *ngIf="filteredTools.length > 0"> </ng-container>
+
+        <div class="no-tools" *ngIf="filteredTools.length === 0">
+          <p>No common tools match your search</p>
+        </div>
       </ng-container>
 
-      <ng-container *ngIf="filteredTools.length > 0">
-        <app-tool-card
-          *ngFor="let tool of filteredTools; trackBy: trackByToolId"
-          [tool]="tool"
-          (toolEnabledUpdated)="onToolEnabledUpdated($event)"
-          (configureClicked)="openConfigurationDialog($event)"
-        ></app-tool-card>
-      </ng-container>
+      <!-- Python tools section -->
+      <ng-container *ngIf="activeToolType === 'python'">
+        <ng-container *ngIf="filteredPythonTools.length > 0"> </ng-container>
 
-      <ng-container
-        *ngIf="filteredTools.length === 0 && filteredPythonTools.length === 0"
-      >
-        <div class="no-tools">
-          <p>No tools match your search</p>
+        <div class="no-tools" *ngIf="filteredPythonTools.length === 0">
+          <p>No Python tools match your search</p>
         </div>
       </ng-container>
     </div>

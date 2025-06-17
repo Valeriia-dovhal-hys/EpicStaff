@@ -5,9 +5,12 @@ import {
   Input,
   Output,
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-project-favorite-button',
+  standalone: true,
+  imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button
@@ -23,7 +26,7 @@ import {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="1"
+        stroke-width="1.5"
         stroke-linecap="round"
         stroke-linejoin="round"
         class="icon icon-tabler icons-tabler-outline icon-tabler-star"
@@ -41,29 +44,29 @@ import {
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: var(--button-bg);
+        background-color: rgba(255, 255, 255, 0.04);
         padding: 0.4rem;
         width: 36px;
         height: 36px;
         border-radius: 6px;
-        color: var(--gray-400);
+        color: #6b7280;
         cursor: pointer;
         transition: all 0.2s ease;
         border: none;
-        box-shadow: inset 0 0 0 1px var(--gray-700);
 
         &.projects-page-favorite-btn-active {
           color: #ffd93d;
-          background-color: rgba(255, 217, 61, 0.1);
-          box-shadow: inset 0 0 0 1px rgba(255, 217, 61, 0.5),
-            0 0 0 1px rgba(255, 217, 61, 0.1);
+          background-color: rgba(255, 217, 61, 0.08);
         }
 
         &:hover {
           color: #ffd93d;
-          background-color: rgba(255, 217, 61, 0.1);
-          box-shadow: inset 0 0 0 1px rgba(255, 217, 61, 0.5),
-            0 0 0 1px rgba(255, 217, 61, 0.1);
+          background-color: rgba(255, 217, 61, 0.08);
+        }
+
+        &:focus {
+          outline: none;
+          background-color: rgba(255, 255, 255, 0.06);
         }
 
         svg {

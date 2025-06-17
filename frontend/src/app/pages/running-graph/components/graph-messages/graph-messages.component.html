@@ -1,127 +1,57 @@
 <!-- graph-messages.component.html -->
 <div class="messages-container">
-  <!-- Content after loading is complete -->
-  <ng-container *ngIf="!isLoading">
-    <!-- No messages state with improved animation -->
-    <div class="no-messages" *ngIf="messages.length === 0 && !shouldPoll">
-      <div class="no-messages-content">
-        <i class="ti ti-message-circle-off"></i>
-        <p>No messages available for this session.</p>
-      </div>
+  <!-- Messages list -->
+  <div class="messages-list" *ngIf="messages.length > 0">
+    @for (message of messages; track message.id; let i = $index) {
+    <div class="message" [class.animate-message]="animatedIndices[i]">
+      <!-- Project transition indicator -->
+      <app-project-transition
+        *ngIf="shouldShowTransition(message, i)"
+      ></app-project-transition>
+
+      <!-- Using ngSwitch instead of multiple ngIf statements -->
+      @switch (message.message_data.message_type) { @case ('start') {
+      <app-start-message [message]="message"></app-start-message>
+      } @case ('user') {
+      <app-user-message [message]="message"></app-user-message>
+      } @case ('agent') {
+      <app-agent-message
+        [message]="message"
+        [agent]="getAgentFromMessage(message)"
+      ></app-agent-message>
+      } @case ('agent_finish') {
+      <app-agent-finish-message
+        [message]="message"
+        [agent]="getAgentFromMessage(message)"
+      ></app-agent-finish-message>
+      } @case ('python') {
+      <app-python-message [message]="message"></app-python-message>
+      } @case ('llm') {
+      <app-llm-message [message]="message"></app-llm-message>
+      } @case ('error') {
+      <app-error-message [message]="message"></app-error-message>
+      } @case ('task') {
+      <app-task-message [message]="message"></app-task-message>
+      } @case ('finish') {
+      <app-finish-message
+        [message]="message"
+        [project]="getProjectFromMessage(message)"
+      ></app-finish-message>
+      } }
     </div>
-
-    <!-- Messages list -->
-    <div class="messages-list" *ngIf="messages.length > 0">
-      <ng-container
-        *ngFor="
-          let message of messages;
-          trackBy: trackByMessageId;
-          let i = index
-        "
-      >
-        <!-- Tooltip that appears on hover (visible only on larger screens) -->
-        <div
-          class="message message-type-{{ message.message_data.message_type }}"
-          [ngClass]="{ 'animate-message': animatedIndices[i] }"
-        >
-          <div class="tooltip" *ngIf="message.name">
-            Node: {{ message.name }}
-          </div>
-
-          <!-- Project transition indicator -->
-          <app-project-transition
-            *ngIf="shouldShowTransition(message, i)"
-          ></app-project-transition>
-
-          <!-- Start Message -->
-          <app-start-message
-            *ngIf="isMessageType(message, 'start')"
-            [message]="message"
-          >
-          </app-start-message>
-
-          <!-- User Message -->
-          <app-user-message
-            *ngIf="isMessageType(message, 'user')"
-            [message]="message"
-          >
-          </app-user-message>
-
-          <!-- Agent Message -->
-          <app-agent-message
-            *ngIf="isMessageType(message, 'agent')"
-            [message]="message"
-            [agent]="getAgentFromMessage(message)"
-          >
-          </app-agent-message>
-
-          <!-- Agent Finish Message -->
-          <app-agent-finish-message
-            *ngIf="isMessageType(message, 'agent_finish')"
-            [message]="message"
-            [agent]="getAgentFromMessage(message)"
-          >
-          </app-agent-finish-message>
-
-          <!-- Python Message -->
-          <app-python-message
-            *ngIf="isMessageType(message, 'python')"
-            [message]="message"
-          >
-          </app-python-message>
-
-          <!-- LLM Message -->
-          <app-llm-message
-            *ngIf="isMessageType(message, 'llm')"
-            [message]="message"
-          >
-          </app-llm-message>
-
-          <!-- Error Message -->
-          <app-error-message
-            *ngIf="isMessageType(message, 'error')"
-            [message]="message"
-          >
-          </app-error-message>
-
-          <!-- Task Message -->
-          <app-task-message
-            *ngIf="isMessageType(message, 'task')"
-            [message]="message"
-          >
-          </app-task-message>
-
-          <!-- Status Update Message -->
-          <!-- <app-status-update-message
-            *ngIf="isMessageType(message, 'update_session_status')"
-            [message]="message"
-          >
-          </app-status-update-message> -->
-
-          <!-- Finish Message -->
-          <app-finish-message
-            *ngIf="isMessageType(message, 'finish')"
-            [message]="message"
-            [project]="getProjectFromMessage(message)"
-          >
-          </app-finish-message>
-        </div>
-      </ng-container>
-    </div>
-  </ng-container>
+    }
+  </div>
 
   <!-- Loading dots for running session -->
   <app-loading-dots
     *ngIf="shouldPoll"
-    [ngStyle]="{ 'margin-top': messages.length === 0 ? '10rem' : '0' }"
     class="loading-indicator"
   ></app-loading-dots>
 
   <!-- Waiting for user input component -->
   <app-wait-for-user-input
     *ngIf="statusWaitForUser"
-    [ngClass]="{ 'animate-user-input': showUserInputWithDelay }"
+    [class.animate-user-input]="showUserInputWithDelay"
     (messageSubmitted)="onUserMessageSubmitted($event)"
-    class="user-input-container"
   ></app-wait-for-user-input>
 </div>

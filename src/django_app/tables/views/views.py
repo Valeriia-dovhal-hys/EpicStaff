@@ -1,4 +1,6 @@
 from datetime import datetime
+from collections import defaultdict
+
 from tables.models import Tool
 from tables.models import Crew
 from tables.models.crew_models import DefaultAgentConfig, DefaultCrewConfig
@@ -10,14 +12,18 @@ from utils.logger import logger
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django.db import transaction
+from django.db.models import Count
+
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, ListModelMixin
 from rest_framework.viewsets import GenericViewSet
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.views import APIView
 from rest_framework import generics
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
@@ -35,8 +41,6 @@ from tables.serializers.model_serializers import (
     SessionSerializer,
     DefaultLLMConfigSerializer,
     DefaultEmbeddingConfigSerializer,
-    DefaultAgentConfigSerializer,
-    DefaultCrewConfigSerializer,
     ToolSerializer,
 )
 from tables.serializers.serializers import (
@@ -47,6 +51,8 @@ from tables.serializers.serializers import (
 )
 from tables.serializers.knowledge_serializers import CollectionStatusSerializer
 
+from .default_config import *
+
 redis_service = RedisService()
 # TODO: fix. Do we need init converter_service here? Instance is not used.
 converter_service = ConverterService()
@@ -56,11 +62,86 @@ run_python_code_service = RunPythonCodeService()
 realtime_service = RealtimeService()
 
 
-class SessionViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Session.objects.all()
+class SessionViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     serializer_class = SessionSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["graph_id"]
+
+    def get_queryset(self):
+        return Session.objects.select_related("graph").all()
+
+    @swagger_auto_schema(
+        operation_description="Get counts of each status grouped by graph ID",
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "graph_id": openapi.Schema(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            choice.value: openapi.Schema(
+                                type=openapi.TYPE_INTEGER, description=choice.label
+                            )
+                            for choice in Session.SessionStatus
+                        },
+                        description="Status counts",
+                    ),
+                },
+                description="Mapping of graph_id to status counts",
+            )
+        },
+    )
+    @action(detail=False, methods=["GET"])
+    def statuses(self, request):
+        queryset = self.get_queryset()
+
+        # Apply filters
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(request, queryset, self)
+
+        queryset = queryset.values("graph_id", "status").annotate(count=Count("status"))
+        data = defaultdict(lambda: defaultdict(int))
+        for row in queryset:
+            data[row["graph_id"]][row["status"]] = row["count"]
+
+        return Response(data)
+
+    @swagger_auto_schema(
+        method="post",
+        operation_description="Delete multiple sessions by IDs",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["ids"],
+            properties={
+                "ids": openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Items(type=openapi.TYPE_INTEGER),
+                    description="List of session IDs to delete",
+                )
+            },
+        ),
+        responses={200: openapi.Response("Successfully deleted IDs")},
+    )
+    @action(detail=False, methods=["post"], url_path="bulk_delete")
+    def bulk_delete(self, request):
+        ids = request.data.get("ids", [])
+        if not isinstance(ids, list) or not all(isinstance(i, int) for i in ids):
+            return Response(
+                {"detail": "ids must be a list of integers."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        sessions = Session.objects.filter(id__in=ids)
+        deleted_count = sessions.count()
+        sessions.delete()
+        return Response(
+            {"deleted": deleted_count, "ids": ids}, status=status.HTTP_200_OK
+        )
 
 
 class RunSession(APIView):
@@ -85,7 +166,7 @@ class RunSession(APIView):
         graph_id = serializer.validated_data["graph_id"]
         variables = serializer.validated_data.get("variables")
         try:
-
+            # Publish session to: crew, maanger
             session_id = session_manager_service.run_session(
                 graph_id=graph_id, variables=variables
             )
@@ -371,90 +452,6 @@ class DefaultLLMConfigAPIView(APIView):
             )
 
         serializer = DefaultLLMConfigSerializer(obj, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class DefaultAgentConfigAPIView(APIView):
-
-    @swagger_auto_schema(
-        operation_summary="Get agent defaults",
-        responses={
-            200: DefaultAgentConfigSerializer,
-            404: openapi.Response(description="Object not found"),
-        },
-    )
-    def get(self, request, *args, **kwargs):
-        obj = DefaultAgentConfig.objects.first()
-        serializer = DefaultAgentConfigSerializer(obj, many=False)
-
-        return Response(serializer.data)
-
-    @swagger_auto_schema(
-        operation_summary="Update agent defaults",
-        request_body=DefaultAgentConfigSerializer,
-        responses={
-            200: DefaultAgentConfigSerializer,
-            404: openapi.Response(description="Object not found"),
-            400: openapi.Response(description="Validation Error"),
-        },
-    )
-    def put(self, request, *args, **kwargs):
-
-        data = request.data
-
-        try:
-            obj = DefaultAgentConfig.objects.get(pk=1)
-        except DefaultAgentConfig.DoesNotExist:
-            return Response(
-                {"error": "Object not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        serializer = DefaultAgentConfigSerializer(obj, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class DefaultCrewConfigAPIView(APIView):
-
-    @swagger_auto_schema(
-        operation_summary="Get crew defaults",
-        responses={
-            200: DefaultCrewConfigSerializer,
-            404: openapi.Response(description="Object not found"),
-        },
-    )
-    def get(self, request, *args, **kwargs):
-        obj = DefaultCrewConfig.objects.first()
-        serializer = DefaultCrewConfigSerializer(obj, many=False)
-
-        return Response(serializer.data)
-
-    @swagger_auto_schema(
-        operation_summary="Update crew defaults",
-        request_body=DefaultCrewConfigSerializer,
-        responses={
-            200: DefaultCrewConfigSerializer,
-            404: openapi.Response(description="Object not found"),
-            400: openapi.Response(description="Validation Error"),
-        },
-    )
-    def put(self, request, *args, **kwargs):
-
-        data = request.data
-
-        try:
-            obj = DefaultCrewConfig.objects.get(pk=1)
-        except DefaultCrewConfig.DoesNotExist:
-            return Response(
-                {"error": "Object not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        serializer = DefaultCrewConfigSerializer(obj, data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

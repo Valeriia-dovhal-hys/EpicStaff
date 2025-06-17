@@ -7,8 +7,8 @@ import os
 from models.db_models import RealtimeSessionItem
 from sqlalchemy.exc import SQLAlchemyError
 
-DB_USER = os.getenv("DB_USER", "postgres")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "admin")
+DB_USER = os.getenv("DB_REALTIME_USER", "postgres")
+DB_PASSWORD = os.getenv("DB_REALTIME_PASSWORD", "admin")
 DB_HOST_NAME = os.getenv("DB_HOST_NAME", "127.0.0.1")
 DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "crew")
@@ -42,5 +42,4 @@ async def save_realtime_session_item_to_db(data, connection_key):
             return realtime_session_item
         except SQLAlchemyError as e:
             await db_session.rollback()
-            logger.exception("❌ Error saving to DB")
-            
+            logger.exception("Error saving to DB")

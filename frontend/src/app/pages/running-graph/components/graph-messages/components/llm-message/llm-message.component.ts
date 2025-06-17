@@ -4,7 +4,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import {
   GraphMessage,
   LLMMessageData,
-} from '../../graph-session-message.model';
+} from '../../../../models/graph-session-message.model';
 import { expandCollapseAnimation } from '../../../../../../shared/animations/animations-expand-collapse';
 
 @Component({
@@ -77,7 +77,7 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
   styles: [
     `
       .llm-flow-container {
-        background-color: var(--gray-850);
+        background-color: var(--color-nodes-background);
         border-radius: 8px;
         padding: 1.25rem;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import {
   GraphMessage,
   UpdateSessionStatusMessageData,
-} from '../../graph-session-message.model';
+} from '../../../../models/graph-session-message.model';
 
 @Component({
   selector: 'app-status-update-message',

@@ -24,7 +24,7 @@ class ToolConfigSerializerError(CustomAPIExeption):
 
 class GraphEntryPointException(CustomAPIExeption):
     status_code = 400
-    default_detail = "entry_point was not provided in graph and run-session"
+    default_detail = "No node connected to start node"
 
 
 class UploadSourceCollectionSerializerValidationError(CustomAPIExeption):

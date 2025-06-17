@@ -8,12 +8,14 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - POSTGRESQL_HOST=crewdb
       - CODE_RESULT_CHANNEL=code_results
       - CODE_EXEC_TASK_CHANNEL=code_exec_tasks
-      - ALLOWED_HOSTS=0.0.0.0, 127.0.0.1, localhost
+
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - DB_HOST_NAME=${DB_HOST_NAME}
+      - DB_PORT=${DB_PORT}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
     volumes:
       - crew_config:/home/user/root/app/env_config
 
@@ -21,8 +23,6 @@ services:
       - backend-network
     depends_on:
       crewdb:
-        condition: service_healthy
-      manager:
         condition: service_started
     
     healthcheck:
@@ -42,18 +42,22 @@ services:
       - KNOWLEDGE_SEARCH_GET_CHANNEL=knowledge:search:get
       - KNOWLEDGE_SEARCH_RESPONSE_CHANNEL=knowledge:search:response
       - REALTIME_AGENTS_SCHEMA_CHANNEL=realtime_agents:schema
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - MANAGER_HOST=manager_container
-      - MANAGER_PORT=8000
-      - DB_NAME=crew
-      - DB_HOST_NAME=crewdb
-      - DB_PASSWORD=admin
-      - DB_USER=postgres
-      - DB_PORT=5432
+
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - MANAGER_HOST=${MANAGER_HOST}
+      - MANAGER_PORT=${MANAGER_PORT}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_HOST_NAME=${DB_HOST_NAME}
+      - DB_PORT=${DB_PORT}
+      - DB_REALTIME_USER=${DB_REALTIME_USER}
+      - DB_REALTIME_PASSWORD=${DB_REALTIME_PASSWORD}
+
     networks:
       - backend-network
     depends_on:
+      crewdb:
+        condition: service_healthy
       manager:
         condition: service_started
       redis:
@@ -73,96 +77,128 @@ services:
     env_file:
       - ../manager.env
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REBUILD_CREW=TRUE
-      - PULL_TOOL=FALSE
-      - PORT=8000
+      - PULL_TOOL=${PULL_TOOL}
+      - MANAGER_PORT=${MANAGER_PORT}
+      
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_HOST_NAME=${DB_HOST_NAME}
+      - DB_PORT=${DB_PORT}
+      - DB_MANAGER_USER=${DB_MANAGER_USER}
+      - DB_MANAGER_PASSWORD=${DB_MANAGER_PASSWORD}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock 
-      - /usr/bin/docker:/usr/bin/docker
+      - ${DOCKER_SOCK_PATH}:${DOCKER_SOCK_PATH}
+      - ${DOCKER_BIN_PATH}:${DOCKER_BIN_PATH}
     networks:
       - backend-network
     tty: true
     stdin_open: true
     depends_on:
-      - redis
+      crewdb:
+        condition: service_healthy
+      redis:
+        condition: service_started      
 
   crewdb:
-    image: ankane/pgvector:v0.5.1
+    build:
+      context: ./crewdb
+      dockerfile: Dockerfile.crewdb
     container_name: crewdb
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:${DB_PORT}"
     environment:
-      - POSTGRES_DB=crew
-      - POSTGRES_PASSWORD=admin
-      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PGDATA=${PGDATA}
+      - DB_MANAGER_USER=${DB_MANAGER_USER}
+      - DB_MANAGER_PASSWORD=${DB_MANAGER_PASSWORD}
+
+      - DB_KNOWLEDGE_USER=${DB_KNOWLEDGE_USER}
+      - DB_KNOWLEDGE_PASSWORD=${DB_KNOWLEDGE_PASSWORD}
+
+      - DB_REALTIME_USER=${DB_REALTIME_USER}
+      - DB_REALTIME_PASSWORD=${DB_REALTIME_PASSWORD}
+
+      - DB_CREW_USER=${DB_CREW_USER}
+      - DB_CREW_PASSWORD=${DB_CREW_PASSWORD}
     volumes:
-      - crew_pgdata:/var/lib/postgresql/data/pgdata
+      - crew_pgdata:${PGDATA}
     networks:
       - backend-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5  
+      test: |
+        bash -c '
+          # First check if postgres is ready
+          pg_isready -U postgres || exit 1
+          
+          # Then check if users have been created
+          /usr/local/bin/custom-docker-entrypoint.sh healthcheck-users
+        '
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+      
   redis:
     image: redis
     container_name: redis
     networks:
       - backend-network
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:${REDIS_PORT}"
 
   crew:
     build:
-      context: ./crew
-      dockerfile: Dockerfile.crew
+      context: .
+      dockerfile: ./crew/Dockerfile.crew
     container_name: crew
     ports:
       - "8002:8000"
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - MANAGER_HOST=manager_container
-      - MANAGER_PORT=8000
-      - HAYSTACK_TELEMETRY_ENABLED=False
-      - ANONYMIZED_TELEMETRY=False
-      - EC_TELEMETRY=False
-      - MONITORING_MODE=local
-      - PROCESS_REDIS_HOST=redis
-      - DB_NAME=crew
-      - DB_HOST_NAME=crewdb
-      - DB_PASSWORD=admin
-      - DB_USER=postgres
-      - DB_PORT=5432
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - MANAGER_HOST=${MANAGER_HOST}
+      - MANAGER_PORT=${MANAGER_PORT}
+      - HAYSTACK_TELEMETRY_ENABLED=${HAYSTACK_TELEMETRY_ENABLED}
+      - ANONYMIZED_TELEMETRY=${ANONYMIZED_TELEMETRY}
+      - EC_TELEMETRY=${EC_TELEMETRY}
+      - MONITORING_MODE=${MONITORING_MODE}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_HOST_NAME=${DB_HOST_NAME}
+      - DB_PORT=${DB_PORT}
+      - DB_CREW_USER=${DB_CREW_USER}
+      - DB_CREW_PASSWORD=${DB_CREW_PASSWORD}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock 
-      - /usr/bin/docker:/usr/bin/docker
+      - ${DOCKER_SOCK_PATH}:${DOCKER_SOCK_PATH}
+      - ${DOCKER_BIN_PATH}:${DOCKER_BIN_PATH}
       - crew_config:/home/user/root/app/env_config/
     networks:
       - backend-network
     tty: true
     stdin_open: true
     depends_on:
-      - redis
+      crewdb:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   sandbox:
     build:
-      context: ./sandbox
-      dockerfile: Dockerfile.sandbox
+      context: .
+      dockerfile: ./sandbox/Dockerfile.sandbox
     container_name: sandbox
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
       - CODE_RESULT_CHANNEL=code_results
       - CODE_EXEC_TASK_CHANNEL=code_exec_tasks
-      - BASE_VENV_PATH=/home/user/root/app/venvs/
-      - OUTPUT_PATH=/home/user/root/app/executions/
+      - BASE_VENV_PATH=${BASE_VENV_PATH}
+      - OUTPUT_PATH=${OUTPUT_PATH}
     volumes:
-      - sandbox_venvs:/home/user/root/app/venvs/
-      - sandbox_executions:/home/user/root/app/executions/
-      - /c/savefiles:/home/user/root/app/savefiles/
+      - sandbox_venvs:${BASE_VENV_PATH}
+      - sandbox_executions:${OUTPUT_PATH}
+      - ${HOST_SAVEFILES_PATH}:${CONTAINER_SAVEFILES_PATH}
 
     networks:
       - backend-network
@@ -176,23 +212,26 @@ services:
       dockerfile: Dockerfile.knowledge
     container_name: knowledge
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
       - KNOWLEDGE_SOURCES_CHANNEL=knowledge_sources
       - KNOWLEDGE_SEARCH_GET_CHANNEL=knowledge:search:get
       - KNOWLEDGE_SEARCH_RESPONSE_CHANNEL=knowledge:search:response
-      - DB_NAME=crew
-      - DB_USER=postgres
-      - DB_PASSWORD=admin
-      - DB_PORT=5432
-      - DB_HOST_NAME=crewdb
+
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_HOST_NAME=${DB_HOST_NAME}
+      - DB_PORT=${DB_PORT}
+      - DB_KNOWLEDGE_USER=${DB_KNOWLEDGE_USER}
+      - DB_KNOWLEDGE_PASSWORD=${DB_KNOWLEDGE_PASSWORD}
     networks:
       - backend-network
     tty: true
     stdin_open: true
     depends_on:
-      - redis
-      - crewdb
+      crewdb:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
 
 volumes:

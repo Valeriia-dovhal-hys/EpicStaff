@@ -1,57 +1,47 @@
 <div class="files-area">
   <ng-container *ngIf="selectedCollection; else noCollection">
-    <!-- Collection info header -->
-    <div class="collection-header">
-      <div class="collection-info">
-        <h3 class="collection-name">
-          {{ selectedCollection.collection_name }}
-        </h3>
-        <div class="embedding-info">
-          <span class="label">Embedding config:</span>
-          <span class="value">{{
-            selectedEmbeddingConfig?.custom_name || "..."
-          }}</span>
-        </div>
-      </div>
-      <button class="upload-button" (click)="onUploadFiles()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <polyline
-            points="17 8 12 3 7 8"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <line
-            x1="12"
-            y1="3"
-            x2="12"
-            y2="15"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-        Add Files
-      </button>
-    </div>
+    <!-- Collection header as a separate component -->
+    <app-collection-header
+      (uploadFiles)="onUploadFiles()"
+    ></app-collection-header>
 
     <!-- Display files list if we have files, otherwise show empty state -->
     <ng-container *ngIf="hasFiles; else noFiles">
-      <div class="files-list">
-        <app-file-item
-          *ngFor="let source of filteredSources"
-          [source]="source"
-        ></app-file-item>
-      </div>
+      <!-- Files list if filtered results exist -->
+      <ng-container *ngIf="filteredSources.length > 0; else noSearchResults">
+        <div class="files-list">
+          <app-file-item
+            *ngFor="let source of filteredSources"
+            [source]="source"
+          ></app-file-item>
+        </div>
+      </ng-container>
+
+      <!-- No search results template -->
+      <ng-template #noSearchResults>
+        <div class="zero-files">
+          <div class="file-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24">
+              <path
+                d="M10 10l4 4m0-4l-4 4"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+              <path
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                stroke="currentColor"
+                fill="none"
+              />
+            </svg>
+          </div>
+          <p>No files match your search</p>
+          <div class="search-info">
+            Try adjusting your search terms or clear the search to view all
+            files
+          </div>
+        </div>
+      </ng-template>
     </ng-container>
 
     <ng-template #noFiles>

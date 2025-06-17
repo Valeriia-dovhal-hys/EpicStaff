@@ -1,6 +1,6 @@
 // build-args-schema.util.ts
 
-import { ArgsSchema } from '../models/python-code-tool.model';
+import { ArgsSchema } from '../../../../features/tools/models/python-code-tool.model';
 
 /**
  * Builds an ArgsSchema object from the provided code and variables.
@@ -45,6 +45,7 @@ export function buildArgsSchema(
   }
 
   // Create schema properties from the variables list.
+  const requiredFields: string[] = [];
   for (const variable of variables) {
     // Only add variables that have a valid (non-empty) name.
     if (!variable.name.trim()) {
@@ -55,10 +56,17 @@ export function buildArgsSchema(
       type: varType,
       description: variable.description,
     };
+    requiredFields.push(variable.name);
+  }
+
+  // Add required field if we have any properties
+  if (requiredFields.length > 0) {
+    argsSchema.required = requiredFields;
   }
 
   return argsSchema;
 }
+
 export function buildArgsSchemaFromVariables(
   variables: Array<{ name: string; description: string; type: string }>
 ): ArgsSchema {
@@ -68,6 +76,7 @@ export function buildArgsSchemaFromVariables(
     properties: {},
   };
 
+  const requiredFields: string[] = [];
   variables.forEach((variable) => {
     if (!variable.name.trim()) {
       return;
@@ -82,7 +91,13 @@ export function buildArgsSchemaFromVariables(
       type: varType,
       description: variable.description || '',
     };
+    requiredFields.push(variable.name);
   });
+
+  // Add required field if we have any properties
+  if (requiredFields.length > 0) {
+    argsSchema.required = requiredFields;
+  }
 
   return argsSchema;
 }

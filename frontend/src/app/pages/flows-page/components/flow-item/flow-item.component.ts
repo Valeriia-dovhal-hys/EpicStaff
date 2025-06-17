@@ -1,13 +1,10 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GraphDto } from '../../models/graph.model';
+import { GraphDto } from '../../../../features/flows/models/graph.model';
 import { ClickOutsideDirective } from '../../../../shared/directives/click-outside.directive';
-import { GraphSessionStatus } from '../../../../services/graph-sessions-status.service';
-
-interface GraphWithSessionsInfo extends GraphDto {
-  activeSessionsCount: number;
-  waitingForUserSessionsCount: number;
-}
+import { GraphSessionStatus } from '../../../../features/flows/services/flows-sessions.service';
+import { EMOJI_CATEGORIES } from '../../../../shared/constants/emoji.constants';
+import { GraphWithSessionsInfo } from '../../flows-page.component';
 
 export interface SessionViewRequest {
   graph: GraphWithSessionsInfo;
@@ -19,7 +16,7 @@ export interface SessionViewRequest {
   standalone: true,
   imports: [CommonModule, ClickOutsideDirective],
   templateUrl: './flow-item.component.html',
-  styleUrls: ['./flow-item.component.scss'],
+  styleUrl: './flow-item.component.scss',
 })
 export class FlowItemComponent {
   @Input({ required: true }) graph!: GraphWithSessionsInfo;
@@ -32,12 +29,21 @@ export class FlowItemComponent {
   isMenuOpen = false;
   defaultTags = ['Automated', 'Integration', 'API'];
   sessionStatuses = GraphSessionStatus;
+
   public getTags(): string[] {
     const sourceTags = this.graph.tags?.length
       ? this.graph.tags
       : this.defaultTags;
 
     return sourceTags.map((tag) => tag.trim().replace(/^#/, ''));
+  }
+
+  public getFlowEmoji(): string {
+    // Always use technology emoji category
+    const categoryEmojis = EMOJI_CATEGORIES['technology'];
+    // Use graph ID for deterministic emoji selection
+    const emojiIndex = this.graph.id % categoryEmojis.length;
+    return categoryEmojis[emojiIndex];
   }
 
   public onOpenFlow(): void {
@@ -47,27 +53,6 @@ export class FlowItemComponent {
   public toggleMenu(event: Event): void {
     event.stopPropagation();
     this.isMenuOpen = !this.isMenuOpen;
-
-    // When opening the menu, add a class to the document body to prevent scrolling if needed
-    if (this.isMenuOpen) {
-      // Ensure menu stays visible even if it extends beyond the container
-      setTimeout(() => {
-        // Fix any positioning issues with a short delay to ensure DOM is updated
-        const menuElement = document.querySelector(
-          '.menu-container'
-        ) as HTMLElement;
-        if (menuElement) {
-          // Check if menu extends beyond viewport and adjust if needed
-          const rect = menuElement.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-
-          if (rect.bottom > viewportHeight) {
-            menuElement.style.top = 'auto';
-            menuElement.style.bottom = '100%';
-          }
-        }
-      }, 0);
-    }
   }
 
   public closeMenu(): void {
@@ -93,7 +78,6 @@ export class FlowItemComponent {
   }
 
   public onViewSessions(event: Event): void {
-    // Make sure the event doesn't bubble up
     event.stopPropagation();
     event.preventDefault();
     this.viewSessions.emit({ graph: this.graph, filterStatus: 'all' });
@@ -103,17 +87,16 @@ export class FlowItemComponent {
     event: Event,
     status: GraphSessionStatus
   ): void {
-    // Make sure the event doesn't bubble up
     event.stopPropagation();
     event.preventDefault();
     this.viewSessions.emit({ graph: this.graph, filterStatus: status });
   }
 
   public hasActiveSessions(): boolean {
-    return this.graph.activeSessionsCount > 0;
+    return this.graph.statusesCounts.run > 0;
   }
 
   public hasWaitingForUserSessions(): boolean {
-    return this.graph.waitingForUserSessionsCount > 0;
+    return this.graph.statusesCounts.wait_for_user > 0;
   }
 }

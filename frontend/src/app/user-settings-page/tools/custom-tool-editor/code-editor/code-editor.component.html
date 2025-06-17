@@ -1,28 +1,25 @@
 <!-- Editor Header -->
+
 <div class="editor-header">
   <div class="left-section">
     <span class="editor-title">
+      <app-icon icon="ui/python" size="1.2rem" class="python-icon"></app-icon>
       Python3 <span class="entrypoint-main">(entrypoint "main")</span>
     </span>
-    <!-- Conditionally show an error message if 'def main' isn't found -->
     <span class="error-message" *ngIf="showMainError">
       Missing "def main(...)"
     </span>
   </div>
-  <button class="copy-btn" (click)="copyCode(); $event.preventDefault()">
-    <i class="ti ti-copy"></i>
-  </button>
 </div>
 
 <!-- Editor Container -->
 <div class="editor-container" #editorContainer>
   <ngx-monaco-editor
     [options]="editorOptions"
-    [(ngModel)]="pythonCode"
+    [ngModel]="pythonCode"
     (ngModelChange)="onCodeChange($event)"
     (onInit)="onEditorInit($event)"
     class="monaco-editor"
-    [style.height.px]="editorHeight"
   ></ngx-monaco-editor>
 
   <!-- Loading Overlay -->
@@ -30,13 +27,4 @@
     <div class="spinner"></div>
     <span>Loading editor...</span>
   </div>
-</div>
-
-<!-- Resize Handle with the directive -->
-<div
-  class="editor-resize-handle"
-  appResizable
-  (heightChange)="onResize($event)"
->
-  <div class="little-handle"></div>
 </div>

@@ -1,7 +1,7 @@
 import json
 import time
 from typing import Callable, Optional, Union
-from crewai.agents.crew_agent_executor import ToolResult
+from crewai.agents.crew_agent_executor import KNOWLEDGE_KEYWORD
 
 from models.graph_models import (
     GraphMessage,
@@ -236,6 +236,10 @@ class CrewCallbackFactory:
 
         return inner
 
+    def _extract_knowledges(self, knowledge_snippets: list) -> str:
+        snippet = "\n\n".join(knowledge_snippets)
+        return f'{KNOWLEDGE_KEYWORD} \n\n"{snippet}"' if knowledge_snippets else ""
+
     def get_wait_for_user_callback(
         self,
         crew_knowledge_collection_id=None,
@@ -317,14 +321,16 @@ class CrewCallbackFactory:
                 # TODO: make one search and combine crew_knowledge_collection_id
                 # TODO: potential bugs with: classification user_input if knowledge will be added
                 if agent_knowledge_collection_id is not None:
-                    agent_results = self.knowledge_search_service.search_knowledges(
+                    agent_knowledges = self.knowledge_search_service.search_knowledges(
                         sender="human_agent",
                         knowledge_collection_id=agent_knowledge_collection_id,
                         query=str(user_input),
                         search_limit=3,
                         distance_threshold=1,
                     )
-                    user_input_with_knowledges += agent_results
+                    user_input_with_knowledges += self._extract_knowledges(
+                        agent_knowledges
+                    )
 
                 elif crew_knowledge_collection_id is not None:
                     crew_results = self.knowledge_search_service.search_knowledges(
@@ -334,7 +340,7 @@ class CrewCallbackFactory:
                         search_limit=3,
                         distance_threshold=0.7,
                     )
-                    user_input_with_knowledges += crew_results
+                    user_input_with_knowledges += self._extract_knowledges(crew_results)
 
                 logger.info(f"{user_input_with_knowledges=}")
 

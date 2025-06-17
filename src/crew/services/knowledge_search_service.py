@@ -28,7 +28,7 @@ class KnowledgeSearchService(metaclass=SingletonMeta):
         query: str,
         search_limit: int,
         distance_threshold: float,
-    ) -> str:
+    ) -> list[str]:
         pubsub = self.redis_service.sync_subscribe(
             channel=knowledge_search_response_channel
         )
@@ -61,4 +61,4 @@ class KnowledgeSearchService(metaclass=SingletonMeta):
             time.sleep(0.1)
 
         logger.error(f"Search failed: No response received within {timeout} seconds")
-        return ""
+        return []

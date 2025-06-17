@@ -1,12 +1,25 @@
-// Theme Variables
-
-// Dark Theme (Default)
 :root {
-  /* Basic Colors */
-  --white: #fff;
-  --black: #000;
+  //colors
+  --color-sidenav-background: #222225;
+  --color-background-body: #1e1e20;
 
-  /* Gray Scale */
+  --accent-color: #685fff;
+  --accent-color-hover: #574fd6;
+  --accent-color-active: #473fb3;
+  --color-text-primary: #d9d9de;
+  --color-text-secondary: #c8ceda99;
+  --color-text-primary-hover: #ececf3;
+  --color-secondary-btn-background: #27272b;
+  --color-secondary-btn-background-hover: #ffffff17;
+  --color-ghost-btn-hover: rgba(104, 95, 255, 0.08);
+  --color-ghost-btn-active: rgba(104, 95, 255, 0.15);
+  --color-input-text-placeholder: #c8ceda4d;
+
+  //border colors
+  --color-components-card-border: #ffffff08;
+  --color-divider-regular: #c8ceda24;
+  --color-divider-subtle: #c8ceda14;
+
   --gray-50: #f9f9f9;
   --gray-100: #ececec;
   --gray-200: #e3e3e3;
@@ -21,10 +34,17 @@
   --gray-900: #171717;
   --gray-950: #0d0d0d;
 
-  /* Accent Colors */
-  --accent-color: #685fff;
+  //nodes
+  --color-nodes-background: #27272b;
+  --color-nodes-actionbar-bg: #222225;
+  --color-nodes-actionbar-border: #c8ceda14;
+  --color-nodes-sidepanel-bg: #222225;
 }
 
-// Light Theme Override
-// .light-theme {
-// }
+.light-theme {
+  --background-color: #f9f9f9;
+  --surface-color: #fff;
+  --text-color: #181818;
+  --border-color: #e3e3e3;
+  --accent-color: #685fff;
+}

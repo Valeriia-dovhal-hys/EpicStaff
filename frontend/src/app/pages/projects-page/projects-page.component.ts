@@ -12,12 +12,12 @@ import { DialogModule, Dialog } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription, finalize } from 'rxjs';
-import { CreateProjectComponent } from '../../forms/create-project-form-dialog/create-project.component';
+import { CreateProjectComponent } from '../../shared/components/create-project-form-dialog/create-project.component';
 import { PageHeaderComponent } from '../../shared/components/header/page-header.component';
 import { ToastService } from '../../services/notifications/toast.service';
-import { ProjectsService } from './services/projects.service';
+import { ProjectsStorageService } from '../../features/projects/services/projects-storage.service';
 import { ConfirmationDialogService } from '../../shared/components/cofirm-dialog/confimation-dialog.service';
-import { GetProjectRequest, ProjectDto } from './models/project.model';
+import { GetProjectRequest } from '../../features/projects/models/project.model';
 import { ProjectListItemCardComponent } from './project-list-item-card/project-list-item-card.component';
 import { SpinnerComponent } from '../../shared/components/spinner/spinner.component';
 import { ProjectListItem } from './models/project-list-item.model';
@@ -65,7 +65,7 @@ export class ProjectsPageComponent implements OnInit, OnDestroy {
   ];
 
   constructor(
-    private projectsService: ProjectsService,
+    private projectsStorageService: ProjectsStorageService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     private cdkDialog: Dialog,
@@ -80,7 +80,7 @@ export class ProjectsPageComponent implements OnInit, OnDestroy {
   private loadProjects(): void {
     const loadStartTime = Date.now();
 
-    const projectsSubscription = this.projectsService
+    const projectsSubscription = this.projectsStorageService
       .getProjects()
       .pipe(
         finalize(() => {
@@ -159,14 +159,14 @@ export class ProjectsPageComponent implements OnInit, OnDestroy {
 
   public openCreateFormDialog(): void {
     // Using CDK Dialog instead of MatDialog
-    const dialogRef = this.cdkDialog.open<ProjectDto | undefined>(
+    const dialogRef = this.cdkDialog.open<GetProjectRequest | undefined>(
       CreateProjectComponent,
       {
         width: '590px',
         hasBackdrop: true,
       }
     );
-    dialogRef.closed.subscribe((result: ProjectDto | undefined) => {
+    dialogRef.closed.subscribe((result: GetProjectRequest | undefined) => {
       if (result) {
         const newProject: ProjectListItem = {
           ...result,
@@ -193,7 +193,7 @@ export class ProjectsPageComponent implements OnInit, OnDestroy {
       .confirmDelete(project.name)
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
-          const deleteSubscription = this.projectsService
+          const deleteSubscription = this.projectsStorageService
             .deleteProject(project.id)
             .subscribe({
               next: () => {

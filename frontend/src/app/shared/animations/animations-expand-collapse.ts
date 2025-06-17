@@ -14,6 +14,7 @@ export const expandCollapseAnimation = trigger('expandCollapse', [
       height: '0',
       opacity: '0',
       visibility: 'hidden',
+      overflow: 'hidden',
     })
   ),
   state(
@@ -22,6 +23,7 @@ export const expandCollapseAnimation = trigger('expandCollapse', [
       height: '*',
       opacity: '1',
       visibility: 'visible',
+      overflow: 'visible', // Changed from hidden to visible when expanded
     })
   ),
   transition('expanded => collapsed', [

@@ -1,19 +1,20 @@
-import base64
-from typing import Callable, Dict, Any
+from typing import Callable, Dict, Any, Coroutine
 import json
 
 from loguru import logger
 from db.database import save_realtime_session_item_to_db
+from services.chat_buffer import ChatSummarizedBuffer
 
-class TransciptionClientEventHandler:
-    """Handles mapping of cleint websocket events to their corresponding methods."""
 
-    def __init__(self, client, buffer: list[str]):
+class TranscriptionClientEventHandler:
+    """Handles mapping of client websocket events to their corresponding methods."""
+
+    def __init__(self, client, buffer: ChatSummarizedBuffer):
         """Initialize the event handler with event mappings."""
         from ai.agent.openai_realtime_agent_client import OpenaiRealtimeAgentClient
 
         self.client: OpenaiRealtimeAgentClient = client
-        self.event_map: Dict[str, Callable[[Any], None]] = {
+        self.event_map: Dict[str, Callable[[Any], Coroutine[Any, Any, None]]] = {
             "input_audio_buffer.append": self.handle_input_audio_buffer_append,
             "session.update": self.handle_session_update,
             "conversation.item.create": self.handle_conversation_item_create,
@@ -28,7 +29,9 @@ class TransciptionClientEventHandler:
 
         handler = self.event_map.get(event_type, self.unknown_event_handler)
         await handler(data)
-        await save_realtime_session_item_to_db(data=data, connection_key=self.client.connection_key)
+        await save_realtime_session_item_to_db(
+            data=data, connection_key=self.client.connection_key
+        )
 
     async def unknown_event_handler(self, data: Dict[str, Any]) -> None:
         """Default handler for unknown events."""
@@ -46,13 +49,13 @@ class TransciptionClientEventHandler:
 
     async def handle_conversation_item_create(self, data: dict):
         text = data["item"]["content"][0]["text"]
+        logger.debug(f"Text entered with keyboard: {text}")
         self.buffer.append(text)
 
         import uuid
 
         event_id = f"event_{str(uuid.uuid4())}"
         item_id = f"item_{str(uuid.uuid4())}"
-
 
         e4 = {
             "type": "conversation.item.created",

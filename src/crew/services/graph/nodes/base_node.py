@@ -2,10 +2,11 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any
 
+from services.graph.custom_message_writer import CustomSessionMessageWriter
 from models.graph_models import *
 from models.state import *
 from langgraph.types import StreamWriter
-from models.dotdict import DotDict, Expression
+from dotdict import DotDict, Expression
 from utils import map_variables_to_input
 from utils import set_output_variables
 
@@ -19,6 +20,7 @@ class BaseNode(ABC):
         node_name: str,
         input_map: dict | None = None,
         output_variable_path: str | None = None,
+        custom_session_message_writer: CustomSessionMessageWriter | None = None,
     ):
         """
         Initialize a BaseNode instance.
@@ -34,6 +36,8 @@ class BaseNode(ABC):
         self.node_name = node_name
         self.input_map = input_map if input_map is not None else {}
         self.output_variable_path = output_variable_path
+
+        self.custom_session_message_writer = CustomSessionMessageWriter() or None
 
     def _calc_execution_order(self, state: State, name: str) -> int:
         """
@@ -62,17 +66,13 @@ class BaseNode(ABC):
             input_ (Any): The input to the node.
             execution_order (int): The order of execution of the node.
         """
-        start_message_data = StartMessageData(
-            input=input_,
-        )
-        graph_message = GraphMessage(
+        self.custom_session_message_writer.add_start_message(
             session_id=self.session_id,
-            name=self.node_name,
+            node_name=self.node_name,
+            input_=input_,
+            writer=writer,
             execution_order=execution_order,
-            timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            message_data=start_message_data,
         )
-        writer(graph_message)
 
     def add_finish_message(
         self,
@@ -92,32 +92,20 @@ class BaseNode(ABC):
             state (State): The current state of the graph.
             **kwargs: Additional data to include in the finish message.
 
-        This function creates a finish message containing the node's output, 
-        current state variables, and state history. It also includes any 
-        additional data passed as keyword arguments. The message is then 
+        This function creates a finish message containing the node's output,
+        current state variables, and state history. It also includes any
+        additional data passed as keyword arguments. The message is then
         written using the provided stream writer.
         """
-
-        finish_message_data = FinishMessageData(
-            output=output,
-            state={
-                "variables": (
-                    state["variables"].model_dump()
-                    if state["variables"] is not None
-                    else {}
-                ),
-                "state_history": state["state_history"],
-            },
-            additional_data=kwargs,
-        )
-        graph_message = GraphMessage(
+        self.custom_session_message_writer.add_finish_message(
             session_id=self.session_id,
-            name=self.node_name,
+            node_name=self.node_name,
+            writer=writer,
+            output=output,
             execution_order=execution_order,
-            timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            message_data=finish_message_data,
+            state=state,
+            **kwargs
         )
-        writer(graph_message)
 
     def add_error_message(
         self, writer: StreamWriter, error: Exception, execution_order: int
@@ -130,23 +118,18 @@ class BaseNode(ABC):
             error (Exception): The exception that was raised.
             execution_order (int): The order of execution of the node.
 
-        This function creates an error message containing details about the 
-        exception that occurred. It includes the session ID, node name, execution 
-        order, and a timestamp. The message is then written using the provided 
+        This function creates an error message containing details about the
+        exception that occurred. It includes the session ID, node name, execution
+        order, and a timestamp. The message is then written using the provided
         stream writer.
         """
-
-        error_message_data = ErrorMessageData(
-            details=str(error),
-        )
-        graph_message = GraphMessage(
+        self.custom_session_message_writer.add_error_message(
             session_id=self.session_id,
-            name=self.node_name,
+            node_name=self.node_name,
+            writer=writer,
+            error=error,
             execution_order=execution_order,
-            timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            message_data=error_message_data,
         )
-        writer(graph_message)
 
     @abstractmethod
     async def execute(
@@ -215,12 +198,11 @@ class BaseNode(ABC):
             raise e
 
     def get_input(self, state: State):
-
         """
         Maps input variables from state["variables"] based on self.input_map
         and returns the mapped input.
         """
-        
+
         return map_variables_to_input(state["variables"], self.input_map)
 
     def update_state_history(
@@ -238,8 +220,8 @@ class BaseNode(ABC):
             **kwargs: Additional data to store in the state history.
 
         This function appends a new entry to the state's history, capturing the
-        type, name, input, output, and any additional data. It deep copies the 
-        input, output, and additional data to ensure that the history reflects 
+        type, name, input, output, and any additional data. It deep copies the
+        input, output, and additional data to ensure that the history reflects
         the state at the time of execution.
         """
 

@@ -7,7 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
-import { MatDialog } from '@angular/material/dialog';
+
 import { Tool } from '../../../shared/models/tool.model';
 import {
   ToolConfig,
@@ -15,23 +15,18 @@ import {
   GetToolConfigRequest,
 } from '../../../shared/models/tool_config,model';
 import { ToolConfigService } from '../../../services/tool_config.service';
-import {
-  GetLlmConfigRequest,
-  LLM_Config,
-} from '../../../shared/models/LLM_config.model';
+import { GetLlmConfigRequest } from '../../../shared/models/LLM_config.model';
 import {
   EmbeddingConfig,
   GetEmbeddingConfigRequest,
 } from '../../../shared/models/embedding-config.model';
 import { NgIf, NgFor, NgClass } from '@angular/common';
 import { ToolConfigFormComponent } from './tool-config-form/tool-config-form.component';
-import { SharedSnackbarService } from '../../../services/snackbar/shared-snackbar.service';
 import { ConfirmationDialogService } from '../../../shared/components/cofirm-dialog/confimation-dialog.service';
 import { LLM_Config_Service } from '../../../services/LLM_config.service';
 import { EmbeddingConfigsService } from '../../../services/embedding_configs.service';
 import { forkJoin, Observable, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-tool-configuration-dialog',
@@ -39,7 +34,7 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrls: ['./tool-configuration-dialog.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgIf, NgFor, NgClass, MatIconModule, ToolConfigFormComponent],
+  imports: [NgIf, NgFor, NgClass, ToolConfigFormComponent],
 })
 export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
   tool: Tool;
@@ -65,9 +60,8 @@ export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
     private toolConfigService: ToolConfigService,
     private llmConfigService: LLM_Config_Service,
     private embeddingConfigService: EmbeddingConfigsService,
-    private snackbarService: SharedSnackbarService,
     private _confirmationDialogService: ConfirmationDialogService,
-    private dialog: MatDialog,
+
     private cdr: ChangeDetectorRef
   ) {
     this.tool = data.tool;
@@ -84,7 +78,7 @@ export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
   }
 
   private fetchData(): void {
-    const llmConfigs$: Observable<LLM_Config[]> =
+    const llmConfigs$: Observable<GetLlmConfigRequest[]> =
       this.llmConfigService.getAllConfigsLLM();
     const embeddingConfigs$: Observable<EmbeddingConfig[]> =
       this.embeddingConfigService.getEmbeddingConfigs();
@@ -110,10 +104,6 @@ export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error('Error fetching configurations:', err);
-            this.snackbarService.showSnackbar(
-              'Failed to fetch configurations.',
-              'error'
-            );
           },
         })
     );
@@ -218,18 +208,10 @@ export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
                     this.selectedConfig = null;
                   }
 
-                  this.snackbarService.showSnackbar(
-                    'Configuration deleted successfully!',
-                    'success'
-                  );
                   this.cdr.detectChanges();
                 },
                 error: (err) => {
                   console.error('Error deleting configuration:', err);
-                  this.snackbarService.showSnackbar(
-                    'Failed to delete configuration.',
-                    'error'
-                  );
                 },
               });
           }

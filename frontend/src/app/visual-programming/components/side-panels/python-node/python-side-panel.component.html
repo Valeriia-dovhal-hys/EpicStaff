@@ -1,4 +1,9 @@
-<div class="wrapper">
+<div
+  class="wrapper"
+  [style.width]="isExpanded() ? 'calc(100vw - 5.7rem)' : '440px'"
+  appShortcutListener
+  (escape)="close()"
+>
   <!-- Header: Icon + Node Name + Close Button -->
   <div class="dialog-header">
     <div class="icon-and-title">
@@ -7,117 +12,212 @@
         pythonForm.value.name || "New Python Node"
       }}</span>
     </div>
-    <i class="ti ti-x close-icon" (click)="close()"></i>
+    <div class="header-actions">
+      <i
+        [class]="
+          isExpanded()
+            ? 'ti ti-layout-sidebar-right-collapse'
+            : 'ti ti-layout-sidebar-right-expand'
+        "
+        class="expand-icon"
+        (click)="toggleExpanded()"
+      ></i>
+      <div class="close-action">
+        <span class="esc-label">ESC</span>
+        <i class="ti ti-x close-icon" (click)="close()"></i>
+      </div>
+    </div>
   </div>
 
-  <!-- Scrollable Form Content -->
-  <!-- Scrollable Form Content -->
-  <div class="dialog-content">
-    <form [formGroup]="pythonForm">
-      <!-- Name Field -->
-      <div class="form-group">
-        <label for="name">Name</label>
-        <input
-          id="name"
-          type="text"
-          formControlName="name"
-          placeholder="Enter node name"
-        />
-      </div>
-
-      <!-- Unique Node Name Field: for node.node_name -->
-      <div class="form-group">
-        <div class="label-row">
-          <label for="node_name">Node name (unique for all of the nodes)</label>
-          <span
-            *ngIf="pythonForm.get('node_name')?.errors?.['uniqueNodeName']"
-            class="error-message"
+  <form [formGroup]="pythonForm" (ngSubmit)="$event.preventDefault()">
+    <!-- Body -->
+    <div class="dialog-content">
+      @if (!isExpanded()) {
+      <div
+        class="collapsed-wrapper"
+        [style.flex-direction]="isExpanded() ? 'row' : 'column'"
+      >
+        <!-- Name Field -->
+        <div class="form-group">
+          <label for="name"
+            >Name
+            <span class="required">
+              @if (pythonForm.get('name')?.errors?.['required'] &&
+              pythonForm.get('name')?.touched) { Name is required } *</span
+            ></label
           >
-            {{ pythonForm.get('node_name')?.errors?.['uniqueNodeName'].message }}
-          </span>
+          <input
+            id="name"
+            type="text"
+            formControlName="name"
+            placeholder="Enter node name"
+            [style.--active-color]="activeColor"
+          />
         </div>
-        <input
-          id="node_name"
-          type="text"
-          formControlName="node_name"
-          placeholder="Enter node name"
-          autocomplete="off"
-        />
-      </div>
 
-      <!-- Input Map Key-Value Pairs with Drag & Drop -->
-      <div class="form-group input-map">
-        <label>
-          Input Map
-          <i class="ti ti-plus" (click)="addInputMapPair()"></i>
-        </label>
-        <div
-          class="input-map-list"
-          formArrayName="input_map"
-          cdkDropList
-          (cdkDropListDropped)="dropInputMapPair($event)"
-        >
-          <div
-            class="input-map-item"
-            *ngFor="let pairCtrl of inputMapPairs.controls; let i = index"
-            [formGroupName]="i"
-            cdkDrag
+        <!-- Unique Node Name Field: for node.node_name -->
+        <div class="form-group">
+          <label for="node_name"
+            >Node name
+            <span class="required"
+              >@if (pythonForm.get('node_name')?.errors?.['required'] &&
+              pythonForm.get('node_name')?.touched) { Node name is required }
+              *</span
+            ></label
           >
-            <!-- Drag handle -->
-            <div class="drag-handle" cdkDragHandle>
-              <i class="ti ti-grip-vertical"></i>
-            </div>
+          <div class="input-with-error">
+            <input
+              id="node_name"
+              type="text"
+              formControlName="node_name"
+              placeholder="Enter node name"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              [style.--active-color]="activeColor"
+            />
+          </div>
+        </div>
 
-            <!-- Key-Value Pair Controls -->
-            <div class="input-map-fields">
-              <input type="text" formControlName="key" placeholder="Key" />
-              <input type="text" formControlName="value" placeholder="Value" />
-              <i
-                class="ti ti-trash delete-icon"
-                (click)="removeInputMapPair(i)"
-              ></i>
+        <!-- Input Map Key-Value Pairs -->
+        <div class="form-group input-map">
+          <label>Input Map</label>
+          <app-input-map [activeColor]="activeColor"></app-input-map>
+        </div>
+
+        <!-- Output Variable Path -->
+        <div class="form-group">
+          <label for="output_variable_path">Output Variable Path</label>
+          <input
+            id="output_variable_path"
+            type="text"
+            formControlName="output_variable_path"
+            placeholder="Enter output variable path (leave empty for null)"
+            [style.--active-color]="activeColor"
+          />
+        </div>
+
+        <!-- Code Editor Component -->
+        <div class="form-group">
+          <div
+            class="code-editor-container"
+            [style.height]="isExpanded() ? '100%' : '250px'"
+          >
+            <app-code-editor
+              [pythonCode]="pythonCode"
+              (pythonCodeChange)="onPythonCodeChange($event)"
+              (errorChange)="onCodeErrorChange($event)"
+            ></app-code-editor>
+          </div>
+        </div>
+        <!-- Libraries Component -->
+        <div class="form-group">
+          <app-tool-libraries
+            [libraries]="node.data.libraries"
+          ></app-tool-libraries>
+        </div>
+      </div>
+      }@else {
+      <div
+        class="collapsed-wrapper"
+        [style.flex-direction]="isExpanded() ? 'row' : 'column'"
+        [style.gap]="isExpanded() ? '1rem' : '0rem'"
+      >
+        <!-- Name Field -->
+        <div class="expanded-wrapper">
+          <div class="form-group">
+            <label for="name"
+              >Name
+              <span class="required">
+                @if (pythonForm.get('name')?.errors?.['required'] &&
+                pythonForm.get('name')?.touched) { Name is required } *</span
+              ></label
+            >
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              placeholder="Enter node name"
+              [style.--active-color]="activeColor"
+            />
+          </div>
+
+          <!-- Unique Node Name Field: for node.node_name -->
+          <div class="form-group">
+            <label for="node_name"
+              >Node name
+              <span class="required"
+                >@if (pythonForm.get('node_name')?.errors?.['required'] &&
+                pythonForm.get('node_name')?.touched) { Node name is required }
+                *</span
+              ></label
+            >
+            <div class="input-with-error">
+              <input
+                id="node_name"
+                type="text"
+                formControlName="node_name"
+                placeholder="Enter node name"
+                autocomplete="off"
+                [style.--active-color]="activeColor"
+              />
             </div>
+          </div>
+
+          <!-- Input Map Key-Value Pairs -->
+          <div class="form-group input-map">
+            <label>Input Map</label>
+            <app-input-map [activeColor]="activeColor"></app-input-map>
+          </div>
+
+          <!-- Output Variable Path -->
+          <div class="form-group">
+            <label for="output_variable_path">Output Variable Path</label>
+            <input
+              id="output_variable_path"
+              type="text"
+              formControlName="output_variable_path"
+              placeholder="Enter output variable path (leave empty for null)"
+              [style.--active-color]="activeColor"
+            />
+          </div>
+
+          <!-- Libraries Component -->
+          <div class="form-group">
+            <app-tool-libraries
+              [libraries]="node.data.libraries"
+            ></app-tool-libraries>
+          </div>
+        </div>
+        <div class="form-group">
+          <div
+            class="code-editor-container"
+            [style.height]="isExpanded() ? '100%' : '300px'"
+          >
+            <app-code-editor
+              [pythonCode]="pythonCode"
+              (pythonCodeChange)="onPythonCodeChange($event)"
+              (errorChange)="onCodeErrorChange($event)"
+            ></app-code-editor>
           </div>
         </div>
       </div>
+      }
+    </div>
 
-      <!-- Output Variable Path -->
-      <div class="form-group">
-        <label for="output_variable_path">Output Variable Path</label>
-        <input
-          id="output_variable_path"
-          type="text"
-          formControlName="output_variable_path"
-          placeholder="Enter output variable path (leave empty for null)"
-        />
-      </div>
-
-      <!-- Code Editor Component -->
-      <div class="form-group">
-        <app-code-editor
-          [editorHeight]="250"
-          [pythonCode]="pythonCode"
-          (errorChange)="onCodeErrorChange($event)"
-        ></app-code-editor>
-      </div>
-
-      <!-- Libraries Component -->
-      <div class="form-group">
-        <app-tool-libraries
-          [libraries]="node.data.libraries"
-        ></app-tool-libraries>
-      </div>
-    </form>
-  </div>
-  <!-- Fixed Action Buttons -->
-  <div class="actions">
-    <button type="button" (click)="close()">Cancel</button>
-    <button
-      type="button"
-      [disabled]="pythonForm.invalid || codeEditorHasError"
-      (click)="onSave()"
-    >
-      Save
-    </button>
-  </div>
+    <!-- Footer -->
+    <div class="actions">
+      <button type="button" (click)="close()">Cancel</button>
+      <button
+        type="button"
+        (click)="onSave()"
+        [disabled]="
+          pythonForm.invalid || codeEditorHasError || !hasUnsavedChangesFn()
+        "
+      >
+        Save
+      </button>
+    </div>
+  </form>
 </div>

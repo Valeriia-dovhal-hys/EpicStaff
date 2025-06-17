@@ -7,12 +7,13 @@ import { LLM_Config_Service } from './LLM_config.service';
 import { ToolConfigService } from './tool_config.service';
 import { PythonCodeToolService } from '../user-settings-page/tools/custom-tool-editor/services/pythonCodeToolService.service';
 import { LLM_Models_Service } from './LLM_models.service';
-import { ProjectsService } from '../pages/projects-page/services/projects.service';
+import { ProjectsStorageService } from '../features/projects/services/projects-storage.service';
 
 import { GetAgentRequest } from '../shared/models/agent.model';
 import { GetLlmConfigRequest } from '../shared/models/LLM_config.model';
+import { GetLlmModelRequest } from '../shared/models/LLM.model';
 import { GetToolConfigRequest } from '../shared/models/tool_config,model';
-import { GetPythonCodeToolRequest } from '../user-settings-page/tools/custom-tool-editor/models/python-code-tool.model';
+import { GetPythonCodeToolRequest } from '../features/tools/models/python-code-tool.model';
 import {
   RealtimeModelConfig,
   RealtimeModelConfigsService,
@@ -22,8 +23,9 @@ import {
   RealtimeModelsService,
 } from '../pages/models-page/services/realtime-models-services/real-time-models.service';
 
-export interface EnhancedLLMConfig extends GetLlmConfigRequest {
+export interface FullLlmConfig extends GetLlmConfigRequest {
   modelName: string;
+  modelDetails: GetLlmModelRequest | null;
 }
 
 export interface EnhancedRealtimeConfig extends RealtimeModelConfig {
@@ -31,8 +33,8 @@ export interface EnhancedRealtimeConfig extends RealtimeModelConfig {
 }
 
 export interface FullAgent extends GetAgentRequest {
-  fullLlmConfig?: EnhancedLLMConfig | null;
-  fullFcmLlmConfig?: EnhancedLLMConfig | null;
+  fullLlmConfig?: FullLlmConfig | null;
+  fullFcmLlmConfig?: FullLlmConfig | null;
   fullRealtimeConfig?: EnhancedRealtimeConfig | null;
   fullConfiguredTools: GetToolConfigRequest[];
   fullPythonTools: GetPythonCodeToolRequest[];
@@ -60,7 +62,7 @@ export class FullAgentService {
     private toolConfigService: ToolConfigService,
     private pythonCodeToolService: PythonCodeToolService,
     private llmModelsService: LLM_Models_Service,
-    private projectsService: ProjectsService,
+    private projectsService: ProjectsStorageService,
     private realtimeModelConfigsService: RealtimeModelConfigsService,
     private realtimeModelsService: RealtimeModelsService
   ) {}
@@ -97,12 +99,16 @@ export class FullAgentService {
           return agents.map((agent) => {
             const findEnhancedConfig = (
               configId: number | null
-            ): EnhancedLLMConfig | null => {
+            ): FullLlmConfig | null => {
               if (configId === null) return null;
               const config = llmConfigs.find((cfg) => cfg.id === configId);
               if (config) {
                 const model = llmModels.find((m) => m.id === config.model);
-                return { ...config, modelName: model ? model.name : 'Unknown' };
+                return {
+                  ...config,
+                  modelName: model ? model.name : 'Unknown',
+                  modelDetails: model ? model : null,
+                };
               }
               return null;
             };
@@ -128,7 +134,7 @@ export class FullAgentService {
             const fullLlmConfig = findEnhancedConfig(agent.llm_config);
             const fullFcmLlmConfig = findEnhancedConfig(agent.fcm_llm_config);
             const fullRealtimeConfig = findEnhancedRealtimeConfig(
-              agent.realtime_config
+              agent.realtime_agent.realtime_config
             );
 
             // Tool configs
@@ -233,7 +239,7 @@ export class FullAgentService {
           ];
 
           // Filter agents to include only those related to the project
-          const projectAgentIds = project.agents; // Agents field from the project
+          const projectAgentIds = project?.agents || []; // Agents field from the project
 
           const filteredAgents = agents.filter(
             (agent) => projectAgentIds.includes(agent.id) // Keep only agents present in the project
@@ -242,12 +248,16 @@ export class FullAgentService {
           return filteredAgents.map((agent) => {
             const findEnhancedConfig = (
               configId: number | null
-            ): EnhancedLLMConfig | null => {
+            ): FullLlmConfig | null => {
               if (configId === null) return null;
               const config = llmConfigs.find((cfg) => cfg.id === configId);
               if (config) {
                 const model = llmModels.find((m) => m.id === config.model);
-                return { ...config, modelName: model ? model.name : 'Unknown' };
+                return {
+                  ...config,
+                  modelName: model ? model.name : 'Unknown',
+                  modelDetails: model ? model : null,
+                };
               }
               return null;
             };
@@ -273,7 +283,7 @@ export class FullAgentService {
             const fullLlmConfig = findEnhancedConfig(agent.llm_config);
             const fullFcmLlmConfig = findEnhancedConfig(agent.fcm_llm_config);
             const fullRealtimeConfig = findEnhancedRealtimeConfig(
-              agent.realtime_config
+              agent.realtime_agent.realtime_config
             );
 
             // Tool configs
@@ -384,12 +394,16 @@ export class FullAgentService {
 
           const findEnhancedConfig = (
             configId: number | null
-          ): EnhancedLLMConfig | null => {
+          ): FullLlmConfig | null => {
             if (configId === null) return null;
             const config = llmConfigs.find((cfg) => cfg.id === configId);
             if (config) {
               const model = llmModels.find((m) => m.id === config.model);
-              return { ...config, modelName: model ? model.name : 'Unknown' };
+              return {
+                ...config,
+                modelName: model ? model.name : 'Unknown',
+                modelDetails: model ? model : null,
+              };
             }
             return null;
           };
@@ -415,7 +429,7 @@ export class FullAgentService {
           const fullLlmConfig = findEnhancedConfig(agent.llm_config);
           const fullFcmLlmConfig = findEnhancedConfig(agent.fcm_llm_config);
           const fullRealtimeConfig = findEnhancedRealtimeConfig(
-            agent.realtime_config
+            agent.realtime_agent.realtime_config
           );
 
           // Tool configs

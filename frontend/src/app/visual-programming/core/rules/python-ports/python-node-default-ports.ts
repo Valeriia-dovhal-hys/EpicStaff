@@ -12,7 +12,6 @@ export const DEFAULT_PYTHON_NODE_PORTS: BasePort[] = [
       'edge-out',
       'start-start',
       'table-out',
-
       'llm-out-right',
     ],
     position: 'left',
@@ -22,7 +21,7 @@ export const DEFAULT_PYTHON_NODE_PORTS: BasePort[] = [
   {
     port_type: 'output',
     role: 'python-out',
-    multiple: false,
+    multiple: true,
     label: 'Out',
     allowedConnections: [
       'project-in',

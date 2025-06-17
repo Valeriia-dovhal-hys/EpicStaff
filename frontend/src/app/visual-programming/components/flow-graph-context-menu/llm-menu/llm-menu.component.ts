@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LLM_Config_Service } from '../../../../services/LLM_config.service';
-import { LLMConfigDto } from '../../../../shared/models/LLM_config.model';
+import { GetLlmConfigRequest } from '../../../../shared/models/LLM_config.model';
 import { NodeType } from '../../../core/enums/node-type';
 
 @Component({
@@ -80,10 +80,10 @@ export class LlmMenuComponent implements OnInit {
   @Input() public searchTerm: string = '';
   @Output() public nodeSelected = new EventEmitter<{
     type: NodeType.LLM;
-    data: LLMConfigDto;
+    data: GetLlmConfigRequest;
   }>();
 
-  public configs: LLMConfigDto[] = [];
+  public configs: GetLlmConfigRequest[] = [];
 
   constructor(
     private llmConfigService: LLM_Config_Service,
@@ -92,7 +92,7 @@ export class LlmMenuComponent implements OnInit {
 
   ngOnInit(): void {
     this.llmConfigService.getAllConfigsLLM().subscribe({
-      next: (configs: LLMConfigDto[]) => {
+      next: (configs: GetLlmConfigRequest[]) => {
         this.configs = configs;
         this.cdr.markForCheck();
       },
@@ -102,19 +102,19 @@ export class LlmMenuComponent implements OnInit {
     });
   }
 
-  public get filteredConfigs(): LLMConfigDto[] {
+  public get filteredConfigs(): GetLlmConfigRequest[] {
     return this.configs.filter((config) =>
       config.custom_name.toLowerCase().includes(this.searchTerm.toLowerCase())
     );
   }
 
-  public onConfigClicked(config: LLMConfigDto): void {
+  public onConfigClicked(config: GetLlmConfigRequest): void {
     console.log('Config clicked');
 
     this.nodeSelected.emit({ type: NodeType.LLM, data: config });
   }
 
-  public trackById(index: number, config: LLMConfigDto): number {
+  public trackById(index: number, config: GetLlmConfigRequest): number {
     return config.id;
   }
 }

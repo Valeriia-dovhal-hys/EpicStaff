@@ -1,6 +1,6 @@
 import re
 from typing import Any
-from models.dotdict import DotDict
+from dotdict import DotDict
 from models.state import State
 
 def set_output_variables(

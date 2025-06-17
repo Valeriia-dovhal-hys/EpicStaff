@@ -1,5 +1,10 @@
 <div class="collections-sidebar">
   <div class="collections-list">
+    <div class="search-container">
+      <app-search2 [(value)]="searchQuery" placeholder="Search collections...">
+      </app-search2>
+    </div>
+
     <div class="empty-collections" *ngIf="collections.length === 0">
       <div class="empty-icon">
         <svg width="32" height="32" viewBox="0 0 24 24">
@@ -39,7 +44,7 @@
     <!-- Collections list -->
     <div class="collections-grid" *ngIf="collections.length > 0">
       <app-collection-item
-        *ngFor="let collection of collections"
+        *ngFor="let collection of filteredCollections"
         [collection]="collection"
         [isActive]="
           collection.collection_id === selectedCollection?.collection_id

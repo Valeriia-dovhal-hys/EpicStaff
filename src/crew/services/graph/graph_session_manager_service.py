@@ -1,6 +1,6 @@
 import json
 from typing import Any
-from models.dotdict import DotDict
+from dotdict import DotDict
 from services.graph.graph_builder import SessionGraphBuilder, State
 from services.python_code_executor_service import RunPythonCodeService
 from utils.singleton_meta import SingletonMeta
@@ -23,6 +23,7 @@ class GraphSessionManagerService(metaclass=SingletonMeta):
         crew_parser_service: CrewParserService,
         python_code_executor_service: RunPythonCodeService,
         session_schema_channel: str,
+        session_timeout_channel: str,
         crewai_output_channel: str,
         knowledge_search_service: KnowledgeSearchService,
     ):
@@ -42,15 +43,16 @@ class GraphSessionManagerService(metaclass=SingletonMeta):
         self.crew_parser_service = crew_parser_service
         self.python_code_executor_service = python_code_executor_service
         self.session_schema_channel = session_schema_channel
+        self.session_timeout_channel = session_timeout_channel
         self.crewai_output_channel = crewai_output_channel
         self.knowledge_search_service = knowledge_search_service
 
     def start(self):
-        self._listener_task = asyncio.create_task(self._listen_to_channel())
+        self._listener_task = asyncio.create_task(self._listen_to_channels())
         logger.info("Session Manager Service is now running.")
 
     async def run_session(self, session_data: SessionData):
-        
+
         try:
             session_id = session_data.id
             initial_state = session_data.initial_state
@@ -69,6 +71,7 @@ class GraphSessionManagerService(metaclass=SingletonMeta):
             state = {
                 "state_history": [],
                 "variables": DotDict(initial_state),
+                "system_variables": {"nodes": {}},
             }
 
             await self.redis_service.async_update_session_status(
@@ -88,48 +91,120 @@ class GraphSessionManagerService(metaclass=SingletonMeta):
                 session_id=session_id, status="end"
             )
 
+        except asyncio.CancelledError:
+            # Status updated in _handle_session_timeout
+            logger.warning(f"Session {session_id} was cancelled")
+
         except Exception as e:
             logger.exception(f"Failed to start session: {e}")
-            await self.redis_service.async_update_session_status(session_id=session_id, status="error", error=e)
 
-    async def stop_session(self, session_id: int):
-        task = self.session_graph_pool.get(session_id)
-        if task:
-            task.cancel()
-            logger.info(f"Session {session_id} stopped.")
-        else:
-            logger.warning(f"Session {session_id} not found.")
+            await self.redis_service.async_update_session_status(
+                session_id=session_id, status="error", error=str(e)
+            )
 
+    async def _listen_to_channels(self):
+        pubsub = await self.redis_service.async_subscribe(
+            [self.session_schema_channel, self.session_timeout_channel]
+        )
 
-
-    async def _listen_to_channel(
-        self,
-    ):
-        schema_pubsub = await self.redis_service.async_subscribe(self.session_schema_channel)
         try:
-            async for message in schema_pubsub.listen():
+            async for message in pubsub.listen():
                 if message["type"] == "message":
-                    channel = message["channel"]
-                    data = message["data"]
 
-                    # Update env keys first
-                    config_path = Path("env_config/config.yaml").resolve().as_posix()
-                    load_env(config_path)
+                    channel = (
+                        message["channel"].decode("utf-8")
+                        if isinstance(message["channel"], bytes)
+                        else message["channel"]
+                    )
+                    data = (
+                        message["data"].decode("utf-8")
+                        if isinstance(message["data"], bytes)
+                        else message["data"]
+                    )
+                    logger.info(f"Get message from {channel}: {data}")
 
-                    await self._handle_message(channel, data)
+                    if channel == self.session_schema_channel:
+                        # Update env keys first
+                        config_path = (
+                            Path("env_config/config.yaml").resolve().as_posix()
+                        )
+                        load_env(config_path)
+                        await self._handle_session_start(data)
+
+                    elif channel == self.session_timeout_channel:
+                        await self._handle_session_timeout(data)
+
+                    else:
+                        logger.info(f"Unknown channel {channel}")
 
         except Exception as e:  # asyncio.CancelledError
             ...
             logger.exception("PubSub listener task cancelled.")
         finally:
-            await schema_pubsub.unsubscribe(self.session_schema_channel)
+            await pubsub.unsubscribe(self.session_schema_channel)
+            await pubsub.unsubscribe(self.session_timeout_channel)
 
-    async def _handle_message(self, channel: str, data: str):
-        logger.info(f"Received message from channel {channel}: {data}")
-
-        session_schema = json.loads(data)
-        if channel == self.session_schema_channel:
-
+    async def _handle_session_start(self, data: str):
+        try:
+            logger.info(
+                f"Received message from channel {self.session_schema_channel}: {data}"
+            )
+            session_schema = json.loads(data)
             session_data = SessionData.model_validate(session_schema)
+            session_id = session_data.id
 
-            self.session_graph_pool[session_data.id] = asyncio.create_task(self.run_session(session_data))
+            session_task = asyncio.create_task(self.run_session(session_data))
+            self.session_graph_pool[session_data.id] = session_task
+
+            def create_callback(sid):
+                def remove_task_from_pool(completed_task):
+                    if sid in self.session_graph_pool:
+                        self.session_graph_pool.pop(sid)
+                        logger.info(f"Task for session {sid} removed from pool")
+
+                return remove_task_from_pool
+
+            # callback to clean up completed tasks
+            session_task.add_done_callback(create_callback(session_id))
+        except Exception as e:
+            logger.exception(f"Error handling session start: {e}")
+
+    async def _handle_session_timeout(self, data: str):
+        """
+        Handle session timeout message
+        """
+        logger.info(
+            f"Received message from channel {self.session_timeout_channel}: {data}"
+        )
+        try:
+            timeout_data = json.loads(data)
+            session_id = timeout_data.get("session_id")
+            action = timeout_data.get("action")
+
+            if action == "timeout":
+                if session_id in self.session_graph_pool:
+                    logger.info(f"Handling timeout for session {session_id}")
+
+                    # Remove task from pool and cancel
+                    session_task = self.session_graph_pool.pop(session_id)
+                    session_task.cancel()
+
+                    await self.redis_service.async_update_session_status(
+                        session_id=session_id, status="expired"
+                    )
+
+                    logger.info(
+                        f"Session {session_id} cancelled due to timeout. Setted status: expired"
+                    )
+                else:
+                    logger.info(
+                        f"Can not fetch task from session_graph_pool for session ID: {session_id}. Setted status: expired"
+                    )
+                    await self.redis_service.async_update_session_status(
+                        session_id=session_id, status="expired"
+                    )
+            else:
+                logger.info(f"Handling timeout for session {session_id}")
+
+        except Exception as e:
+            logger.exception(f"Error handling session timeout: {e}")

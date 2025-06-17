@@ -1,22 +1,3 @@
-export interface LLM_Config {
-  id: number;
-  temperature: number;
-  num_ctx: number;
-  is_visible: boolean;
-  model: number;
-  api_key: string;
-  custom_name: string;
-}
-export interface LLMConfigDto {
-  id: number;
-  temperature: number;
-  num_ctx: number;
-  is_visible: boolean;
-  model: number;
-  api_key: string;
-  custom_name: string;
-}
-
 export interface GetLlmConfigRequest {
   id: number;
   temperature: number;

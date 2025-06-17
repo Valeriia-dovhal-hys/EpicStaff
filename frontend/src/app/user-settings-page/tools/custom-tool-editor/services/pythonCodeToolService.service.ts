@@ -5,7 +5,7 @@ import {
   CreatePythonCodeToolRequest,
   GetPythonCodeToolRequest,
   UpdatePythonCodeToolRequest,
-} from '../models/python-code-tool.model';
+} from '../../../../features/tools/models/python-code-tool.model';
 import { ApiGetRequest } from '../../../../shared/models/api-request.model';
 import { ConfigService } from '../../../../services/config/config.service';
 
@@ -34,8 +34,8 @@ export class PythonCodeToolService {
   // POST method to create a new Python code tool
   createPythonCodeTool(
     tool: CreatePythonCodeToolRequest
-  ): Observable<CreatePythonCodeToolRequest> {
-    return this.http.post<CreatePythonCodeToolRequest>(this.baseUrl, tool, {
+  ): Observable<GetPythonCodeToolRequest> {
+    return this.http.post<GetPythonCodeToolRequest>(this.baseUrl, tool, {
       headers: this.headers,
     });
   }

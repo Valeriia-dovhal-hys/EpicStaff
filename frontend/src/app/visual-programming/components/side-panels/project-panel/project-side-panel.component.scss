@@ -1,162 +1,256 @@
+// Variables
+$background-color: var(--color-nodes-sidepanel-bg);
+$border-color: var(--color-divider-subtle);
+$input-bg-color: var(--color-nodes-input-bg);
+$accent-color: var(--project-node-accent-color);
+$disabled-color: #666;
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+}
+
+@mixin input-base {
+  width: 100%;
+  background-color: $input-bg-color;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  color: #fff;
+  font-size: 0.875rem;
+  outline: none;
+
+  &:focus {
+    border-color: $accent-color;
+  }
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
+}
+
 .wrapper {
-  background-color: #131313;
+  background-color: $background-color;
   border-radius: 12px;
-  width: 520px;
+  width: 440px;
   height: 100%;
+  border: 1px solid $border-color;
   display: flex;
   flex-direction: column;
   color: #fff;
-}
 
-.dialog-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid #333;
+  .dialog-header {
+    @include flex-center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid $border-color;
 
-  .icon-and-title {
-    display: flex;
-    align-items: center;
-    min-width: 0; // lets the child shrink
+    .icon-and-title {
+      @include flex-center;
+      min-width: 0;
 
-    i {
-      font-size: 1.5rem;
-      margin-right: 1.5rem;
-      color: var(--primary-color, #685fff);
-    }
-
-    .title {
-      display: inline-block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  }
-
-  .close-icon {
-    font-size: 1.25rem;
-    cursor: pointer;
-  }
-}
-
-.dialog-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem;
-
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem; // Increased consistent spacing between form groups
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-
-      .label-row {
-        display: flex;
-        align-items: center;
+      i {
+        font-size: 1.5rem;
+        margin-right: 1.5rem;
+        color: $accent-color;
       }
 
-      label {
-        font-size: 0.875rem;
-        margin-bottom: 0.5rem;
-        color: #aaa;
-        display: flex;
-        align-items: center;
+      .title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
 
-        .ti-plus {
-          margin-left: auto;
-          cursor: pointer;
-          color: #ccc;
-          transition: color 0.2s, background-color 0.2s;
-          padding: 0.2rem;
+    .header-actions {
+      @include flex-center;
+      gap: 1rem;
+
+      .close-action {
+        @include flex-center;
+        gap: 0.5rem;
+
+        .esc-label {
+          font-size: 0.75rem;
+          color: #666;
+          font-weight: 500;
+          padding: 0.15rem 0.3rem;
+          border: 1px solid #444;
           border-radius: 4px;
+          background: #2a2a2a;
+        }
+
+        i {
+          font-size: 1.25rem;
+          cursor: pointer;
+          transition: color 0.2s ease;
 
           &:hover {
-            color: #00aaff;
-            background-color: rgba(0, 170, 255, 0.1);
+            color: $accent-color;
           }
         }
       }
+    }
+  }
 
-      .error-message {
-        margin-left: auto;
-        font-size: 0.85rem;
-        color: red;
-        margin-bottom: 6px;
-      }
+  form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 
-      input[type="text"],
-      input[type="number"],
-      select,
-      textarea {
-        background-color: #1e1e1e;
-        border: 1px solid #333;
-        border-radius: 6px;
-        padding: 0.5rem 0.75rem;
-        color: #fff;
-        font-size: 0.875rem;
-      }
+    .dialog-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      min-height: 0;
 
-      textarea {
-        resize: vertical;
-        min-height: 80px;
-      }
+      .form-group {
+        margin-bottom: 1rem;
 
-      /* Styles for the Input Map section */
-      &.input-map {
-        .input-map-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-          margin-bottom: 0; // No additional margin at bottom
+        label {
+          @include flex-center;
+          justify-content: space-between;
+          font-size: 0.875rem;
+          margin-bottom: 0.5rem;
+          color: #aaa;
 
-          .input-map-item {
-            background: #1e1e1e;
-            padding: 0.5rem 0.75rem;
-            border-radius: 6px;
-            position: relative; // For absolute positioning of the handle
+          .required {
+            color: #ff4444;
+            margin-left: 4px;
+          }
 
-            .input-map-fields {
-              display: flex;
-              align-items: center;
-              gap: 0.5rem;
+          .ti-plus {
+            cursor: pointer;
+            color: #ccc;
+            transition: color 0.2s, background-color 0.2s;
+            padding: 0.2rem;
+            border-radius: 4px;
 
-              input[type="text"] {
-                flex: 1;
-              }
+            &:hover {
+              color: $accent-color;
+              background-color: rgba(0, 170, 255, 0.1);
+            }
+          }
+        }
 
-              .delete-icon,
-              .ti-trash {
-                font-size: 1rem;
-                cursor: pointer;
-                color: #ccc;
-                transition: color 0.2s ease;
-                &:hover {
-                  color: red;
+        .error-message {
+          font-size: 0.75rem;
+          color: #ff4444;
+          margin-top: 0.25rem;
+          display: block;
+        }
+
+        .input-with-error {
+          position: relative;
+
+          .node-name-error {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 0.7rem;
+            color: red;
+            background-color: $background-color;
+            padding: 1px 5px;
+            border-radius: 3px;
+            z-index: 10;
+            border: 1px solid red;
+          }
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+          @include input-base;
+        }
+
+        &.input-map {
+          .input-map-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+
+            .input-map-item {
+              .input-map-fields {
+                @include flex-center;
+                gap: 0.5rem;
+
+                input[type="text"] {
+                  flex: 1;
+                  min-width: 0;
+                }
+
+                .delete-icon {
+                  font-size: 1rem;
+                  cursor: pointer;
+                  color: #ccc;
+                  padding: 0.2rem;
+                  border-radius: 4px;
+                  transition: all 0.2s ease;
+
+                  &:hover {
+                    color: red;
+                    background-color: rgba(255, 0, 0, 0.1);
+                  }
                 }
               }
             }
+          }
+        }
+      }
+    }
 
-            /* Drag Handle: positioned at the left side */
-            .drag-handle {
-              position: absolute;
-              top: 50%;
-              left: -20px;
-              transform: translateY(-50%);
-              cursor: move;
-              color: #ccc;
-              font-size: 1rem;
-              z-index: 20;
-              opacity: 0;
-              transition: opacity 0.2s ease;
-              cursor: pointer;
+    .actions {
+      padding: 1rem;
+      border-top: 1px solid #333;
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      flex-shrink: 0;
+
+      button {
+        padding: 0.3rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:first-of-type {
+          background: transparent;
+          color: #ccc;
+          border: 1px solid #333;
+
+          &:hover {
+            background: #333;
+            color: #fff;
+          }
+        }
+
+        &:last-of-type {
+          background-color: $disabled-color;
+          color: #202020;
+          font-weight: 500;
+          opacity: 0.5;
+          transition: all 0.3s ease;
+
+          &.active {
+            background-color: $accent-color;
+            opacity: 1;
+
+            &:hover {
+              filter: brightness(1.1);
             }
-            &:hover .drag-handle {
-              opacity: 1;
-            }
+          }
+
+          &:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+            opacity: 0.5;
           }
         }
       }
@@ -164,35 +258,6 @@
   }
 }
 
-.dialog-actions {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #333;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-
-  button {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    cursor: pointer;
-
-    &:first-of-type {
-      background: transparent;
-      color: #ccc;
-      border: 1px solid #333;
-    }
-    &:last-of-type {
-      background-color: var(--primary-color, #685fff);
-      color: #fff;
-    }
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-}
 @keyframes fadeIn {
   0% {
     opacity: 0;
@@ -201,5 +266,25 @@
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+.add-pair-btn {
+  @include flex-center;
+  gap: 8px;
+  padding: 6px 12px;
+  margin-top: 8px;
+  background: var(--color-action-btn-background);
+  border: 1px solid $border-color;
+  border-radius: 4px;
+  color: var(--color-text-primary);
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: var(--color-action-btn-background-hover);
+  }
+
+  i {
+    font-size: 16px;
   }
 }

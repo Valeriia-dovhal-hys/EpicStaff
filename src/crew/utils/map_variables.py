@@ -1,4 +1,4 @@
-from models.dotdict import DotDict
+from dotdict import DotDict
 import re
 
 def map_variables_to_input(variables: DotDict, map: dict)-> dict:

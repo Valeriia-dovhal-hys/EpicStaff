@@ -1,0 +1,27 @@
+<div class="flow-card" (click)="onCardClick()">
+  <div class="card-header">
+    <h3 class="flow-name">{{ flow.name }}</h3>
+    <div class="header-actions">
+      <app-button
+        type="secondary"
+        (click)="onViewSessions($event)"
+        ariaLabel="View Sessions"
+      >
+        View Sessions
+      </app-button>
+      <app-icon-button
+        icon="ui/x"
+        size="2rem"
+        ariaLabel="Delete flow"
+        (click)="onDelete($event)"
+      >
+      </app-icon-button>
+    </div>
+  </div>
+
+  <div class="card-content">
+    <p class="flow-description" [class.placeholder]="!flow.description">
+      {{ flow.description || "No description provided." }}
+    </p>
+  </div>
+</div>

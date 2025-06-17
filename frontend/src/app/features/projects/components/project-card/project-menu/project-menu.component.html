@@ -1,0 +1,50 @@
+<div class="menu-container" [ngClass]="{ 'menu-active': isMenuOpen() }">
+  <button
+    class="menu-button"
+    [class.active]="isMenuOpen()"
+    title="Options"
+    (click)="toggleMenu($event)"
+    (mouseenter)="onButtonEnter()"
+    (mouseleave)="onButtonLeave()"
+  >
+    <app-icon icon="ui/dots-vertical" size="1rem"></app-icon>
+  </button>
+  <div
+    class="context-menu"
+    *ngIf="isMenuOpen()"
+    (mouseenter)="onMenuEnter()"
+    (mouseleave)="onMenuLeave()"
+  >
+    <!-- <app-project-menu-item
+      icon="ti-player-play"
+      label="Run"
+      (itemClick)="onActionClick($event, 'run')"
+    ></app-project-menu-item>
+    <app-project-menu-item
+      icon="ti-copy"
+      label="Copy"
+      (itemClick)="onActionClick($event, 'copy')"
+    ></app-project-menu-item>
+    <app-project-menu-item
+      icon="ti-edit"
+      label="Edit"
+      (itemClick)="onActionClick($event, 'edit')"
+    ></app-project-menu-item> -->
+    <app-project-menu-item
+      icon="ti-tags"
+      label="Manage Tags"
+      (itemClick)="onActionClick($event, 'manage-tags')"
+    ></app-project-menu-item>
+    <!-- <app-project-menu-item
+      icon="ti-download"
+      label="Export"
+      (itemClick)="onActionClick($event, 'export')"
+    ></app-project-menu-item> -->
+    <app-project-menu-item
+      icon="ti-trash"
+      label="Delete"
+      [isDelete]="true"
+      (itemClick)="onActionClick($event, 'delete')"
+    ></app-project-menu-item>
+  </div>
+</div>

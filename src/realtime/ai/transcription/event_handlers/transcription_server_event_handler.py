@@ -1,21 +1,23 @@
-from typing import Callable, Dict, Any
+from typing import Callable, Dict, Any, Coroutine
 import json
 
 from loguru import logger
 from db.database import save_realtime_session_item_to_db
+from services.chat_buffer import ChatSummarizedBuffer
+
 
 class TranscriptionServerEventHandler:
     """Handles mapping of WebSocket events to their corresponding methods."""
 
-    def __init__(self, client, transcription_buffer: list[str]):
-        self.transcription_buffer: list[str] = transcription_buffer
+    def __init__(self, client, transcription_buffer: ChatSummarizedBuffer):
+        self.transcription_buffer: ChatSummarizedBuffer = transcription_buffer
         """Initialize the event handler with event mappings."""
         from ai.transcription.realtime_transcription import (
             OpenaiRealtimeTranscriptionClient,
         )
 
         self.client: OpenaiRealtimeTranscriptionClient = client
-        self.event_map: Dict[str, Callable[[Any], None]] = {
+        self.event_map: Dict[str, Callable[[Any], Coroutine[Any, Any, None]]] = {
             "response": self.default_handler,
             "response.created": self.default_handler,
             "session.created": self.default_handler,
@@ -37,7 +39,9 @@ class TranscriptionServerEventHandler:
         event_type = data.get("type", "")
         handler = self.event_map.get(event_type, self.unknown_event_handler)
         await handler(data)
-        await save_realtime_session_item_to_db(data=data, connection_key=self.client.connection_key)
+        await save_realtime_session_item_to_db(
+            data=data, connection_key=self.client.connection_key
+        )
 
     async def default_handler(self, data: Dict[str, Any]) -> None:
         await self.client.send_client(data)
@@ -69,6 +73,11 @@ class TranscriptionServerEventHandler:
         pass
 
     async def input_audio_transcription_completed_handler(self, data: dict):
-        self.transcription_buffer.append(data["transcript"])
+        transcript_data = data["transcript"]
+        logger.debug(f"Transcript data in handler {transcript_data}")
+        self.transcription_buffer.append(transcript_data)
+        logger.debug(
+            f"self.transcription_buffer {self.transcription_buffer.get_buffer()}"
+        )
 
         await self.default_handler(data)

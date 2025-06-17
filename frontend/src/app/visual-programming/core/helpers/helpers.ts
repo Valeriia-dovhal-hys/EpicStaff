@@ -9,8 +9,11 @@ import { DEFAULT_TASK_NODE_PORTS } from '../rules/task-ports/task-node-defaults-
 import { DEFAULT_PYTHON_NODE_PORTS } from '../rules/python-ports/python-node-default-ports';
 import { DEFAULT_EDGE_NODE_PORTS } from '../rules/edge-ports/edge-node-default-ports';
 import { DEFAULT_START_NODE_PORTS } from '../rules/start-ports/start-node-default-ports';
-import { Condition, DecisionTableData } from '../models/node.model';
+
 import { DEFAULT_TABLE_NODE_PORTS } from '../rules/table-ports/table-ports';
+import { DEFAULT_GROUP_NODE_PORTS } from '../rules/group-ports/group-node-default-ports';
+import { NodeModel } from '../models/node.model';
+import { ConditionGroup } from '../models/decision-table.model';
 
 export function parsePortId(
   portId: string
@@ -47,6 +50,10 @@ export function getPortsForType(nodeType: NodeType): BasePort[] {
       return DEFAULT_EDGE_NODE_PORTS;
     case NodeType.START:
       return DEFAULT_START_NODE_PORTS;
+    case NodeType.GROUP:
+      return DEFAULT_GROUP_NODE_PORTS;
+    case NodeType.TABLE:
+      return DEFAULT_TABLE_NODE_PORTS;
     default:
       console.warn(`Unsupported node type: ${nodeType}`);
       return [];
@@ -118,7 +125,7 @@ export function isConnectionValid(
     return false;
   }
 
-  // 🎉 If we reach here, it’s valid
+  // 🎉 If we reach here, it's valid
   return true;
 }
 
@@ -164,13 +171,16 @@ export function defineSourceTargetPair(
   );
   return null;
 }
+
 export function generatePortsForNode(
   newNodeId: string,
   nodeType: NodeType,
-  updatedConditions?: Condition[]
+  data?: any
 ): ViewPort[] {
   if (nodeType === NodeType.TABLE) {
-    return generateDecisionTablePortsForNode(newNodeId, updatedConditions);
+    // Defensive: check for data.table.condition_groups
+    const conditionGroups = data?.table?.condition_groups ?? [];
+    return generatePortsForDecisionTableNode(newNodeId, conditionGroups);
   }
   const portsConfig: BasePort[] = getPortsForType(nodeType);
   return portsConfig.map((config) => ({
@@ -179,48 +189,55 @@ export function generatePortsForNode(
   }));
 }
 
-// decision-table-ports.ts (Example file)
-export function generateDecisionTablePortsForNode(
-  newNodeId: string,
-  conditions?: Condition[]
+export function generatePortsForDecisionTableNode(
+  nodeId: string,
+  conditionGroups: ConditionGroup[]
 ): ViewPort[] {
-  const ports: ViewPort[] = [];
-
-  // Always add the input port (there is always one input port)
-  const inputPort = DEFAULT_TABLE_NODE_PORTS.find(
-    (port) => port.port_type === 'input'
+  // Use the default input port from DEFAULT_TABLE_NODE_PORTS
+  const inputPortConfig = DEFAULT_TABLE_NODE_PORTS.find(
+    (p) => p.port_type === 'input'
   );
-  if (inputPort) {
-    ports.push({
-      ...inputPort,
-      id: `${newNodeId}_${inputPort.role}`,
-    });
-  }
+  const inputPort = {
+    ...(inputPortConfig ?? {
+      port_type: 'input',
+      role: 'table-in',
+      multiple: false,
+      label: 'In',
+      allowedConnections: [
+        'project-out',
+        'python-out',
+        'edge-out',
+        'table-out',
+        'start-start',
+        'llm-out-right',
+      ],
+      position: 'left',
+      color: '#00aaff',
+    }),
+    id: `${nodeId}_table-in` as `${string}_${string}`,
+  };
 
-  // Get the default output port configuration
-  const defaultOutputPort = DEFAULT_TABLE_NODE_PORTS.find(
-    (port) => port.port_type === 'output'
+  const defaultOutputConfig = DEFAULT_TABLE_NODE_PORTS.find(
+    (p) => p.port_type === 'output'
   );
-  console.log(conditions);
+  const outputPorts: ViewPort[] = conditionGroups.map((group) => ({
+    ...(defaultOutputConfig ?? {
+      port_type: 'output',
+      allowedConnections: [
+        'project-in',
+        'python-in',
+        'edge-in',
+        'table-in',
+        'llm-out-left',
+      ],
+      position: 'right',
+      color: '#00aaff',
+      multiple: false,
+    }),
+    role: `decision-out-${group.group_name}`,
+    label: group.group_name,
+    id: `${nodeId}_decision-out_${group.group_name}` as `${string}_${string}`,
+  }));
 
-  // Create an output port for each condition if conditions are provided.
-  if (defaultOutputPort && conditions && conditions.length > 0) {
-    conditions.forEach((condition) => {
-      ports.push({
-        ...defaultOutputPort,
-        role: 'table-out', // or something else
-
-        label: condition.name, // Use the condition's name as the label.
-        id: `${newNodeId}_${defaultOutputPort.role}:${condition.name}`,
-      });
-    });
-  } else if (defaultOutputPort) {
-    // If no conditions are provided, include a single default output port.
-    ports.push({
-      ...defaultOutputPort,
-      id: `${newNodeId}_${defaultOutputPort.role}`,
-    });
-  }
-
-  return ports;
+  return [inputPort, ...outputPorts];
 }

@@ -56,7 +56,17 @@ export class FlowGraphContextMenuComponent {
   get menuContext(): MenuContext {
     return this._menuContext;
   }
+  public get topPosition(): number {
+    return this.menuContext === 'flow-graph'
+      ? this.position.y - 80
+      : this.position.y - 130;
+  }
 
+  public get leftPosition(): number {
+    return this.menuContext === 'flow-graph'
+      ? this.position.x - 70
+      : this.position.x - 70;
+  }
   @Output() public nodeSelected = new EventEmitter<{
     type: NodeType;
     data?: any;

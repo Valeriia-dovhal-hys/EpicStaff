@@ -1,0 +1,25 @@
+<button
+  [ngClass]="[
+    'btn',
+    'btn-' + type,
+    leftIcon ? 'btn--icon-left' : '',
+    rightIcon ? 'btn--icon-right' : ''
+  ]"
+  [disabled]="disabled"
+  [attr.aria-label]="ariaLabel"
+  type="button"
+>
+  @if (type === 'icon') { @if (leftIcon) {
+  <app-icon [icon]="leftIcon!" size="1.1rem" class="btn-icon left" />
+  } @if (rightIcon) {
+  <app-icon [icon]="rightIcon!" size="1.1rem" class="btn-icon right" />
+  } } @else { @if (leftIcon) {
+  <app-icon [icon]="leftIcon!" size="1.1rem" class="btn-icon left" />
+  }
+  <div class="btn-content">
+    <ng-content></ng-content>
+  </div>
+  @if (rightIcon) {
+  <app-icon [icon]="rightIcon!" size="1.1rem" class="btn-icon right" />
+  } }
+</button>

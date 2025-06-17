@@ -13,7 +13,7 @@ class ConnectionRepository(metaclass=SingletonMeta):
         self.max_connections = max_connections
 
     def save_connection(self, connection_key: str, data: RealtimeAgentChatData):
-        """Save connection data, remove oldest if over capacity."""
+        """Save connection data, remove the oldest if over capacity."""
         if len(self._store) >= self.max_connections:
             self._store.popitem(last=False)  # Remove the oldest entry
         self._store[connection_key] = data

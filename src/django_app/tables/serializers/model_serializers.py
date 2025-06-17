@@ -33,7 +33,13 @@ from tables.models.crew_models import (
     TaskPythonCodeTools,
 )
 from tables.models.embedding_models import DefaultEmbeddingConfig
-from tables.models.graph_models import LLMNode, StartNode
+from tables.models.graph_models import (
+    Condition,
+    ConditionGroup,
+    DecisionTableNode,
+    LLMNode,
+    StartNode,
+)
 from tables.models.llm_models import (
     DefaultLLMConfig,
     RealtimeModel,
@@ -71,18 +77,6 @@ class LLMConfigSerializer(serializers.ModelSerializer):
 class DefaultLLMConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = DefaultLLMConfig
-        fields = "__all__"
-
-
-class DefaultAgentConfigSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DefaultAgentConfig
-        fields = "__all__"
-
-
-class DefaultCrewConfigSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DefaultCrewConfig
         fields = "__all__"
 
 
@@ -497,11 +491,8 @@ class CrewNodeSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["crew"]
 
-    def get_crew(self, obj):
-        return CrewSerializer(obj.crew).data if obj.crew else None
-
     def validate_crew_id(self, value):
-        if not Crew.objects.filter(id=value).exists():
+        if not Crew.objects.only('id').filter(id=value).exists():
             raise serializers.ValidationError("Invalid crew_id: crew does not exist.")
         return value
 
@@ -597,31 +588,18 @@ class ConditionalEdgeSerializer(serializers.ModelSerializer):
         return self.update(instance, validated_data)
 
 
-class GraphSerializer(serializers.ModelSerializer):
-    # Reverse relationships
-    crew_node_list = CrewNodeSerializer(many=True, read_only=True)
-    python_node_list = PythonNodeSerializer(many=True, read_only=True)
-    edge_list = EdgeSerializer(many=True, read_only=True)
-    conditional_edge_list = ConditionalEdgeSerializer(many=True, read_only=True)
-    llm_node_list = LLMNodeSerializer(many=True, read_only=True)
+class StartNodeSerializer(serializers.ModelSerializer):
+    node_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = Graph
-        fields = [
-            "id",
-            "name",
-            "metadata",
-            "description",
-            "crew_node_list",
-            "python_node_list",
-            "edge_list",
-            "conditional_edge_list",
-            "llm_node_list",
-        ]
+        model = StartNode
+        fields = ["id", "graph", "variables", "node_name"]
+        read_only_fields = ["node_name"]
 
+    def get_node_name(self, obj):
+        return "__start__"
 
 class SessionSerializer(serializers.ModelSerializer):
-    graph = GraphSerializer(many=False, read_only=True)
 
     class Meta:
         model = Session
@@ -629,7 +607,8 @@ class SessionSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "status",
-            "initial_state",
+            "status_updated_at",
+            "variables",
             "created_at",
             "finished_at",
             "graph",
@@ -665,6 +644,19 @@ class GraphTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = GraphTag
         fields = "__all__"
+
+
+class GraphLightSerializer(serializers.ModelSerializer):
+    tags = GraphTagSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Graph
+        fields = [
+            "id",
+            "name",
+            "description",
+            "tags",
+        ]
 
 
 class RealtimeModelSerializer(serializers.ModelSerializer):
@@ -705,13 +697,61 @@ class RealtimeAgentChatSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class StartNodeSerializer(serializers.ModelSerializer):
-    node_name = serializers.SerializerMethodField(read_only=True)
+class ConditionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Condition
+        fields = "__all__"
+
+
+class ConditionGroupSerializer(serializers.ModelSerializer):
+    conditions = ConditionSerializer(many=True, required=False)
 
     class Meta:
-        model = StartNode
-        fields = ["id", "graph", "variables", "node_name"]
-        read_only_fields = ["node_name"]
+        model = ConditionGroup
+        fields = [
+            "decision_table_node",
+            "group_name",
+            "group_type",
+            "expression",
+            "conditions",
+            "manipulation",
+            "next_node",
+        ]
 
-    def get_node_name(self, obj):
-        return "__start__"
+
+class DecisionTableNodeSerializer(serializers.ModelSerializer):
+    condition_groups = ConditionGroupSerializer(many=True, required=False)
+
+    class Meta:
+        model = DecisionTableNode
+        fields = ["graph", "condition_groups", "node_name", "default_next_node"]
+
+
+
+class GraphSerializer(serializers.ModelSerializer):
+    # Reverse relationships
+    crew_node_list = CrewNodeSerializer(many=True, read_only=True)
+    python_node_list = PythonNodeSerializer(many=True, read_only=True)
+    edge_list = EdgeSerializer(many=True, read_only=True)
+    conditional_edge_list = ConditionalEdgeSerializer(many=True, read_only=True)
+    llm_node_list = LLMNodeSerializer(many=True, read_only=True)
+    start_node_list = StartNodeSerializer(many=True, read_only=True)
+    decision_table_node_list = DecisionTableNodeSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Graph
+        fields = [
+            "id",
+            "name",
+            "metadata",
+            "description",
+            "crew_node_list",
+            "python_node_list",
+            "edge_list",
+            "conditional_edge_list",
+            "llm_node_list",
+            "decision_table_node_list",
+            "start_node_list",
+            "time_to_live",
+        ]
+

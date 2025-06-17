@@ -1,16 +1,31 @@
 <div class="staff-page-container">
-  <app-page-header
-    [headerTitle]="'Staff'"
-    [showFavorites]="false"
-    [createButtonTitle]="'Add Agent'"
-    [searchPlaceholder]="'this search will work soon'"
-    (openCreate)="openCreateAgentDialog()"
-    [showFilter]="false"
-    [showSort]="false"
-    [showFavoriteToggle]="false"
-  ></app-page-header>
-
-  <div class="body">
-    <app-agents-table [newAgent]="newlyCreatedAgent"></app-agents-table>
+  <div class="header-section">
+    <header class="header">
+      <div class="header-titles">
+        <h1 class="title">
+          Staff
+          <span class="subtitle-inline"
+            >Manage your AI agents and their capabilities.</span
+          >
+        </h1>
+      </div>
+      <div class="header-actions">
+        <app-filters-list
+          [searchPlaceholder]="'Search agents...'"
+          [showTags]="true"
+        ></app-filters-list>
+        <app-button
+          type="primary"
+          class="btn-primary create-btn"
+          [leftIcon]="'ui/plus'"
+          (click)="openCreateAgentDialog()"
+        >
+          Create agent
+        </app-button>
+      </div>
+    </header>
   </div>
+  <section class="body">
+    <app-agents-table [newAgent]="newlyCreatedAgent"></app-agents-table>
+  </section>
 </div>

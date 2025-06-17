@@ -1,7 +1,7 @@
 import copy
 from typing import Any, Literal
 from typing_extensions import TypedDict
-from models.dotdict import DotDict, Expression
+from dotdict import DotDict, Expression
 
 
 class ReturnCodeError(Exception): ...
@@ -19,4 +19,5 @@ class StateHistoryItem(TypedDict):
 class State(TypedDict):
     state_history: list["StateHistoryItem"] = []
     variables: DotDict
+    system_variables: Any
 

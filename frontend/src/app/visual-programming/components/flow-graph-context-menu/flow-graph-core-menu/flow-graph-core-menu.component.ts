@@ -103,14 +103,14 @@ export class FlowGraphCoreMenuComponent {
       label: 'Group',
       type: NodeType.GROUP,
       icon: NODE_ICONS[NodeType.GROUP],
-      color: NODE_COLORS[NodeType.GROUP],
+      color: '#ffffff',
     },
-    {
-      label: 'Decision Table',
-      type: NodeType.TABLE,
-      icon: NODE_ICONS[NodeType.TABLE],
-      color: NODE_COLORS[NodeType.TABLE],
-    },
+    // {
+    //   label: 'Decision Table',
+    //   type: NodeType.TABLE,
+    //   icon: NODE_ICONS[NodeType.TABLE],
+    //   color: NODE_COLORS[NodeType.TABLE],
+    // },
   ];
 
   public get filteredBlocks(): FlowGraphBlock[] {
@@ -145,11 +145,12 @@ export class FlowGraphCoreMenuComponent {
       // Provide mock data for a decision table node
       data = {
         name: 'Decision Table',
-        orderType: 'and', // Can be 'and' or 'or'
-        conditions: [
-          { name: 'Condition A', value: 'Value A', order: 1 },
-          { name: 'Condition B', value: 'Value B', order: 2 },
-        ],
+        table: {
+          graph: null,
+          condition_groups: [],
+          node_name: '',
+          default_next_node: null,
+        },
       };
     }
 

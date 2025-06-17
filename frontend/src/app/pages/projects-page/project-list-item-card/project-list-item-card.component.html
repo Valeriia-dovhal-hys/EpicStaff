@@ -1,4 +1,3 @@
-<!-- project-list-item-card.component.html -->
 <div class="project-card" (click)="onOpenProject()">
   <!-- Header with title and emoji -->
   <div class="card-header">
@@ -44,7 +43,9 @@
           <path d="M7 10h-.01" />
         </svg>
       </div>
-      <span class="tag" *ngFor="let label of project.labels">{{ label }}</span>
+      @for (label of project.labels; track label) {
+      <span class="tag">{{ label }}</span>
+      }
     </div>
     <div
       class="menu-icon"

@@ -27,7 +27,7 @@ SECRET_KEY = "321567143216717121"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 ALLOWED_HOSTS = [
-    host.strip() for host in os.getenv("ALLOWED_HOSTS", "0.0.0.0, 127.0.0.1").split(",")
+    "*",  # host.strip() for host in os.getenv("ALLOWED_HOSTS", "0.0.0.0, 127.0.0.1").split(",")
 ]
 
 
@@ -64,7 +64,11 @@ INSTALLED_APPS = [
     "drf_yasg",
     "django_filters",
     "corsheaders",
+    "django_redis",
 ]
+
+if DEBUG and not "test" in sys.argv:
+    INSTALLED_APPS += ["silk"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -79,11 +83,15 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
 ]
 
+if DEBUG and not "test" in sys.argv:
+    MIDDLEWARE.insert(0, "silk.middleware.SilkyMiddleware")
+
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 5000000,
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "EXCEPTION_HANDLER": "utils.exception_handler.custom_exception_handler",
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -113,11 +121,11 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "crew",
-        "USER": "postgres",
-        "PASSWORD": "admin",
-        "HOST": os.environ.get("POSTGRESQL_HOST", "localhost"),
-        "PORT": os.environ.get("POSTGRESQL_PORT", "5432"),
+        "NAME": os.environ.get("POSTGRES_DB", "crew"),
+        "USER": os.environ.get("DB_USER", "postgres"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "admin"),
+        "HOST": os.environ.get("DB_HOST_NAME", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
 
@@ -161,3 +169,17 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+        },
+    }
+}

@@ -1,117 +1,187 @@
-$primary-bg-color: #161616;
-$input-bg-color: #242323;
-$button-bg-color: #007bff;
-$button-disabled-bg-color: #444;
-$cancel-btn-bg-color: #888;
-$text-color: #fff;
-$error-text-color: red;
-
-.create-flow-dialog {
-  background-color: $primary-bg-color;
-  color: $text-color;
+.dialog-container {
+  background-color: #1e1e1e;
   border-radius: 12px;
-  padding: 30px;
-  width: 450px;
-  max-width: 100%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease-in-out;
-  overflow: hidden;
+  padding: 24px;
+  color: rgba(255, 255, 255, 0.9);
+  min-width: 400px;
 
-  .header {
-    text-align: center;
-    margin-bottom: 25px;
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 
-    h2 {
-      font-size: 22px;
-      font-weight: 600;
-      color: $text-color;
+    .dialog-title {
       margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      margin-left: 10px;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
+      }
     }
   }
 
-  .body {
+  .dialog-content {
+    margin-bottom: 24px;
+
     .form-group {
-      margin-bottom: 25px;
+      margin-bottom: 16px;
+      position: relative;
 
       label {
         display: block;
-        font-size: 16px;
-        font-weight: 500;
         margin-bottom: 8px;
-        color: $text-color;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.7);
+
+        .required {
+          color: #685fff;
+          margin-left: 2px;
+        }
       }
 
-      input,
-      textarea {
+      .text-input {
         width: 100%;
-        padding: 12px;
-        border: 2px solid $input-bg-color;
+        padding: 10px 12px;
+        background-color: rgba(30, 30, 30, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 6px;
-        background-color: $input-bg-color;
-        color: $text-color;
+        color: white;
         font-size: 14px;
-        transition: border-color 0.3s ease-in-out;
+        transition: border-color 0.2s ease;
         resize: vertical;
 
         &:focus {
           outline: none;
-          border-color: $button-bg-color;
+          border-color: #685fff;
+          box-shadow: 0 0 0 2px rgba(104, 95, 255, 0.2);
+        }
+
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.4);
         }
       }
 
-      .error {
-        color: $error-text-color;
+      .error-message {
         font-size: 12px;
-        margin-top: 5px;
+        color: #ff4d4f;
+        margin-top: 4px;
+        position: absolute;
+        bottom: -20px;
+        right: 0;
+      }
+
+      &.name-with-icon {
+        .input-with-icon {
+          display: flex;
+          align-items: center;
+          background-color: rgba(30, 30, 30, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          padding: 0.125rem;
+          padding-left: 0.35rem;
+
+          &:focus-within {
+            border-color: #685fff;
+            box-shadow: 0 0 0 2px rgba(104, 95, 255, 0.2);
+          }
+
+          input {
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+            flex: 1;
+            padding-inline: 0.875rem;
+
+            &:focus {
+              border: none;
+              box-shadow: none;
+              background-color: transparent;
+              outline: none;
+            }
+          }
+        }
       }
     }
   }
 
-  .footer {
+  .dialog-footer {
     display: flex;
-    justify-content: space-between;
-    gap: 15px;
-    margin-top: 20px;
+    justify-content: flex-end;
+    gap: 12px;
 
-    button {
-      padding: 12px 24px;
-      border: none;
+    .button {
+      padding: 8px 16px;
       border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
       font-size: 14px;
-      transition: background-color 0.3s ease, transform 0.3s ease;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      border: none;
 
-      &:hover {
-        transform: translateY(-2px);
-      }
-
-      &:active {
-        transform: translateY(2px);
-      }
-
-      &.cancel-btn {
-        background-color: $cancel-btn-bg-color;
-        color: $text-color;
+      &.secondary {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
 
         &:hover {
-          background-color: darken($cancel-btn-bg-color, 10%);
+          background-color: rgba(255, 255, 255, 0.15);
         }
       }
 
-      &.create-btn {
-        background-color: $button-bg-color;
-        color: $text-color;
+      &.primary {
+        background-color: #685fff;
+        color: white;
 
         &:hover {
-          background-color: darken($button-bg-color, 10%);
+          background-color: #7a70ff;
         }
 
         &:disabled {
-          background-color: $button-disabled-bg-color;
+          background-color: rgba(104, 95, 255, 0.5);
           cursor: not-allowed;
         }
       }
     }
+  }
+}
+
+.dialog-error-message {
+  color: #ff4d4f;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: -10px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }

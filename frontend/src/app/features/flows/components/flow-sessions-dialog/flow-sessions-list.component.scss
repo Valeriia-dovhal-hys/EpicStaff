@@ -1,0 +1,54 @@
+/* Add styles for the flow sessions list component here */
+
+.dialog-wrapper {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background-body);
+  color: var(--color-text-primary);
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+
+  width: 90vw;
+  max-width: 1000px;
+  min-height: 500px;
+  max-height: 90vh;
+  height: 100%;
+
+  .dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 2rem;
+    gap: 16px;
+
+    h2 {
+      flex: 1 1 auto;
+      min-width: 0;
+      margin: 0;
+      font-size: 1.5em;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+.close-dialog-btn {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.close-dialog-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+.close-dialog-btn:hover .icon-tabler-x {
+  stroke: var(--accent-color);
+}

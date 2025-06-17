@@ -18,8 +18,8 @@ import { takeUntil } from 'rxjs/operators';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { animate, style, transition, trigger } from '@angular/animations';
 
-import { GetPythonCodeToolRequest } from '../../../../../../user-settings-page/tools/custom-tool-editor/models/python-code-tool.model';
-import { ToolsService } from '../../../../../../user-settings-page/tools/services/tools.service';
+import { GetPythonCodeToolRequest } from '../../../../../../features/tools/models/python-code-tool.model';
+import { ToolsService } from '../../../../../../features/tools/services/tools.service';
 import { ToolConfigService } from '../../../../../../services/tool_config.service';
 import {
   FullToolConfig,

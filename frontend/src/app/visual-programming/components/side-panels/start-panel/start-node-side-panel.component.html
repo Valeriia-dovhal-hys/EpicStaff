@@ -1,0 +1,38 @@
+<div class="wrapper">
+  <!-- Header -->
+  <div class="dialog-header">
+    <div class="icon-and-title">
+      <i class="ti ti-player-play"></i>
+      <span class="title">Start Node </span>
+    </div>
+    <div class="close-action">
+      <span class="esc-label">ESC</span>
+      <i class="ti ti-x close-icon" (click)="close()"></i>
+    </div>
+  </div>
+
+  <!-- Scrollable Form Content -->
+  <div class="dialog-content">
+    <form [formGroup]="nodeForm" (ngSubmit)="onSubmit()">
+      <!-- Initial State JSON Editor -->
+      <div class="form-group">
+        <label>Initial Variables</label>
+        <app-json-editor
+          class="json-editor"
+          [jsonData]="initialStateJson"
+          (jsonChange)="initialStateJson = $event"
+          (validationChange)="onJsonValidChange($event)"
+          [fullHeight]="true"
+        ></app-json-editor>
+      </div>
+    </form>
+  </div>
+
+  <!-- Fixed Action Buttons -->
+  <div class="dialog-actions">
+    <button type="button" (click)="close()">Cancel</button>
+    <button type="submit" [disabled]="!isJsonValid" (click)="onSubmit()">
+      Save
+    </button>
+  </div>
+</div>

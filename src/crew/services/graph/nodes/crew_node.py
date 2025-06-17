@@ -1,3 +1,4 @@
+import json
 from callbacks.session_callback_factory import CrewCallbackFactory
 from services.crew.crew_parser_service import CrewParserService
 from services.redis_service import RedisService
@@ -67,7 +68,7 @@ class CrewNode(BaseNode):
         crew_output = await crew.kickoff_async(inputs=input_)
 
         output = (
-            crew_output.pydantic.model_dump()
+            json.loads(crew_output.pydantic.model_dump_json())
             if crew_output.pydantic
             else {"raw": crew_output.raw}
         )

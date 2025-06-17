@@ -8,7 +8,7 @@
   <div class="libraries-wrapper">
     <!-- Input group: input field and add button -->
 
-    <!-- List of added libraries displayed as “chips” -->
+    <!-- List of added libraries displayed as "chips" -->
     <div class="libraries-list">
       <div class="library-item" *ngFor="let lib of libraries; let i = index">
         <!-- `title` attribute shows the full name on hover -->
@@ -17,7 +17,7 @@
           class="delete-library-btn"
           (click)="removeLibrary(i); $event.preventDefault()"
         >
-          <i class="ti ti-x"></i>
+          <app-icon icon="ui/x" size="1rem"></app-icon>
         </button>
       </div>
 
@@ -33,7 +33,7 @@
           class="add-library-btn"
           (click)="addLibrary(); $event.preventDefault()"
         >
-          <i class="ti ti-plus"></i>
+          <app-icon icon="ui/plus" size="1rem"></app-icon>
         </button>
       </div>
     </div>

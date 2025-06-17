@@ -20,7 +20,7 @@ import { ProjectSortButtonComponent } from './header-components/header-sort/head
   template: `
     <div class="header" (document:click)="onDocumentClick($event)">
       <div class="title-search">
-        <h1 class="title">{{ headerTitle }}</h1>
+        <div class="title">{{ headerTitle }}</div>
         <span
           *ngIf="projectCount !== 0"
           class="projects-page-project-count-badge"
@@ -66,11 +66,10 @@ import { ProjectSortButtonComponent } from './header-components/header-sort/head
         display: flex;
         align-items: center;
         justify-content: space-between;
-        height: 4.3rem !important;
+        height: 5rem;
         width: 100%;
-        padding: 0 3.8rem;
-        border-bottom: 1px solid var(--gray-800);
-
+        padding: 0 3rem;
+        border-bottom: 1px solid var(--color-divider-subtle);
         .title-search {
           display: flex;
           align-items: center;
@@ -79,18 +78,18 @@ import { ProjectSortButtonComponent } from './header-components/header-sort/head
           .title {
             font-size: 24px;
             font-weight: 400;
-            letter-spacing: -0.02em;
-            line-height: 1.2;
+
+            line-height: 1;
             color: var(--white);
-            padding: 0 !important;
-            margin: 0 !important;
+            padding: 0;
+            margin: 0;
           }
 
           .projects-page-project-count-badge {
             font-size: 17px;
             font-weight: 500;
-            letter-spacing: -0.02em;
-            line-height: 1.2;
+
+            line-height: 1;
             color: var(--accent-color);
             margin-left: 8px;
             margin-top: 0.3rem;

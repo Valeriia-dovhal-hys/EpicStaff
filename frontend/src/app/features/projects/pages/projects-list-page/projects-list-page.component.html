@@ -1,0 +1,52 @@
+<div class="projects-list-page">
+  <div class="sticky-header">
+    <header class="header">
+      <div class="header-titles">
+        <h1 class="title">
+          Projects
+          <span class="subtitle-inline"
+            >A project is a workspace to organize your AI agents and
+            tasks.</span
+          >
+        </h1>
+      </div>
+      <div class="header-actions">
+        <app-button type="ghost" [leftIcon]="'ui/upload'"> Import </app-button>
+        <app-button
+          type="primary"
+          class="btn-primary create-btn"
+          [leftIcon]="'ui/plus'"
+          (click)="openCreateProjectDialog()"
+        >
+          Create project
+        </app-button>
+      </div>
+    </header>
+    <nav class="tabs">
+      <div class="tabs-left">
+        @for (tab of tabs; track tab.link) {
+        <app-tab-button
+          routerLink="{{ tab.link }}"
+          routerLinkActive="active"
+          #rla="routerLinkActive"
+          [active]="rla.isActive"
+        >
+          {{ tab.label }}
+        </app-tab-button>
+        }
+      </div>
+      <div class="tabs-right">
+        <app-project-tags-filter (change)="onProjectTagsChange($event)">
+        </app-project-tags-filter>
+        <app-filters-list
+          [searchPlaceholder]="'Search projects...'"
+          (change)="onFiltersChange($event)"
+          [showTags]="false"
+        ></app-filters-list>
+      </div>
+    </nav>
+  </div>
+  <section class="body">
+    <router-outlet></router-outlet>
+  </section>
+</div>

@@ -4,6 +4,7 @@ import {
   ElementRef,
   HostListener,
   OnDestroy,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Dialog } from '@angular/cdk/dialog';
@@ -11,7 +12,11 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { EmbeddingConfigsService } from '../../../../../services/embedding_configs.service';
 import { ConfirmationDialogService } from '../../../../../shared/components/cofirm-dialog/confimation-dialog.service';
-import { SourceCollection } from '../../../models/source-collection.model';
+import {
+  CollectionStatus,
+  GetSourceCollectionRequest,
+} from '../../../models/source-collection.model';
+
 import { KnowledgeSourcesPageService } from '../../../services/knowledge-sources-page.service';
 import { CollectionsService } from '../../../services/source-collections.service';
 import { RenameCollectionDialogComponent } from '../rename-collection-dialog/rename-collection-dialog.component';
@@ -20,12 +25,25 @@ import { RenameCollectionDialogComponent } from '../rename-collection-dialog/ren
   selector: 'app-collection-item',
   standalone: true,
   imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
       class="collection-item"
       [class.active]="isActive"
       (click)="onCollectionClick()"
     >
+      <div
+        class="collection-status-dot"
+        [class.status-new]="collection.status === CollectionStatus.NEW"
+        [class.status-processing]="
+          collection.status === CollectionStatus.PROCESSING
+        "
+        [class.status-completed]="
+          collection.status === CollectionStatus.COMPLETED
+        "
+        [class.status-failed]="collection.status === CollectionStatus.FAILED"
+      ></div>
+
       <div class="collection-name">{{ collection.collection_name }}</div>
 
       <div class="dropdown">
@@ -38,6 +56,7 @@ import { RenameCollectionDialogComponent } from '../rename-collection-dialog/ren
         </button>
 
         <div class="dropdown-menu" [class.show]="isDropdownOpen">
+          <div class="dropdown-item" (click)="onCopyClick($event)">Copy</div>
           <div class="dropdown-item" (click)="onRenameClick($event)">
             Rename
           </div>
@@ -50,13 +69,28 @@ import { RenameCollectionDialogComponent } from '../rename-collection-dialog/ren
   `,
   styles: [
     `
+      @keyframes breathing {
+        0% {
+          opacity: 0.6;
+          transform: scale(0.9);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.1);
+        }
+        100% {
+          opacity: 0.6;
+          transform: scale(0.9);
+        }
+      }
+
       .collection-item {
         display: flex;
         align-items: center;
         padding: 10px 16px;
         border-radius: 10px;
         margin-bottom: 8px;
-        background-color: rgba(30, 30, 30, 0.6);
+        background-color: #151515;
         cursor: pointer;
         transition: background-color 0.2s ease;
         position: relative;
@@ -69,6 +103,30 @@ import { RenameCollectionDialogComponent } from '../rename-collection-dialog/ren
           background-color: rgba(104, 95, 255, 0.15);
         }
 
+        .collection-status-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          margin-right: 15px;
+
+          &.status-new {
+            background-color: #22c55e;
+          }
+
+          &.status-processing {
+            background-color: #f97316;
+            animation: breathing 2s infinite ease-in-out;
+          }
+
+          &.status-completed {
+            background-color: #685fff;
+          }
+
+          &.status-failed {
+            background-color: #ef4444;
+          }
+        }
+
         .collection-name {
           flex: 1;
           font-size: 14px;
@@ -78,29 +136,6 @@ import { RenameCollectionDialogComponent } from '../rename-collection-dialog/ren
           text-overflow: ellipsis;
         }
 
-        .collection-count {
-          margin-left: 8px;
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.6);
-          white-space: nowrap;
-        }
-
-        .collection-status-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          margin-right: 12px;
-
-          &.status-blue {
-            background-color: #3b82f6;
-          }
-
-          &.status-red {
-            background-color: #ef4444;
-          }
-        }
-
-        /* Dropdown container */
         .dropdown {
           position: relative;
           display: inline-block;
@@ -123,7 +158,6 @@ import { RenameCollectionDialogComponent } from '../rename-collection-dialog/ren
             }
           }
 
-          /* Hidden by default */
           .dropdown-menu {
             display: none;
             position: absolute;
@@ -137,7 +171,6 @@ import { RenameCollectionDialogComponent } from '../rename-collection-dialog/ren
             overflow: hidden;
             min-width: 120px;
 
-            /* Show the dropdown menu when the show class is added */
             &.show {
               display: block;
             }
@@ -160,8 +193,11 @@ import { RenameCollectionDialogComponent } from '../rename-collection-dialog/ren
   ],
 })
 export class CollectionItemComponent implements OnDestroy {
-  @Input() collection!: SourceCollection;
+  @Input() collection!: GetSourceCollectionRequest;
   @Input() isActive: boolean = false;
+
+  // Make the enum accessible in the template
+  CollectionStatus = CollectionStatus;
 
   private _destroy$ = new Subject<void>();
   isDropdownOpen = false;
@@ -170,7 +206,7 @@ export class CollectionItemComponent implements OnDestroy {
     private elementRef: ElementRef,
     private _dialog: Dialog,
     private _pageService: KnowledgeSourcesPageService,
-    private _sourceCollectionsService: CollectionsService,
+    private _GetSourceCollectionRequestsService: CollectionsService,
     private _embeddingConfigsService: EmbeddingConfigsService,
     private _confirmationDialogService: ConfirmationDialogService
   ) {}
@@ -187,37 +223,29 @@ export class CollectionItemComponent implements OnDestroy {
   toggleDropdown(event: MouseEvent): void {
     event.stopPropagation(); // Prevent collection selection
     this.isDropdownOpen = !this.isDropdownOpen;
-    console.log('Dropdown toggled:', this.isDropdownOpen);
   }
 
-  onRenameClick(event: MouseEvent): void {
+  public onRenameClick(event: MouseEvent): void {
     event.stopPropagation(); // Prevent collection selection
-    console.log('Rename collection:', this.collection.collection_name);
     this.renameCollection(this.collection);
-    this.isDropdownOpen = false;
+    this.toggleDropdown(event); // Close the dropdown after renaming
   }
 
   /**
    * Handle delete click - confirm and delete collection
    */
-  onDeleteClick(event: MouseEvent): void {
+  public onDeleteClick(event: MouseEvent): void {
     event.stopPropagation(); // Prevent collection selection
     console.log('Delete collection:', this.collection.collection_name);
     this.deleteCollection(this.collection);
     this.isDropdownOpen = false;
   }
-
-  /**
-   * Get status class for the collection
-   */
-  getStatusClass(): string {
-    // Here you can implement logic to determine color based on collection status
-    // For now I'm alternating between blue and red based on ID as an example
-    return this.collection.collection_id % 2 === 0
-      ? 'status-blue'
-      : 'status-red';
+  public onCopyClick(event: MouseEvent): void {
+    event.stopPropagation(); // Prevent collection selection
+    console.log('Copy collection:', this.collection.collection_name);
+    // Implement copy logic here
+    this.isDropdownOpen = false; // Close the dropdown after copying
   }
-
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     // Check if the click was outside of this component
@@ -229,7 +257,7 @@ export class CollectionItemComponent implements OnDestroy {
     }
   }
 
-  private selectCollection(collection: SourceCollection): void {
+  private selectCollection(collection: GetSourceCollectionRequest): void {
     this._pageService.setSelectedCollection(collection);
     // this._pageService.setSelectedEmbeddingConfig(null);
 
@@ -249,7 +277,7 @@ export class CollectionItemComponent implements OnDestroy {
     }
   }
 
-  private renameCollection(collection: SourceCollection): void {
+  private renameCollection(collection: GetSourceCollectionRequest): void {
     const dialogRef = this._dialog.open<string>(
       RenameCollectionDialogComponent,
       {
@@ -258,14 +286,13 @@ export class CollectionItemComponent implements OnDestroy {
           collectionName: collection.collection_name,
           collectionId: collection.collection_id,
         },
-        backdropClass: 'dark-blur-backdrop',
       }
     );
 
     dialogRef.closed.pipe(takeUntil(this._destroy$)).subscribe((newName) => {
       if (newName) {
-        this._sourceCollectionsService
-          .patchSourceCollection(collection.collection_id, newName)
+        this._GetSourceCollectionRequestsService
+          .patchGetSourceCollectionRequest(collection.collection_id, newName)
           .pipe(takeUntil(this._destroy$))
           .subscribe({
             next: () => {
@@ -283,15 +310,15 @@ export class CollectionItemComponent implements OnDestroy {
     });
   }
 
-  private deleteCollection(collection: SourceCollection): void {
+  private deleteCollection(collection: GetSourceCollectionRequest): void {
     this._confirmationDialogService
       .confirmDelete(collection.collection_name)
       .pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (confirmed) => {
           if (confirmed) {
-            this._sourceCollectionsService
-              .deleteSourceCollection(collection.collection_id)
+            this._GetSourceCollectionRequestsService
+              .deleteGetSourceCollectionRequest(collection.collection_id)
               .pipe(takeUntil(this._destroy$))
               .subscribe({
                 next: () => {

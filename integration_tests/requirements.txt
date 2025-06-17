@@ -1,7 +1,0 @@
-pytest
-python-dotenv
-docker
-loguru
-pytest-asyncio
-pydantic
-redis

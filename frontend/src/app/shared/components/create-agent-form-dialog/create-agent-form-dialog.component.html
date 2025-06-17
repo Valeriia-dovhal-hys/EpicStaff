@@ -1,0 +1,223 @@
+<div class="wrapper" appShortcutListener (escape)="onCancelForm()">
+  <!-- Header: Icon + Title + Close Button -->
+  <div class="dialog-header">
+    <div class="icon-and-title">
+      <i class="ti ti-robot"></i>
+      <span class="title">{{ "Create New Agent" }}</span>
+    </div>
+    <div class="header-actions">
+      <div class="close-action">
+        <span class="esc-label">ESC</span>
+        <i class="ti ti-x close-icon" (click)="onCancelForm()"></i>
+      </div>
+    </div>
+  </div>
+
+  <form [formGroup]="agentForm" (ngSubmit)="$event.preventDefault()">
+    <!-- Body -->
+    <div class="dialog-content">
+      <!-- Agent Role with Icon -->
+      <div class="form-group name-with-icon">
+        <label for="role">
+          Agent Role
+          <span class="required">
+            @if (agentForm.get('role')?.errors?.['required'] &&
+            agentForm.get('role')?.touched) { Role is required } *
+          </span>
+        </label>
+        <div class="input-with-icon">
+          <input
+            id="role"
+            type="text"
+            formControlName="role"
+            placeholder="Enter agent role..."
+            autocomplete="off"
+            [style.--active-color]="activeColor"
+          />
+        </div>
+      </div>
+
+      <!-- Goal -->
+      <div class="form-group">
+        <label for="goal">
+          Goal
+          <span class="required">
+            @if (agentForm.get('goal')?.errors?.['required'] &&
+            agentForm.get('goal')?.touched) { Goal is required } *
+          </span>
+        </label>
+        <textarea
+          id="goal"
+          formControlName="goal"
+          placeholder="Enter agent goal..."
+          rows="3"
+          autocomplete="off"
+          [style.--active-color]="activeColor"
+        ></textarea>
+      </div>
+
+      <!-- Backstory -->
+      <div class="form-group">
+        <label for="backstory">
+          Backstory
+          <span class="required">
+            @if (agentForm.get('backstory')?.errors?.['required'] &&
+            agentForm.get('backstory')?.touched) { Backstory is required } *
+          </span>
+        </label>
+        <textarea
+          id="backstory"
+          formControlName="backstory"
+          placeholder="Enter agent backstory..."
+          rows="3"
+          autocomplete="off"
+          [style.--active-color]="activeColor"
+        ></textarea>
+      </div>
+
+      <!-- Agent LLM -->
+      <div class="form-group">
+        <label>Agent LLM</label>
+        <app-llm-selector
+          formControlName="llm_config"
+          placeholder="Select an agent LLM configuration"
+          [llmConfigs]="availableLLMConfigs"
+        ></app-llm-selector>
+      </div>
+
+      <!-- Creativity Level Slider -->
+      <div class="form-group">
+        <app-form-slider
+          [value]="temperatureValue"
+          label="Agent Creativity Level:"
+          (valueChange)="onSliderInput($event)"
+        ></app-form-slider>
+      </div>
+
+      <!-- Advanced Settings Toggle -->
+      <div class="form-group">
+        <button
+          type="button"
+          class="toggle-settings"
+          (click)="toggleAdvancedSettings()"
+        >
+          {{
+            advancedSettingsVisible
+              ? "Hide Advanced Settings"
+              : "Show Advanced Settings"
+          }}
+        </button>
+      </div>
+
+      <!-- Advanced Settings Section -->
+      @if (advancedSettingsVisible) {
+      <div class="advanced-settings" @smoothExpand>
+        <!-- Function LLM -->
+        <div class="form-group">
+          <label>Function LLM</label>
+          <app-llm-selector
+            formControlName="fcm_llm_config"
+            placeholder="Select a function LLM configuration"
+            [llmConfigs]="availableLLMConfigs"
+          ></app-llm-selector>
+        </div>
+
+        <!-- Toggle Fields Row -->
+        <div class="toggle-row">
+          <div class="toggle-field">
+            <label class="toggle-label">Allow Delegation</label>
+            <app-toggle-switch
+              formControlName="allow_delegation"
+            ></app-toggle-switch>
+          </div>
+
+          <div class="toggle-field">
+            <label class="toggle-label">Memory</label>
+            <app-toggle-switch formControlName="memory"></app-toggle-switch>
+          </div>
+
+          <div class="toggle-field">
+            <label class="toggle-label">Cache</label>
+            <app-toggle-switch formControlName="cache"></app-toggle-switch>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-field">
+            <label class="toggle-label">Allow Code Execution</label>
+            <app-toggle-switch
+              formControlName="allow_code_execution"
+            ></app-toggle-switch>
+          </div>
+
+          <div class="toggle-field">
+            <label class="toggle-label">Respect Context Window</label>
+            <app-toggle-switch
+              formControlName="respect_context_window"
+            ></app-toggle-switch>
+          </div>
+        </div>
+
+        <!-- Numeric Fields Row -->
+        <div class="numeric-row">
+          <div class="form-group">
+            <label for="max_iter">Max Iterations</label>
+            <input
+              id="max_iter"
+              type="number"
+              formControlName="max_iter"
+              placeholder="Enter max iterations"
+              min="1"
+              [style.--active-color]="activeColor"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="max_execution_time">Max Execution Time (seconds)</label>
+            <input
+              id="max_execution_time"
+              type="number"
+              formControlName="max_execution_time"
+              placeholder="Enter execution time"
+              [style.--active-color]="activeColor"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="max_retry_limit">Max Retry Limit</label>
+            <input
+              id="max_retry_limit"
+              type="number"
+              formControlName="max_retry_limit"
+              placeholder="Enter max retry limit"
+              [style.--active-color]="activeColor"
+            />
+          </div>
+        </div>
+
+        <!-- Max RPM Slider -->
+        <div class="form-group">
+          <app-form-slider
+            [value]="maxRpmSliderValue"
+            [max]="200"
+            label="Max Requests Per Minute (0-50):"
+            (valueChange)="onMaxRpmSliderInput($event)"
+          ></app-form-slider>
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div class="actions">
+      <button type="button" (click)="onCancelForm()">Cancel</button>
+      <button
+        type="button"
+        (click)="onSubmitForm()"
+        [disabled]="agentForm.invalid || isSubmitting"
+      >
+        {{ isSubmitting ? "Creating..." : "Create Agent" }}
+      </button>
+    </div>
+  </form>
+</div>

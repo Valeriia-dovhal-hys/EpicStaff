@@ -1,65 +1,54 @@
 <div class="dialog-container">
   <!-- Header Section -->
   <div class="header">
-    <h2>Advanced Settings for {{ agentData.agentRole }}</h2>
+    <h2 class="dialog-title">
+      Advanced Settings for {{ agentData.agentRole }}
+    </h2>
+    <button class="close-button" (click)="dialogRef.close()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <line
+          x1="18"
+          y1="6"
+          x2="6"
+          y2="18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+        <line
+          x1="6"
+          y1="6"
+          x2="18"
+          y2="18"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
   </div>
-
   <!-- Scrollable Content -->
   <div class="scrollable-content">
     <!-- Agent Creativity Section (Top) -->
     <div class="form-section">
-      <!-- Temperature renamed to Agent Creativity Level and moved to top -->
+      <!-- Temperature using FormSliderComponent -->
       <div class="form-group">
-        <label for="creativity">Agent Creativity Level:</label>
-        <div class="slider-container">
-          <span class="slider-value">{{
-            agentData.default_temperature?.toFixed(2)
-          }}</span>
-          <input
-            id="creativity"
-            [(ngModel)]="agentData.default_temperature"
-            type="range"
-            step="0.01"
-            min="0"
-            max="1"
-            class="gradient-slider"
-          />
-          <div class="slider-labels">
-            <span>Precise</span>
-            <span>Creative</span>
-          </div>
-        </div>
+        <app-form-slider
+          [value]="temperatureValue"
+          label="Agent Creativity Level:"
+          (valueChange)="onSliderInput($event)"
+        ></app-form-slider>
       </div>
 
       <div class="form-group">
-        <label for="fcm-llm">Function Calling LLM:</label>
-        <div class="select-container">
-          <select
-            id="fcm-llm"
-            [(ngModel)]="selectedLlmId"
-            (change)="onLlmChange()"
-          >
-            <option [ngValue]="null">Default to LLM</option>
-            <option *ngFor="let llm of combinedLLMs" [ngValue]="llm.id">
-              {{ llm.modelName }} ({{ llm.custom_name }})
-            </option>
-          </select>
-          <div class="select-arrow">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </div>
-        </div>
+        <!-- Replaced select with custom LLM selector component -->
+        <app-llm-selector
+          [label]="'Function Calling LLM:'"
+          [llmConfigs]="combinedLLMs"
+          [loading]="isLoadingLLMs"
+          (llmChange)="onLlmChange($event)"
+          [selectedLlmId]="selectedLlmId"
+        ></app-llm-selector>
       </div>
     </div>
 
@@ -67,40 +56,14 @@
     <div class="form-section">
       <h3 class="section-title">Knowledge Source</h3>
 
-      <!-- Knowledge source selection -->
-      <div class="form-group">
-        <label for="knowledge-source">Select Knowledge Source:</label>
-        <div class="select-container">
-          <select
-            id="knowledge-source"
-            [(ngModel)]="agentData.knowledge_collection"
-            (change)="onKnowledgeSourceChange()"
-          >
-            <option [ngValue]="null">No knowledge source</option>
-            <option
-              *ngFor="let source of allKnowledgeSources"
-              [ngValue]="source.collection_id"
-            >
-              {{ source.collection_name }}
-            </option>
-          </select>
-          <div class="select-arrow">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </div>
-        </div>
-      </div>
+      <!-- Knowledge source selector component -->
+      <app-knowledge-selector
+        [label]="'Select Knowledge Source:'"
+        [collections]="allKnowledgeSources"
+        [selectedCollectionId]="agentData.knowledge_collection || null"
+        [loading]="isLoadingKnowledgeSources"
+        (collectionChange)="onKnowledgeSourceChange($event)"
+      ></app-knowledge-selector>
     </div>
 
     <!-- Execution Settings -->

@@ -4,7 +4,7 @@ import json
 
 
 class JSONChunker(BaseChunker):
-    def __init__(self, chunk_size, chunk_overlap):
+    def __init__(self, chunk_size, chunk_overlap, additional_params):
         self.chunk_overlap = chunk_overlap
         self.json_splitter = RecursiveJsonSplitter(max_chunk_size=chunk_size)
 

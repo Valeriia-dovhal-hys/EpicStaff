@@ -48,7 +48,6 @@ import {
   TableFullAgent,
   FullAgentService,
   FullAgent,
-  EnhancedLLMConfig,
 } from '../../../services/full-agent.service';
 import { AgentsService } from '../../../services/staff.service';
 import { ClickOutsideDirective } from '../../../shared/directives/click-outside.directive';
@@ -64,7 +63,7 @@ import {
   UpdateTaskRequest,
 } from '../../../shared/models/task.model';
 import { AgentSelectionPopupComponent } from './popups/agent-select-popup/agent-selection-popup.component';
-import { GetProjectRequest } from '../../../pages/projects-page/models/project.model';
+import { GetProjectRequest } from '../../../features/projects/models/project.model';
 import { TasksService } from '../../../services/tasks.service';
 import { ProjectStateService } from '../../services/project-state.service';
 import {
@@ -148,8 +147,6 @@ export class TasksTableComponent {
   constructor(
     private overlay: Overlay,
     private cdr: ChangeDetectorRef,
-    private fullAgentService: FullAgentService,
-    private agentsService: AgentsService,
     private renderer: Renderer2,
     public dialog: Dialog,
     private projectStateService: ProjectStateService,
@@ -161,7 +158,7 @@ export class TasksTableComponent {
     this.rowData = [
       ...this.tasks,
       this.createEmptyFullTask(),
-      //   this.createEmptyFullTask(),
+      this.createEmptyFullTask(),
     ];
     this.isLoaded = true;
     this.cdr.markForCheck();
@@ -169,7 +166,6 @@ export class TasksTableComponent {
 
   onGridReady(event: any): void {
     this.gridApi = event.api;
-    // this.gridApi.sizeColumnsToFit(); // Automatically size columns to fit
   }
   private createEmptyFullTask(): TableFullTask {
     // Create a temporary ID for new tasks
@@ -182,7 +178,7 @@ export class TasksTableComponent {
       name: '',
       instructions: '',
       expected_output: '',
-      order: this.rowData.length, // Set order to the end of the list
+      order: this.rowData.length,
       human_input: false,
       async_execution: false,
       config: null,
@@ -195,25 +191,20 @@ export class TasksTableComponent {
     };
   }
   myTheme = themeQuartz.withParams({
-    accentColor: '#685fff', // Match the accent color we've been using
-    backgroundColor: '#141414', // Match the main background color
+    accentColor: '#685fff', // --accent-color
+    backgroundColor: '#1e1e20', // --color-background-body
     browserColorScheme: 'dark',
-
-    chromeBackgroundColor: {
-      ref: 'foregroundColor',
-      mix: 0.07,
-      onto: 'backgroundColor',
-    },
+    borderColor: '#c8ceda24', // --color-divider-regular
+    chromeBackgroundColor: '#222225', // --color-sidenav-background
     columnBorder: true,
-    foregroundColor: '#FFF',
-    headerBackgroundColor: '#1a1a1a', // Slightly lighter than background to match section headers
+    foregroundColor: '#d9d9de', // --color-text-primary
+    headerBackgroundColor: '#222225', // --color-sidenav-background
     headerFontSize: 16,
     headerFontWeight: 500,
-    headerTextColor: '#DEDEDE',
-    cellTextColor: '#EDEDED',
+    headerTextColor: '#d9d9de', // --color-text-primary
+    cellTextColor: '#d9d9de', // --color-text-primary
     spacing: 3.3,
-
-    oddRowBackgroundColor: '#191919', // Subtle row striping
+    oddRowBackgroundColor: '#222226', // More subtle, closer to main background
   });
 
   // Column definitions
@@ -350,16 +341,16 @@ export class TasksTableComponent {
       width: 60,
     },
 
-    {
-      headerName: 'Tools',
-      field: 'mergedTools', // Must match the property in your model
-      editable: false,
-      minWidth: 240,
-      maxWidth: 260,
-      cellRenderer: () => {
-        return '<div class="no-tools">Feature not implemented</div>';
-      },
-    },
+    // {
+    //   headerName: 'Tools',
+    //   field: 'mergedTools', // Must match the property in your model
+    //   editable: false,
+    //   minWidth: 240,
+    //   maxWidth: 260,
+    //   cellRenderer: () => {
+    //     return '<div class="no-tools">Feature not implemented</div>';
+    //   },
+    // },
     {
       headerName: 'Assigned Agent',
       field: 'agentData', // Reference the agentData field
@@ -406,7 +397,7 @@ export class TasksTableComponent {
     undoRedoCellEditingLimit: 20,
     theme: this.myTheme,
     animateRows: false,
-
+    stopEditingWhenCellsLoseFocus: true,
     getRowId: (params) => {
       if (params.data.id && typeof params.data.id === 'number') {
         return params.data.id.toString();
@@ -614,17 +605,46 @@ export class TasksTableComponent {
   }
 
   openSettingsDialog(taskData: TableFullTask) {
+    // Filter tasks with normal IDs (numeric IDs), non-null orders, and orders less than current task
+    const normalTasks: TableFullTask[] = this.rowData.filter((task) => {
+      // Check if the ID is a number or a string that can be parsed as a number
+      const hasNormalId =
+        typeof task.id === 'number' ||
+        (typeof task.id === 'string' && !task.id.startsWith('temp'));
+
+      // Remove tasks with null order
+      if (task.order === null) {
+        return false;
+      }
+
+      // Remove tasks with order greater than or equal to current task's order
+      // Only keep tasks with order < taskData.order (strictly less than)
+      const hasValidOrder =
+        taskData.order !== null && task.order < taskData.order;
+
+      return hasNormalId && hasValidOrder;
+    });
+
+    console.log('Filtered tasks (normal IDs & valid order):', normalTasks);
+
     const dialogRef = this.dialog.open(AdvancedTaskSettingsDialogComponent, {
       data: {
         config: taskData.config,
         output_model: taskData.output_model,
         task_context_list: taskData.task_context_list,
         taskName: taskData.name,
+        availableTasks: normalTasks, // Pass filtered tasks to dialog
       },
+      width: '100%', // Set minimum width
+      maxWidth: '650px', // Allow it to be responsive but not too wide
+      height: '100%', // Set height to 90% of viewport height
+      maxHeight: '90vh', // Ensure maximum height
     });
 
     dialogRef.closed.subscribe((updatedData: unknown) => {
-      const data = updatedData as AdvancedTaskSettingsData | undefined;
+      const data: AdvancedTaskSettingsData | undefined = updatedData as
+        | AdvancedTaskSettingsData
+        | undefined;
       if (data) {
         this.updateTaskDataInRow(data, taskData);
       }

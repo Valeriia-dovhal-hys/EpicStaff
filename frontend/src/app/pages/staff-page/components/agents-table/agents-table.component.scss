@@ -11,6 +11,9 @@ $transition-default: all 0.2s ease;
 .wrapper {
   position: relative;
   height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
   border-radius: 4px;
   box-shadow: 1px 1px 10px rgba(3, 3, 5, 0.35);
 }

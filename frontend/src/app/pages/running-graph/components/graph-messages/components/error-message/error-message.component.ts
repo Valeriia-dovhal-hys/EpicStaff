@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GraphMessage } from '../../graph-session-message.model';
+import { GraphMessage } from '../../../../models/graph-session-message.model';
 import { expandCollapseAnimation } from '../../../../../../shared/animations/animations-expand-collapse';
 
 @Component({
@@ -9,62 +9,84 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
   imports: [CommonModule],
   animations: [expandCollapseAnimation],
   template: `
-    <div class="error-flow-container">
-      <div class="error-header">
+    <div class="error-container">
+      <div class="error-header" (click)="toggleMessage()">
+        <div class="play-arrow">
+          <i
+            class="ti"
+            [ngClass]="
+              isMessageExpanded
+                ? 'ti-caret-down-filled'
+                : 'ti-caret-right-filled'
+            "
+          ></i>
+        </div>
         <div class="icon-container">
           <i class="ti ti-alert-circle"></i>
         </div>
         <h3>Error</h3>
       </div>
 
-      <!-- Main Error Section -->
-      <div class="error-section">
-        <div class="section-heading" (click)="toggleErrorSection()">
-          <i
-            class="ti"
-            [ngClass]="
-              isErrorExpanded ? 'ti-caret-down-filled' : 'ti-caret-right-filled'
-            "
-          ></i>
-          Error Details
-        </div>
-        <div
-          class="collapsible-content"
-          [@expandCollapse]="isErrorExpanded ? 'expanded' : 'collapsed'"
-        >
-          <div
-            class="result-content"
-            [ngClass]="{ collapsed: isCollapsed && shouldShowToggle() }"
-          >
-            <pre>{{ getFormattedErrorDetails() }}</pre>
+      <!-- Collapsible Content -->
+      <div
+        class="collapsible-content"
+        [@expandCollapse]="isMessageExpanded ? 'expanded' : 'collapsed'"
+      >
+        <div class="error-content">
+          <!-- Error Details Section -->
+          <div class="error-section">
+            <div class="section-heading" (click)="toggleErrorSection($event)">
+              <i
+                class="ti"
+                [ngClass]="
+                  isErrorExpanded
+                    ? 'ti-caret-down-filled'
+                    : 'ti-caret-right-filled'
+                "
+              ></i>
+              Error Details
+            </div>
+            <div
+              class="collapsible-content"
+              [@expandCollapse]="isErrorExpanded ? 'expanded' : 'collapsed'"
+            >
+              <div
+                class="result-content"
+                [ngClass]="{ collapsed: isCollapsed && shouldShowToggle() }"
+              >
+                <pre>{{ getFormattedErrorDetails() }}</pre>
+              </div>
+              <button
+                *ngIf="shouldShowToggle() && isErrorExpanded"
+                class="toggle-button"
+                (click)="toggleCollapse($event)"
+              >
+                {{ isCollapsed ? 'Show more' : 'Show less' }}
+              </button>
+            </div>
           </div>
-          <button
-            *ngIf="shouldShowToggle() && isErrorExpanded"
-            class="toggle-button"
-            (click)="toggleCollapse()"
-          >
-            {{ isCollapsed ? 'Show more' : 'Show less' }}
-          </button>
-        </div>
-      </div>
 
-      <!-- Optional Data Subsection -->
-      <div class="error-data-container" *ngIf="hasErrorData()">
-        <div class="section-heading" (click)="toggleDataSection()">
-          <i
-            class="ti"
-            [ngClass]="
-              isDataExpanded ? 'ti-caret-down-filled' : 'ti-caret-right-filled'
-            "
-          ></i>
-          Data
-        </div>
-        <div
-          class="collapsible-content"
-          [@expandCollapse]="isDataExpanded ? 'expanded' : 'collapsed'"
-        >
-          <div class="result-content">
-            <pre>{{ getFormattedErrorData() }}</pre>
+          <!-- Optional Data Subsection -->
+          <div class="error-data-container" *ngIf="hasErrorData()">
+            <div class="section-heading" (click)="toggleDataSection($event)">
+              <i
+                class="ti"
+                [ngClass]="
+                  isDataExpanded
+                    ? 'ti-caret-down-filled'
+                    : 'ti-caret-right-filled'
+                "
+              ></i>
+              Data
+            </div>
+            <div
+              class="collapsible-content"
+              [@expandCollapse]="isDataExpanded ? 'expanded' : 'collapsed'"
+            >
+              <div class="result-content">
+                <pre>{{ getFormattedErrorData() }}</pre>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -72,8 +94,9 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
   `,
   styles: [
     `
-      .error-flow-container {
-        background-color: var(--gray-850);
+      .error-container {
+        position: relative;
+        background-color: var(--color-nodes-background);
         border-radius: 8px;
         padding: 1.25rem;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -83,7 +106,20 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
       .error-header {
         display: flex;
         align-items: center;
-        margin-bottom: 1.25rem;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .play-arrow {
+        margin-right: 16px;
+        display: flex;
+        align-items: center;
+
+        i {
+          color: #ff6b6b;
+          font-size: 1.1rem;
+          transition: transform 0.3s ease;
+        }
       }
 
       .icon-container {
@@ -96,11 +132,11 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
         justify-content: center;
         margin-right: 20px;
         flex-shrink: 0;
-      }
 
-      .icon-container i {
-        color: var(--gray-900);
-        font-size: 1.25rem;
+        i {
+          color: var(--gray-900);
+          font-size: 1.25rem;
+        }
       }
 
       h3 {
@@ -110,11 +146,25 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
         margin: 0;
       }
 
-      .error-section,
-      .error-data-container {
-        padding-left: 3.5rem; /* aligns subsection headings/content */
+      /* Collapsible content container */
+      .collapsible-content {
+        overflow: hidden;
+        position: relative;
+
+        &.ng-animating {
+          overflow: hidden;
+        }
       }
 
+      .error-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding-left: 5.5rem;
+        margin-top: 1.25rem;
+      }
+
+      /* Section styling */
       .section-heading {
         font-weight: 500;
         color: var(--gray-300);
@@ -123,23 +173,18 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
         user-select: none;
         display: flex;
         align-items: center;
+
+        i {
+          margin-right: 8px;
+          color: #ff6b6b;
+          font-size: 1.1rem;
+          margin-left: -3px;
+          transition: transform 0.3s ease;
+        }
       }
 
-      .section-heading i {
-        margin-right: 8px;
-        color: #ff6b6b;
-        font-size: 1.1rem;
-        margin-left: -3px;
-        transition: transform 0.3s ease;
-      }
-
-      .collapsible-content {
-        overflow: hidden;
-        position: relative;
-      }
-
-      .collapsible-content.ng-animating {
-        overflow: hidden;
+      .error-section,
+      .error-data-container {
       }
 
       .result-content {
@@ -152,10 +197,12 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
         word-break: break-word;
         overflow-y: auto;
         transition: max-height 0.3s ease;
-      }
+        margin-left: 23px;
+        padding-inline: 10px;
 
-      .result-content.collapsed {
-        max-height: 200px;
+        &.collapsed {
+          max-height: 200px;
+        }
       }
 
       .toggle-button {
@@ -185,16 +232,27 @@ import { expandCollapseAnimation } from '../../../../../../shared/animations/ani
 export class ErrorMessageComponent {
   @Input() message!: GraphMessage;
 
-  // Expand/collapse controls
+  // Main message expand/collapse
+  isMessageExpanded = true;
+
+  // Section expand/collapse controls
   isErrorExpanded = true;
   isCollapsed = true;
   isDataExpanded = false;
 
-  toggleErrorSection(): void {
+  toggleMessage(): void {
+    this.isMessageExpanded = !this.isMessageExpanded;
+  }
+
+  toggleErrorSection(event: Event): void {
+    // Stop the click event from propagating to parent elements
+    event.stopPropagation();
     this.isErrorExpanded = !this.isErrorExpanded;
   }
 
-  toggleCollapse(): void {
+  toggleCollapse(event: Event): void {
+    // Stop the click event from propagating to parent elements
+    event.stopPropagation();
     this.isCollapsed = !this.isCollapsed;
   }
 
@@ -204,7 +262,9 @@ export class ErrorMessageComponent {
     return details.split('\n').length > 5 || details.length > 500;
   }
 
-  toggleDataSection(): void {
+  toggleDataSection(event: Event): void {
+    // Stop the click event from propagating to parent elements
+    event.stopPropagation();
     this.isDataExpanded = !this.isDataExpanded;
   }
 

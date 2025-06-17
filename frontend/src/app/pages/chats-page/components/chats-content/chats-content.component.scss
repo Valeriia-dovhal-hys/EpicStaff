@@ -13,7 +13,8 @@
   align-items: center;
   justify-content: center;
   min-width: 0;
-
+  background: none;
+  border-radius: 0;
   .no-agent-container {
     display: flex;
     align-items: center;
@@ -47,7 +48,7 @@
     }
 
     .action-button {
-      background-color: #0056b3;
+      background-color: var(--accent-color);
       color: white;
       padding: 0.5rem 1.5rem;
       border-radius: 4px;

@@ -28,6 +28,11 @@ class UploadSourceCollectionSerializer(
     chunk_overlaps = serializers.ListField(
         child=serializers.IntegerField(), allow_empty=False, write_only=True
     )
+    additional_params = serializers.ListField(
+        child=serializers.JSONField(),
+        allow_empty=False,
+        write_only=True,
+    )
 
     class Meta:
         model = SourceCollection
@@ -42,8 +47,13 @@ class UploadSourceCollectionSerializer(
             "chunk_sizes",
             "chunk_strategies",
             "chunk_overlaps",
+            "additional_params",
         ]
         read_only_fields = ["collection_id", "created_at", "status"]
+
+        extra_kwargs = {
+            "collection_name": {"validators": []},
+        }
 
     def validate_files(self, value):
         return self.validate_files_list(value)
@@ -56,29 +66,19 @@ class UploadSourceCollectionSerializer(
         chunk_sizes = validated_data.pop("chunk_sizes")
         chunk_strategies = validated_data.pop("chunk_strategies")
         chunk_overlaps = validated_data.pop("chunk_overlaps")
+        additional_params = validated_data.pop("additional_params")
+
         with transaction.atomic():
             collection = SourceCollection.objects.create(**validated_data)
             self.create_documents_for_collection(
-                collection, files, chunk_sizes, chunk_strategies, chunk_overlaps
+                collection=collection,
+                files=files,
+                chunk_sizes=chunk_sizes,
+                chunk_strategies=chunk_strategies,
+                chunk_overlaps=chunk_overlaps,
+                raw_additional_params=additional_params,
             )
         return collection
-
-
-class SourceCollectionReadSerializer(serializers.ModelSerializer):
-    document_metadata = serializers.StringRelatedField(many=True, read_only=True)
-
-    class Meta:
-        model = SourceCollection
-        fields = [
-            "collection_id",
-            "collection_name",
-            "user_id",
-            "status",
-            "embedder",
-            "created_at",
-            "document_metadata",
-        ]
-        read_only_fields = fields
 
 
 class AddSourcesSerializer(SourceSerializerMixin, serializers.Serializer):
@@ -98,6 +98,9 @@ class AddSourcesSerializer(SourceSerializerMixin, serializers.Serializer):
     chunk_overlaps = serializers.ListField(
         child=serializers.IntegerField(), allow_empty=False, write_only=True
     )
+    additional_params = serializers.ListField(
+        child=serializers.JSONField(), allow_empty=False, write_only=True
+    )
 
     def validate_files(self, value):
         return self.validate_files_list(value)
@@ -110,8 +113,14 @@ class AddSourcesSerializer(SourceSerializerMixin, serializers.Serializer):
         chunk_sizes = self.validated_data.pop("chunk_sizes")
         chunk_strategies = self.validated_data.pop("chunk_strategies")
         chunk_overlaps = self.validated_data.pop("chunk_overlaps")
+        additional_params = self.validated_data.pop("additional_params")
         self.create_documents_for_collection(
-            collection, files, chunk_sizes, chunk_strategies, chunk_overlaps
+            collection=collection,
+            files=files,
+            chunk_sizes=chunk_sizes,
+            chunk_strategies=chunk_strategies,
+            chunk_overlaps=chunk_overlaps,
+            raw_additional_params=additional_params,
         )
 
 
@@ -123,6 +132,9 @@ class UpdateSourceCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = SourceCollection
         fields = ["collection_name"]
+        extra_kwargs = {
+            "collection_name": {"validators": []},
+        }
 
 
 class DocumentMetadataSerializer(serializers.ModelSerializer):
@@ -136,28 +148,92 @@ class DocumentMetadataSerializer(serializers.ModelSerializer):
             "chunk_size",
             "chunk_strategy",
             "chunk_overlap",
+            "additional_params",
+            "document_content",
         ]
         read_only_fields = ["document_id"]
 
-class CollectionStatusSerializer(serializers.ModelSerializer):
+
+class CopySourceCollectionSerializer(
+    SourceSerializerMixin, serializers.ModelSerializer
+):
+    class NestedDocumentMetadataSerializer(DocumentMetadataSerializer):
+        class Meta(DocumentMetadataSerializer.Meta):
+            extra_kwargs = {
+                "document_id": {"read_only": True},
+                "source_collection": {"read_only": True},
+            }
+
+    document_metadata = NestedDocumentMetadataSerializer(many=True)
 
     class Meta:
         model = SourceCollection
         fields = [
             "collection_id",
             "collection_name",
-            "collection_status"
+            "user_id",
+            "status",
+            "embedder",
+            "created_at",
+            "document_metadata",
         ]
+        read_only_fields = ["collection_id", "created_at", "status"]
+
+        extra_kwargs = {
+            "collection_name": {"validators": []},
+        }
+
+    def create(self, validated_data):
+        list_document_metadata = validated_data.pop("document_metadata")
+        with transaction.atomic():
+            collection = SourceCollection.objects.create(**validated_data)
+            self.create_copy_collection(
+                collection=collection, list_document_metadata=list_document_metadata
+            )
+        return collection
+
+
+class SourceCollectionReadSerializer(serializers.ModelSerializer):
+    document_metadata = DocumentMetadataSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = SourceCollection
+        fields = [
+            "collection_id",
+            "collection_name",
+            "user_id",
+            "status",
+            "embedder",
+            "created_at",
+            "document_metadata",
+        ]
+        read_only_fields = fields
+
+
+class CollectionStatusSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SourceCollection
+        fields = ["collection_id", "collection_name", "collection_status"]
 
     def to_representation(self, obj):
         """Custom representation to control response structure"""
         document_counts = obj.document_metadata.aggregate(
             total_documents=Count("document_id"),
-            new_documents=Count("document_id", filter=Q(status=DocumentMetadata.DocumentStatus.NEW)),
-            completed_documents=Count("document_id", filter=Q(status=DocumentMetadata.DocumentStatus.COMPLETED)),
-            processing_documents=Count("document_id", filter=Q(status=DocumentMetadata.DocumentStatus.PROCESSING)),
-            failed_documents=Count("document_id", filter=Q(status=DocumentMetadata.DocumentStatus.FAILED)),
-
+            new_documents=Count(
+                "document_id", filter=Q(status=DocumentMetadata.DocumentStatus.NEW)
+            ),
+            completed_documents=Count(
+                "document_id",
+                filter=Q(status=DocumentMetadata.DocumentStatus.COMPLETED),
+            ),
+            processing_documents=Count(
+                "document_id",
+                filter=Q(status=DocumentMetadata.DocumentStatus.PROCESSING),
+            ),
+            failed_documents=Count(
+                "document_id", filter=Q(status=DocumentMetadata.DocumentStatus.FAILED)
+            ),
         )
         documents = obj.document_metadata.values("document_id", "file_name", "status")
         return {
@@ -171,7 +247,7 @@ class CollectionStatusSerializer(serializers.ModelSerializer):
             "failed_documents": document_counts["failed_documents"],
             "documents": [
                 {
-                    "document_id": doc['document_id'],
+                    "document_id": doc["document_id"],
                     "file_name": doc["file_name"],
                     "status": doc["status"],
                 }

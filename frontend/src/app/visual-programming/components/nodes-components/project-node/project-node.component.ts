@@ -1,7 +1,7 @@
 import { Component, Input, signal } from '@angular/core';
 
 import { KeyValuePipe, NgFor, NgIf } from '@angular/common';
-import { GetProjectRequest } from '../../../../pages/projects-page/models/project.model';
+import { GetProjectRequest } from '../../../../features/projects/models/project.model';
 import { ProjectNodeModel } from '../../../core/models/node.model';
 
 @Component({

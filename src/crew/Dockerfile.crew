@@ -1,5 +1,5 @@
-# Use a base image with Python 3.12.3
-FROM python:3.12.3
+# Use a base image with Python 3.12.10
+FROM python:3.12.10
 
 # Default build arg
 ARG INSTALL_GROUPS="--no-dev"
@@ -22,20 +22,21 @@ ENV PATH="/root/.local/bin:$PATH"
 WORKDIR /home/user/root/app
 
 # Copy pyproject.toml and poetry.lock first to avoid rebuilding on code changes
-COPY pyproject.toml .
-COPY poetry.lock .
-COPY libraries/ ./libraries
+COPY crew/pyproject.toml .
+COPY crew/poetry.lock .
+COPY crew/libraries/ ./libraries
 
 ENV PEP517_BUILD_BACKEND=setuptools.build_meta
 
 # Install Python dependencies using Poetry, clearing cache
 RUN echo "INSTALL_GROUPS=${INSTALL_GROUPS}"
+
+COPY ./shared ./../shared
 RUN poetry install --no-root ${INSTALL_GROUPS} -vvv > /tmp/poetry_install.log 2>&1
 RUN rm -rf /root/.cache
 
 #Copying file to workdir
-COPY . .
-
+COPY ./crew .
 CMD ["poetry", "run", "python3", "/home/user/root/app/main.py"]
 
 

@@ -12,12 +12,12 @@ from django_filters.rest_framework import (
     CharFilter,
     NumberFilter,
 )
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status, filters as drf_filters
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.decorators import action
 from django.db import transaction
-from tables.models.graph_models import LLMNode
+from django.db.models import Prefetch
+from tables.models.graph_models import Condition, ConditionGroup, DecisionTableNode, LLMNode
 from tables.models.realtime_models import (
     RealtimeSessionItem,
     RealtimeAgent,
@@ -31,12 +31,16 @@ from django.db.models.functions import Cast
 from tables.serializers.model_serializers import (
     CrewTagSerializer,
     AgentTagSerializer,
+    DecisionTableNodeSerializer,
+    GraphLightSerializer,
     GraphTagSerializer,
     RealtimeConfigSerializer,
     RealtimeSessionItemSerializer,
     RealtimeAgentSerializer,
     RealtimeAgentChatSerializer,
     StartNodeSerializer,
+    ConditionGroupSerializer,
+    ConditionSerializer
 )
 
 
@@ -106,6 +110,7 @@ from tables.serializers.knowledge_serializers import (
     SourceCollectionReadSerializer,
     UploadSourceCollectionSerializer,
     UpdateSourceCollectionSerializer,
+    CopySourceCollectionSerializer,
     AddSourcesSerializer,
     DocumentMetadataSerializer,
 )
@@ -306,9 +311,27 @@ class PythonCodeResultReadViewSet(ReadOnlyModelViewSet):
 
 
 class GraphViewSet(viewsets.ModelViewSet):
-    queryset = Graph.objects.all()
     serializer_class = GraphSerializer
 
+    def get_queryset(self):
+        return Graph.objects.defer('metadata', 'tags').prefetch_related(
+            Prefetch("crew_node_list", queryset=CrewNode.objects.select_related('crew')),
+            Prefetch("python_node_list", queryset=PythonNode.objects.select_related('python_code')), 
+            Prefetch("edge_list", queryset=Edge.objects.all()), 
+            Prefetch("conditional_edge_list", queryset=ConditionalEdge.objects.select_related('python_code')), 
+            Prefetch("llm_node_list", queryset=LLMNode.objects.select_related('llm_config')),
+            Prefetch("decision_table_node_list", queryset=DecisionTableNode.objects.all())
+        ).all()
+
+
+class GraphLightViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = GraphLightSerializer
+    filter_backends = [DjangoFilterBackend, drf_filters.SearchFilter]
+    # filterset_fields = ['tags']  TODO: Uncomment when tags logic implemented
+    search_fields = ['name', 'description']
+
+    def get_queryset(self):
+        return Graph.objects.prefetch_related("tags")
 
 class CrewNodeViewSet(viewsets.ModelViewSet):
     queryset = CrewNode.objects.all()
@@ -349,7 +372,7 @@ class SourceCollectionViewSet(viewsets.ModelViewSet):
     - GET: all collections.
     - GET: collection by id.
     - POST: create a collection with multiple file uploads.
-    - PATCH: Update allowed fields (collection_name, chunk_strategy, chunk_size, chunk_overlap).
+    - PATCH: Update allowed fields (collection_name).
     - DELETE: Delete a collection (and its related documents).
 
     Custom action:
@@ -418,6 +441,27 @@ class SourceCollectionViewSet(viewsets.ModelViewSet):
             read_serializer = SourceCollectionReadSerializer(collection)
             return Response(read_serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CopySourceCollectionViewSet(viewsets.ModelViewSet):
+    http_method_names = ["post"]
+
+    queryset = SourceCollection.objects.all()
+    serializer_class = CopySourceCollectionSerializer
+
+    def create(self, request):
+        with transaction.atomic():
+            serializer = self.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            collection = serializer.save()
+
+            redis_service.publish_source_collection(
+                collection_id=collection.collection_id
+            )
+        return Response(
+            SourceCollectionReadSerializer(collection).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class DocumentMetadataViewSet(viewsets.ReadOnlyModelViewSet):
@@ -503,6 +547,7 @@ class RealtimeConfigModelViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = RealtimeConfigFilter
 
+
 class RealtimeTranscriptionModelViewSet(viewsets.ModelViewSet):
     queryset = RealtimeTranscriptionModel.objects.all()
     serializer_class = RealtimeTranscriptionModelSerializer
@@ -511,7 +556,8 @@ class RealtimeTranscriptionModelViewSet(viewsets.ModelViewSet):
 class RealtimeTranscriptionConfigModelViewSet(viewsets.ModelViewSet):
     class RealtimeTranscriptionConfigFilter(filters.FilterSet):
         model_provider_id = filters.CharFilter(
-            field_name="realtime_transcription_model__provider__id", lookup_expr="icontains"
+            field_name="realtime_transcription_model__provider__id",
+            lookup_expr="icontains",
         )
 
         class Meta:
@@ -520,6 +566,7 @@ class RealtimeTranscriptionConfigModelViewSet(viewsets.ModelViewSet):
                 "custom_name",
                 "realtime_transcription_model",
             ]
+
     queryset = RealtimeTranscriptionConfig.objects.all()
     serializer_class = RealtimeTranscriptionConfigSerializer
     filter_backends = [DjangoFilterBackend]
@@ -556,3 +603,73 @@ class RealtimeAgentChatViewSet(ReadOnlyModelViewSet):
 class StartNodeModelViewSet(viewsets.ModelViewSet):
     queryset = StartNode.objects.all()
     serializer_class = StartNodeSerializer
+
+class ConditionGroupModelViewSet(viewsets.ModelViewSet):
+    queryset = ConditionGroup.objects.all()
+    serializer_class = ConditionGroupSerializer
+class ConditionModelViewSet(viewsets.ModelViewSet):
+    queryset = Condition.objects.all()
+    serializer_class = ConditionSerializer
+
+class DecisionTableNodeModelViewSet(viewsets.ModelViewSet):
+    queryset = DecisionTableNode.objects.all()
+    serializer_class = DecisionTableNodeSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["graph"]
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        # Extract nested data
+        condition_groups_data = request.data.pop("condition_groups", [])
+
+        # Create the DecisionTableNode
+        node_serializer = self.get_serializer(data=request.data)
+        node_serializer.is_valid(raise_exception=True)
+        node = node_serializer.save()
+
+        # Create each ConditionGroup
+        for group_data in condition_groups_data:
+            conditions_data = group_data.pop("conditions", [])
+            group_data["decision_table_node"] = node.id
+            group_serializer = ConditionGroupSerializer(data=group_data)
+            group_serializer.is_valid(raise_exception=True)
+            group = group_serializer.save()
+
+            # Create each Condition
+            for condition_data in conditions_data:
+                condition_data["condition_group"] = group.id
+                condition_serializer = ConditionSerializer(data=condition_data)
+                condition_serializer.is_valid(raise_exception=True)
+                condition_serializer.save()
+
+        return Response(self.get_serializer(node).data, status=status.HTTP_201_CREATED)
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        condition_groups_data = request.data.pop("condition_groups", [])
+
+        # Update the DecisionTableNode instance
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        node = serializer.save()
+
+        # Delete existing condition groups and conditions
+        Condition.objects.filter(condition_group__decision_table_node=node).delete()
+        ConditionGroup.objects.filter(decision_table_node=node).delete()
+
+        # Recreate condition groups and conditions
+        for group_data in condition_groups_data:
+            conditions_data = group_data.pop("conditions", [])
+            group_data["decision_table_node"] = node.id
+            group_serializer = ConditionGroupSerializer(data=group_data)
+            group_serializer.is_valid(raise_exception=True)
+            group = group_serializer.save()
+
+            for condition_data in conditions_data:
+                condition_data["condition_group"] = group.id
+                condition_serializer = ConditionSerializer(data=condition_data)
+                condition_serializer.is_valid(raise_exception=True)
+                condition_serializer.save()
+
+        return Response(self.get_serializer(node).data)

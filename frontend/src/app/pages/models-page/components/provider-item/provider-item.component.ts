@@ -98,7 +98,7 @@ import {
             color: #ededed;
             display: flex;
             align-items: center;
-            gap: 20px; /* Updated gap to exactly 17px */
+            gap: 22px;
 
             .provider-logo {
               width: 32px;

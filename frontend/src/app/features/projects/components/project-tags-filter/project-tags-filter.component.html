@@ -1,0 +1,49 @@
+<div class="tags-filter-container">
+  <app-button
+    type="secondary"
+    leftIcon="ui/tags-filled"
+    rightIcon="ui/chevron-down"
+    (click)="toggleDropdown()"
+    [class.active]="isDropdownOpen()"
+  >
+    {{ buttonText() }}
+  </app-button>
+
+  <div class="dropdown" *ngIf="isDropdownOpen()">
+    <div class="dropdown-header">
+      <h3>Filter by Tags</h3>
+      <button
+        class="clear-all-btn"
+        (click)="onClearAll()"
+        *ngIf="tempSelectedTagIds().length > 0"
+      >
+        Clear All
+      </button>
+    </div>
+
+    <div class="tags-list" *ngIf="isTagsLoaded(); else loadingTags">
+      <div
+        class="tag-item"
+        *ngFor="let tag of allTags(); trackBy: trackByTagId"
+        (click)="toggleTag(tag.id)"
+        [class.selected]="isTagSelected(tag.id)"
+      >
+        <span class="tag-name">{{ tag.name }}</span>
+        <app-icon
+          [icon]="isTagSelected(tag.id) ? 'ui/check' : 'ui/plus'"
+          size="0.9rem"
+        >
+        </app-icon>
+      </div>
+    </div>
+
+    <ng-template #loadingTags>
+      <div class="loading-message">Loading tags...</div>
+    </ng-template>
+
+    <div class="dropdown-actions">
+      <app-button type="ghost" (click)="onCancel()">Cancel</app-button>
+      <app-button type="primary" (click)="onApply()">Apply</app-button>
+    </div>
+  </div>
+</div>

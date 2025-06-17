@@ -8,11 +8,8 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule, NgFor } from '@angular/common';
-import { ProjectsService } from '../../../../pages/projects-page/services/projects.service';
-import {
-  GetProjectRequest,
-  ProjectDto,
-} from '../../../../pages/projects-page/models/project.model';
+import { ProjectsStorageService } from '../../../../features/projects/services/projects-storage.service';
+import { GetProjectRequest } from '../../../../features/projects/models/project.model';
 import { NodeType } from '../../../core/enums/node-type';
 
 @Component({
@@ -75,7 +72,7 @@ export class FlowProjectsContextMenuComponent implements OnInit {
   public projects: GetProjectRequest[] = [];
 
   constructor(
-    private projectsService: ProjectsService,
+    private projectsService: ProjectsStorageService,
     private cdr: ChangeDetectorRef
   ) {}
 

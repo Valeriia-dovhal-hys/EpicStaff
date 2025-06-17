@@ -7,6 +7,9 @@ class Graph(models.Model):
     name = models.CharField(max_length=255, blank=False)
     description = models.TextField(blank=True)
     metadata = models.JSONField(default=dict)
+    time_to_live = models.IntegerField(
+        default=3600, help_text="Session lifitime duration in seconds."
+    )
 
 
 class BaseNode(models.Model):
@@ -33,21 +36,45 @@ class CrewNode(BaseNode):
     graph = models.ForeignKey(
         "Graph", on_delete=models.CASCADE, related_name="crew_node_list"
     )
-    crew = models.ForeignKey("Crew", on_delete=models.PROTECT)
+    crew = models.ForeignKey("Crew", on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["graph", "node_name"],
+                name="unique_graph_node_name_for_crew_node",
+            )
+        ]
 
 
 class PythonNode(BaseNode):
     graph = models.ForeignKey(
         "Graph", on_delete=models.CASCADE, related_name="python_node_list"
     )
-    python_code = models.ForeignKey("PythonCode", on_delete=models.PROTECT)
+    python_code = models.ForeignKey("PythonCode", on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["graph", "node_name"],
+                name="unique_graph_node_name_for_python_node",
+            )
+        ]
 
 
 class LLMNode(BaseNode):
     graph = models.ForeignKey(
         "Graph", on_delete=models.CASCADE, related_name="llm_node_list"
     )
-    llm_config = models.ForeignKey("LLMConfig", blank=False, on_delete=models.PROTECT)
+    llm_config = models.ForeignKey("LLMConfig", blank=False, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["graph", "node_name"],
+                name="unique_graph_node_name_for_llm_node",
+            )
+        ]
 
 
 class Edge(models.Model):
@@ -57,6 +84,13 @@ class Edge(models.Model):
     )
     start_key = models.CharField(max_length=255, blank=False)
     end_key = models.CharField(max_length=255, blank=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["graph", "start_key", "end_key"], name="unique_graph_edge"
+            )
+        ]
 
 
 class ConditionalEdge(models.Model):
@@ -69,6 +103,13 @@ class ConditionalEdge(models.Model):
     then = models.CharField(max_length=255, null=True, default=None)
     input_map = models.JSONField(default=dict)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["graph", "source"], name="unique_graph_conditional_edge_source"
+            )
+        ]
+
 
 class GraphSessionMessage(models.Model):
     session = models.ForeignKey("Session", on_delete=models.CASCADE)
@@ -77,11 +118,72 @@ class GraphSessionMessage(models.Model):
     execution_order = models.IntegerField(default=0)
     message_data = models.JSONField()
 
+
 class StartNode(models.Model):
-    graph = models.ForeignKey("Graph", on_delete=models.CASCADE)
+    graph = models.ForeignKey(
+        "Graph", on_delete=models.CASCADE, related_name="start_node_list"
+    )
     variables = models.JSONField(default=dict)
-    
+
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["graph"], name="unique_startnode_per_graph")
+            models.UniqueConstraint(fields=["graph"], name="unique_graph_start_node")
         ]
+
+
+class DecisionTableNode(BaseNode):
+    graph = models.ForeignKey(
+        "Graph", on_delete=models.CASCADE, related_name="decision_table_node_list"
+    )
+    default_next_node = models.CharField(max_length=255, null=True, default=None)
+    next_error_node = models.CharField(max_length=255, null=True, default=None)
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["graph", "node_name"],
+                name="unique_graph_node_name_for_decision_table_node",
+            )
+        ]
+
+
+class ConditionGroup(models.Model):
+    decision_table_node = models.ForeignKey(
+        "DecisionTableNode", on_delete=models.CASCADE, related_name="condition_groups"
+    )
+    group_name = models.CharField(max_length=255, blank=False)
+
+    group_type = models.CharField(max_length=255, blank=False)  # simple, complex
+    order = models.PositiveIntegerField(blank=False, default=0)
+    expression = models.CharField(max_length=255, null=True, default=None)
+    manipulation = models.CharField(max_length=255, null=True, default=None)
+    next_node = models.CharField(max_length=255, null=True, default=None)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["decision_table_node", "group_name"],
+                name="unique_decision_table_node_group_name",
+            ),
+        ]
+        ordering = ["order"]
+        
+
+
+class Condition(models.Model):
+    condition_group = models.ForeignKey(
+        "ConditionGroup", on_delete=models.CASCADE, related_name="conditions"
+    )
+    condition_name = models.CharField(max_length=512, blank=False)
+    order = models.PositiveIntegerField(blank=False, default=0)
+    condition = models.CharField(max_length=5000, blank=False)
+
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["condition_group", "condition_name"],
+                name="unique_condition_group_condition_name",
+            )
+        ]
+        ordering = ["order"]
+

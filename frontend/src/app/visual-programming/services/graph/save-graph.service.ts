@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Observable, forkJoin, of, EMPTY, throwError } from 'rxjs';
+import { Observable, forkJoin, of, EMPTY, throwError, from } from 'rxjs';
 import { switchMap, catchError, map } from 'rxjs/operators';
 
-import { GraphService } from '../../../pages/flows-page/services/graphs.service';
-import { GetProjectRequest } from '../../../pages/projects-page/models/project.model';
+import { FlowsApiService } from '../../../features/flows/services/flows-api.service';
+import { GetProjectRequest } from '../../../features/projects/models/project.model';
 import { NodeType } from '../../core/enums/node-type';
 import { ConnectionModel } from '../../core/models/connection.model';
 import { FlowModel } from '../../core/models/flow.model';
@@ -13,6 +13,7 @@ import {
   EdgeNodeModel,
   StartNodeModel,
   LLMNodeModel,
+  NodeModel,
 } from '../../core/models/node.model';
 
 import { ToastService } from '../../../services/notifications/toast.service';
@@ -44,7 +45,7 @@ import { PythonNodeService } from '../../../pages/flows-page/components/flow-vis
 import {
   GraphDto,
   UpdateGraphDtoRequest,
-} from '../../../pages/flows-page/models/graph.model';
+} from '../../../features/flows/models/graph.model';
 
 @Injectable({
   providedIn: 'root',
@@ -55,10 +56,29 @@ export class GraphUpdateService {
     private pythonNodeService: PythonNodeService,
     private conditionalEdgeService: ConditionalEdgeService,
     private edgeService: EdgeService,
-    private graphService: GraphService,
+    private graphService: FlowsApiService,
     private llmNodeService: LLMNodeService,
     private toastService: ToastService
   ) {}
+
+  /**
+   * Clears all ports on nodes to null before saving
+   * This reduces the metadata size and prevents storing unnecessary port data
+   */
+  private clearNodePorts(flowState: FlowModel): FlowModel {
+    // Create a deep copy of the flow state to avoid mutating the original
+    const flowStateCopy: FlowModel = {
+      ...flowState,
+      nodes: flowState.nodes.map((node) => ({
+        ...node,
+        ports: null, // Set all node ports to null
+      })),
+      connections: [...flowState.connections],
+      groups: [...flowState.groups],
+    };
+
+    return flowStateCopy;
+  }
 
   public saveGraph(
     flowState: FlowModel,
@@ -74,6 +94,12 @@ export class GraphUpdateService {
     };
   }> {
     //
+    console.log('GraphUpdateService: Saving graph:', graph);
+    console.log('GraphUpdateService: Flow state:', flowState);
+
+    // Clear all ports on nodes before saving metadata
+    const flowStateWithoutPorts = this.clearNodePorts(flowState);
+
     let deleteCrewNodes$: Observable<any> = of(null);
     if (graph.crew_node_list && graph.crew_node_list.length > 0) {
       const deleteCrewRequests = graph.crew_node_list.map(
@@ -229,6 +255,8 @@ export class GraphUpdateService {
 
     // ---- Handle Edge Connections ----
     let deleteEdges$: Observable<any> = of(null);
+    console.log('before', graph.edge_list);
+
     if (graph.edge_list && graph.edge_list.length > 0) {
       const deleteEdgeRequests = graph.edge_list.map((edge: Edge) =>
         this.edgeService
@@ -240,19 +268,26 @@ export class GraphUpdateService {
 
     const createEdges$ = deleteEdges$.pipe(
       switchMap(() => {
-        const validNodes = flowState.nodes.filter(
-          (node) =>
-            node.type === NodeType.PROJECT ||
-            node.type === NodeType.PYTHON ||
-            node.type === NodeType.LLM
-        );
+        const validNodes = flowState.nodes;
         const validNodeIds = new Set(validNodes.map((n) => n.id));
         const edgeRequests = flowState.connections
-          .filter(
-            (conn: ConnectionModel) =>
-              validNodeIds.has(conn.sourceNodeId) &&
-              validNodeIds.has(conn.targetNodeId)
-          )
+          .filter((conn: ConnectionModel) => {
+            if (
+              !validNodeIds.has(conn.sourceNodeId) ||
+              !validNodeIds.has(conn.targetNodeId)
+            )
+              return false;
+            const sourceNode = flowState.nodes.find(
+              (n) => n.id === conn.sourceNodeId
+            );
+            const targetNode = flowState.nodes.find(
+              (n) => n.id === conn.targetNodeId
+            );
+            // Skip if source or target node is of type EDGE
+            if (sourceNode && sourceNode.type === NodeType.EDGE) return false;
+            if (targetNode && targetNode.type === NodeType.EDGE) return false;
+            return true;
+          })
           .map((conn) => {
             const sourceNode = flowState.nodes.find(
               (n) => n.id === conn.sourceNodeId
@@ -273,29 +308,7 @@ export class GraphUpdateService {
         return edgeRequests.length ? forkJoin(edgeRequests) : of([]);
       })
     );
-
-    // ---- Determine the Entry Point ----
-    const startNodes = flowState.nodes.filter(
-      (node) => node.type === NodeType.START
-    ) as StartNodeModel[];
-    let entryPoint: string | null = null;
-    if (startNodes.length > 0) {
-      const startNode = startNodes[0];
-      const startConnection = flowState.connections.find(
-        (conn) => conn.sourceNodeId === startNode.id
-      );
-      if (startConnection) {
-        const targetNode = flowState.nodes.find(
-          (node) => node.id === startConnection.targetNodeId
-        );
-        if (targetNode) {
-          entryPoint =
-            targetNode.type === NodeType.EDGE
-              ? 'conditional_edge'
-              : targetNode.node_name || null;
-        }
-      }
-    }
+    console.log('before', graph.edge_list);
 
     // ---- Combine and Update Graph ----
     return forkJoin({
@@ -313,39 +326,38 @@ export class GraphUpdateService {
           conditionalEdges: any[];
           edges: Edge[];
         }) => {
-          console.log('GraphUpdateService: Subrequests completed:', results);
           const updateGraphRequest: UpdateGraphDtoRequest = {
             id: graph.id,
             name: graph.name,
-            entry_point: entryPoint,
             description: graph.description,
-            metadata: flowState,
+            metadata: flowStateWithoutPorts,
           };
+          console.log('sending this graph for update', updateGraphRequest);
 
-          return this.graphService.updateGraph(updateGraphRequest).pipe(
-            map((updatedGraph) => {
-              console.log(
-                'GraphUpdateService: Graph updated successfully:',
-                updatedGraph
-              );
-              this.toastService.success(`Graph saved succesfully`);
+          return this.graphService
+            .updateGraph(graph.id, updateGraphRequest)
+            .pipe(
+              map((updatedGraph) => {
+                console.log(
+                  'GraphUpdateService: Graph updated successfully:',
+                  updatedGraph
+                );
 
-              return {
-                graph: updatedGraph,
-                updatedNodes: {
-                  crewNodes: results.crewNodes,
-                  pythonNodes: results.pythonNodes,
-                  llmNodes: results.llmNodes,
-                  conditionalEdges: results.conditionalEdges,
-                  edges: results.edges,
-                },
-              };
-            })
-          );
+                return {
+                  graph: updatedGraph,
+                  updatedNodes: {
+                    crewNodes: results.crewNodes,
+                    pythonNodes: results.pythonNodes,
+                    llmNodes: results.llmNodes,
+                    conditionalEdges: results.conditionalEdges,
+                    edges: results.edges,
+                  },
+                };
+              })
+            );
         }
       ),
       catchError((err) => {
-        this.toastService.error(`Graph update failed: ${err}`);
         return throwError(err);
       })
     );

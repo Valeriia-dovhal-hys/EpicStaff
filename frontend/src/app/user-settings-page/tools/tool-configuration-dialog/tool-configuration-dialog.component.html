@@ -10,7 +10,7 @@
       (keydown.enter)="onCancel()"
       (keydown.space)="onCancel()"
     >
-      <mat-icon class="close-icon">close</mat-icon>
+      <i class="ti ti-x close-icon"></i>
     </div>
   </div>
 
@@ -21,7 +21,7 @@
         class="search-input-wrapper"
         [ngClass]="{ 'input-has-content': searchHasContent }"
       >
-        <mat-icon class="search-icon">search</mat-icon>
+        <i class="ti ti-search search-icon"></i>
         <input
           type="text"
           class="search-input"
@@ -61,7 +61,7 @@
                 (click)="deleteFromList(config, $event)"
                 aria-label="Delete Configuration"
               >
-                <mat-icon>delete</mat-icon>
+                <i class="ti ti-trash"></i>
               </button>
             </div>
           </li>
@@ -70,7 +70,7 @@
 
       <!-- "Create New" button stays at the bottom -->
       <button class="create-config-button" (click)="onCreateNew()">
-        <mat-icon>add</mat-icon>
+        <i class="ti ti-plus"></i>
         New Form
       </button>
     </div>

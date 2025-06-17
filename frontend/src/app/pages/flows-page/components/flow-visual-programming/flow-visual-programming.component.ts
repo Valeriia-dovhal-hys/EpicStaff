@@ -4,20 +4,23 @@ import {
   Component,
   OnInit,
   OnDestroy,
+  HostListener,
+  AfterViewInit,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FlowService } from '../../../../visual-programming/services/flow.service';
-import { GraphService } from '../../services/graphs.service';
+import { FlowsApiService } from '../../../../features/flows/services/flows-api.service';
 import {
   CreateGraphDtoRequest,
   GraphDto,
   UpdateGraphDtoRequest,
-} from '../../models/graph.model';
+} from '../../../../features/flows/models/graph.model';
 import { FlowHeaderComponent } from './components/header/flow-header.component';
 import { FlowGraphComponent } from '../../../../visual-programming/flow-graph/flow-graph.component';
 import {
   catchError,
   EMPTY,
+  finalize,
   forkJoin,
   map,
   Observable,
@@ -33,6 +36,9 @@ import { ConditionalEdgeService } from './services/conditional-edge.service';
 import { CrewNodeService } from './services/crew-node.service';
 import { EdgeService } from './services/edge.service';
 import { PythonNodeService } from './services/python-node.service';
+import { RunGraphService } from '../../../../services/run-graph-session.service';
+import { StartNodeService } from './services/start-node.service';
+import { StartNode, CreateStartNodeRequest } from './models/start-node.model';
 
 import {
   ConditionalEdge,
@@ -41,7 +47,7 @@ import {
   GetConditionalEdgeRequest,
 } from './models/conditional-edge.model';
 import { CreateEdgeRequest, Edge } from './models/edge.model';
-import { GetProjectRequest } from '../../../projects-page/models/project.model';
+import { GetProjectRequest } from '../../../../features/projects/models/project.model';
 
 import { CreateCrewNodeRequest, CrewNode } from './models/crew-node.model';
 import {
@@ -50,43 +56,64 @@ import {
 } from './models/python-node.model';
 
 import { v4 as uuidv4 } from 'uuid';
-import { SharedSnackbarService } from '../../../../services/snackbar/shared-snackbar.service';
+import { ToastService } from '../../../../services/notifications/toast.service';
 import { ConnectionModel } from '../../../../visual-programming/core/models/connection.model';
 import { FlowModel } from '../../../../visual-programming/core/models/flow.model';
-import { GroupModel } from '../../../../visual-programming/core/models/group.model';
-import { NodeModel } from '../../../../visual-programming/core/models/node.model';
+import { GroupNodeModel } from '../../../../visual-programming/core/models/group.model';
+import {
+  NodeModel,
+  StartNodeModel,
+} from '../../../../visual-programming/core/models/node.model';
+import { NodeType } from '../../../../visual-programming/core/enums/node-type';
 import { GraphUpdateService } from '../../../../visual-programming/services/graph/save-graph.service';
+import { Dialog as CdkDialog } from '@angular/cdk/dialog';
+import { FlowsStorageService } from '../../../../features/flows/services/flows-storage.service';
+import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
+import { FlowSessionsListComponent } from '../../../../features/flows/components/flow-sessions-dialog/flow-sessions-list.component';
+import {
+  ConfirmationDialogComponent,
+  ConfirmationDialogData,
+} from '../../../../shared/components/cofirm-dialog/confirmation-dialog.component';
+import { ConfirmationDialogService } from '../../../../shared/components/cofirm-dialog/confimation-dialog.service';
 
-export interface FlowState {
-  nodes: NodeModel[];
-  connections: ConnectionModel[];
-  groups: GroupModel[];
-}
+import { isEqual } from 'lodash';
+import { CanComponentDeactivate } from '../../../../core/guards/unsaved-changes.guard';
 @Component({
   selector: 'app-flow-visual-programming',
   standalone: true,
-  imports: [FlowHeaderComponent, FlowGraphComponent],
+  imports: [FlowHeaderComponent, FlowGraphComponent, SpinnerComponent],
   templateUrl: './flow-visual-programming.component.html',
   styleUrl: './flow-visual-programming.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FlowVisualProgrammingComponent implements OnInit, OnDestroy {
-  graph!: GraphDto;
-  private destroy$ = new Subject<void>();
+export class FlowVisualProgrammingComponent
+  implements OnInit, OnDestroy, CanComponentDeactivate
+{
+  public isLoaded = false;
+  public graph!: GraphDto;
 
-  isLoaded = false;
+  public isSaving = false;
+  public isRunning = false;
+
+  private initialState: FlowModel | undefined;
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
-    private route: ActivatedRoute,
-    private graphService: GraphService,
-    private flowService: FlowService,
-    private cdr: ChangeDetectorRef,
-
-    private snackbarService: SharedSnackbarService,
-    private graphUpdateService: GraphUpdateService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly flowStorageService: FlowsStorageService,
+    private readonly flowService: FlowService,
+    private readonly flowApiService: FlowsApiService,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly toastService: ToastService,
+    private readonly graphUpdateService: GraphUpdateService,
+    private readonly runGraphService: RunGraphService,
+    private readonly startNodeService: StartNodeService,
+    private readonly dialog: CdkDialog,
+    private readonly confirmationDialogService: ConfirmationDialogService
   ) {}
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
       console.warn('Invalid graph ID.');
@@ -97,38 +124,193 @@ export class FlowVisualProgrammingComponent implements OnInit, OnDestroy {
   }
 
   private fetchGraph(graphId: number): void {
-    this.graphService
+    this.flowApiService
       .getGraphById(graphId)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.cdr.markForCheck())
+      )
       .subscribe({
         next: (graph: GraphDto) => {
-          this.graph = graph;
-          console.log('metadata', this.graph.metadata);
-          this.isLoaded = true;
-          console.log(this.graph);
+          console.log('view flow page fetched graph:', graph);
 
-          this.cdr.markForCheck();
+          this.graph = graph;
+
+          this.isLoaded = true;
+          this.initialState = graph.metadata;
         },
         error: (err) => {
           console.error('Error fetching graph:', err);
+          this.toastService.error('Failed to load graph');
         },
       });
   }
 
-  public handleSaveFlow(): void {
+  public handleSaveFlow(showNotif: boolean): void {
+    if (this.isSaving) return;
+
+    this.isSaving = true;
     const flowState: FlowModel = this.flowService.getFlowState();
-    this.graphUpdateService
-      .saveGraph(flowState, this.graph)
-      .pipe(takeUntil(this.destroy$))
+    console.log('floew state that i got from service on saveflow', flowState);
+
+    const startNodeInFlow = flowState.nodes.find(
+      (node) => node.type === NodeType.START
+    ) as StartNodeModel | undefined;
+
+    if (!startNodeInFlow) {
+      this.saveGraphDirectly(flowState, showNotif);
+      return;
+    }
+
+    this.saveGraphWithStartNode(flowState, startNodeInFlow, showNotif);
+  }
+
+  private saveGraphWithStartNode(
+    flowState: FlowModel,
+    startNode: StartNodeModel,
+    showNotif: boolean
+  ): void {
+    const initialStateData = startNode.data.initialState;
+
+    this.startNodeService
+      .getStartNodes()
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap((startNodes) => {
+          const matchingStartNode = startNodes.find(
+            (sn) => sn.graph === this.graph.id
+          );
+
+          if (matchingStartNode) {
+            return this.startNodeService.updateStartNode(matchingStartNode.id, {
+              graph: this.graph.id,
+              variables: initialStateData,
+            });
+          }
+
+          return this.startNodeService.createStartNode({
+            graph: this.graph.id,
+            variables: initialStateData,
+          });
+        }),
+        switchMap(() =>
+          this.graphUpdateService.saveGraph(flowState, this.graph)
+        ),
+        finalize(() => {
+          this.isSaving = false;
+          this.cdr.markForCheck();
+        })
+      )
       .subscribe({
         next: (result) => {
           this.graph = result.graph;
+          this.initialState = flowState;
+          if (showNotif) {
+            this.toastService.success('Graph saved successfully');
+          }
         },
-        error: (err) => {},
+        error: (err) => {
+          this.toastService.error(
+            `Failed to save graph: ${err?.error?.error || 'Unknown error'}`
+          );
+          console.error('Error saving graph:', err);
+        },
       });
   }
 
-  ngOnDestroy(): void {
+  private saveGraphDirectly(flowState: FlowModel, showNotif: boolean): void {
+    this.graphUpdateService
+      .saveGraph(flowState, this.graph)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isSaving = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: (result) => {
+          this.graph = result.graph;
+          this.initialState = flowState;
+          if (showNotif) {
+            this.toastService.success('Graph saved successfully');
+          }
+        },
+        error: (err) => {
+          this.toastService.error(
+            `Failed to save graph: ${err?.error?.error || 'Unknown error'}`
+          );
+          console.error('Error saving graph:', err);
+        },
+      });
+  }
+
+  public handleRunFlow(): void {
+    if (this.isRunning || !this.graph?.id) return;
+
+    this.isRunning = true;
+    this.runGraphService
+      .runGraph(this.graph.id)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isRunning = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          this.router.navigate([
+            'graph',
+            this.graph.id,
+            'session',
+            response.session_id,
+          ]);
+        },
+        error: (error) => {
+          this.toastService.error(
+            `Failed to run graph: ${error?.error?.error || 'Unknown error'}`
+          );
+          console.error('Failed to run graph:', error);
+        },
+      });
+  }
+
+  public handleViewSessions(): void {
+    if (!this.graph) return;
+    this.dialog.open(FlowSessionsListComponent, {
+      data: { flow: this.graph },
+      panelClass: 'custom-dialog-panel',
+    });
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  public handleBeforeUnload(event: BeforeUnloadEvent): string | void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+      return (event.returnValue = '');
+    }
+  }
+
+  private hasUnsavedChanges(): boolean {
+    const currentState = this.flowService.getFlowState();
+
+    return !isEqual(currentState, this.initialState);
+  }
+
+  public canDeactivate(): boolean | Observable<boolean> {
+    if (this.hasUnsavedChanges()) {
+      return this.confirmationDialogService.confirm({
+        title: 'Unsaved Changes',
+        message: 'You have unsaved changes. Do you really want to leave?',
+        confirmText: 'Leave',
+        cancelText: 'Stay',
+        type: 'warning',
+      });
+    }
+    return true;
+  }
+  public ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }

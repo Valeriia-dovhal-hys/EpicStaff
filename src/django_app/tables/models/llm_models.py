@@ -45,7 +45,7 @@ class DefaultLLMConfig(DefaultBaseModel):
 
 class LLMConfig(AbstractDefaultFillableModel):
     custom_name = models.TextField(unique=True)
-    model = models.ForeignKey(LLMModel, on_delete=models.PROTECT, null=True)
+    model = models.ForeignKey(LLMModel, on_delete=models.CASCADE, null=True)
     temperature = models.FloatField(default=0.7, null=True, blank=True)
     top_p = models.FloatField(null=True, blank=True)
     n = models.IntegerField(null=True, blank=True)

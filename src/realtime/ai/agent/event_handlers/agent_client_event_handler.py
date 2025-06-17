@@ -1,19 +1,20 @@
 import base64
-from typing import Callable, Dict, Any
+from typing import Callable, Dict, Any, Coroutine
 import json
 
 from loguru import logger
 from db.database import save_realtime_session_item_to_db
 
+
 class ClientEventHandler:
-    """Handles mapping of cleint websocket events to their corresponding methods."""
+    """Handles mapping of client websocket events to their corresponding methods."""
 
     def __init__(self, client):
         """Initialize the event handler with event mappings."""
         from ai.agent.openai_realtime_agent_client import OpenaiRealtimeAgentClient
 
         self.client: OpenaiRealtimeAgentClient = client
-        self.event_map: Dict[str, Callable[[Any], None]] = {
+        self.event_map: Dict[str, Callable[[Any], Coroutine[Any, Any, None]]] = {
             "input_audio_buffer.commit": self.handle_input_audio_buffer_commit,
             "input_audio_buffer.append": self.handle_input_audio_buffer_append,
             "conversation.item.create": self.handle_conversation_item_create,
@@ -30,7 +31,9 @@ class ClientEventHandler:
 
         handler = self.event_map.get(event_type, self.unknown_event_handler)
         await handler(data)
-        await save_realtime_session_item_to_db(data=data, connection_key=self.client.connection_key)
+        await save_realtime_session_item_to_db(
+            data=data, connection_key=self.client.connection_key
+        )
 
     async def unknown_event_handler(self, data: Dict[str, Any]) -> None:
         """Default handler for unknown events."""

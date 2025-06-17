@@ -9,6 +9,7 @@ import {
   GetEmbeddingConfigRequest,
 } from '../shared/models/embedding-config.model';
 import { ConfigService } from './config/config.service';
+import { Memory } from '../pages/running-graph/components/memory-sidebar/models/memory.model';
 
 @Injectable({
   providedIn: 'root',
@@ -32,7 +33,14 @@ export class EmbeddingConfigsService {
       .get<ApiGetRequest<EmbeddingConfig>>(url)
       .pipe(map((response) => response.results));
   }
-
+  getEmbeddingConfigsByProviderId(
+    providerId: number
+  ): Observable<EmbeddingConfig[]> {
+    const url = `${this.apiUrl}?limit=1000&model_provider_id=${providerId}`;
+    return this.http
+      .get<ApiGetRequest<EmbeddingConfig>>(url)
+      .pipe(map((response) => response.results));
+  }
   // GET embedding config by ID
   getEmbeddingConfigById(id: number): Observable<EmbeddingConfig> {
     return this.http.get<EmbeddingConfig>(`${this.apiUrl}${id}/`);

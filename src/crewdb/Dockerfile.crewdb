@@ -1,0 +1,15 @@
+FROM ankane/pgvector:v0.5.1
+
+
+#for django healthcheck
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY custom-docker-entrypoint.sh /usr/local/bin/custom-docker-entrypoint.sh
+
+RUN chmod +x /usr/local/bin/custom-docker-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/custom-docker-entrypoint.sh"]
+
+CMD ["postgres"]

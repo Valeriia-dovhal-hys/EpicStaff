@@ -216,9 +216,9 @@ export class RealtimeClient extends RealtimeEventHandler {
     ];
     this.defaultServerVadConfig = {
       type: "server_vad",
-      threshold: 0.5, // 0.0 to 1.0,
-      prefix_padding_ms: 300, // How much audio to include in the audio stream before the speech starts.
-      silence_duration_ms: 700, // How long to wait to mark the speech as stopped.
+      threshold: 0.5,
+      prefix_padding_ms: 300,
+      silence_duration_ms: 700,
     };
     this.realtime = new RealtimeAPI({
       url,
@@ -354,12 +354,12 @@ export class RealtimeClient extends RealtimeEventHandler {
       "server.response.function_call_arguments.delta",
       handlerWithDispatch
     );
+    // up near your other “server.*” bindings in _addAPIEventHandlers:
     this.realtime.on(
       "server.response.function_call_arguments.done",
-      async (event) => {
-        console.log(event);
-      }
+      handlerWithDispatch
     );
+
     this.realtime.on("server.response.output_item.done", async (event) => {
       const { item } = handlerWithDispatch(event);
       if (item.status === "completed") {

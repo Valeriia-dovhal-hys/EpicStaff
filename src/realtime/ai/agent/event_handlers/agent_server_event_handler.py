@@ -1,8 +1,9 @@
-from typing import Callable, Dict, Any
+from typing import Callable, Dict, Any, Coroutine
 import json
 
 from loguru import logger
 from db.database import save_realtime_session_item_to_db
+
 
 class ServerEventHandler:
     """Handles mapping of WebSocket events to their corresponding methods."""
@@ -14,7 +15,7 @@ class ServerEventHandler:
         )
 
         self.client: OpenaiRealtimeAgentClient = client
-        self.event_map: Dict[str, Callable[[Any], None]] = {
+        self.event_map: Dict[str, Callable[[Any], Coroutine[Any, Any, None]]] = {
             "response": self.default_handler,
             "response.created": self.default_handler,
             "session.created": self.default_handler,
@@ -44,10 +45,11 @@ class ServerEventHandler:
         """Handle incoming event by calling the appropriate method."""
         event_type = data.get("type", "")
 
-
         handler = self.event_map.get(event_type, self.unknown_event_handler)
         await handler(data)
-        await save_realtime_session_item_to_db(data=data, connection_key=self.client.connection_key)
+        await save_realtime_session_item_to_db(
+            data=data, connection_key=self.client.connection_key
+        )
 
     async def default_handler(self, data: Dict[str, Any]) -> None:
         await self.client.send_client(data)
@@ -78,5 +80,5 @@ class ServerEventHandler:
     async def conversation_item_created_handler(self, data: dict):
         if data["item"]["id"] == "dont_show_it":
             return
-        
+
         await self.default_handler(data)

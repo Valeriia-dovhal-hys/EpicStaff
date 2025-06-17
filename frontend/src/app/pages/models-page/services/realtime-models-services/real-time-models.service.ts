@@ -42,25 +42,4 @@ export class RealtimeModelsService {
       headers: this.headers,
     });
   }
-
-  createModel(modelData: { name: string }): Observable<RealtimeModel> {
-    return this.http.post<RealtimeModel>(this.apiUrl, modelData, {
-      headers: this.headers,
-    });
-  }
-
-  updateModel(
-    id: number,
-    modelData: { name?: string }
-  ): Observable<RealtimeModel> {
-    return this.http.put<RealtimeModel>(`${this.apiUrl}${id}/`, modelData, {
-      headers: this.headers,
-    });
-  }
-
-  deleteModel(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}${id}/`, {
-      headers: this.headers,
-    });
-  }
 }

@@ -104,7 +104,7 @@ export class AgentSidePanelComponent implements OnInit {
           // Set fields not handled by the form:
           configured_tools: [],
           python_code_tools: [],
-          llm_config: null,
+          GetLlmConfigRequestigRequest: null,
           fcm_llm_config: null,
         },
       };

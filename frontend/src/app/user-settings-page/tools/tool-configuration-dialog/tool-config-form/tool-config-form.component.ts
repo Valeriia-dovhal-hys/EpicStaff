@@ -23,7 +23,7 @@ import {
   CreateToolConfigRequest,
   ToolConfig,
 } from '../../../../shared/models/tool_config,model';
-import { LLM_Config } from '../../../../shared/models/LLM_config.model';
+import { GetLlmConfigRequest } from '../../../../shared/models/LLM_config.model';
 import { EmbeddingConfig } from '../../../../shared/models/embedding-config.model';
 import {
   NgIf,
@@ -33,7 +33,6 @@ import {
   NgSwitchDefault,
 } from '@angular/common';
 import { ToolConfigService } from '../../../../services/tool_config.service';
-import { SharedSnackbarService } from '../../../../services/snackbar/shared-snackbar.service';
 
 @Component({
   selector: 'app-tool-config-form',
@@ -50,7 +49,7 @@ import { SharedSnackbarService } from '../../../../services/snackbar/shared-snac
   ],
 })
 export class ToolConfigFormComponent implements OnInit, OnChanges {
-  @Input({ required: true }) llmConfigs!: LLM_Config[];
+  @Input({ required: true }) llmConfigs!: GetLlmConfigRequest[];
   @Input({ required: true }) embeddingConfigs!: EmbeddingConfig[];
   @Input({ required: true }) existingToolConfigs!: ToolConfig[];
   @Input({ required: true }) tool!: Tool;
@@ -64,8 +63,7 @@ export class ToolConfigFormComponent implements OnInit, OnChanges {
   constructor(
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
-    private toolConfigService: ToolConfigService,
-    private snackbarService: SharedSnackbarService
+    private toolConfigService: ToolConfigService
   ) {}
 
   ngOnInit(): void {
@@ -256,21 +254,11 @@ export class ToolConfigFormComponent implements OnInit, OnChanges {
           next: (createdConfig) => {
             this.submitForm.emit(createdConfig);
             this.cdr.markForCheck();
-
-            // Show success snackbar
-            this.snackbarService.showSnackbar(
-              'Configuration created successfully!',
-              'success'
-            );
           },
           error: (err) => {
             console.error('Error creating configuration:', err);
 
             // Show error snackbar
-            this.snackbarService.showSnackbar(
-              'Failed to create configuration.',
-              'error'
-            );
           },
         });
       } else {
@@ -281,21 +269,11 @@ export class ToolConfigFormComponent implements OnInit, OnChanges {
             next: (updatedConfig) => {
               this.submitForm.emit(updatedConfig); // Notify parent
               this.cdr.markForCheck();
-
-              // Show success snackbar
-              this.snackbarService.showSnackbar(
-                'Configuration updated successfully!',
-                'success'
-              );
             },
             error: (err) => {
               console.error('Error updating configuration:', err);
 
               // Show error snackbar
-              this.snackbarService.showSnackbar(
-                'Failed to update configuration.',
-                'error'
-              );
             },
           });
       }

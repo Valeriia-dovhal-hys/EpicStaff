@@ -1,14 +1,12 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiGetRequest } from '../shared/models/api-request.model';
 import {
-  LLM_Config,
   CreateLLMConfigRequest,
   UpdateLLMConfigRequest,
   GetLlmConfigRequest,
-  LLMConfigDto,
 } from '../shared/models/LLM_config.model';
 import { ConfigService } from './config/config.service';
 
@@ -35,20 +33,40 @@ export class LLM_Config_Service {
       .pipe(map((response) => response.results));
   }
 
+  getConfigsByProviderId(
+    providerId: number
+  ): Observable<GetLlmConfigRequest[]> {
+    const params = new HttpParams().set(
+      'model_provider_id',
+      providerId.toString()
+    );
+
+    return this.http
+      .get<ApiGetRequest<GetLlmConfigRequest>>(this.apiUrl, {
+        headers: this.headers,
+        params,
+      })
+      .pipe(map((response) => response.results));
+  }
+
   getConfigById(id: number): Observable<GetLlmConfigRequest> {
     return this.http.get<GetLlmConfigRequest>(`${this.apiUrl}${id}/`, {
       headers: this.headers,
     });
   }
 
-  createConfig(configData: CreateLLMConfigRequest): Observable<LLM_Config> {
-    return this.http.post<LLMConfigDto>(this.apiUrl, configData, {
+  createConfig(
+    configData: CreateLLMConfigRequest
+  ): Observable<GetLlmConfigRequest> {
+    return this.http.post<GetLlmConfigRequest>(this.apiUrl, configData, {
       headers: this.headers,
     });
   }
 
-  updateConfig(configData: UpdateLLMConfigRequest): Observable<LLM_Config> {
-    return this.http.put<LLM_Config>(
+  updateConfig(
+    configData: UpdateLLMConfigRequest
+  ): Observable<GetLlmConfigRequest> {
+    return this.http.put<GetLlmConfigRequest>(
       `${this.apiUrl}${configData.id}/`,
       configData,
       {

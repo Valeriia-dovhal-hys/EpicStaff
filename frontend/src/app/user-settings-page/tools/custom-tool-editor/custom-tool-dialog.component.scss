@@ -1,209 +1,158 @@
 .custom-tool-dialog {
-  background-color: var(--gray-850); /* Solid dark background */
-  color: #e0e0e0;
-  border-radius: 10px;
-  width: 600px;
-  max-width: 90vw;
-  height: 90vh; /* Fixed height for the dialog */
+  background-color: #222225;
+  border-radius: 12px;
+  border: 1px solid var(--color-divider-subtle);
+  color: #fff;
+  min-width: 400px;
+  width: 90vw;
+  height: 90vh;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   overflow: hidden;
 
-  /* Apply grid layout to the form so that header, content, and footer are arranged in rows */
   form {
-    display: grid;
-    grid-template-rows: auto 1fr auto; /* Header, content, footer */
+    display: flex;
+    flex-direction: column;
     height: 100%;
   }
 
-  /* Global Dialog Header */
   .dialog-header {
-    grid-row: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-divider-subtle);
 
-    border-bottom: 1px solid #2a2a2a;
-
-    h2 {
+    .title {
       margin: 0;
-      font-size: 1.25rem;
-      font-weight: 500;
-      line-height: 1;
+      font-size: 1.125rem;
+      font-weight: 600;
+      max-width: calc(100% - 40px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #fff;
     }
 
     .close-btn {
-      background: transparent;
+      background: none;
       border: none;
+      color: #fff;
       cursor: pointer;
-      color: #bbb;
-      padding: 0.5rem;
-      transition: color 0.3s ease;
-      border-radius: 4px;
-      font-size: 1.2rem;
+      padding: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
+      border-radius: 6px;
+      margin-left: 10px;
+      transition: all 0.2s ease;
+      opacity: 0.8;
 
       &:hover {
-        color: #685fff;
+        opacity: 1;
+        transform: scale(1.1);
       }
     }
   }
 
-  /* Dialog Content */
   .dialog-content {
-    grid-row: 2;
-    padding: 1.5rem;
-    overflow-x: hidden;
-    overflow-y: auto; /* Enable scrolling for content */
-    min-height: 0; /* Important for scrollable grid children */
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
 
-    .name-section,
-    .description-section {
-      h3 {
-        margin: 0 0 0.5rem 0;
-        font-weight: 500;
-        font-size: 0.85rem;
-        color: #685fff;
-        letter-spacing: 0.05rem;
-        line-height: 1;
+    .content-split {
+      display: flex;
+      height: 100%;
+
+      .form-fields {
+        width: 640px;
+        padding: 1rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        border-right: 1px solid var(--color-divider-subtle);
+
+        .form-section {
+          h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.875rem;
+            color: #aaa;
+            font-weight: 500;
+
+            .required {
+              color: #ff4444;
+              margin-left: 4px;
+            }
+          }
+
+          .input-container {
+            position: relative;
+
+            .input-field {
+              width: 100%;
+              padding: 0.5rem 0.75rem;
+              background-color: rgba(30, 30, 30, 0.6);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 6px;
+              color: #fff;
+              font-size: 0.875rem;
+              outline: none;
+              transition: border-color 0.2s ease;
+
+              &::placeholder {
+                color: rgba(255, 255, 255, 0.3);
+              }
+
+              &:focus {
+                border-color: #685fff;
+              }
+
+              &.textarea {
+                min-height: 100px;
+                resize: vertical;
+              }
+            }
+
+            .error-message {
+              font-size: 0.75rem;
+              color: #ff4444;
+              margin-top: 0.25rem;
+              display: block;
+            }
+          }
+        }
       }
-    }
 
-    .name-section {
-      .input-container {
-        position: relative;
-
-        .name-input-field {
-          width: 100%;
-          padding: 0.4rem 0.6rem;
-          border: 1px solid #444;
-          border-radius: 4px;
-          color: #ddd;
-          font-size: 0.95rem;
-          box-sizing: border-box;
-          transition: border-color 0.3s ease;
-          outline: none;
-          &::placeholder {
-            color: #888;
-          }
-          &:focus {
-            border-color: #685fff;
-          }
-        }
-
-        .error-message {
-          position: absolute;
-          bottom: -25px; /* Adjust as needed */
-          right: 0;
-          color: rgb(247, 118, 43);
-          font-size: 12px;
-          background-color: transparent;
-        }
-      }
-    }
-
-    .description-section {
-      margin-bottom: -9px;
-      .input-container {
-        position: relative;
-
-        .description-textarea {
-          width: 100%;
-          min-height: 100px;
-          padding: 0.4rem 0.6rem;
-          border: 1px solid #444;
-          border-radius: 4px;
-          color: #ddd;
-          font-size: 0.95rem;
-          resize: vertical;
-          box-sizing: border-box;
-          transition: border-color 0.3s ease;
-          outline: none;
-          &::placeholder {
-            color: #888;
-          }
-          &:focus {
-            border-color: #685fff;
-          }
-        }
-        .error-message {
-          position: absolute;
-          bottom: -17px; /* Adjust as needed */
-          right: 0;
-          color: rgb(247, 118, 43);
-          font-size: 12px;
-          background-color: transparent;
-        }
+      .code-editor-container {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
     }
   }
 
-  /* Dialog Footer */
   .dialog-footer {
-    grid-row: 3;
-
-    border-top: 1px solid #2a2a2a;
-    padding: 1.5rem;
+    border-top: 1px solid var(--color-divider-subtle);
+    padding: 1rem;
     display: flex;
     justify-content: flex-end;
-
-    .btn {
-      padding: 0.5rem 1.2rem;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 500;
-      margin-left: 0.5rem;
-      transition: background-color 0.2s;
-
-      &.close {
-        background-color: #333;
-        color: #e0e0e0;
-
-        &:hover {
-          background-color: #555;
-        }
-      }
-
-      &.create {
-        background-color: #685fff;
-        color: #121212;
-
-        &:hover {
-          background-color: #5850fc;
-        }
-      }
-
-      /* Separate class for disabled buttons */
-      &.disabled {
-        background-color: #555 !important;
-        color: #aaa !important;
-        cursor: not-allowed;
-        transform: none !important;
-        opacity: 0.6;
-      }
-    }
+    gap: 1rem;
   }
 }
 
+/* Spinner Animation */
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-/* Spinner */
 .spinner {
-  border: 4px solid rgba(224, 224, 224, 0.3);
-  border-top: 4px solid #e0e0e0;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   animation: spin 1s linear infinite;
 }

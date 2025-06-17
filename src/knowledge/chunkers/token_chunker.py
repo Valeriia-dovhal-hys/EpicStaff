@@ -3,7 +3,7 @@ from langchain_text_splitters import TokenTextSplitter
 
 
 class TokenChunker(BaseChunker):
-    def __init__(self, chunk_size, chunk_overlap):
+    def __init__(self, chunk_size, chunk_overlap, additional_params):
         self.text_splitter = TokenTextSplitter(
             chunk_size=chunk_size, chunk_overlap=chunk_overlap
         )

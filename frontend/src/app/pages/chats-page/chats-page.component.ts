@@ -16,7 +16,8 @@ import { NgIf } from '@angular/common';
 import { ChatsHeaderComponent } from './components/chats-page-header/chats-page-header.component';
 import { ConsoleService } from './services/console.service';
 import { SpinnerComponent } from '../../shared/components/spinner/spinner.component';
-import { finalize, Subject, takeUntil } from 'rxjs';
+import { finalize, Subject, takeUntil, forkJoin } from 'rxjs';
+import { RealtimeAgentService } from '../../services/realtime-agent.service';
 
 @Component({
   selector: 'app-chats-page',
@@ -24,9 +25,10 @@ import { finalize, Subject, takeUntil } from 'rxjs';
   imports: [
     ChatsSidebarComponent,
     ChatsContentComponent,
-    ChatsHeaderComponent,
+
     NgIf,
     SpinnerComponent,
+    PageHeaderComponent,
   ],
   templateUrl: './chats-page.component.html',
   styleUrls: ['./chats-page.component.scss'],
@@ -41,19 +43,22 @@ export class ChatsPageComponent implements OnInit, OnDestroy {
   constructor(
     private readonly chatsService: ChatsService,
     private readonly fullAgentService: FullAgentService,
+    private readonly realtimeAgentService: RealtimeAgentService,
     private consoleService: ConsoleService
   ) {}
 
   ngOnInit(): void {
-    this.loadFullAgents();
+    this.loadAgentsData();
   }
 
-  private loadFullAgents(): void {
+  private loadAgentsData(): void {
     // Set a minimum loading time of 500ms
     const loadStartTime = Date.now();
 
-    this.fullAgentService
-      .getFullAgents()
+    // Use forkJoin to fetch both full agents and realtime agents in parallel
+    forkJoin({
+      fullAgents: this.fullAgentService.getFullAgents(),
+    })
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {
@@ -67,12 +72,21 @@ export class ChatsPageComponent implements OnInit, OnDestroy {
           }, remainingTime);
         })
       )
-      .subscribe((agents) => {
-        this.agentsList.set(agents);
+      .subscribe({
+        next: ({ fullAgents }) => {
+          this.agentsList.set(fullAgents);
 
-        if (agents.length > 0) {
-          this.chatsService.setSelectedAgent(agents[0]);
-        }
+          console.log('Loaded full agents:', fullAgents.length);
+
+          // Set the first agent as selected if available
+          if (fullAgents.length > 0) {
+            this.chatsService.setSelectedAgent(fullAgents[0]);
+          }
+        },
+        error: (error) => {
+          console.error('Error loading agents data:', error);
+          this.isLoading.set(false);
+        },
       });
   }
 

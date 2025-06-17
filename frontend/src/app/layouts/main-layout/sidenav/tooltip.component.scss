@@ -1,0 +1,39 @@
+// Variables to match the sidenav styling
+$tooltip-bg: var(--gray-700);
+$tooltip-text: var(--gray-200);
+
+.tooltip-container {
+  position: absolute;
+  left: 100%; // Position to the right of the trigger element
+  top: 50%;
+  transform: translateY(-50%) translateX(25px); // Start off-screen
+  opacity: 0;
+  background-color: $tooltip-bg;
+  color: $tooltip-text;
+  font-weight: 500;
+  font-size: 0.875rem; // 14px
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+    opacity 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 10000;
+}
+
+.tooltip-container.show {
+  transform: translateY(-50%) translateX(10px); // Slide into place
+  opacity: 1;
+}
+
+.tooltip-arrow {
+  position: absolute;
+  left: -5px; // Position the arrow on the left edge
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid $tooltip-bg; // Creates arrow pointing left
+}

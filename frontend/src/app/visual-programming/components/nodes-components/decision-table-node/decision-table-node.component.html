@@ -1,0 +1,19 @@
+<div class="decision-table-container">
+  <div
+    class="group-names-row"
+    *ngIf="conditionGroups.length > 0; else noGroups"
+  >
+    <span
+      *ngFor="let group of conditionGroups; trackBy: trackByGroupName"
+      class="group-name"
+    >
+      {{ group.group_name }}
+    </span>
+  </div>
+  <ng-template #noGroups>
+    <button class="add-condition-button" (click)="onAddCondition()">
+      <i class="ti ti-plus"></i>
+      Add Condition
+    </button>
+  </ng-template>
+</div>

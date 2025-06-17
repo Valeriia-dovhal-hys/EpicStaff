@@ -9,8 +9,6 @@ import {
   signal,
 } from '@angular/core';
 import { NgFor, NgIf, CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDialog } from '@angular/material/dialog';
 import { Subscription, forkJoin, finalize } from 'rxjs';
 import {
   ScrollDispatcher,
@@ -19,16 +17,12 @@ import {
 } from '@angular/cdk/scrolling';
 import { FormsModule } from '@angular/forms';
 
-import { ToolsService } from './services/tools.service';
+import { ToolsService } from '../../features/tools/services/tools.service';
 import { PythonCodeToolService } from './custom-tool-editor/services/pythonCodeToolService.service';
 import { ToolConfigurationDialogComponent } from './tool-configuration-dialog/tool-configuration-dialog.component';
-import { ToolCard } from './models/tool-card.model';
-import { ToolCardComponent } from './tool-card/tool-card.component';
 import { Dialog } from '@angular/cdk/dialog';
 import { CustomToolDialogComponent } from './custom-tool-editor/custom-tool-dialog.component';
-import { ToolsHeaderComponent } from './tools-header/tools-header.component';
 import { PythonCodeToolCard } from './models/pythonTool-card.model';
-import { PythonToolCardComponent } from './python-tool-card/python-tool-card.component';
 import { PageHeaderComponent } from '../../shared/components/header/page-header.component';
 import { SpinnerComponent } from '../../shared/components/spinner/spinner.component';
 
@@ -39,10 +33,8 @@ import { SpinnerComponent } from '../../shared/components/spinner/spinner.compon
     CommonModule,
     NgFor,
     NgIf,
-    MatIconModule,
-    ToolCardComponent,
+
     FormsModule,
-    PythonToolCardComponent,
     PageHeaderComponent,
     SpinnerComponent,
     ScrollingModule,
@@ -54,17 +46,17 @@ import { SpinnerComponent } from '../../shared/components/spinner/spinner.compon
 export class ToolsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(CdkScrollable) public scrollable!: CdkScrollable;
 
-  public tools: ToolCard[] = []; // Standard tools
+  public tools: any[] = []; // Standard tools
   public pythonTools: PythonCodeToolCard[] = []; // Python tools
   public searchTerm: string = '';
   public isLoading = signal<boolean>(true);
+  public activeToolType: 'common' | 'python' = 'common'; // Track active tool type
 
   private subscriptions: Subscription = new Subscription();
 
   constructor(
     private readonly toolsService: ToolsService,
     private readonly pythonCodeToolService: PythonCodeToolService, // Inject Python service
-    private readonly dialog: MatDialog,
     private readonly cdr: ChangeDetectorRef,
     private readonly scrollDispatcher: ScrollDispatcher,
     private readonly cdkDialog: Dialog
@@ -89,11 +81,17 @@ export class ToolsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
+  // Set active tool type
+  public setActiveToolType(type: 'common' | 'python'): void {
+    this.activeToolType = type;
+    this.cdr.markForCheck();
+  }
+
   // Filter standard tools
-  public get filteredTools(): ToolCard[] {
+  public get filteredTools(): any[] {
     const query = this.searchTerm.toLowerCase().trim();
     return this.tools.filter(
-      (tool: ToolCard) =>
+      (tool: any) =>
         tool.name.toLowerCase().includes(query) ||
         tool.description.toLowerCase().includes(query)
     );
@@ -115,7 +113,7 @@ export class ToolsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  public onToolEnabledUpdated(tool: ToolCard): void {
+  public onToolEnabledUpdated(tool: any): void {
     // Store the original value in case we need to revert
     const originalEnabled = tool.enabled;
     // Create a new value (toggled)
@@ -147,7 +145,7 @@ export class ToolsComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
   public onPythonToolEnabledUpdated(tool: PythonCodeToolCard): void {}
-  public openConfigurationDialog(tool: ToolCard): void {
+  public openConfigurationDialog(tool: any): void {
     const dialogRef = this.cdkDialog.open(ToolConfigurationDialogComponent, {
       data: {
         tool: tool,
@@ -223,7 +221,7 @@ export class ToolsComponent implements OnInit, AfterViewInit, OnDestroy {
 
           // Assign a random label to each tool
           this.tools = standardTools
-            .map((tool: ToolCard) => ({
+            .map((tool: any) => ({
               ...tool,
               label: labels[Math.floor(Math.random() * labels.length)],
             }))
@@ -263,6 +261,8 @@ export class ToolsComponent implements OnInit, AfterViewInit, OnDestroy {
           enabled: true,
         };
         this.pythonTools.unshift(toolWithExtras);
+        // Automatically switch to Python tools tab when creating a new Python tool
+        this.activeToolType = 'python';
         console.log('New tool added:', toolWithExtras);
         this.cdr.markForCheck();
       }

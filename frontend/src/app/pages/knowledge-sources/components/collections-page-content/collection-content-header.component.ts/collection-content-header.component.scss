@@ -1,0 +1,131 @@
+@keyframes breathing {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+}
+
+.collection-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 3rem;
+  font-size: 14px;
+  border-bottom: 1px solid var(--color-divider-subtle);
+
+  .collection-info {
+    display: flex;
+    flex-direction: column;
+
+    .collection-title-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .collection-name {
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+      color: white;
+
+      &.status-new {
+        background-color: #22c55e; /* Green */
+      }
+
+      &.status-processing {
+        background-color: #f97316; /* Orange */
+        animation: breathing 2s infinite ease-in-out;
+      }
+
+      &.status-completed {
+        background-color: #685fff; /* Blue */
+      }
+
+      &.status-failed {
+        background-color: #ef4444; /* Red */
+      }
+    }
+
+    .embedding-info {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+
+      .label {
+        color: rgba(255, 255, 255, 0.5);
+        margin-right: 4px;
+      }
+
+      .value {
+        color: rgba(255, 255, 255, 0.8);
+        background-color: rgba(30, 30, 30, 0.6);
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .search-wrapper {
+      width: 200px;
+    }
+
+    .header-search {
+      border: 1px solid var(--gray-700);
+      height: 32px;
+
+      &:focus {
+        border-color: var(--accent-color, #685fff);
+      }
+    }
+  }
+
+  .upload-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background-color: transparent;
+    border: 1px solid var(--accent-color, #685fff);
+    border-radius: 8px;
+    color: var(--accent-color, #685fff);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: 32px;
+
+    &:hover {
+      background-color: rgba(104, 95, 255, 0.1);
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}

@@ -1,21 +1,16 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostListener,
-  OnInit,
-  signal,
-} from '@angular/core';
-
-import { MainComponent } from './main/main.component';
-import { LeftSidebarComponent } from './sidenav/sidenav.component';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { ToastComponent } from './services/notifications/notification/toast.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [LeftSidebarComponent, MainComponent, ToastComponent],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
+  imports: [RouterOutlet, ToastComponent],
+  template: `
+    <router-outlet></router-outlet>
+    <app-toast position="bottom-right"></app-toast>
+    <app-toast position="top-center"></app-toast>
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {}

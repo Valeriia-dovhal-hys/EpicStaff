@@ -1,6 +1,8 @@
 #!/bin/bash
-
-REGISTRY_DIR=$(cat ../image_registry.txt)
+# Run: docker login $(REGISTRY_DIR)
+# Use email as a username
+# Create a token on gitlab and use in as a password
+REGISTRY_DIR="registry.gitlab.hysdev.com/sheetsui/crewai-sheetsui"
 
 # Read image tag from file
 if [ ! -f "./../image_tag.txt" ]; then
@@ -25,6 +27,7 @@ docker pull "$REGISTRY_DIR/frontend:$IMAGE_TAG"
 docker pull "$REGISTRY_DIR/sandbox:$IMAGE_TAG"
 docker pull "$REGISTRY_DIR/knowledge:$IMAGE_TAG"
 docker pull "$REGISTRY_DIR/realtime:$IMAGE_TAG"
+docker pull "$REGISTRY_DIR/crewdb:$IMAGE_TAG"
 
 # Tag Docker images
 docker tag "$REGISTRY_DIR/django_app:$IMAGE_TAG" django_app
@@ -34,6 +37,7 @@ docker tag "$REGISTRY_DIR/frontend:$IMAGE_TAG" frontend
 docker tag "$REGISTRY_DIR/sandbox:$IMAGE_TAG" sandbox
 docker tag "$REGISTRY_DIR/knowledge:$IMAGE_TAG" knowledge
 docker tag "$REGISTRY_DIR/realtime:$IMAGE_TAG" realtime
+docker tag "$REGISTRY_DIR/crewdb:$IMAGE_TAG" crewdb
 
 # Pause to view results
 read -p "Press Enter to continue..."

@@ -17,7 +17,7 @@ class RunPythonCodeService(metaclass=SingletonMeta):
         python_code_data: PythonCodeData,
         inputs: dict[str, Any],
         additional_global_kwargs: dict[str, Any] | None = None,
-    ) -> dict:
+    ) -> dict[str, Any]:
         additional_global_kwargs = additional_global_kwargs or {}
         venv_name = python_code_data.venv_name
         code = python_code_data.code
@@ -45,7 +45,7 @@ class RunPythonCodeService(metaclass=SingletonMeta):
         logger.info("Waiting for code_results")
 
         while True:
-            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=0.01)
             if message:
                 code_result_data = CodeResultData.model_validate_json(message["data"])
                 if code_result_data.execution_id == unique_task_id:

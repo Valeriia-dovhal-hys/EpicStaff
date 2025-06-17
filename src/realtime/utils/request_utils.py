@@ -3,6 +3,7 @@ import asyncio
 
 from loguru import logger
 
+
 async def post_data_with_retry(url, json=None, retries=15, delay=3) -> dict:
     if json is None:
         json = {}

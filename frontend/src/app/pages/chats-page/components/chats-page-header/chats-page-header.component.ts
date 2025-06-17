@@ -58,8 +58,8 @@ import { ConsoleService } from '../../services/console.service';
         justify-content: space-between;
         height: 4.3rem !important;
         width: 100%;
-        padding: 0 3.8rem;
-        border-bottom: 1px solid var(--gray-800);
+        padding: 1rem 3rem;
+        border-bottom: 1px solid var(--color-divider-subtle);
       }
       .title-container {
         display: flex;

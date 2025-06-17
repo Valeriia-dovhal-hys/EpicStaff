@@ -65,7 +65,6 @@ class ConfiguredToolExecutor(BaseToolExecutor):
             parameters=ToolParameters(
                 properties=args_schema.get("properties", dict()),
                 required=args_schema.get("required", list()),
-
             ),
         )
 

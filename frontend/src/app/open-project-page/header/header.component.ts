@@ -16,12 +16,27 @@ import { EditTitleDialogComponent } from './edit-name-dialog/edit-title-dialog.c
 import { ProjectStateService } from '../services/project-state.service';
 import { ToastService } from '../../services/notifications/toast.service';
 import { Subject } from 'rxjs';
-import { GetProjectRequest } from '../../pages/projects-page/models/project.model';
+import { GetProjectRequest } from '../../features/projects/models/project.model';
+import { AppIconComponent } from '../../shared/components/app-icon/app-icon.component';
+import { ButtonComponent } from '../../shared/components/buttons/button/button.component';
+import { v4 as uuidv4 } from 'uuid';
+import { NodeType } from '../../visual-programming/core/enums/node-type';
+import { NODE_COLORS } from '../../visual-programming/core/enums/node-config';
+import { NODE_ICONS } from '../../visual-programming/core/enums/node-config';
+import { FlowsApiService } from '../../features/flows/services/flows-api.service';
+import { ConfirmationDialogService } from '../../shared/components/cofirm-dialog/confimation-dialog.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterModule, FormsModule, DialogModule, CommonModule],
+  imports: [
+    RouterModule,
+    FormsModule,
+    DialogModule,
+    CommonModule,
+    AppIconComponent,
+    ButtonComponent,
+  ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,7 +52,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private dialog: Dialog,
     private projectStateService: ProjectStateService,
     private toastService: ToastService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private flowsApiService: FlowsApiService,
+    private confirmationDialog: ConfirmationDialogService
   ) {}
 
   ngOnInit(): void {
@@ -84,6 +101,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     //   this.toastService.error('No project selected');
     // }
   }
+
   setProcessType(type: 'sequential' | 'hierarchical'): void {
     if (this.project?.process !== type && this.project?.id) {
       // Update the project through the service
@@ -111,7 +129,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(EditTitleDialogComponent, {
       width: '400px',
       data: { title: this.project.name },
-      backdropClass: 'dark-blur-backdrop',
     });
 
     dialogRef.closed.subscribe((result) => {
@@ -132,6 +149,53 @@ export class HeaderComponent implements OnInit, OnDestroy {
           console.error('Error updating project title:', error);
           this.toastService.error('Failed to update project name');
         },
+      });
+  }
+
+  onCreateFlowWithProject() {
+    this.confirmationDialog
+      .confirm({
+        title: 'Create Flow',
+        message: 'Do you want to create a flow with this project?',
+        cancelText: 'Cancel',
+        confirmText: 'Create Flow',
+        type: 'info',
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          const project = this.project; // assumes you have this.project
+          const nodeId = uuidv4();
+          const node = {
+            id: nodeId,
+            category: 'web',
+            position: { x: 200, y: 200 },
+            ports: null,
+            parentId: null,
+            type: NodeType.PROJECT,
+            node_name: `${project!.name} (#1)`,
+            data: project,
+            color: NODE_COLORS[NodeType.PROJECT],
+            icon: NODE_ICONS[NodeType.PROJECT],
+            input_map: {},
+            output_variable_path: null,
+            size: { width: 330, height: 60 },
+          };
+          const metadata = {
+            nodes: [node],
+            connections: [],
+            groups: [],
+          };
+          this.flowsApiService
+            .createGraph({
+              name: `${project!.name} Flow`,
+              description: '',
+              metadata,
+              tags: [],
+            })
+            .subscribe((response: any) => {
+              this.router.navigate(['/flows', response.id]);
+            });
+        }
       });
   }
 }

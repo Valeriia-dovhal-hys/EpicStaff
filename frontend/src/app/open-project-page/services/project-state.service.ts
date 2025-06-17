@@ -3,8 +3,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { FullAgent } from '../../services/full-agent.service';
 import { FullTask } from '../models/full-task.model';
-import { GetProjectRequest } from '../../pages/projects-page/models/project.model';
-import { ProjectsService } from '../../pages/projects-page/services/projects.service';
+import { GetProjectRequest } from '../../features/projects/models/project.model';
+import { ProjectsStorageService } from '../../features/projects/services/projects-storage.service';
 import { ToastService } from '../../services/notifications/toast.service';
 
 @Injectable({
@@ -25,7 +25,7 @@ export class ProjectStateService {
   public project$ = this.projectSubject.asObservable();
 
   constructor(
-    private projectsService: ProjectsService,
+    private projectsService: ProjectsStorageService,
     private toastService: ToastService
   ) {
     // Subscribe to update signal counts

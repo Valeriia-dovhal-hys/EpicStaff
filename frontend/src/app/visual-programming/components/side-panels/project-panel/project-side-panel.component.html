@@ -1,69 +1,50 @@
-<div class="wrapper">
-  <!-- Header -->
+<div class="wrapper" appShortcutListener (escape)="close()">
+  <!-- Header: Icon + Node Name + Close Button -->
   <div class="dialog-header">
     <div class="icon-and-title">
       <i class="ti ti-folder"></i>
-      <span class="title">{{ projectForm.value.name || "New Project" }}</span>
+      <span class="title">{{ node.data.name }}</span>
     </div>
-    <i class="ti ti-x close-icon" (click)="close()"></i>
+    <div class="header-actions">
+      <div class="close-action">
+        <span class="esc-label">ESC</span>
+        <i class="ti ti-x close-icon" (click)="close()"></i>
+      </div>
+    </div>
   </div>
-  <!-- Scrollable Form Content -->
-  <div class="dialog-content">
-    <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
-      <!-- Basic Settings -->
-      <!-- <div class="form-group">
-        <div class="label-row">
-          <label for="node_name">Node name (unique for all of the nodes)</label>
+
+  <form [formGroup]="projectForm" (ngSubmit)="$event.preventDefault()">
+    <!-- Body -->
+    <div class="dialog-content">
+      <!-- Unique Node Name Field: for node.node_name -->
+      <div class="form-group">
+        <label for="node_name">
+          Node name
           <span
-            *ngIf="projectForm.get('node_name')?.errors?.['uniqueNodeName']"
-            class="error-message"
+            class="required"
+            *ngIf="projectForm.get('node_name')?.errors?.['required'] && projectForm.get('node_name')?.touched"
           >
-            {{ projectForm.get('node_name')?.errors?.['uniqueNodeName'].message }}
+            Node name is required *
           </span>
-        </div>
-        <input
-          id="node_name"
-          type="text"
-          formControlName="node_name"
-          placeholder="Enter project node name"
-          autocomplete="off"
-        />
-      </div> -->
-
-      <!-- Input Map Key-Value Pairs with Drag & Drop -->
-      <div class="form-group input-map">
-        <label>
-          Input Map
-          <i class="ti ti-plus" (click)="addInputMapPair()"></i>
         </label>
-        <div
-          class="input-map-list"
-          formArrayName="input_map"
-          cdkDropList
-          (cdkDropListDropped)="dropInputMapPair($event)"
-        >
-          <div
-            class="input-map-item"
-            *ngFor="let pairCtrl of inputMapPairs.controls; let i = index"
-            [formGroupName]="i"
-            cdkDrag
-          >
-            <!-- Drag handle -->
-            <div class="drag-handle" cdkDragHandle>
-              <i class="ti ti-grip-vertical"></i>
-            </div>
-
-            <!-- Key-Value Pair Controls -->
-            <div class="input-map-fields">
-              <input type="text" formControlName="key" placeholder="Key" />
-              <input type="text" formControlName="value" placeholder="Value" />
-              <i
-                class="ti ti-trash delete-icon"
-                (click)="removeInputMapPair(i)"
-              ></i>
-            </div>
-          </div>
+        <div class="input-with-error">
+          <input
+            id="node_name"
+            type="text"
+            formControlName="node_name"
+            placeholder="Enter node name"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          />
         </div>
+      </div>
+
+      <!-- Input Map Key-Value Pairs -->
+      <div class="form-group input-map">
+        <label>Input Map</label>
+        <app-input-map [activeColor]="activeColor"></app-input-map>
       </div>
 
       <!-- Output Variable Path -->
@@ -76,14 +57,19 @@
           placeholder="Enter output variable path (leave empty for null)"
         />
       </div>
-    </form>
-  </div>
+    </div>
 
-  <!-- Fixed Action Buttons -->
-  <div class="dialog-actions">
-    <button type="button" (click)="close()">Cancel</button>
-    <button type="submit" [disabled]="projectForm.invalid" (click)="onSubmit()">
-      Save
-    </button>
-  </div>
+    <!-- Footer -->
+    <div class="actions">
+      <button type="button" (click)="close()">Cancel</button>
+      <button
+        type="button"
+        (click)="onSave()"
+        [disabled]="!hasUnsavedChangesFn() || projectForm.invalid"
+        [class.active]="hasUnsavedChangesFn() && projectForm.valid"
+      >
+        Save
+      </button>
+    </div>
+  </form>
 </div>

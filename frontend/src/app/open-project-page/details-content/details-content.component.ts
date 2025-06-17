@@ -13,7 +13,8 @@ import {
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
-import { ProjectsService } from '../../pages/projects-page/services/projects.service';
+import { ProjectsStorageService } from '../../features/projects/services/projects-storage.service';
+import { GetProjectRequest } from '../../features/projects/models/project.model';
 
 @Component({
   selector: 'app-details-content',
@@ -39,7 +40,7 @@ export class DetailsContentComponent implements OnInit, OnChanges {
   private readonly descriptionSubject: Subject<string> = new Subject();
   private readonly tagsSubject: Subject<string[]> = new Subject();
 
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(private readonly projectsService: ProjectsStorageService) {}
 
   public ngOnInit(): void {
     this.internalDescription = this.description || '';
@@ -138,12 +139,12 @@ export class DetailsContentComponent implements OnInit, OnChanges {
       return;
     }
     this.projectsService
-      .updateProjectField(this.projectId, description)
+      .patchUpdateProject(this.projectId, { description })
       .subscribe({
-        next: (response) => {
+        next: (response: GetProjectRequest) => {
           console.log('Description updated successfully', response);
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error updating description:', error);
           // Optionally revert to original description on error
           this.internalDescription = this.description || '';

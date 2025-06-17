@@ -4,6 +4,7 @@ import {
   OnDestroy,
   ChangeDetectorRef,
   ChangeDetectionStrategy,
+  Input,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -14,7 +15,7 @@ import {
   transition,
   animate,
 } from '@angular/animations';
-import { ToastMessage, ToastService } from '../toast.service';
+import { ToastMessage, ToastService, ToastPosition } from '../toast.service';
 
 @Component({
   selector: 'app-toast',
@@ -22,23 +23,25 @@ import { ToastMessage, ToastService } from '../toast.service';
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="toast-container">
+    <div class="toast-container" [ngClass]="position">
       <div
         *ngFor="let toast of toasts"
-        [@toastAnimation]="'visible'"
+        [@toastAnimation]="position"
         class="toast-item"
         [ngClass]="toast.type"
         (click)="closeToast(toast.id)"
       >
         <div class="toast-content">
-          <i [class]="getIconClass(toast.type)"></i>
+          <div>
+            <i [class]="getIconClass(toast.type)"></i>
+          </div>
           <span class="toast-message">{{ toast.message }}</span>
         </div>
         <button
           class="toast-close-btn"
           (click)="closeToast(toast.id); $event.stopPropagation()"
         >
-          <i class="fas fa-times"></i>
+          <i class="ti ti-x"></i>
         </button>
       </div>
     </div>
@@ -47,11 +50,8 @@ import { ToastMessage, ToastService } from '../toast.service';
     `
       .toast-container {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
         z-index: 9999;
         display: flex;
-        flex-direction: column-reverse;
         gap: 10px;
         max-width: 350px;
         width: 350px;
@@ -63,6 +63,44 @@ import { ToastMessage, ToastService } from '../toast.service';
 
         &::-webkit-scrollbar {
           display: none;
+        }
+
+        &.top-right {
+          top: 20px;
+          right: 20px;
+          flex-direction: column;
+        }
+
+        &.top-left {
+          top: 20px;
+          left: 20px;
+          flex-direction: column;
+        }
+
+        &.top-center {
+          top: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          flex-direction: column;
+        }
+
+        &.bottom-right {
+          bottom: 20px;
+          right: 20px;
+          flex-direction: column-reverse;
+        }
+
+        &.bottom-left {
+          bottom: 20px;
+          left: 20px;
+          flex-direction: column-reverse;
+        }
+
+        &.bottom-center {
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          flex-direction: column-reverse;
         }
       }
 
@@ -82,6 +120,9 @@ import { ToastMessage, ToastService } from '../toast.service';
         border: 1px solid #2a2a2a;
 
         .toast-content {
+          display: flex;
+          align-items: center;
+
           i {
             margin-right: 16px;
           }
@@ -117,9 +158,9 @@ import { ToastMessage, ToastService } from '../toast.service';
         }
       }
 
-      message {
+      .toast-message {
         font-size: 14px;
-        color: #a0a0a0;
+        color: #e0e0e0;
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
@@ -149,33 +190,99 @@ import { ToastMessage, ToastService } from '../toast.service';
   ],
   animations: [
     trigger('toastAnimation', [
+      // Top positions - slide from top
       state(
-        'visible',
+        'top-center',
+        style({
+          opacity: 1,
+          transform: 'translateY(0)',
+        })
+      ),
+      state(
+        'top-right',
+        style({
+          opacity: 1,
+          transform: 'translateY(0)',
+        })
+      ),
+      state(
+        'top-left',
+        style({
+          opacity: 1,
+          transform: 'translateY(0)',
+        })
+      ),
+
+      // Bottom positions - slide from right
+      state(
+        'bottom-right',
         style({
           opacity: 1,
           transform: 'translateX(0)',
         })
       ),
-      transition(':enter', [
+      state(
+        'bottom-left',
+        style({
+          opacity: 1,
+          transform: 'translateX(0)',
+        })
+      ),
+      state(
+        'bottom-center',
+        style({
+          opacity: 1,
+          transform: 'translateX(0)',
+        })
+      ),
+
+      // Top positions animations (from top)
+      transition('void => top-center, void => top-right, void => top-left', [
         style({
           opacity: 0,
-          transform: 'translateX(100%)',
+          transform: 'translateY(-100%)',
         }),
         animate('300ms ease-out'),
       ]),
-      transition(':leave', [
+      transition('top-center => void, top-right => void, top-left => void', [
         animate(
           '200ms ease-in',
           style({
             opacity: 0,
-            transform: 'translateX(100%)',
+            transform: 'translateY(-100%)',
           })
         ),
       ]),
+
+      // Bottom positions animations (from right)
+      transition(
+        'void => bottom-right, void => bottom-center, void => bottom-left',
+        [
+          style({
+            opacity: 0,
+            transform: 'translateX(100%)',
+          }),
+          animate('300ms ease-out'),
+        ]
+      ),
+      transition(
+        'bottom-right => void, bottom-center => void, bottom-left => void',
+        [
+          animate(
+            '200ms ease-in',
+            style({
+              opacity: 0,
+              transform: 'translateX(100%)',
+            })
+          ),
+        ]
+      ),
     ]),
   ],
 })
 export class ToastComponent implements OnInit, OnDestroy {
+  @Input() position: ToastPosition = 'bottom-right';
+
   public toasts: ToastMessage[] = [];
   private subscription = new Subscription();
 
@@ -187,10 +294,18 @@ export class ToastComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription.add(
       this.toastService.toasts$.subscribe((toasts) => {
-        this.toasts = toasts;
+        this.toasts = toasts.filter(
+          (toast) =>
+            this.toastService.getPositionForToast(toast.id) === this.position
+        );
         this.cdr.markForCheck();
       })
     );
+
+    // Get position from service if not explicitly provided via input
+    if (!this.position) {
+      this.position = this.toastService.defaultPosition;
+    }
   }
 
   public closeToast(id: number): void {
@@ -200,15 +315,15 @@ export class ToastComponent implements OnInit, OnDestroy {
   public getIconClass(type: string): string {
     switch (type) {
       case 'success':
-        return 'fas fa-check-circle';
+        return 'ti ti-check';
       case 'error':
-        return 'fas fa-exclamation-circle';
+        return 'ti ti-alert-circle';
       case 'warning':
-        return 'fas fa-exclamation-triangle';
+        return 'ti ti-alert-triangle';
       case 'info':
-        return 'fas fa-info-circle';
+        return 'ti ti-info-circle';
       default:
-        return 'fas fa-bell';
+        return 'ti ti-bell';
     }
   }
 

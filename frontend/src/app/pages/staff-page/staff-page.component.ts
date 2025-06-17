@@ -1,15 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { Dialog, DialogRef } from '@angular/cdk/dialog'; // Import from CDK instead of Material
-import { AgentsTableComponent } from './components/agents-table/agents-table.component';
-import { CreateAgentFormComponent } from '../../forms/create-agent-form-dialog/create-agent-form-dialog.component';
 import { PageHeaderComponent } from '../../shared/components/header/page-header.component';
 import { FullAgent, FullAgentService } from '../../services/full-agent.service';
 import { AgentDto } from '../../shared/models/agent.model';
+import { CreateAgentFormComponent } from '../../shared/components/create-agent-form-dialog/create-agent-form-dialog.component';
+import { AgentsTableComponent } from './components/agents-table/agents-table.component';
+import { ButtonComponent } from '../../shared/components/buttons/button/button.component';
+import { TabButtonComponent } from '../../shared/components/tab-button/tab-button.component';
+import { FiltersListComponent } from '../../shared/components/filters-list/filters-list.component';
 
 @Component({
   selector: 'app-staff-page',
   standalone: true,
-  imports: [AgentsTableComponent, PageHeaderComponent],
+  imports: [AgentsTableComponent, ButtonComponent, FiltersListComponent],
   templateUrl: './staff-page.component.html',
   styleUrls: ['./staff-page.component.scss'],
 })
@@ -29,7 +32,6 @@ export class StaffPageComponent {
         toolConfigs: [],
         toolsData: [],
       },
-      backdropClass: 'dark-blur-backdrop',
     });
 
     dialogRef.closed.subscribe((result: AgentDto | undefined) => {

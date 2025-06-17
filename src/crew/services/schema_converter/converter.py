@@ -30,14 +30,3 @@ def generate_model_from_schema(schema_dict: dict) -> Type[BaseModel]:
     sys.modules[module_name] = dynamic_module
     return getattr(dynamic_module, module_name)
 
-
-if __name__ == "__main__":
-    json_schema: str = (
-        '{"title": "MainModel", "type": "object", "properties": {"name": {"title": "Name", "default": "Some", "type": "string"}, "surname": {"title": "Surname", "type": "string"}, "age": {"title": "Age", "type": "integer"}}, "required": ["surname", "age"]}'
-    )
-
-    MainModel = generate_model_from_schema(json_schema)
-
-    # Example usage
-    main_model_instance = MainModel(surname="Doe", age=30)
-    print(main_model_instance)

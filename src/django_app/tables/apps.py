@@ -6,7 +6,6 @@ class TablesConfig(AppConfig):
     name = "tables"
 
     def ready(self):
-
         from tables.services.config_service import YamlConfigService
         from tables.services.converter_service import ConverterService
         from tables.services.redis_service import RedisService

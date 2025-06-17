@@ -6,13 +6,14 @@ import {
   ChangeDetectorRef,
   signal,
 } from '@angular/core';
-import { forkJoin, of, Subject } from 'rxjs';
+import { forkJoin, of, Subject, timer, Subscription } from 'rxjs';
 import {
   catchError,
   finalize,
   takeUntil,
   switchMap,
   map,
+  takeWhile,
 } from 'rxjs/operators';
 
 import { PageHeaderComponent } from '../../shared/components/header/page-header.component';
@@ -26,6 +27,7 @@ import { Dialog } from '@angular/cdk/dialog';
 import { SpinnerComponent } from '../../shared/components/spinner/spinner.component';
 import { NgIf } from '@angular/common';
 import { EmbeddingConfigsService } from '../../services/embedding_configs.service';
+import { GetSourceCollectionRequest } from './models/source-collection.model';
 
 @Component({
   selector: 'app-knowledge-sources',
@@ -47,6 +49,7 @@ export class KnowledgeSourcesComponent implements OnInit, OnDestroy {
 
   // Subscription management
   private _destroy$ = new Subject<void>();
+  private _pollingSubscription?: Subscription;
 
   constructor(
     private _pageService: KnowledgeSourcesPageService,
@@ -58,7 +61,7 @@ export class KnowledgeSourcesComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
-    this.fetchInitialData();
+    this.fetchInitialData(false);
   }
 
   public openCreateCollectionDialog(): void {
@@ -66,13 +69,15 @@ export class KnowledgeSourcesComponent implements OnInit, OnDestroy {
       minWidth: '550px',
       maxWidth: '90vw',
       maxHeight: '90vh',
-      data: {},
-      backdropClass: 'dark-blur-backdrop',
+      data: {
+        collections: this._pageService.collections(),
+      },
     });
 
     dialogRef.closed.pipe(takeUntil(this._destroy$)).subscribe((result) => {
       if (result) {
-        this.fetchInitialData();
+        // After creating a new collection, fetch data and select the most recent one
+        this.fetchInitialData(true);
       }
     });
   }
@@ -81,9 +86,122 @@ export class KnowledgeSourcesComponent implements OnInit, OnDestroy {
     // Cleanup subscriptions
     this._destroy$.next();
     this._destroy$.complete();
+
+    // Ensure polling subscription is stopped
+    this.stopPolling();
   }
 
-  private fetchInitialData(): void {
+  private needsPolling(collections: GetSourceCollectionRequest[]): boolean {
+    return collections.some((collection) => collection.status !== 'completed');
+  }
+
+  private stopPolling(): void {
+    if (this._pollingSubscription) {
+      this._pollingSubscription.unsubscribe();
+      this._pollingSubscription = undefined;
+    }
+  }
+
+  private startCollectionsPolling(interval: number = 2000): void {
+    this.stopPolling();
+
+    this._pollingSubscription = timer(interval, interval)
+      .pipe(
+        takeUntil(this._destroy$),
+
+        switchMap(() =>
+          this._collectionsService.getGetSourceCollectionRequests().pipe(
+            catchError((error) => {
+              console.error('Failed to poll collections:', error);
+              return of([]);
+            })
+          )
+        ),
+        // Continue polling until all collections are completed
+        takeWhile(
+          (collections) => this.needsPolling(collections),
+          // Include the last value (when all are completed)
+          true
+        )
+      )
+      .subscribe({
+        next: (updatedCollections) => {
+          // Sort collections to maintain consistent order
+          const sortedCollections = [...updatedCollections].sort(
+            (a, b) => b.collection_id - a.collection_id
+          );
+
+          // Update the collections in the service
+          this._pageService.setCollections(sortedCollections);
+
+          // Log polling status for debugging
+          console.log(
+            'Collections polling - in progress collections:',
+            updatedCollections.filter((c) => c.status !== 'completed').length
+          );
+
+          // Trigger change detection
+          this._cdr.markForCheck();
+        },
+        complete: () => {
+          console.log(
+            'Collections polling completed - all collections are now in completed state'
+          );
+        },
+      });
+  }
+
+  private selectMostRecentCollection(
+    collections: GetSourceCollectionRequest[]
+  ): void {
+    // If no collections, set selected to null
+    if (!collections.length) {
+      this._pageService.setSelectedCollection(null);
+      return;
+    }
+
+    // Sort by ID in descending order and take the first (highest ID = most recent)
+    const mostRecentCollection: GetSourceCollectionRequest = [
+      ...collections,
+    ].sort((a, b) => b.collection_id - a.collection_id)[0];
+
+    // Set as selected collection
+    this._pageService.setSelectedCollection(mostRecentCollection);
+
+    // If collection has an embedder, fetch the embedding config
+    if (mostRecentCollection && mostRecentCollection.embedder) {
+      this._embeddingConfigsService
+        .getEmbeddingConfigById(mostRecentCollection.embedder)
+        .pipe(
+          takeUntil(this._destroy$),
+          catchError((error) => {
+            console.error('Failed to load embedding config:', error);
+            return of(null);
+          })
+        )
+        .subscribe((embeddingConfig) => {
+          if (embeddingConfig) {
+            this._pageService.setSelectedEmbeddingConfig(embeddingConfig);
+          }
+          this._cdr.markForCheck();
+        });
+    }
+  }
+
+  private endLoadingWithDelay(
+    startTime: number,
+    minDuration: number = 500
+  ): void {
+    const elapsedTime = Date.now() - startTime;
+    const remainingTime = Math.max(0, minDuration - elapsedTime);
+
+    setTimeout(() => {
+      this.isLoading.set(false);
+      this._cdr.markForCheck();
+    }, remainingTime);
+  }
+
+  private fetchInitialData(selectMostRecent: boolean = false): void {
     // Set loading state
     this.isLoading.set(true);
     this._pageService.setLoaded(false);
@@ -92,12 +210,14 @@ export class KnowledgeSourcesComponent implements OnInit, OnDestroy {
 
     // Use forkJoin to fetch collections and sources in parallel
     forkJoin({
-      collections: this._collectionsService.getSourceCollections().pipe(
-        catchError((error) => {
-          console.error('Failed to load collections:', error);
-          return of([]);
-        })
-      ),
+      collections: this._collectionsService
+        .getGetSourceCollectionRequests()
+        .pipe(
+          catchError((error) => {
+            console.error('Failed to load collections:', error);
+            return of([]);
+          })
+        ),
       sources: this._sourcesService.getSources().pipe(
         catchError((error) => {
           console.error('Failed to load sources:', error);
@@ -107,7 +227,16 @@ export class KnowledgeSourcesComponent implements OnInit, OnDestroy {
     })
       .pipe(
         takeUntil(this._destroy$),
-        switchMap(({ collections, sources }) => {
+        finalize(() => {
+          // Ensure minimum loading time to prevent UI flickering
+          this.endLoadingWithDelay(loadStartTime);
+        })
+      )
+      .subscribe({
+        next: ({ collections, sources }) => {
+          console.log('Fetched collections:', collections);
+          console.log('Fetched sources:', sources);
+
           // Sort collections by ID in descending order (highest first)
           const sortedCollections = [...collections].sort(
             (a, b) => b.collection_id - a.collection_id
@@ -116,58 +245,18 @@ export class KnowledgeSourcesComponent implements OnInit, OnDestroy {
           // Set collections in the service
           this._pageService.setCollections(sortedCollections);
 
-          // Set sources in the service
+          //   Set sources in the service
           this._pageService.setAllSources(sources);
 
-          // Select the first collection if available, otherwise null
-          let selectedCollection = null;
-          if (sortedCollections.length > 0) {
-            selectedCollection = sortedCollections[0];
-            this._pageService.setSelectedCollection(selectedCollection);
+          // Select the appropriate collection based on context
+          if (selectMostRecent) {
+            // After creating a new collection, select the most recent one
+            this.selectMostRecentCollection(sortedCollections);
+            console.log('Selected most recent collection after creation');
           } else {
-            this._pageService.setSelectedCollection(null);
-          }
-
-          // If there's a selected collection with an embedder, fetch the embedding config
-          if (selectedCollection && selectedCollection.embedder) {
-            return this._embeddingConfigsService
-              .getEmbeddingConfigById(selectedCollection.embedder)
-              .pipe(
-                catchError((error) => {
-                  console.error('Failed to load embedding config:', error);
-                  return of(null);
-                }),
-                map((embeddingConfig) => ({
-                  collections: sortedCollections,
-                  sources,
-                  embeddingConfig,
-                }))
-              );
-          }
-
-          // Otherwise, return the initial data with no embedding config
-          return of({
-            collections: sortedCollections,
-            sources,
-            embeddingConfig: null,
-          });
-        }),
-        finalize(() => {
-          // Ensure minimum loading time of 500ms
-          const loadTime = Date.now() - loadStartTime;
-          const remainingTime = Math.max(0, 500 - loadTime);
-
-          setTimeout(() => {
-            this.isLoading.set(false);
-            this._cdr.markForCheck();
-          }, remainingTime);
-        })
-      )
-      .subscribe({
-        next: ({ collections, sources, embeddingConfig }) => {
-          // Set embedding config if we received one
-          if (embeddingConfig) {
-            this._pageService.setSelectedEmbeddingConfig(embeddingConfig);
+            // On initial load, also select the most recent collection
+            // This ensures consistent behavior
+            this.selectMostRecentCollection(sortedCollections);
           }
 
           // Set loaded state to true
@@ -175,6 +264,14 @@ export class KnowledgeSourcesComponent implements OnInit, OnDestroy {
 
           // Trigger change detection
           this._cdr.markForCheck();
+
+          // Check if we need to start polling for collection status updates
+          if (this.needsPolling(sortedCollections)) {
+            console.log('Starting collection status polling...');
+            this.startCollectionsPolling();
+          } else {
+            console.log('All collections already completed, no polling needed');
+          }
         },
         error: (error) => {
           console.error('Error fetching initial data:', error);

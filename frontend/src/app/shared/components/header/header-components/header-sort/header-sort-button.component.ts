@@ -4,13 +4,20 @@ import {
   EventEmitter,
   Output,
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-project-sort-button',
+  standalone: true,
+  imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="projects-page-sort-dropdown">
-      <button class="projects-page-sort-btn" (click)="onSort()">
+      <button
+        class="projects-page-sort-btn"
+        (click)="onSort()"
+        aria-label="Sort projects"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="18"
@@ -27,7 +34,6 @@ import {
           <path d="M3 9l4 -4l4 4m-4 -4v14" />
           <path d="M21 15l-4 4l-4 -4m4 4v-14" />
         </svg>
-        Sort
       </button>
     </div>
   `,
@@ -39,32 +45,31 @@ import {
         .projects-page-sort-btn {
           display: flex;
           align-items: center;
-          background-color: var(--button-bg);
-          padding: 0.4rem 1rem;
-          font-size: 14px;
-          font-weight: 400;
-          color: var(--gray-300);
-          border-radius: 6px;
-          cursor: pointer;
-          gap: 0.5rem;
-          transition: all 0.2s ease;
+          justify-content: center;
+          background-color: rgba(255, 255, 255, 0.04);
+          padding: 0.4rem;
+          width: 36px;
           height: 36px;
+          border-radius: 6px;
+          color: #6b7280;
+          cursor: pointer;
+          transition: all 0.2s ease;
           border: none;
-          box-shadow: inset 0 0 0 1px var(--gray-700);
 
           &:hover {
-            color: var(--white);
-            background-color: var(--button-hover-bg);
-            box-shadow: inset 0 0 0 1px var(--accent-color),
-              0 0 0 1px rgba(104, 95, 255, 0.1);
+            color: #8b5cf6;
+            background-color: rgba(139, 92, 246, 0.08);
+          }
 
-            svg {
-              color: var(--accent-color);
-            }
+          &:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.06);
           }
 
           svg {
-            color: var(--gray-400);
+            width: 20px;
+            height: 20px;
+            display: block;
             transition: color 0.2s ease;
           }
         }

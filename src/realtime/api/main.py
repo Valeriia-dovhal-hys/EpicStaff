@@ -111,7 +111,7 @@ async def init_db():
 
 @app.on_event("startup")
 async def startup_event():
-    """Start Redis listener and intit DB on FastAPI startup."""
+    """Start Redis listener and init DB on FastAPI startup."""
     await init_db()
 
     asyncio.create_task(redis_listener())
@@ -119,7 +119,7 @@ async def startup_event():
 
 # Store active connections and their handlers
 connections: Dict[
-    WebSocket, list[OpenaiRealtimeAgentClient, OpenaiRealtimeTranscriptionClient]
+    WebSocket, list[OpenaiRealtimeAgentClient | OpenaiRealtimeTranscriptionClient]
 ] = {}
 
 

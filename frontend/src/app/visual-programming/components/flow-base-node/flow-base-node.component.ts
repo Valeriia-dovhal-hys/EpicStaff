@@ -9,8 +9,9 @@ import {
   ViewChild,
   ElementRef,
   effect,
+  ChangeDetectorRef,
 } from '@angular/core';
-import { FFlowModule } from '@foblex/flow';
+import { FFlowModule, EFResizeHandleType } from '@foblex/flow';
 import {
   NgFor,
   NgClass,
@@ -23,6 +24,7 @@ import {
 
 import { AgentNodeComponent } from '../nodes-components/agent-node/agent-node.component';
 import { TaskNodeComponent } from '../nodes-components/task-node/task-node.component';
+import { ClickOrDragDirective } from './directives/click-or-drag.directive';
 import {
   NodeModel,
   ProjectNodeModel,
@@ -36,7 +38,9 @@ import { LlmNodeComponent } from '../nodes-components/llm-node/llm-node.componen
 import { ProjectNodeComponent } from '../nodes-components/project-node/project-node.component';
 import { PythonNodeComponent } from '../nodes-components/python-node/python-node.component';
 import { ConditionalEdgeNodeComponent } from '../nodes-components/conditional-edge/conditional-edge.component';
-import { DecisionTableNodeComponent } from '../nodes-components/desicion-table/desicion-table.component';
+import { DecisionTableNodeComponent } from '../nodes-components/decision-table-node/decision-table-node.component';
+import { getNodeTitle } from '../../core/enums/node-title.util';
+import { ResizeHandleComponent } from '../resize-handle/resize-handle.component';
 
 @Component({
   selector: 'app-flow-base-node',
@@ -45,14 +49,13 @@ import { DecisionTableNodeComponent } from '../nodes-components/desicion-table/d
   standalone: true,
   imports: [
     FFlowModule,
-    NgSwitch,
-    NgSwitchCase,
-    NgSwitchDefault,
     NgIf,
+    NgStyle,
+
+    ClickOrDragDirective,
     ConditionalEdgeNodeComponent,
     AgentNodeComponent,
     TaskNodeComponent,
-    NgStyle,
     DecisionTableNodeComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,21 +65,29 @@ import { DecisionTableNodeComponent } from '../nodes-components/desicion-table/d
 })
 export class FlowBaseNodeComponent {
   @Input({ required: true }) node!: NodeModel;
-
+  @Output() fNodeSizeChange = new EventEmitter<{
+    width: number;
+    height: number;
+  }>();
   @Output() editClicked = new EventEmitter<NodeModel>();
   public isExpanded = signal(false);
+  public isToggleDisabled = signal(false);
 
-  @Output() projectExpandToggled = new EventEmitter<ProjectNodeModel>(); // Event for project nodes
+  @Output() projectExpandToggled = new EventEmitter<ProjectNodeModel>();
 
-  ngOnInit() {
-    console.log(this.node);
-  }
   public NodeType = NodeType;
+  public readonly eResizeHandleType = EFResizeHandleType;
 
   public portConnections = computed((): Record<string, CustomPortId[]> => {
     if (!this.node) {
       return {};
     }
+
+    // Add null check for ports
+    if (!this.node.ports) {
+      return {};
+    }
+
     const fullMap = this.flowService.portConnectionsMap();
     return this.node.ports.reduce((acc, port) => {
       // Example logic to combine port information:
@@ -85,31 +96,23 @@ export class FlowBaseNodeComponent {
     }, {} as Record<string, CustomPortId[]>);
   });
 
-  constructor(public flowService: FlowService) {}
+  constructor(
+    public flowService: FlowService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  public toggleExpand(event: MouseEvent, type: NodeType): void {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (type === NodeType.PROJECT) {
-      // For example, you might handle a different signal or emit a different event.
-      this.projectExpandToggled.emit(this.node as ProjectNodeModel);
-    } else {
-      // For Agent and Task nodes (or any other type), use the common toggle behavior.
-      this.isExpanded.set(!this.isExpanded());
+  public onEditClick(event?: MouseEvent): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
     }
-  }
-
-  public onEditClick(event: MouseEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-
     this.editClicked.emit(this.node);
   }
 
   trackByPort(index: number, port: { id: string }): string {
     return port.id;
   }
+
   public getNodeClass(): string {
     switch (this.node.type) {
       case NodeType.AGENT:
@@ -152,10 +155,6 @@ export class FlowBaseNodeComponent {
     return this.node.type === NodeType.LLM ? (this.node as any) : null;
   }
 
-  public get projectNode() {
-    return this.node.type === NodeType.PROJECT ? (this.node as any) : null;
-  }
-
   public get pythonNode() {
     return this.node.type === NodeType.PYTHON ? (this.node as any) : null;
   }
@@ -163,6 +162,7 @@ export class FlowBaseNodeComponent {
   public get edgeNode() {
     return this.node.type === NodeType.EDGE ? (this.node as any) : null;
   }
+
   public get tableNode() {
     return this.node.type === NodeType.TABLE ? (this.node as any) : null;
   }
@@ -179,9 +179,12 @@ export class FlowBaseNodeComponent {
 
     this.flowService.updateNode(updatedNode);
   }
-  calculatePortTop(index: number): string {
-    const baseGap = 36; // in pixels
-    const increment = 34; // in pixels
-    return `calc(${baseGap}px + ${index * increment}px)`;
+
+  public getNodeTitle(): string {
+    return getNodeTitle(this.node);
+  }
+
+  onNodeSizeChanged(size: { width: number; height: number }): void {
+    this.fNodeSizeChange.emit(size);
   }
 }

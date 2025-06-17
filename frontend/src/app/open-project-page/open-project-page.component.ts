@@ -6,9 +6,9 @@ import {
   OnDestroy,
   OnInit,
   signal,
+  Type,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
 import { HeaderComponent } from './header/header.component';
 import { DetailsContentComponent } from './details-content/details-content.component';
 import { VariablesContentComponent } from './variables-content/variables-content.component';
@@ -16,12 +16,11 @@ import { AgentsSectionComponent } from './agents-section/agents-section.componen
 import { TasksSectionComponent } from './tasks-section/tasks-section.component';
 import { SettingsSectionComponent } from './settings-section/settings-section.component';
 import { FormsModule } from '@angular/forms';
-import { SessionsSectionComponent } from './sessions-section/sessions-section.component';
-import { ProjectsService } from '../pages/projects-page/services/projects.service';
+import { ProjectsStorageService } from '../features/projects/services/projects-storage.service';
 import { TasksService } from '../services/tasks.service';
 import { finalize, forkJoin, Subscription } from 'rxjs';
-import { GetProjectRequest } from '../pages/projects-page/models/project.model';
-import { RunCrewSessionService } from '../services/run-crew-session.service';
+import { GetProjectRequest } from '../features/projects/models/project.model';
+
 import { FullTask } from './models/full-task.model';
 import { FullAgentService } from '../services/full-agent.service';
 import { ProjectStateService } from './services/project-state.service';
@@ -34,83 +33,180 @@ import {
 } from '@angular/animations';
 import { ToastService } from '../services/notifications/toast.service';
 import { SpinnerComponent } from '../shared/components/spinner/spinner.component';
+import { FlowGraphComponent } from '../visual-programming/flow-graph/flow-graph.component';
+import { ActivatedRoute } from '@angular/router';
+
+// Improved animations that work properly with content visibility
+export const expandCollapseAnimation = trigger('expandCollapse', [
+  state(
+    'collapsed',
+    style({
+      height: '0',
+      opacity: '0',
+      visibility: 'hidden',
+    })
+  ),
+  state(
+    'expanded',
+    style({
+      height: '*',
+      opacity: '1',
+      visibility: 'visible',
+    })
+  ),
+  transition('expanded => collapsed', [
+    animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
+  ]),
+  transition('collapsed => expanded', [
+    animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
+  ]),
+]);
+
+// Interface for section configuration
+interface SectionConfig {
+  id: string;
+  title: string;
+  component: Type<any>;
+  inputs?: Record<string, any>;
+  showCount?: boolean;
+  count?: number;
+  showAddButton?: boolean;
+}
+
+// Type for tabs
+type TabType = 'overview' | 'draft';
+
+// Flow model interface
+interface FlowModel {
+  nodes: any[];
+  connections: any[];
+  groups: any[];
+}
 
 @Component({
   selector: 'app-open-project-page',
   standalone: true,
   templateUrl: './open-project-page.component.html',
-  styleUrls: ['./open-project-page.component.scss'],
+  styleUrl: './open-project-page.component.scss',
   imports: [
     CommonModule,
-    MatIconModule,
+
     HeaderComponent,
-    DetailsContentComponent,
-    VariablesContentComponent,
-    AgentsSectionComponent,
-    TasksSectionComponent,
+
     SettingsSectionComponent,
     FormsModule,
     SpinnerComponent,
+    FlowGraphComponent,
   ],
-  animations: [
-    trigger('slideAnimation', [
-      state(
-        'collapsed',
-        style({
-          height: '0',
-          opacity: 0,
-        })
-      ),
-      state(
-        'expanded',
-        style({
-          height: '*',
-          opacity: 1,
-        })
-      ),
-      // Use a cubic-bezier easing curve for a smoother effect.
-      transition('collapsed <=> expanded', [
-        animate('300ms cubic-bezier(0.25, 0.8, 0.25, 1)'),
-      ]),
-    ]),
-  ],
+  animations: [expandCollapseAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OpenProjectPageComponent implements OnInit, OnDestroy {
-  public readonly projectId = input.required<string>();
+  public projectId!: string;
   public project!: GetProjectRequest;
   private subscription = new Subscription();
   public isLoading = signal(true);
 
+  // Track active tab
+  public activeTab: TabType = 'overview';
+
+  // Mock flow data for the flow graph component
+  public mockFlowData: FlowModel = {
+    nodes: [],
+    connections: [],
+    groups: [],
+  };
+
   // Track expanded sections with a Set
   public expandedSections = new Set<string>();
 
+  // Sections configuration
+  public sections: SectionConfig[] = [];
+
   constructor(
-    private projectsService: ProjectsService,
+    private projectsService: ProjectsStorageService,
     private tasksService: TasksService,
     private cdr: ChangeDetectorRef,
-    private runCrewSessionService: RunCrewSessionService,
     private fullAgentService: FullAgentService,
     public projectStateService: ProjectStateService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
+    this.projectId = this.route.snapshot.paramMap.get('projectId')!;
+    console.log('ngOnInit - projectId:', this.projectId);
+
+    if (!this.projectId) {
+      console.error('No projectId found in route params!');
+      this.toastService.error('Project ID not found');
+      this.isLoading.set(false);
+      return;
+    }
+
     this.loadData();
+  }
+
+  // Set active tab
+  setActiveTab(tab: TabType): void {
+    if (this.activeTab !== tab) {
+      this.activeTab = tab;
+      this.cdr.markForCheck();
+    }
+  }
+
+  private setupSections() {
+    this.sections = [
+      {
+        id: 'details',
+        title: 'Details',
+        component: DetailsContentComponent,
+        inputs: {
+          description: this.project.description ?? '',
+        },
+      },
+
+      {
+        id: 'agents',
+        title: 'Agents',
+        component: AgentsSectionComponent,
+        showCount: true,
+        count: this.projectStateService.agentCount(),
+        showAddButton: true,
+      },
+      {
+        id: 'tasks',
+        title: 'Tasks',
+        component: TasksSectionComponent,
+        inputs: {
+          project: this.project,
+        },
+        showCount: true,
+        count: this.projectStateService.taskCount(),
+        showAddButton: true,
+      },
+      {
+        id: 'settings',
+        title: 'Settings',
+        component: SettingsSectionComponent,
+        inputs: {
+          project: this.project,
+        },
+        // We'll handle the output binding separately in the template
+      },
+    ];
   }
 
   private loadData(): void {
     const loadStartTime = Date.now();
     this.isLoading.set(true);
 
-    const projectRequest = this.projectsService.getProjectById(
-      +this.projectId()
-    );
-    const tasksRequest = this.tasksService.getTasksByProjectId(
-      this.projectId()
-    );
+    console.log('loadData - Starting to load project with ID:', this.projectId);
+
+    const projectRequest = this.projectsService.getProjectById(+this.projectId);
+    const tasksRequest = this.tasksService.getTasksByProjectId(this.projectId);
     const agentsRequest = this.fullAgentService.getFullAgentsByProject(
-      +this.projectId()
+      +this.projectId
     );
 
     const combinedRequest = forkJoin({
@@ -128,15 +224,28 @@ export class OpenProjectPageComponent implements OnInit, OnDestroy {
             const remainingTime = Math.max(0, 500 - loadTime);
 
             setTimeout(() => {
+              console.log('loadData - Finalizing, setting isLoading to false');
               this.isLoading.set(false);
+              if (this.project) {
+                this.setupSections();
+              }
               this.cdr.markForCheck();
             }, remainingTime);
           })
         )
         .subscribe({
           next: ({ project, tasks, agents }) => {
-            this.projectStateService.setProject(project);
+            console.log('loadData - Success! Project:', project);
+            console.log('loadData - Tasks:', tasks);
+            console.log('loadData - Agents:', agents);
 
+            this.projectStateService.setProject(project ?? null);
+
+            if (!project) {
+              throw new Error(
+                `Project with ID ${this.projectId} not found or essential data is missing.`
+              );
+            }
             this.project = project;
 
             // Map tasks to FullTaskModel by finding the complete agent data
@@ -153,8 +262,11 @@ export class OpenProjectPageComponent implements OnInit, OnDestroy {
             this.cdr.markForCheck();
           },
           error: (err) => {
-            console.error('Failed to fetch project data', err);
+            console.error('loadData - Failed to fetch project data', err);
+            console.error('Error details:', err.message, err.status);
             this.toastService.error('Failed to load project data');
+            this.isLoading.set(false);
+            this.cdr.markForCheck();
           },
         })
     );
@@ -176,18 +288,18 @@ export class OpenProjectPageComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  onAddAgent(event: MouseEvent) {
+  onAddAction(event: MouseEvent, sectionId: string) {
     // Prevent the section from toggling
     event.stopPropagation();
-    // Add your agent creation logic here
-    console.log('Add agent clicked');
-  }
 
-  onAddTask(event: MouseEvent) {
-    // Prevent the section from toggling
-    event.stopPropagation();
-    // Add your task creation logic here
-    console.log('Add task clicked');
+    // Handle add action based on section ID
+    if (sectionId === 'agents') {
+      console.log('Add agent clicked');
+      // Add your agent creation logic here
+    } else if (sectionId === 'tasks') {
+      console.log('Add task clicked');
+      // Add your task creation logic here
+    }
   }
 
   onSettingsChanged(updatedSettings: Partial<GetProjectRequest>) {

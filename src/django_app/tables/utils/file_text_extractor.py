@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 def extract_text_from_file(uploaded_file, file_type):
     """
     Universal dispatcher to extract text from different file types.
-    Supports: txt, pdf, csv, docx.
+    Supports: txt, pdf, csv, json, docx, html, md.
     """
     file_type = file_type.lower()
 
@@ -31,12 +31,15 @@ def extract_text_from_file(uploaded_file, file_type):
     elif file_type == "html":
         return extract_text_from_html(uploaded_file)
 
+    elif file_type == "md":
+        return extract_text_from_md(uploaded_file)
+
     else:
         raise ValueError(f"Unsupported file type: {file_type}")
 
 
 def extract_text_from_txt(uploaded_file):
-    return uploaded_file.read().decode("utf-8")  # read text as string
+    return uploaded_file.read().decode("utf-8")
 
 
 def extract_text_from_pdf(uploaded_file):
@@ -50,14 +53,13 @@ def extract_text_from_pdf(uploaded_file):
 
 def extract_text_from_csv(uploaded_file):
     wrapper = TextIOWrapper(uploaded_file, encoding="utf-8")
-    delimeter = ','
+    delimeter = ","
     reader = csv.reader(wrapper, delimiter=delimeter)
 
-    # skipping empty rows
     extracted_rows = []
     for row in reader:
-        if len(row[0].replace(delimeter, '')) != 0:        
-            extracted_rows.append(','.join(row))
+        if len(row[0].replace(delimeter, "")) != 0:
+            extracted_rows.append(",".join(row))
 
     extracted_text = "\n".join(extracted_rows)
     return extracted_text
@@ -86,3 +88,7 @@ def extract_text_from_html(uploaded_file) -> str:
     for tag in soup(["script", "style"]):
         tag.decompose()
     return str(soup)
+
+
+def extract_text_from_md(uploaded_file) -> str:
+    return uploaded_file.read().decode("utf-8")

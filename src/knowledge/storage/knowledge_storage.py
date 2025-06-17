@@ -46,10 +46,10 @@ class KnowledgeStorage:
     def get_documents(self, collection_id):
         self.connect()
         query = """
-            SELECT dm.document_id, dm.file_name, dc.content, dm.chunk_strategy, dm.chunk_size, dm.chunk_overlap
+            SELECT dm.document_id, dm.file_name, dc.content, dm.chunk_strategy, dm.chunk_size, dm.chunk_overlap, dm.additional_params
             FROM tables_documentmetadata dm
             JOIN tables_documentcontent dc
-            ON dm.document_id = dc.document_metadata_id
+            ON dm.document_content_id = dc.id
             JOIN tables_sourcecollection sc
             ON dm.source_collection_id = sc.collection_id
             WHERE sc.collection_id = %s
@@ -140,7 +140,7 @@ class KnowledgeStorage:
         collection_id: int,
         limit: int = 3,
         distance_threshold: float = 0.6,
-    ) -> Dict:
+    ) -> list:
         """
         Search for documents in the knowledge base using vector similarity.
         """

@@ -3,8 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
-  SourceCollection,
-  UploadSourceCollection,
+  GetSourceCollectionRequest,
   ChunkStrategy,
 } from '../models/source-collection.model';
 import { ConfigService } from '../../../services/config/config.service';
@@ -27,38 +26,49 @@ export class CollectionsService {
     return this.configService.apiUrl + 'source-collections/';
   }
 
-  getSourceCollections(limit = 1000): Observable<SourceCollection[]> {
+  getGetSourceCollectionRequests(
+    limit = 1000
+  ): Observable<GetSourceCollectionRequest[]> {
     return this.http
-      .get<ApiGetRequest<SourceCollection>>(`${this.apiUrl}?limit=${limit}`)
+      .get<ApiGetRequest<GetSourceCollectionRequest>>(
+        `${this.apiUrl}?limit=${limit}`
+      )
       .pipe(map((res) => res.results));
   }
 
-  getSourceCollectionById(id: number): Observable<SourceCollection> {
-    return this.http.get<SourceCollection>(`${this.apiUrl}${id}/`);
+  getGetSourceCollectionRequestById(
+    id: number
+  ): Observable<GetSourceCollectionRequest> {
+    return this.http.get<GetSourceCollectionRequest>(`${this.apiUrl}${id}/`);
   }
 
-  createSourceCollection(formData: any): Observable<SourceCollection> {
-    return this.http.post<SourceCollection>(this.apiUrl, formData);
+  createGetSourceCollectionRequest(
+    formData: any
+  ): Observable<GetSourceCollectionRequest> {
+    return this.http.post<GetSourceCollectionRequest>(this.apiUrl, formData);
   }
 
-  patchSourceCollection(
+  patchGetSourceCollectionRequest(
     collectionId: number,
     collectionName: string
-  ): Observable<SourceCollection> {
-    return this.http.patch<SourceCollection>(`${this.apiUrl}${collectionId}/`, {
-      collection_name: collectionName,
-    });
+  ): Observable<GetSourceCollectionRequest> {
+    return this.http.patch<GetSourceCollectionRequest>(
+      `${this.apiUrl}${collectionId}/`,
+      {
+        collection_name: collectionName,
+      }
+    );
   }
 
-  deleteSourceCollection(id: number): Observable<void> {
+  deleteGetSourceCollectionRequest(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}${id}/`);
   }
 
   uploadFiles(
     collectionId: number,
     formData: FormData
-  ): Observable<SourceCollection> {
-    return this.http.patch<SourceCollection>(
+  ): Observable<GetSourceCollectionRequest> {
+    return this.http.patch<GetSourceCollectionRequest>(
       `${this.apiUrl}${collectionId}/add-sources/`,
       formData
     );
@@ -67,8 +77,8 @@ export class CollectionsService {
   addSourcesToCollection(
     collectionId: number,
     sourceIds: number[]
-  ): Observable<SourceCollection> {
-    return this.http.patch<SourceCollection>(
+  ): Observable<GetSourceCollectionRequest> {
+    return this.http.patch<GetSourceCollectionRequest>(
       `${this.apiUrl}${collectionId}/add-sources/`,
       { sources: sourceIds }
     );

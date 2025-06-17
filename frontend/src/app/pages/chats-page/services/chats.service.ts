@@ -7,11 +7,11 @@ import { FullAgent } from '../../../services/full-agent.service';
 export class ChatsService {
   private selectedAgent = signal<FullAgent | null>(null);
 
+  // Computed signals
   readonly selectedAgentId$ = computed(() => this.selectedAgent()?.id || null);
   readonly selectedAgent$ = computed(() => this.selectedAgent());
 
-  // Method to set selected agent (now takes full agent object)
-  public setSelectedAgent(agent: FullAgent) {
+  public setSelectedAgent(agent: FullAgent): void {
     this.selectedAgent.set(agent);
   }
 }

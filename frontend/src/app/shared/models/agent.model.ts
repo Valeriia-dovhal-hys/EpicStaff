@@ -24,13 +24,8 @@ export interface Agent {
   default_temperature: number | null;
 
   knowledge_collection: number | null;
-  realtime_config: number | null;
-  //future
 
-  llm_config_name?: string | null;
-  fcm_llm_config_name?: string | null;
-
-  toolTitles?: string;
+  realtime_agent: RealtimeAgentConfig;
 }
 
 export interface AgentDto {
@@ -59,9 +54,22 @@ export interface AgentDto {
   default_temperature: number | null;
 
   knowledge_collection: number | null;
-  realtime_config: number | null;
+
+  // New fields from the image
+  realtime_agent: RealtimeAgentConfig;
 }
 
+export interface RealtimeAgentConfig {
+  distance_threshold: string; // string(decimal)
+  search_limit: number; // integer with min: 1, max: 1000
+  wake_word: string | null;
+  stop_prompt: string | null;
+  language: string | null;
+  voice_recognition_prompt: string | null;
+  voice: string; // string with enum values (appears to have [1] option)
+  realtime_config: number | null; // integer
+  realtime_transcription_config: number | null; // integer
+}
 export interface GetAgentRequest {
   id: number;
 
@@ -88,7 +96,7 @@ export interface GetAgentRequest {
   default_temperature: number | null;
 
   knowledge_collection: number | null;
-  realtime_config: number | null;
+  realtime_agent: RealtimeAgentConfig;
 }
 
 // Create Agent Request
@@ -116,7 +124,7 @@ export interface CreateAgentRequest {
   default_temperature?: number | null;
 
   knowledge_collection?: number | null;
-  realtime_config?: number | null;
+  realtime_agent?: RealtimeAgentConfig;
 }
 
 // Update Agent Request
@@ -145,7 +153,8 @@ export interface UpdateAgentRequest {
   default_temperature: number | null;
 
   knowledge_collection: number | null;
-  realtime_config: number | null;
+
+  realtime_agent: RealtimeAgentConfig;
 }
 
 export type AgentTableItem = Omit<Agent, 'id'> & {

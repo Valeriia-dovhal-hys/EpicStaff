@@ -11,6 +11,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { FileItemComponent } from './file-item/file-item.component';
+import { CollectionHeaderComponent } from './collection-content-header.component.ts/collection-content-header.component';
 import { KnowledgeSourcesPageService } from '../../services/knowledge-sources-page.service';
 import { SourcesService } from '../../services/collections-files.service';
 import { FileUploadDialogComponent } from './add-files-dialog/file-upload-dialog.component';
@@ -18,7 +19,7 @@ import { FileUploadDialogComponent } from './add-files-dialog/file-upload-dialog
 @Component({
   selector: 'app-collections-page-content',
   standalone: true,
-  imports: [CommonModule, FileItemComponent],
+  imports: [CommonModule, FileItemComponent, CollectionHeaderComponent],
   templateUrl: './collections-page-content.component.html',
   styleUrls: ['./collections-page-content.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,16 +38,22 @@ export class CollectionsPageContentComponent implements OnInit, OnDestroy {
     return this._pageService.selectedCollection();
   }
 
-  public get selectedEmbeddingConfig() {
-    return this._pageService.selectedEmbeddingConfig();
-  }
-
   public get filteredSources() {
     return this._pageService.filteredSources();
   }
 
   public get hasFiles() {
-    return this.filteredSources.length > 0;
+    // Check if there are any files at all, regardless of search filtering
+    return this._pageService
+      .allSources()
+      .some(
+        (source) =>
+          source.source_collection === this.selectedCollection?.collection_id
+      );
+  }
+
+  public get searchQuery() {
+    return this._pageService.searchQuery();
   }
 
   public ngOnInit(): void {}
@@ -65,7 +72,6 @@ export class CollectionsPageContentComponent implements OnInit, OnDestroy {
       maxWidth: '90vw',
       maxHeight: '90vh',
       data: { collectionId: selectedCollection.collection_id },
-      backdropClass: 'dark-blur-backdrop',
     });
 
     dialogRef.closed.pipe(takeUntil(this._destroy$)).subscribe((result) => {

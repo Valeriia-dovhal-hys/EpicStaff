@@ -1,4 +1,3 @@
-// chat-messages.component.ts
 import {
   Component,
   ChangeDetectionStrategy,
@@ -6,14 +5,16 @@ import {
   effect,
   signal,
 } from '@angular/core';
-import { NgClass, NgFor, NgIf, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MarkdownModule } from 'ngx-markdown';
+import { NgxJsonViewerModule } from 'ngx-json-viewer';
 import { ItemType } from '@openai/realtime-api-beta/dist/lib/client.js';
 import { ConsoleService } from '../../../../services/console.service';
 import { ChatsService } from '../../../../services/chats.service';
 import { FullAgent } from '../../../../../../services/full-agent.service';
+import { HasToolOutputPipe } from './has-tool-output.pipe';
 
-interface GroupedMessage {
+export interface GroupedMessage {
   role: string | undefined;
   ids: string[];
   items: ItemType[];
@@ -24,7 +25,12 @@ interface GroupedMessage {
 @Component({
   selector: 'app-chat-messages',
   standalone: true,
-  imports: [CommonModule, NgClass, NgFor, NgIf, MarkdownModule],
+  imports: [
+    CommonModule,
+    MarkdownModule,
+    NgxJsonViewerModule,
+    HasToolOutputPipe,
+  ],
   templateUrl: './chat-messages.component.html',
   styleUrls: ['./chat-messages.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +42,12 @@ export class ChatMessagesComponent {
 
   // Track expanded/collapsed state of tool responses
   expandedResponses = signal<Record<string, boolean>>({});
+
+  // Track expanded/collapsed state of tool arguments
+  expandedArguments = signal<Record<string, boolean>>({});
+
+  // Track tool output status
+  toolOutputReceived = signal<Record<string, boolean>>({});
 
   // Compute the grouped messages based on the items
   groupedMessages = computed(() => {
@@ -96,6 +108,15 @@ export class ChatMessagesComponent {
         // Log only the new items
         for (let i = this.previousItemCount; i < currentItems.length; i++) {
           console.log('New conversation item:', currentItems[i]);
+
+          // Track tool output pairs to manage loading indicator
+          if (currentItems[i].type === 'function_call_output') {
+            // If we get a function output, mark it as received
+            this.toolOutputReceived.update((current) => ({
+              ...current,
+              [currentItems[i].id]: true,
+            }));
+          }
         }
         // Update the previous count
         this.previousItemCount = currentItems.length;
@@ -174,6 +195,37 @@ export class ChatMessagesComponent {
   // Check if a tool response is expanded
   isResponseExpanded(itemId: string): boolean {
     return !!this.expandedResponses()[itemId];
+  }
+
+  // Toggle the expanded/collapsed state for tool arguments
+  toggleArgumentsVisibility(itemId: string): void {
+    this.expandedArguments.update((current) => {
+      const newState = { ...current };
+      newState[itemId] = !current[itemId];
+      return newState;
+    });
+  }
+
+  // Check if tool arguments are expanded
+  isArgumentsExpanded(itemId: string): boolean {
+    return !!this.expandedArguments()[itemId];
+  }
+
+  // Check if tool has received output
+  hasToolOutput(itemId: string): boolean {
+    return !!this.toolOutputReceived()[itemId];
+  }
+
+  // Parse JSON from string
+  getParsedJson(text: string | undefined): any {
+    if (!text) return {};
+
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      // If parsing fails, return the string as is in an object
+      return { value: text };
+    }
   }
 
   // TrackBy function for message groups to improve performance

@@ -13,29 +13,32 @@ import {
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
-import { ResizableDirective } from '../directives/resizable.directive';
+import { AppIconComponent } from '../../../../shared/components/app-icon/app-icon.component';
+import { IconButtonComponent } from '../../../../shared/components/buttons/icon-button/icon-button.component';
 
 @Component({
   selector: 'app-code-editor',
-  imports: [FormsModule, NgIf, MonacoEditorModule, ResizableDirective],
+  imports: [
+    FormsModule,
+    NgIf,
+    MonacoEditorModule,
+    AppIconComponent,
+    IconButtonComponent,
+  ],
   templateUrl: './code-editor.component.html',
   styleUrls: ['./code-editor.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
 })
 export class CodeEditorComponent {
   @ViewChild('editorContainer', { static: true }) editorContainer!: ElementRef;
 
   @Input() public pythonCode: string = '';
-  /**
-   * Allow the parent to override the default height.
-   * Defaults to 200 if none is passed in.
-   */
-  @Input() public editorHeight: number = 200;
-
-  public editorLoaded = false;
+  @Output() public pythonCodeChange = new EventEmitter<string>();
   @Output() public errorChange = new EventEmitter<boolean>();
 
   private monacoEditor: any;
+  public editorLoaded = false;
   public showMainError = false;
 
   public editorOptions = {
@@ -44,6 +47,12 @@ export class CodeEditorComponent {
     automaticLayout: true,
     minimap: { enabled: false },
     scrollBeyondLastLine: false,
+    wordWrap: 'on',
+    wrappingIndent: 'indent',
+    wordWrapMinified: true,
+    formatOnPaste: true,
+    formatOnType: true,
+    tabSize: 4,
   };
 
   constructor(private cdr: ChangeDetectorRef, private zone: NgZone) {}
@@ -52,23 +61,24 @@ export class CodeEditorComponent {
     const mainRegex = /(^|\n)\s*def\s+main\b/;
     this.showMainError = !mainRegex.test(newValue);
     this.errorChange.emit(this.showMainError);
+    this.pythonCode = newValue;
+    this.pythonCodeChange.emit(newValue);
     this.cdr.markForCheck();
   }
 
   public onEditorInit(editor: any): void {
     this.editorLoaded = true;
     this.monacoEditor = editor;
-    this.cdr.markForCheck();
-  }
 
-  /**
-   * Called by the resizable directive whenever the user drags the resize handle.
-   */
-  public onResize(newHeight: number): void {
-    this.editorHeight = newHeight;
-    if (this.monacoEditor && typeof this.monacoEditor.layout === 'function') {
-      this.monacoEditor.layout();
+    // Set additional editor options after initialization
+    if (this.monacoEditor) {
+      this.monacoEditor.updateOptions({
+        wordWrapBreakAfterCharacters: ',:',
+        wordWrapBreakBeforeCharacters: '}])',
+      });
     }
+
+    this.cdr.markForCheck();
   }
 
   public copyCode(): void {

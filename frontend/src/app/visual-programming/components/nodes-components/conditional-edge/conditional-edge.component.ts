@@ -61,7 +61,7 @@ import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
 export class ConditionalEdgeNodeComponent {
   // Dynamic sizing inputs (you can override these from the parent)
   @Input() width: number = 300;
-  @Input() height: number = 150;
+  @Input() height: number = 180;
   @Input() fillColor: string = 'var(--vp-node-color)';
   @Input() strokeColor: string = 'var(--vp-node-border-color)';
   @Input() cornerRadius: number = 10; // adjustable corner radius
@@ -135,15 +135,15 @@ export class ConditionalEdgeNodeComponent {
 
   // Center the foreignObject content
   get contentX(): number {
-    return this.width * 0.1;
+    return this.width * 0.18;
   }
   get contentY(): number {
-    return this.height * 0.1;
+    return this.height * 0.32;
   }
   get contentWidth(): number {
-    return this.width * 0.8;
+    return this.width * 0.64;
   }
   get contentHeight(): number {
-    return this.height * 0.8;
+    return this.height * 0.36;
   }
 }

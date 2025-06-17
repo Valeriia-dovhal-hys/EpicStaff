@@ -1,0 +1,57 @@
+<div class="config-selector" clickOutside (clickOutside)="isOpen = false">
+  <label *ngIf="label">{{ label }}</label>
+  <div class="selector" [class.disabled]="disabled" (click)="toggleDropdown()">
+    <div class="selected-config">{{ getSelectedConfigName() }}</div>
+    <div class="selector-arrow" [class.open]="isOpen">
+      <svg
+        width="10"
+        height="6"
+        viewBox="0 0 10 6"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M1 1L5 5L9 1"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+  </div>
+
+  <div class="dropdown-menu" *ngIf="isOpen">
+    <div *ngIf="loading" class="dropdown-item loading">
+      Loading configurations...
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <!-- None option -->
+      <div
+        class="dropdown-item"
+        [class.selected]="selectedConfigId === null"
+        (click)="selectConfig(null)"
+      >
+        None
+      </div>
+
+      <!-- Config options -->
+      <div
+        *ngFor="let config of configs"
+        class="dropdown-item"
+        [class.selected]="config.id === selectedConfigId"
+        (click)="selectConfig(config.id)"
+      >
+        {{ config.custom_name }} ({{ config.model_name }})
+      </div>
+
+      <!-- Create new option -->
+      <div class="dropdown-item create-new" (click)="onCreateNew()">
+        <!-- <span class="create-new-icon">+</span>  -->
+
+        Create New Configuration
+      </div>
+    </ng-container>
+  </div>
+</div>

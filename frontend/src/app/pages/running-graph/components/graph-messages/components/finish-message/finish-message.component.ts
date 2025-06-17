@@ -1,13 +1,14 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgxJsonViewerModule } from 'ngx-json-viewer';
 import { MarkdownModule } from 'ngx-markdown';
 import {
   GraphMessage,
   FinishMessageData,
-} from '../../graph-session-message.model';
+  MessageType,
+} from '../../../../models/graph-session-message.model';
 import { expandCollapseAnimation } from '../../../../../../shared/animations/animations-expand-collapse';
-import { GetProjectRequest } from '../../../../../projects-page/models/project.model';
+import { GetProjectRequest } from '../../../../../../features/projects/models/project.model';
 
 @Component({
   selector: 'app-finish-message',
@@ -85,24 +86,17 @@ import { GetProjectRequest } from '../../../../../projects-page/models/project.m
               ></i>
               Final Output
             </div>
+
+            <!-- Always use JSON viewer for output -->
             <div
               class="collapsible-content"
               [@expandCollapse]="isOutputExpanded ? 'expanded' : 'collapsed'"
             >
-              <div class="output-wrapper">
-                <div
-                  class="markdown-content"
-                  [ngClass]="{ collapsed: isCollapsed && shouldShowToggle() }"
-                >
-                  <markdown [data]="getMarkdownOutput()"></markdown>
-                </div>
-                <button
-                  *ngIf="shouldShowToggle() && isOutputExpanded"
-                  class="toggle-button"
-                  (click)="toggleCollapse()"
-                >
-                  {{ isCollapsed ? 'Show more' : 'Show less' }}
-                </button>
+              <div class="output-content">
+                <ngx-json-viewer
+                  [json]="getOutput()"
+                  [expanded]="false"
+                ></ngx-json-viewer>
               </div>
             </div>
           </div>
@@ -110,74 +104,72 @@ import { GetProjectRequest } from '../../../../../projects-page/models/project.m
       </div>
     </div>
   `,
-  styles: [
-    `
-      .finish-container {
-        position: relative;
-        background-color: var(--gray-850);
-        border-radius: 8px;
-        padding: 1.25rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        border-left: 4px solid #5672cd;
-      }
+  styles: `
+    .finish-container {
+      position: relative;
+      background-color: var(--color-nodes-background);
+      border-radius: 8px;
+      padding: 1.25rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border-left: 4px solid #5672cd;
 
       .finish-header {
         display: flex;
         align-items: center;
         cursor: pointer;
         user-select: none;
-      }
 
-      .play-arrow {
-        margin-right: 16px;
-        display: flex;
-        align-items: center;
-      }
+        .play-arrow {
+          margin-right: 16px;
+          display: flex;
+          align-items: center;
 
-      .play-arrow i {
-        color: #5672cd;
-        font-size: 1.1rem;
-        transition: transform 0.3s ease;
-      }
+          i {
+            color: #5672cd;
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+          }
+        }
 
-      .icon-container {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background-color: #5672cd;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 20px;
-        flex-shrink: 0;
-      }
+        .icon-container {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background-color: #5672cd;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 20px;
+          flex-shrink: 0;
 
-      .icon-container i {
-        color: var(--gray-900);
-        font-size: 1.25rem;
-      }
+          i {
+            color: var(--gray-900);
+            font-size: 1.25rem;
+          }
+        }
 
-      h3 {
-        color: var(--gray-100);
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-      }
+        h3 {
+          color: var(--gray-100);
+          font-size: 1.1rem;
+          font-weight: 600;
+          margin: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 100%;
 
-      .project-name {
-        color: #5672cd;
-        font-weight: 400;
-        margin-right: 5px;
+          .project-name {
+            color: #5672cd;
+            font-weight: 400;
+            margin-right: 5px;
+          }
+        }
       }
 
       .finish-content {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 1.5rem;
         padding-left: 5.5rem;
         margin-top: 1.25rem;
         overflow: hidden;
@@ -187,86 +179,51 @@ import { GetProjectRequest } from '../../../../../projects-page/models/project.m
       .section-heading {
         font-weight: 500;
         color: var(--gray-300);
-        margin-bottom: 0.5rem;
+        margin-bottom: 1rem;
         cursor: pointer;
         user-select: none;
         display: flex;
         align-items: center;
-      }
 
-      .section-heading i {
-        margin-right: 8px;
-        color: #5672cd;
-        font-size: 1.1rem;
-        margin-left: -3px;
-        transition: transform 0.3s ease;
+        i {
+          margin-right: 8px;
+          color: #5672cd;
+          font-size: 1.1rem;
+          margin-left: -3px;
+          transition: transform 0.3s ease;
+        }
       }
 
       /* Collapsible content container */
       .collapsible-content {
         overflow: hidden;
         position: relative;
+
+        &.ng-animating {
+          overflow: hidden;
+        }
       }
 
-      .collapsible-content.ng-animating {
-        overflow: hidden;
-      }
-
-      .output-wrapper {
-        margin-left: 23px;
-      }
-
-      .markdown-content {
+      .variables-content,
+      .output-content {
         background-color: var(--gray-800);
         border: 1px solid var(--gray-750);
         border-radius: 8px;
-        padding: 1rem;
-        color: var(--gray-200);
-        overflow-x: auto;
-        transition: max-height 0.3s ease;
-      }
-
-      .markdown-content.collapsed {
-        max-height: 200px;
-        overflow-y: hidden;
-      }
-
-      .variables-content {
-        background-color: var(--gray-800);
-        border: 1px solid var(--gray-750);
-        border-radius: 8px;
-        padding: 1rem;
-        overflow: auto;
+        padding: 1.25rem;
+        margin-left: 1.5rem;
         max-height: 400px;
-        margin-left: 23px;
+        overflow: auto;
       }
-
-      .toggle-button {
-        background-color: transparent;
-        border: none;
-        color: #5672cd;
-        font-size: 0.85rem;
-        cursor: pointer;
-        padding: 0.5rem;
-        text-align: center;
-        width: 100%;
-        margin-top: 0.25rem;
-      }
-
-      .toggle-button:hover {
-        text-decoration: underline;
-      }
-    `,
-  ],
+    }
+  `,
 })
 export class FinishMessageComponent implements OnInit {
   @Input() message!: GraphMessage;
-  @Input() project: GetProjectRequest | null = null; // Add input for project data
+  @Input() project: GetProjectRequest | null = null;
 
   isMessageExpanded = false;
   isOutputExpanded = true;
   isVariablesExpanded = false;
-  isCollapsed = false; // Set to false by default to show full output initially
 
   ngOnInit() {}
 
@@ -282,18 +239,6 @@ export class FinishMessageComponent implements OnInit {
     }
   }
 
-  toggleCollapse(): void {
-    this.isCollapsed = !this.isCollapsed;
-  }
-
-  shouldShowToggle(): boolean {
-    const output = this.getMarkdownOutput();
-    if (!output) return false;
-
-    // Same logic as in other components - show toggle for content longer than 5 lines or 500 characters
-    return output.split('\n').length > 5 || output.length > 500;
-  }
-
   getFinishData(): FinishMessageData | null {
     if (
       this.message.message_data &&
@@ -304,32 +249,20 @@ export class FinishMessageComponent implements OnInit {
     return null;
   }
 
-  getHeaderText(): string {
-    // This method is no longer used in the template, but kept for backward compatibility
-    if (this.project && this.project.name) {
-      return `${this.project.name} Finished`;
-    }
-    return 'Default Project Finished';
-  }
-
-  getMarkdownOutput(): string {
+  // Get output directly for JSON viewer
+  getOutput(): any {
     const finishData = this.getFinishData();
-    if (!finishData || !finishData.output) return '';
-
-    // Check specifically for output.raw
-    if (typeof finishData.output === 'object' && finishData.output.raw) {
-      return finishData.output.raw;
+    if (!finishData || !finishData.output) {
+      return {}; // Return empty object if no output
     }
-
-    // If output.raw doesn't exist, return an empty string
-    return '';
+    return finishData.output;
   }
 
+  // Variables handling
   hasVariables(): boolean {
     const finishData = this.getFinishData();
     if (!finishData || !finishData.state) return false;
 
-    // Check if state has variables or state_history
     return (
       !!finishData.state['variables'] &&
       Object.keys(finishData.state['variables']).length > 0
@@ -341,7 +274,6 @@ export class FinishMessageComponent implements OnInit {
     if (!finishData || !finishData.state || !finishData.state['variables'])
       return {};
 
-    // Return only the variables value directly
     return finishData.state['variables'] || {};
   }
 }

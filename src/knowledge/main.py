@@ -13,8 +13,12 @@ redis_host = os.getenv("REDIS_HOST", "127.0.0.1")
 redis_port = int(os.getenv("REDIS_PORT", "6379"))
 
 knowledge_sources_channel = os.getenv("KNOWLEDGE_SOURCES_CHANNEL", "knowledge_sources")
-knowledge_search_get_channel = os.getenv("KNOWLEDGE_SEARCH_GET_CHANNEL", "knowledge:search:get")
-knowledge_search_response_channel = os.getenv("KNOWLEDGE_SEARCH_RESPONSE_CHANNEL", "knowledge:search:response")
+knowledge_search_get_channel = os.getenv(
+    "KNOWLEDGE_SEARCH_GET_CHANNEL", "knowledge:search:get"
+)
+knowledge_search_response_channel = os.getenv(
+    "KNOWLEDGE_SEARCH_RESPONSE_CHANNEL", "knowledge:search:response"
+)
 
 
 async def indexing(redis_service, executor):
@@ -27,12 +31,14 @@ async def indexing(redis_service, executor):
             try:
                 data = json.loads(message["data"])
                 collection_id = data["collection_id"]
-                
+
                 logger.info(f"Processing embeddings for collection_id: {collection_id}")
 
                 # Run blocking function in a ProcessPoolExecutor for CPU-bound work
                 loop = asyncio.get_running_loop()
-                await loop.run_in_executor(executor, run_process_collection, collection_id)
+                await loop.run_in_executor(
+                    executor, run_process_collection, collection_id
+                )
 
                 logger.info(f"Embeddings created for collection_id: {collection_id}")
             except Exception as e:
@@ -47,7 +53,9 @@ def run_process_collection(collection_id):
 
 async def searching(redis_service):
     """Handles search queries from the Redis queue asynchronously."""
-    logger.info(f"Subscribed to channel '{knowledge_search_get_channel}' for search queries.")
+    logger.info(
+        f"Subscribed to channel '{knowledge_search_get_channel}' for search queries."
+    )
 
     pubsub = await redis_service.async_subscribe(knowledge_search_get_channel)
     async for message in pubsub.listen():
@@ -58,17 +66,19 @@ async def searching(redis_service):
                 collection_id = data.collection_id
 
                 logger.info(f"Processing search for collection_id: {collection_id}")
-                
+
                 processor = CollectionProcessor(collection_id)
                 result = processor.search(
                     uuid=data.uuid,
                     query=data.query,
                     search_limit=data.search_limit,
-                    distance_threshold=data.distance_threshold
+                    distance_threshold=data.distance_threshold,
                 )
 
-                await redis_service.async_publish(knowledge_search_response_channel, result)
-                
+                await redis_service.async_publish(
+                    knowledge_search_response_channel, result
+                )
+
                 logger.info(f"Search completed for collection_id: {collection_id}")
             except Exception as e:
                 logger.error(f"Error processing search: {e}")
@@ -88,7 +98,7 @@ async def main():
     try:
         await asyncio.gather(task1, task2, return_exceptions=True)
     finally:
-        executor.shutdown(wait=True) 
+        executor.shutdown(wait=True)
 
 
 if __name__ == "__main__":

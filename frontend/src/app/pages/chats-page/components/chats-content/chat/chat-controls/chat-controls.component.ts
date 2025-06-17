@@ -1,14 +1,15 @@
-// chat-controls.component.ts
 import {
   Component,
-  Output,
-  EventEmitter,
   ChangeDetectionStrategy,
+  inject,
   signal,
+  OnInit,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConsoleService } from '../../../../services/console.service';
+import { WavRecorderService } from '../../../../services/wav-recorder.service';
 import { MicrophoneSelectorComponent } from './microphone-selector/microphone-selector.component';
 import { VoiceVisualizerComponent } from './voice-visualizer/voice-visualizer.component';
 
@@ -25,52 +26,150 @@ import { VoiceVisualizerComponent } from './voice-visualizer/voice-visualizer.co
   styleUrls: ['./chat-controls.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChatControlsComponent {
-  // Convert isPaused to a signal
-  isMicrophoneMuted = signal(false);
-  isKeyboardMode = false;
+export class ChatControlsComponent implements OnInit {
+  // Use signals for reactive state management
+  isKeyboardMode = signal<boolean>(false);
+  isMicrophoneMuted = signal<boolean>(false);
+  isConnecting = signal<boolean>(false);
+  isRecorderInitialized = signal<boolean>(false);
+
   messageText = '';
 
-  constructor(public consoleService: ConsoleService) {}
+  wavRecorderService = inject(WavRecorderService);
 
-  onStartSpeaking(): void {
-    this.isMicrophoneMuted.set(false);
-    this.consoleService.connectConversation();
+  constructor(public consoleService: ConsoleService) {
+    // React to changes in the WavRecorderService's initialization state
+    effect(() => {
+      this.isRecorderInitialized.set(this.wavRecorderService.isInitialized());
+    });
   }
 
+  ngOnInit(): void {
+    // Initialize microphone muted state
+    this.updateMicrophoneState();
+  }
+
+  /**
+   * Update the internal microphone state from the service
+   */
+  private updateMicrophoneState(): void {
+    this.isMicrophoneMuted.set(
+      this.wavRecorderService.getStatus() === 'paused'
+    );
+  }
+
+  /**
+   * Start a conversation
+   */
+  onStartSpeaking(): void {
+    if (!this.canStartSpeaking()) {
+      return;
+    }
+
+    this.isConnecting.set(true);
+
+    this.consoleService.connectConversation().subscribe({
+      next: (result) => {
+        this.isConnecting.set(false);
+        if (result.success) {
+          console.log('Conversation connected successfully');
+          // Ensure microphone state is updated
+          this.updateMicrophoneState();
+        } else {
+          console.error('Failed to connect conversation:', result.error);
+        }
+      },
+      error: (error) => {
+        this.isConnecting.set(false);
+        console.error('Error connecting conversation:', error);
+      },
+    });
+  }
+
+  /**
+   * Check if we can start speaking
+   * Button should be disabled if connecting or if recorder is not initialized
+   */
+  canStartSpeaking(): boolean {
+    return (
+      !this.isConnecting() && this.wavRecorderService.audioDevices().length > 0
+    );
+  }
+
+  /**
+   * Toggle microphone mute state
+   */
   toggleRecording(): void {
     if (this.isMicrophoneMuted()) {
-      this.consoleService.recordWavRecorder();
-      this.isMicrophoneMuted.set(false);
+      // Resume recording using the saved callback
+      this.consoleService.resumeRecording().then((success) => {
+        if (success) {
+          this.isMicrophoneMuted.set(false);
+        }
+      });
     } else {
-      this.consoleService.pauseWavRecorder();
-      this.isMicrophoneMuted.set(true);
+      // Pause recording
+      this.wavRecorderService.pauseRecording().then((success) => {
+        if (success) {
+          this.isMicrophoneMuted.set(true);
+        }
+      });
     }
   }
 
-  stopConversation(): void {
-    this.consoleService.disconnectConversation();
+  /**
+   * Stop the conversation
+   */
+  async stopConversation(): Promise<void> {
+    try {
+      const result = await this.consoleService.disconnectConversation();
+      if (result) {
+        console.log('Conversation disconnected successfully');
+      } else {
+        console.warn('Disconnection completed with issues');
+      }
+    } catch (error) {
+      console.error('Error disconnecting conversation:', error);
+    }
+
+    // Reset UI state
+    this.isKeyboardMode.set(false);
     this.isMicrophoneMuted.set(false);
-    this.isKeyboardMode = false;
   }
 
+  /**
+   * Toggle between keyboard and microphone input modes
+   */
   toggleInputMode(): void {
-    this.isKeyboardMode = !this.isKeyboardMode;
+    const newKeyboardMode = !this.isKeyboardMode();
+    this.isKeyboardMode.set(newKeyboardMode);
 
-    if (!this.isKeyboardMode && this.isMicrophoneMuted()) {
-      // If switching back to microphone mode and it was muted, unmute it
-      this.consoleService.recordWavRecorder();
-      this.isMicrophoneMuted.set(false);
-    } else if (this.isKeyboardMode && !this.isMicrophoneMuted()) {
-      // If switching to keyboard mode and microphone is active, pause it
-      this.consoleService.pauseWavRecorder();
-      this.isMicrophoneMuted.set(true);
+    if (newKeyboardMode) {
+      // Switching to keyboard mode - pause microphone if active
+      if (!this.isMicrophoneMuted()) {
+        this.wavRecorderService.pauseRecording().then((success) => {
+          if (success) {
+            this.isMicrophoneMuted.set(true);
+          }
+        });
+      }
+    } else {
+      // Switching to microphone mode - resume if muted
+      if (this.isMicrophoneMuted()) {
+        this.consoleService.resumeRecording().then((success) => {
+          if (success) {
+            this.isMicrophoneMuted.set(false);
+          }
+        });
+      }
     }
   }
 
+  /**
+   * Send a text message
+   */
   sendMessage(): void {
     if (this.messageText.trim()) {
-      // Implement your send message logic here
       this.consoleService.sendTextMessage(this.messageText);
       console.log('Sending message:', this.messageText);
 
@@ -79,13 +178,13 @@ export class ChatControlsComponent {
     }
   }
 
-  public get isConversationSetuped() {
+  /**
+   * Check if the conversation is set up and ready
+   */
+  public get isConversationSetuped(): boolean {
     return (
       this.consoleService.isClientConnected() &&
-      this.consoleService.isConversationConnected() &&
-      this.consoleService.isRecordingStarted()
+      this.consoleService.isConversationConnected()
     );
   }
-
-  ngOnDestroy() {}
 }
