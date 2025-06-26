@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
 import { Dialog } from '@angular/cdk/dialog';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { EmbeddingConfigsService } from '../../../../../services/embedding_configs.service';
+import { EmbeddingConfigsService } from '../../../../../features/settings-dialog/services/embeddings/embedding_configs.service';
 import { ConfirmationDialogService } from '../../../../../shared/components/cofirm-dialog/confimation-dialog.service';
 import {
   CollectionStatus,

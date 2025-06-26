@@ -1,6 +1,6 @@
 :root {
-  --color-primary: #2196f3;
-  --color-primary-hover: #1976d2;
+  --color-primary: #685fff;
+  --color-primary-hover: #574fd6;
   --color-danger: #f44336;
   --color-danger-hover: #d32f2f;
 
@@ -9,7 +9,6 @@
   --color-nodes-sidepanel-bg: #1e1e1e;
 }
 
-/* confirmation-dialog.component.scss */
 .dialog-container {
   background: var(--color-nodes-sidepanel-bg);
   border-radius: 8px;
@@ -20,17 +19,17 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  border-top: 4px solid #2196f3;
+}
 
-  &.danger {
-    border-top-color: #f44336;
-  }
-  &.warning {
-    border-top-color: #ff9800;
-  }
-  &.info {
-    border-top-color: #2196f3;
-  }
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.close-button {
+  margin-top: -8px;
+  margin-right: -8px;
 }
 
 .dialog-title {
@@ -93,9 +92,9 @@
     }
 
     &.warning {
-      background: #ff9800;
+      background: #e65100; /* Darker orange */
       &:hover {
-        background: #f57c00;
+        background: #bf360c; /* Even darker orange for hover */
       }
     }
   }
@@ -135,18 +134,18 @@
   color: #f44336;
 }
 .dialog-container.warning .dialog-icon {
-  color: #ff9800;
+  color: #e65100; /* Darker orange */
 }
 .dialog-container.info .dialog-icon {
-  color: #2196f3;
+  color: #685fff;
 }
 
 .button.confirm-button.info {
-  background: #2196f3;
+  background: #685fff;
   color: white;
 }
 .button.confirm-button.info:hover {
-  background: #1976d2;
+  background: #574fd6;
 }
 .button.confirm-button.danger {
   background: #f44336;
@@ -156,9 +155,9 @@
   background: #d32f2f;
 }
 .button.confirm-button.warning {
-  background: #ff9800;
+  background: #e65100; /* Darker orange */
   color: white;
 }
 .button.confirm-button.warning:hover {
-  background: #f57c00;
+  background: #bf360c; /* Even darker orange for hover */
 }

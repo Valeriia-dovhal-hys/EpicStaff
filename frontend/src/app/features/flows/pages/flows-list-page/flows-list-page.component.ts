@@ -32,6 +32,9 @@ import {
   SearchFilterChange,
 } from '../../../../shared/components/filters-list/filters-list.component';
 import { FlowsStorageService } from '../../services/flows-storage.service';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-flows-list-page',
@@ -44,25 +47,63 @@ import { FlowsStorageService } from '../../services/flows-storage.service';
     RouterLinkActive,
     ButtonComponent,
     TabButtonComponent,
-
-    FiltersListComponent,
+    FormsModule,
+    AppIconComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FlowsListPageComponent {
+export class FlowsListPageComponent implements OnDestroy {
   public tabs = [
     { label: 'My Flows', link: 'my' },
     { label: 'Templates', link: 'templates' },
   ];
 
-  private dialog = inject(Dialog);
+  // Search term for ngModel binding
+  public searchTerm: string = '';
 
+  // For debounce
+  private searchTerms = new Subject<string>();
+  private subscription: Subscription;
+
+  private dialog = inject(Dialog);
   private flowStorageService = inject(FlowsStorageService);
   private router = inject(Router);
-  constructor() {}
+  private cdr = inject(ChangeDetectorRef);
 
-  public onFiltersChange(event: SearchFilterChange): void {
-    this.flowStorageService.setFilter(event);
+  constructor() {
+    // Setup search with debounce
+    this.subscription = this.searchTerms
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((term) => {
+        this.updateSearch(term);
+      });
+  }
+
+  ngOnDestroy(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+
+    // Reset search filter when component is destroyed
+    this.searchTerm = '';
+    this.flowStorageService.setFilter(null);
+  }
+
+  public onSearchTermChange(term: string): void {
+    this.searchTerms.next(term);
+  }
+
+  public clearSearch(): void {
+    this.searchTerm = '';
+    this.updateSearch('');
+  }
+
+  private updateSearch(searchTerm: string): void {
+    const filter: SearchFilterChange = {
+      searchTerm,
+    };
+    this.flowStorageService.setFilter(filter);
+    this.cdr.markForCheck();
   }
 
   public openCreateFlowDialog(): void {

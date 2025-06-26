@@ -26,7 +26,7 @@ import { CreateCollectionDialogComponent } from './components/create-collection-
 import { Dialog } from '@angular/cdk/dialog';
 import { SpinnerComponent } from '../../shared/components/spinner/spinner.component';
 import { NgIf } from '@angular/common';
-import { EmbeddingConfigsService } from '../../services/embedding_configs.service';
+import { EmbeddingConfigsService } from '../../features/settings-dialog/services/embeddings/embedding_configs.service';
 import { GetSourceCollectionRequest } from './models/source-collection.model';
 
 @Component({

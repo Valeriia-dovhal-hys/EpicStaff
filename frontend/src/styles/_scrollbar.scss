@@ -1,29 +1,28 @@
 /* Firefox */
 html {
-  scrollbar-color: var(--color-action-btn-background)
-    var(--color-nodes-background);
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
   scrollbar-width: thin;
 }
 
 /* Chrome, Edge, Safari */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #23242a;
+  background: var(--color-scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #22242b;
-  border-radius: 4px;
+  background: var(--color-scrollbar-thumb);
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2d2f3a;
+  background: var(--color-scrollbar-thumb-hover);
 }
 
 ::-webkit-scrollbar-corner {
-  background: #23242a;
+  background: var(--color-scrollbar-track);
 }

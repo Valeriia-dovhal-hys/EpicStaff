@@ -14,15 +14,8 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { map, Subscription, switchMap, takeUntil } from 'rxjs';
+import { map, Subscription, switchMap, takeUntil, forkJoin } from 'rxjs';
 import { Subject } from 'rxjs';
-import {
-  trigger,
-  transition,
-  style,
-  animate,
-  state,
-} from '@angular/animations';
 
 import { RealtimeAgentService } from '../../../services/realtime-agent.service';
 import { IconPickerComponent } from '../forms/icon-selector/icon-picker.component';
@@ -30,14 +23,21 @@ import { ToggleSwitchComponent } from '../forms/small-toggler/toggle-switch.comp
 import { FormHeaderComponent } from '../forms/header/form-header.component';
 import { FormFooterComponent } from '../forms/footer/form-footer.component';
 import { FormSliderComponent } from '../forms/slider/form-slider.component';
-import { LlmSelectorComponent } from '../../../pages/staff-page/components/advanced-settings-dialog.component.ts/fcm-llm-selector/llm-selector.component';
 import { AgentsService } from '../../../services/staff.service';
 import { ToastService } from '../../../services/notifications/toast.service';
 import { ShortcutListenerDirective } from '../../../visual-programming/core/directives/shortcut-listener.directive';
+import { HelpTooltipComponent } from '../help-tooltip/help-tooltip.component';
+import { IconButtonComponent } from '../buttons/icon-button/icon-button.component';
+import { AppIconComponent } from '../app-icon/app-icon.component';
+import { KnowledgeSelectorComponent } from '../../../pages/staff-page/components/advanced-settings-dialog.component.ts/knowledge-selector/knowledge-selector.component';
+import { CollectionsService } from '../../../pages/knowledge-sources/services/source-collections.service';
+import { GetSourceCollectionRequest } from '../../../pages/knowledge-sources/models/source-collection.model';
+import { ToolsSelectorComponent } from '../../components/tools-selector/tools-selector.component';
+import { LlmModelSelectorComponent } from '../llm-model-selector/llm-model-selector.component';
 import {
   FullLLMConfigService,
   FullLLMConfig,
-} from '../../../services/full-llm-config.service';
+} from '../../../features/settings-dialog/services/llms/full-llm-config.service';
 import {
   AgentDto,
   CreateAgentRequest,
@@ -53,78 +53,28 @@ import {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-
-    FormHeaderComponent,
-    FormFooterComponent,
     FormSliderComponent,
     ToggleSwitchComponent,
-
-    IconPickerComponent,
-    LlmSelectorComponent,
     ShortcutListenerDirective,
+    HelpTooltipComponent,
+    IconButtonComponent,
+    AppIconComponent,
+    KnowledgeSelectorComponent,
+    ToolsSelectorComponent,
+    LlmModelSelectorComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('smoothExpand', [
-      state(
-        'void',
-        style({
-          maxHeight: '0',
-          overflow: 'hidden',
-          opacity: 0,
-          padding: '0',
-        })
-      ),
-      state(
-        '*',
-        style({
-          maxHeight: '1000px',
-          overflow: 'visible',
-          opacity: 1,
-        })
-      ),
-      transition('void => *', [
-        style({
-          maxHeight: '0',
-          overflow: 'hidden',
-          opacity: 0,
-          padding: '0',
-        }),
-        animate(
-          '300ms ease-out',
-          style({
-            maxHeight: '1000px',
-            opacity: 1,
-            padding: '*',
-            overflow: 'visible',
-          })
-        ),
-      ]),
-      transition('* => void', [
-        style({
-          maxHeight: '*',
-          overflow: 'hidden',
-          opacity: 1,
-        }),
-        animate(
-          '300ms ease-in',
-          style({
-            maxHeight: '0',
-            opacity: 0,
-            padding: '0',
-          })
-        ),
-      ]),
-    ]),
-  ],
 })
 export class CreateAgentFormComponent implements OnInit, OnDestroy {
   public agentForm!: FormGroup;
 
-  public advancedSettingsVisible: boolean = false;
   public temperatureValue: number = 0;
-  public maxRpmSliderValue: number = 10;
   public isSubmitting: boolean = false;
+  public activeTab: 'overview' | 'configurations' = 'overview';
+
+  // Edit mode properties
+  public isEditMode: boolean = false;
+  public agentToEdit?: GetAgentRequest;
 
   private subscriptions: Subscription = new Subscription();
   private destroy$ = new Subject<void>();
@@ -134,6 +84,12 @@ export class CreateAgentFormComponent implements OnInit, OnDestroy {
 
   // LLM configurations
   public availableLLMConfigs: FullLLMConfig[] = [];
+  public llmConfigs: FullLLMConfig[] = [];
+
+  // Knowledge sources
+  public allKnowledgeSources: GetSourceCollectionRequest[] = [];
+  public isLoadingKnowledgeSources = false;
+  public selectedKnowledgeSourceId: number | null = null;
 
   // Active color for consistency with python-node design
   public get activeColor(): string {
@@ -147,70 +103,202 @@ export class CreateAgentFormComponent implements OnInit, OnDestroy {
     private realtimeAgentService: RealtimeAgentService,
     private toastService: ToastService,
     private fullLLMConfigService: FullLLMConfigService,
+    private collectionsService: CollectionsService,
     public dialogRef: DialogRef<GetAgentRequest | undefined>
-  ) {}
+  ) {
+    // Check if we're in edit mode
+    const data = this.dialogRef.config?.data as
+      | { agent: GetAgentRequest; isEditMode: boolean }
+      | undefined;
+    if (data?.isEditMode && data?.agent) {
+      this.isEditMode = true;
+      this.agentToEdit = data.agent;
+      this.selectedKnowledgeSourceId = data.agent.knowledge_collection;
+    }
+  }
 
   public ngOnInit(): void {
     this.initializeForm();
     this.loadLLMConfigs();
+    this.loadKnowledgeSources();
   }
 
   private initializeForm(): void {
-    this.agentForm = this.fb.group({
+    // Default values
+    const defaultValues = {
       // Basic Fields
-      role: ['', Validators.required],
-      goal: ['', Validators.required],
-      backstory: ['', Validators.required],
+      role: '',
+      goal: '',
+      backstory: '',
       // Basic Advanced Fields
-      allow_delegation: [true],
-      memory: [false],
-      max_iter: [10, [Validators.min(1)]],
+      allow_delegation: true,
+      memory: false,
+      max_iter: 10,
       // Advanced Settings
-      max_rpm: [10],
-      max_execution_time: [60],
-      cache: [false],
-      allow_code_execution: [false],
-      max_retry_limit: [3],
-      respect_context_window: [true],
-      default_temperature: [0],
+      max_rpm: 10,
+      max_execution_time: 60,
+      cache: false,
+      allow_code_execution: false,
+      max_retry_limit: 3,
+      respect_context_window: true,
+      default_temperature: 0,
       // LLM Configurations
-      llm_config: [null],
-      fcm_llm_config: [null],
+      llm_config: null,
+      fcm_llm_config: null,
+      // Knowledge Source
+      knowledge_collection: null,
       // Tools
-      configured_tools: [[]],
-      python_code_tools: [[]],
-    });
+      configured_tools: [],
+      python_code_tools: [],
+    };
+
+    // If in edit mode, use agent data for initial values
+    if (this.isEditMode && this.agentToEdit) {
+      const agent = this.agentToEdit;
+
+      this.agentForm = this.fb.group({
+        // Basic Fields
+        role: [agent.role, Validators.required],
+        goal: [agent.goal, Validators.required],
+        backstory: [agent.backstory, Validators.required],
+        // Basic Advanced Fields
+        allow_delegation: [agent.allow_delegation],
+        memory: [agent.memory],
+        max_iter: [agent.max_iter, [Validators.min(1)]],
+        // Advanced Settings
+        max_rpm: [agent.max_rpm || 10],
+        max_execution_time: [agent.max_execution_time || 60],
+        cache: [agent.cache || false],
+        allow_code_execution: [agent.allow_code_execution || false],
+        max_retry_limit: [agent.max_retry_limit || 3],
+        respect_context_window: [agent.respect_context_window || true],
+        default_temperature: [
+          agent.default_temperature ? agent.default_temperature * 100 : 0,
+        ],
+        // LLM Configurations
+        llm_config: [agent.llm_config],
+        fcm_llm_config: [agent.fcm_llm_config],
+        llmId: [agent.llm_config ? agent.llm_config : null],
+        functionLlmId: [agent.fcm_llm_config ? agent.fcm_llm_config : null],
+        // Knowledge Source
+        knowledge_collection: [agent.knowledge_collection],
+        // Tools
+        configured_tools: [agent.configured_tools || []],
+        python_code_tools: [agent.python_code_tools || []],
+      });
+
+      // Update UI values
+      if (agent.default_temperature !== null) {
+        this.temperatureValue = agent.default_temperature * 100;
+      }
+      this.selectedKnowledgeSourceId = agent.knowledge_collection;
+    } else {
+      // Create new form with defaults
+      this.agentForm = this.fb.group({
+        // Basic Fields
+        role: ['', Validators.required],
+        goal: ['', Validators.required],
+        backstory: ['', Validators.required],
+        // Basic Advanced Fields
+        allow_delegation: [defaultValues.allow_delegation],
+        memory: [defaultValues.memory],
+        max_iter: [defaultValues.max_iter, [Validators.min(1)]],
+        // Advanced Settings
+        max_rpm: [defaultValues.max_rpm],
+        max_execution_time: [defaultValues.max_execution_time],
+        cache: [defaultValues.cache],
+        allow_code_execution: [defaultValues.allow_code_execution],
+        max_retry_limit: [defaultValues.max_retry_limit],
+        respect_context_window: [defaultValues.respect_context_window],
+        default_temperature: [defaultValues.default_temperature],
+        // LLM Configurations
+        llm_config: [defaultValues.llm_config],
+        fcm_llm_config: [defaultValues.fcm_llm_config],
+        llmId: [null],
+        functionLlmId: [null],
+        // Knowledge Source
+        knowledge_collection: [defaultValues.knowledge_collection],
+        // Tools
+        configured_tools: [defaultValues.configured_tools],
+        python_code_tools: [defaultValues.python_code_tools],
+      });
+    }
   }
 
   private loadLLMConfigs(): void {
     this.fullLLMConfigService
       .getFullLLMConfigs()
-      .pipe(takeUntil(this.destroy$))
       .subscribe((configs: FullLLMConfig[]) => {
         this.availableLLMConfigs = configs;
+        this.llmConfigs = configs;
+
+        // In edit mode, update the form with the selected LLM IDs
+        if (this.isEditMode && this.agentToEdit) {
+          console.log('Edit mode - Setting LLM IDs from agent data');
+          console.log('Agent LLM ID:', this.agentToEdit.llm_config);
+          console.log('Function LLM ID:', this.agentToEdit.fcm_llm_config);
+
+          // Force the form to update with the correct LLM IDs
+          setTimeout(() => {
+            this.agentForm.patchValue({
+              llmId: this.agentToEdit?.llm_config,
+              functionLlmId: this.agentToEdit?.fcm_llm_config,
+            });
+            this.cdr.markForCheck();
+          });
+        }
+
         this.cdr.markForCheck();
       });
   }
 
+  private loadKnowledgeSources(): void {
+    this.isLoadingKnowledgeSources = true;
+    this.collectionsService.getGetSourceCollectionRequests().subscribe({
+      next: (collections) => {
+        this.allKnowledgeSources = collections;
+        this.isLoadingKnowledgeSources = false;
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error loading knowledge sources:', error);
+        this.isLoadingKnowledgeSources = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  public switchTab(tab: 'overview' | 'configurations'): void {
+    this.activeTab = tab;
+    this.cdr.markForCheck();
+  }
+
   public onSliderInput(newValue: number): void {
     this.temperatureValue = newValue;
-    this.agentForm.get('default_temperature')?.setValue(newValue);
-    this.cdr.markForCheck();
-  }
-
-  public onMaxRpmSliderInput(newValue: number): void {
-    this.maxRpmSliderValue = newValue;
-    this.agentForm.get('max_rpm')?.setValue(newValue);
-    this.cdr.markForCheck();
-  }
-
-  public toggleAdvancedSettings(): void {
-    this.advancedSettingsVisible = !this.advancedSettingsVisible;
+    // Convert 0-100 to 0-1 for temperature
+    const temperature = newValue / 100;
+    this.agentForm.patchValue({ default_temperature: temperature });
     this.cdr.markForCheck();
   }
 
   public onIconSelected(icon: string | null): void {
-    console.log(icon);
+    this.selectedIcon = icon;
+  }
+
+  public onKnowledgeSourceChange(collectionId: number | null): void {
+    this.selectedKnowledgeSourceId = collectionId;
+    this.agentForm.patchValue({ knowledge_collection: collectionId });
+  }
+
+  // Tool selection handlers
+  public onConfiguredToolsChange(toolConfigIds: number[]): void {
+    this.agentForm.patchValue({ configured_tools: toolConfigIds });
+    this.cdr.markForCheck();
+  }
+
+  public onPythonToolsChange(pythonToolIds: number[]): void {
+    this.agentForm.patchValue({ python_code_tools: pythonToolIds });
+    this.cdr.markForCheck();
   }
 
   public onSubmitForm(): void {
@@ -220,51 +308,97 @@ export class CreateAgentFormComponent implements OnInit, OnDestroy {
     }
 
     this.isSubmitting = true;
-    const formData = this.agentForm.value;
+    this.cdr.markForCheck();
 
-    const newAgent: CreateAgentRequest = {
-      role: formData.role,
-      goal: formData.goal,
-      backstory: formData.backstory,
-      allow_delegation: formData.allow_delegation,
-      memory: formData.memory,
-      max_iter: formData.max_iter,
-      max_rpm: formData.max_rpm,
-      max_execution_time: formData.max_execution_time,
-      cache: formData.cache,
-      allow_code_execution: formData.allow_code_execution,
-      max_retry_limit: formData.max_retry_limit,
-      respect_context_window: formData.respect_context_window,
-      default_temperature: formData.default_temperature,
-      llm_config: formData.llm_config,
-      fcm_llm_config: formData.fcm_llm_config || formData.llm_config, // Use llm_config if fcm_llm_config is not provided
-      configured_tools: formData.configured_tools,
-      python_code_tools: formData.python_code_tools,
-    };
+    const formValues = this.agentForm.value;
 
-    this.agentForm.disable();
+    // Get the LLM IDs from the form
+    const llmId = formValues.llmId;
+    const functionLlmId = formValues.functionLlmId;
 
-    this.agentService.createAgent(newAgent).subscribe({
-      next: (response: AgentDto) => {
-        this.toastService.success(
-          `Agent "${response.role}" created successfully!`
-        );
-        this.isSubmitting = false;
-        this.dialogRef.close(response);
-      },
-      error: (error) => {
-        console.error('Error creating agent:', error);
-        const errorMsg =
-          error.status === 400
-            ? 'Validation error. Please check your inputs.'
-            : 'Error creating agent. Please try again.';
+    console.log('Form values:', formValues);
+    console.log('Selected LLM ID:', llmId);
+    console.log('Selected Function LLM ID:', functionLlmId);
 
-        this.toastService.error(errorMsg);
-        this.agentForm.enable();
-        this.isSubmitting = false;
-        this.cdr.markForCheck();
-      },
-    });
+    if (this.isEditMode && this.agentToEdit) {
+      // Edit mode - update existing agent
+      const updateRequest = {
+        ...this.agentToEdit,
+        role: formValues.role,
+        goal: formValues.goal,
+        backstory: formValues.backstory,
+        allow_delegation: formValues.allow_delegation,
+        memory: formValues.memory,
+        cache: formValues.cache,
+        max_iter: formValues.max_iter,
+        max_rpm: formValues.max_rpm,
+        max_execution_time: formValues.max_execution_time,
+        allow_code_execution: formValues.allow_code_execution,
+        max_retry_limit: formValues.max_retry_limit,
+        respect_context_window: formValues.respect_context_window,
+        default_temperature: formValues.default_temperature / 100,
+        llm_config: llmId,
+        fcm_llm_config: functionLlmId,
+        knowledge_collection: formValues.knowledge_collection,
+        configured_tools: formValues.configured_tools,
+        python_code_tools: formValues.python_code_tools,
+      };
+
+      console.log('Update request:', updateRequest);
+
+      this.agentService.updateAgent(updateRequest).subscribe({
+        next: (updatedAgent: GetAgentRequest) => {
+          this.isSubmitting = false;
+          this.dialogRef.close(updatedAgent);
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          console.error('Error updating agent:', error);
+          this.toastService.error('Failed to update agent');
+          this.cdr.markForCheck();
+        },
+      });
+    } else {
+      // Create mode - add new agent
+      const agentRequest: CreateAgentRequest = {
+        role: formValues.role,
+        goal: formValues.goal,
+        backstory: formValues.backstory,
+        allow_delegation: formValues.allow_delegation,
+        memory: formValues.memory,
+        cache: formValues.cache,
+        max_iter: formValues.max_iter,
+        max_rpm: formValues.max_rpm,
+        max_execution_time: formValues.max_execution_time,
+        allow_code_execution: formValues.allow_code_execution,
+        max_retry_limit: formValues.max_retry_limit,
+        respect_context_window: formValues.respect_context_window,
+        default_temperature: formValues.default_temperature / 100,
+        llm_config: llmId,
+        fcm_llm_config: functionLlmId,
+        knowledge_collection: formValues.knowledge_collection,
+        configured_tools: formValues.configured_tools,
+        python_code_tools: formValues.python_code_tools,
+      };
+
+      console.log('Create request:', agentRequest);
+
+      this.agentService.createAgent(agentRequest).subscribe({
+        next: (createdAgent: GetAgentRequest) => {
+          this.toastService.success(`Agent ${createdAgent.role} created`);
+          this.isSubmitting = false;
+          this.dialogRef.close(createdAgent);
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          console.error('Error creating agent:', error);
+          this.toastService.error('Failed to create agent');
+          this.cdr.markForCheck();
+        },
+      });
+    }
   }
 
   public onCancelForm(): void {
@@ -281,8 +415,8 @@ export class CreateAgentFormComponent implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
+    this.subscriptions.unsubscribe();
   }
 }

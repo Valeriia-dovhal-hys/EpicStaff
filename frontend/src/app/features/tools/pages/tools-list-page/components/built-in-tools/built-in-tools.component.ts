@@ -18,6 +18,7 @@ import { BuiltinToolsStorageService } from '../../../../services/builtin-tools/b
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Dialog } from '@angular/cdk/dialog';
 import { ToolConfigurationDialogComponent } from '../../../../../../user-settings-page/tools/tool-configuration-dialog/tool-configuration-dialog.component';
+import { ToastService } from '../../../../../../services/notifications/toast.service';
 
 @Component({
   selector: 'app-built-in-tools',
@@ -37,6 +38,7 @@ export class BuiltInToolsComponent implements OnInit {
   );
   private readonly destroyRef = inject(DestroyRef);
   private readonly dialog = inject(Dialog);
+  private readonly toastService = inject(ToastService);
 
   public readonly error = signal<string | null>(null);
   public readonly isLoaded = computed(() =>
@@ -72,6 +74,48 @@ export class BuiltInToolsComponent implements OnInit {
         console.log('Tool configuration updated:', result);
       }
     });
+  }
+
+  public onToolEnabledChange(event: { tool: Tool; enabled: boolean }): void {
+    const { tool, enabled } = event;
+    console.log(`Tool ${tool.name} enabled state changed to: ${enabled}`);
+
+    // Create updated tool with new enabled status
+    const updatedTool: Tool = {
+      ...tool,
+      enabled: enabled,
+    };
+
+    // Update tool in storage service
+    this.builtinToolsStorageService
+      .updateTool(updatedTool)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updated) => {
+          console.log(
+            `Tool ${updated.name} enabled state updated successfully`
+          );
+
+          // Show success notification
+          const message = enabled
+            ? `Tool "${updated.name}" has been activated successfully`
+            : `Tool "${updated.name}" has been deactivated`;
+
+          this.toastService.success(message, 3000, 'bottom-right');
+        },
+        error: (err) => {
+          console.error('Error updating tool enabled state:', err);
+
+          // Show error notification
+          this.toastService.error(
+            `Failed to ${enabled ? 'activate' : 'deactivate'} tool "${
+              tool.name
+            }"`,
+            5000,
+            'bottom-right'
+          );
+        },
+      });
   }
 
   public ngOnInit(): void {

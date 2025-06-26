@@ -7,8 +7,9 @@
       [isOverlay]="false"
     ></app-spinner>
   </div>
-  } @else {
+  } @else { @if (!showHeader) {
   <app-header></app-header>
+  }
 
   <!-- <div class="tabs-container">
     <div class="tabs-navigation">
@@ -61,11 +62,7 @@
         >
           <!-- Special handling for SettingsSectionComponent -->
           @if (section.id === 'settings') {
-          <app-settings-section
-            [project]="project"
-            (settingsChanged)="onSettingsChanged($event)"
-          >
-          </app-settings-section>
+          <app-settings-section [project]="project"> </app-settings-section>
           } @else {
           <ng-container
             [ngComponentOutlet]="section.component"
@@ -81,12 +78,7 @@
 
     <!-- Draft Tab Content -->
     @if(activeTab === 'draft') {
-    <div class="draft-content">
-      <app-flow-graph
-        [flowState]="mockFlowData"
-        nodesMode="project-graph"
-      ></app-flow-graph>
-    </div>
+    <div class="draft-content"></div>
     }
   </div>
   }

@@ -1,0 +1,102 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <h2>Add LLM Configuration</h2>
+  </div>
+
+  <div class="dialog-content">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <!-- Loading state -->
+      <!-- <div *ngIf="isLoading()" class="loading-state">
+        <p>Loading...</p>
+      </div> -->
+
+      <!-- Error message -->
+      <div *ngIf="errorMessage()" class="error-message">
+        <p>{{ errorMessage() }}</p>
+      </div>
+
+      <!-- Form fields -->
+      <div class="form-field">
+        <label for="providerId">Provider</label>
+        <select id="providerId" formControlName="providerId">
+          <option *ngFor="let provider of providers()" [value]="provider.id">
+            {{ provider.name }}
+          </option>
+        </select>
+        <div
+          *ngIf="
+            form.get('providerId')?.invalid && form.get('providerId')?.touched
+          "
+          class="error-hint"
+        >
+          Please select a provider
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="modelId">Model</label>
+        <select id="modelId" formControlName="modelId">
+          <option *ngIf="models().length === 0" [value]="null">
+            Select a model
+          </option>
+          <option *ngFor="let model of models()" [value]="model.id">
+            {{ model.name }}
+          </option>
+        </select>
+        <div
+          *ngIf="form.get('modelId')?.invalid && form.get('modelId')?.touched"
+          class="error-hint"
+        >
+          Please select a model
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="customName"
+          >Custom Name <span class="required">*</span></label
+        >
+        <app-custom-input
+          id="customName"
+          type="text"
+          placeholder="Enter a custom name"
+          formControlName="customName"
+        ></app-custom-input>
+        <div
+          *ngIf="
+            form.get('customName')?.invalid && form.get('customName')?.touched
+          "
+          class="error-hint"
+        >
+          Custom name is required
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="apiKey">API Key <span class="required">*</span></label>
+        <app-custom-input
+          id="apiKey"
+          type="password"
+          placeholder="Enter your API key"
+          formControlName="apiKey"
+        ></app-custom-input>
+        <div
+          *ngIf="form.get('apiKey')?.invalid && form.get('apiKey')?.touched"
+          class="error-hint"
+        >
+          API key is required
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <app-button type="ghost" (click)="onCancel()">Cancel</app-button>
+        <app-button
+          type="primary"
+          (click)="onSubmit()"
+          [disabled]="form.invalid || isSubmitting()"
+        >
+          {{ isSubmitting() ? "Adding..." : "Add" }}
+        </app-button>
+      </div>
+    </form>
+  </div>
+</div>

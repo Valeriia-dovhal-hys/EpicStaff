@@ -17,7 +17,6 @@ $purple-accent: rgba(104, 95, 255, 0.5);
   .settings-group {
     background: rgba(255, 255, 255, 0.03);
     border-radius: 12px;
-    overflow: hidden;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.08);
 
@@ -86,6 +85,9 @@ $purple-accent: rgba(104, 95, 255, 0.5);
           color: $text-color;
           font-weight: 500;
           font-size: 0.95rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
         }
 
         .setting-description {
@@ -99,8 +101,18 @@ $purple-accent: rgba(104, 95, 255, 0.5);
       .setting-value {
         flex: 1;
         display: flex;
-        justify-content: flex-start;
         align-items: center;
+        gap: 10px;
+
+        app-llm-model-selector,
+        app-embedding-model-selector {
+          width: 100%;
+        }
+
+        .warning-icon {
+          color: var(--color-warning);
+          font-size: 1.25rem;
+        }
 
         .toggle-wrapper {
           display: inline-flex;
@@ -134,9 +146,7 @@ $purple-accent: rgba(104, 95, 255, 0.5);
           }
         }
 
-        /* Updated slider container for a wider slider */
         .slider-container {
-          /* Adjust this width as needed */
           width: 350px;
           display: flex;
           flex-direction: column;
@@ -234,6 +244,12 @@ $purple-accent: rgba(104, 95, 255, 0.5);
             cursor: pointer;
             transition: all 0.2s ease;
 
+            &.not-specified {
+              border-color: rgba(255, 165, 0, 0.3); // Orange-ish border
+              color: $muted-text-color;
+              font-style: italic;
+            }
+
             &:hover {
               background: rgba(30, 30, 30, 0.4);
               border-color: rgba($accent-color, 0.3);
@@ -243,6 +259,11 @@ $purple-accent: rgba(104, 95, 255, 0.5);
               outline: none;
               border-color: $accent-color;
               box-shadow: 0 0 0 2px rgba($accent-color, 0.1);
+            }
+
+            option[value="null"] {
+              color: $muted-text-color;
+              font-style: italic;
             }
           }
 

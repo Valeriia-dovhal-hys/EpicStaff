@@ -31,13 +31,12 @@ export class TasksService {
       .pipe(map((response) => response.results));
   }
 
-  // GET tasks filtered by project (crew) ID
+  // GET tasks filtered by project (crew) ID using query parameter
   getTasksByProjectId(projectId: string): Observable<GetTaskRequest[]> {
-    return this.getTasks().pipe(
-      map((tasks: GetTaskRequest[]) =>
-        tasks.filter((task: GetTaskRequest) => task.crew === Number(projectId))
-      )
-    );
+    const url = `${this.apiUrl}?crew=${projectId}`;
+    return this.http
+      .get<ApiGetRequest<GetTaskRequest>>(url)
+      .pipe(map((response) => response.results));
   }
 
   // GET task by ID

@@ -27,6 +27,7 @@
     <app-built-in-tool-card
       [tool]="tool"
       (configure)="onToolConfigure($event)"
+      (enabledChange)="onToolEnabledChange($event)"
     ></app-built-in-tool-card>
     } }
   </div>

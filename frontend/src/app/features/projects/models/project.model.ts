@@ -13,7 +13,7 @@ export interface GetProjectRequest {
 
   memory: boolean | null;
   config: any | null;
-  max_rmp: number | null;
+  max_rpm: number | null;
   cache: boolean | null;
   full_output: boolean;
   default_temperature: number | null;
@@ -36,7 +36,7 @@ export interface CreateProjectRequest {
   tags?: number[];
   memory: boolean | null;
   config?: any | null;
-  max_rmp?: number | null;
+  max_rpm?: number | null;
   cache?: boolean | null;
   full_output?: boolean;
   default_temperature?: number | null;
@@ -58,7 +58,7 @@ export interface UpdateProjectRequest {
   tags?: number[];
   memory: boolean | null;
   config?: any | null;
-  max_rmp?: number | null;
+  max_rpm?: number | null;
   cache?: boolean | null;
   full_output?: boolean;
   default_temperature?: number | null;

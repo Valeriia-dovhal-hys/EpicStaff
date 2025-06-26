@@ -3,7 +3,7 @@ from textwrap import dedent
 from typing import Any
 from crewai import Agent, Crew, Task, LLM
 from langchain_core.tools import BaseTool
-from utils import parse_llm
+from utils.parse_llm import parse_llm, parse_memory_llm, parse_memory_embedder
 from callbacks.session_callback_factory import CrewCallbackFactory
 from services.schema_converter.converter import generate_model_from_schema
 from services.python_code_executor_service import RunPythonCodeService
@@ -133,12 +133,30 @@ class CrewParserService(metaclass=SingletonMeta):
         }
 
         if crew_data.memory:
-            full_memory_config = copy.deepcopy(PGVECTOR_MEMORY_CONFIG)
-            full_memory_config["config"]["run_id"] = session_id
+            memory_config = copy.deepcopy(PGVECTOR_MEMORY_CONFIG)
+            memory_config["config"]["run_id"] = session_id
+            memory_config["config"]["run_id"] = session_id
             # TODO: uncomment after adding users
-            # full_memory_config['config']['user_id'] = some_fetched_user_id
+            # full_memory_config['config']['user_id'] =
+            if crew_data.memory_llm is None:
+                raise ValueError(
+                    "Crew memory is enabled, but 'memory_llm' is not assigned."
+                )
 
-            crew_config["memory_config"] = full_memory_config
+            if crew_data.embedder is None:
+                raise ValueError(
+                    "Crew memory is enabled, but 'embedder' is not assigned."
+                )
+
+            memory_llm_config = parse_memory_llm(memory_llm=crew_data.memory_llm)
+            memory_embedder_config = parse_memory_embedder(
+                memory_embedder=crew_data.embedder
+            )
+
+            memory_config["config_dict"].update(
+                {**memory_llm_config, **memory_embedder_config}
+            )
+            crew_config["memory_config"] = memory_config
 
         config_id_tool_map = {
             tool_data.tool_config.id: self.proxy_tool_factory.create_proxy_tool(

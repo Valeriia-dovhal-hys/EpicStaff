@@ -1,20 +1,34 @@
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
-import { Component, Inject, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
-import { FullLlmConfig } from '../../../../services/full-agent.service';
+
 import { GetSourceCollectionRequest } from '../../../knowledge-sources/models/source-collection.model';
 
 import { forkJoin, Subject, takeUntil } from 'rxjs';
-import { LLM_Config_Service } from '../../../../services/LLM_config.service';
-import { LLM_Models_Service } from '../../../../services/LLM_models.service';
+import { LLM_Config_Service } from '../../../../features/settings-dialog/services/llms/LLM_config.service';
+import { LLM_Models_Service } from '../../../../features/settings-dialog/services/llms/LLM_models.service';
 import { CollectionsService } from '../../../knowledge-sources/services/source-collections.service';
 import { KnowledgeSelectorComponent } from './knowledge-selector/knowledge-selector.component';
-import { LlmSelectorComponent } from './fcm-llm-selector/llm-selector.component';
 import { FormSliderComponent } from '../../../../shared/components/forms/slider/form-slider.component';
+import { HelpTooltipComponent } from '../../../../shared/components/help-tooltip/help-tooltip.component';
+import { IconButtonComponent } from '../../../../shared/components/buttons/icon-button/icon-button.component';
+import { ToggleSwitchComponent } from '../../../../shared/components/forms/small-toggler/toggle-switch.component';
+import {
+  FullLLMConfig,
+  FullLLMConfigService,
+} from '../../../../features/settings-dialog/services/llms/full-llm-config.service';
+import { LlmModelSelectorComponent } from '../../../../shared/components/llm-model-selector/llm-model-selector.component';
 
 export interface AdvancedSettingsData {
-  fullFcmLlmConfig?: FullLlmConfig;
+  fullFcmLlmConfig?: FullLLMConfig;
   agentRole: string;
   max_iter: number;
   max_rpm: number | null;
@@ -32,27 +46,33 @@ export interface AdvancedSettingsData {
   selector: 'app-advanced-settings-dialog',
   imports: [
     FormsModule,
+    NgIf,
+    NgFor,
     KnowledgeSelectorComponent,
-    LlmSelectorComponent,
     FormSliderComponent,
+    HelpTooltipComponent,
+    IconButtonComponent,
+    ToggleSwitchComponent,
+    LlmModelSelectorComponent,
   ],
   standalone: true,
   templateUrl: './advanced-settings-dialog.component.html',
   styleUrls: ['./advanced-settings-dialog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdvancedSettingsDialogComponent implements OnInit {
-  agentData: AdvancedSettingsData;
-  combinedLLMs: any[] = [];
-  selectedLlmId: number | null = null;
-  isLoadingLLMs = false;
+export class AdvancedSettingsDialogComponent implements OnInit, OnDestroy {
+  public agentData: AdvancedSettingsData;
+  public combinedLLMs: FullLLMConfig[] = [];
+  public selectedLlmId: number | null = null;
+  public isLoadingLLMs = false;
 
   // Temperature slider value (0-100 for display, converted to 0-1 for storage)
   public temperatureValue: number = 0;
 
   // Knowledge sources
-  allKnowledgeSources: GetSourceCollectionRequest[] = [];
-  isLoadingKnowledgeSources = false;
-  knowledgeSourcesError: string | null = null;
+  public allKnowledgeSources: GetSourceCollectionRequest[] = [];
+  public isLoadingKnowledgeSources = false;
+  public knowledgeSourcesError: string | null = null;
 
   private readonly _destroyed$ = new Subject<void>();
 
@@ -61,7 +81,9 @@ export class AdvancedSettingsDialogComponent implements OnInit {
     @Inject(DIALOG_DATA) public data: AdvancedSettingsData,
     private llmConfigService: LLM_Config_Service,
     private llmModelsService: LLM_Models_Service,
-    private collectionsService: CollectionsService
+    private fullLLMConfigService: FullLLMConfigService,
+    private collectionsService: CollectionsService,
+    private cdr: ChangeDetectorRef
   ) {
     // Initialize your local data from the injected data
     this.agentData = { ...data };
@@ -94,40 +116,53 @@ export class AdvancedSettingsDialogComponent implements OnInit {
     this.temperatureValue = newValue;
     // Convert from 0-100 to 0-1 scale
     this.agentData.default_temperature = newValue / 100;
+    this.cdr.markForCheck();
   }
 
   // In ngOnInit
-  ngOnInit(): void {
+  public ngOnInit(): void {
     console.log('ngOnInit - Starting initialization');
     // Fetch LLM configs, models, and knowledge sources
     this.isLoadingKnowledgeSources = true;
     this.isLoadingLLMs = true;
 
     forkJoin({
-      configs: this.llmConfigService.getAllConfigsLLM(),
-      models: this.llmModelsService.getLLMModels(),
+      llmConfigs: this.fullLLMConfigService.getFullLLMConfigs(),
       knowledgeSources:
         this.collectionsService.getGetSourceCollectionRequests(),
     })
       .pipe(takeUntil(this._destroyed$))
       .subscribe({
-        next: ({ configs, models, knowledgeSources }) => {
+        next: ({ llmConfigs, knowledgeSources }) => {
           console.log('API response - Knowledge sources:', knowledgeSources);
 
-          // Process LLM configs and models
-          this.combinedLLMs = configs.map((config) => ({
-            ...config,
-            modelName:
-              models.find((model) => model.id === config.model)?.name ||
-              'Unknown',
-          }));
+          // Process LLM configs
+          this.combinedLLMs = llmConfigs;
 
-          // Sort alphabetically by model name
-          this.combinedLLMs.sort(
-            (a, b) =>
-              a.modelName.localeCompare(b.modelName) ||
-              a.custom_name.localeCompare(b.custom_name)
-          );
+          // Make sure the selected LLM ID is set correctly
+          if (this.agentData.fullFcmLlmConfig) {
+            console.log(
+              'Setting selected LLM ID from fullFcmLlmConfig:',
+              this.agentData.fullFcmLlmConfig
+            );
+
+            // Find the matching LLM config in our loaded configs
+            const matchingConfig = llmConfigs.find(
+              (config) => config.id === this.agentData.fullFcmLlmConfig?.id
+            );
+
+            if (matchingConfig) {
+              console.log('Found matching LLM config:', matchingConfig);
+              this.selectedLlmId = matchingConfig.id;
+              // Force UI update with setTimeout
+              setTimeout(() => {
+                this.selectedLlmId = matchingConfig.id;
+                this.cdr.markForCheck();
+              });
+            } else {
+              console.log('No matching LLM config found');
+            }
+          }
 
           // Process knowledge sources
           this.allKnowledgeSources = knowledgeSources;
@@ -164,17 +199,19 @@ export class AdvancedSettingsDialogComponent implements OnInit {
 
           this.isLoadingKnowledgeSources = false;
           this.isLoadingLLMs = false;
+          this.cdr.markForCheck();
         },
         error: (err) => {
           console.error('Error fetching data:', err);
           this.knowledgeSourcesError = 'Failed to load knowledge sources';
           this.isLoadingKnowledgeSources = false;
           this.isLoadingLLMs = false;
+          this.cdr.markForCheck();
         },
       });
   }
 
-  onLlmChange(llmId: number | null): void {
+  public onLlmChange(llmId: number | null): void {
     console.log('LLM changed to:', llmId);
     this.selectedLlmId = llmId;
 
@@ -189,9 +226,10 @@ export class AdvancedSettingsDialogComponent implements OnInit {
         console.log('Selected LLM config:', this.agentData.fullFcmLlmConfig);
       }
     }
+    this.cdr.markForCheck();
   }
 
-  onKnowledgeSourceChange(collectionId: number | null): void {
+  public onKnowledgeSourceChange(collectionId: number | null): void {
     console.log('Knowledge source changed to:', collectionId);
     this.agentData.knowledge_collection = collectionId;
 
@@ -203,20 +241,22 @@ export class AdvancedSettingsDialogComponent implements OnInit {
       );
       this.agentData.selected_knowledge_source = selectedCollection || null;
     }
+    this.cdr.markForCheck();
   }
 
-  get temperaturePercent(): number {
+  public get temperaturePercent(): number {
     // If default_temperature is not defined, default to 0%
     return Math.round((this.agentData.default_temperature ?? 0) * 100);
   }
 
-  set temperaturePercent(val: number) {
+  public set temperaturePercent(val: number) {
     // Convert the value to a scale of 0 to 1, rounded to one decimal place
     this.agentData.default_temperature = parseFloat((val / 100).toFixed(1));
+    this.cdr.markForCheck();
   }
 
   // In save method
-  save() {
+  public save(): void {
     console.log(
       'save called - Final agentData:',
       JSON.stringify(this.agentData)
@@ -233,7 +273,7 @@ export class AdvancedSettingsDialogComponent implements OnInit {
     this.dialogRef.close(result);
   }
 
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this._destroyed$.next();
     this._destroyed$.complete();
   }

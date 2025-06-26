@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToolConfigService } from '../../../../services/tool_config.service';
-import { ToolConfigDto } from '../../../../shared/models/tool_config,model';
+import { ToolConfigDto } from '../../../../shared/models/tool_config.model';
 import { NodeType } from '../../../core/enums/node-type';
 
 @Component({

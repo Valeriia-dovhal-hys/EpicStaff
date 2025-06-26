@@ -11,7 +11,7 @@ export const expandCollapseAnimation = trigger('expandCollapse', [
   state(
     'collapsed',
     style({
-      height: '0',
+      maxHeight: '0',
       opacity: '0',
       visibility: 'hidden',
       overflow: 'hidden',
@@ -20,16 +20,11 @@ export const expandCollapseAnimation = trigger('expandCollapse', [
   state(
     'expanded',
     style({
-      height: '*',
+      maxHeight: '1000px', // Set to a value larger than expected content
       opacity: '1',
       visibility: 'visible',
-      overflow: 'visible', // Changed from hidden to visible when expanded
+      overflow: 'visible',
     })
   ),
-  transition('expanded => collapsed', [
-    animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
-  ]),
-  transition('collapsed => expanded', [
-    animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
-  ]),
+  transition('expanded <=> collapsed', [animate('180ms ease-in-out')]),
 ]);

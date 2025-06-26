@@ -1,4 +1,4 @@
-<div class="tool-card">
+<div class="tool-card" [class.disabled]="!tool.enabled">
   <div class="tool-header">
     <div class="tool-icon-large">
       <app-icon [icon]="getIconName()" size="35"></app-icon>
@@ -15,17 +15,17 @@
     <app-button type="ghost" (click)="onConfigure()">Configure</app-button>
     <div class="footer-actions">
       <app-toggle-switch
-        [checked]="enabled"
+        [checked]="tool.enabled"
         (checkedChange)="onToggle($event)"
       ></app-toggle-switch>
-      <button
+      <!-- <button
         class="star-btn"
         aria-label="Favorite"
         (click)="onStar()"
         [class.active]="starred"
       >
         <app-icon [icon]="starIcon" size="1.2rem"></app-icon>
-      </button>
+      </button> -->
     </div>
   </div>
 </div>

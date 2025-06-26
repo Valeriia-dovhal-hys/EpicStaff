@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ChangeDetectorRef,
+  OnDestroy,
 } from '@angular/core';
 import {
   RouterOutlet,
@@ -12,14 +13,14 @@ import {
 import { Dialog } from '@angular/cdk/dialog';
 import { TabButtonComponent } from '../../../../shared/components/tab-button/tab-button.component';
 import { ButtonComponent } from '../../../../shared/components/buttons/button/button.component';
-import {
-  FiltersListComponent,
-  SearchFilterChange,
-} from '../../../../shared/components/filters-list/filters-list.component';
 import { CustomToolDialogComponent } from '../../../../user-settings-page/tools/custom-tool-editor/custom-tool-dialog.component';
 import { CustomToolsStorageService } from '../../services/custom-tools/custom-tools-storage.service';
 import { BuiltinToolsStorageService } from '../../services/builtin-tools/builtin-tools-storage.service';
 import { GetPythonCodeToolRequest } from '../../models/python-code-tool.model';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { FormsModule } from '@angular/forms';
+import { AppIconComponent } from '../../../../shared/components/app-icon/app-icon.component';
 
 @Component({
   selector: 'app-tools-list-page',
@@ -30,17 +31,25 @@ import { GetPythonCodeToolRequest } from '../../models/python-code-tool.model';
     RouterLinkActive,
     TabButtonComponent,
     ButtonComponent,
-    FiltersListComponent,
+    FormsModule,
+    AppIconComponent,
   ],
   templateUrl: './tools-list-page.component.html',
   styleUrls: ['./tools-list-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ToolsListPageComponent {
+export class ToolsListPageComponent implements OnDestroy {
   public tabs = [
     { label: 'Built-in', link: 'built-in' },
     { label: 'Custom', link: 'custom' },
   ];
+
+  // Search term for ngModel binding
+  public searchTerm: string = '';
+
+  // For debounce
+  private searchTerms = new Subject<string>();
+  private subscription: Subscription;
 
   constructor(
     private readonly cdkDialog: Dialog,
@@ -48,25 +57,53 @@ export class ToolsListPageComponent {
     private readonly router: Router,
     private readonly customToolsStorageService: CustomToolsStorageService,
     private readonly builtinToolsStorageService: BuiltinToolsStorageService
-  ) {}
+  ) {
+    // Setup search with debounce
+    this.subscription = this.searchTerms
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((term) => {
+        this.updateSearch(term);
+      });
+  }
 
-  public onSearchChange(filterChange: SearchFilterChange): void {
+  ngOnDestroy(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+
+    // Reset search filters when component is destroyed
+    this.searchTerm = '';
+    this.builtinToolsStorageService.setSearchTerm('');
+    this.customToolsStorageService.setSearchTerm('');
+  }
+
+  public onSearchTermChange(term: string): void {
+    this.searchTerms.next(term);
+  }
+
+  public clearSearch(): void {
+    this.searchTerm = '';
+    this.updateSearch('');
+  }
+
+  private updateSearch(searchTerm: string): void {
     // Update both storage services with the search term
-    const searchTerm = filterChange.searchTerm?.trim() || '';
+    const trimmedTerm = searchTerm?.trim() || '';
 
     // Only update if the search term actually changed to prevent unnecessary resets
     const currentBuiltinFilter = this.builtinToolsStorageService.filters();
     const currentCustomFilter = this.customToolsStorageService.filters();
 
-    if (currentBuiltinFilter?.searchTerm !== searchTerm) {
-      console.log('Updating builtin search term:', searchTerm);
-      this.builtinToolsStorageService.setSearchTerm(searchTerm);
+    if (currentBuiltinFilter?.searchTerm !== trimmedTerm) {
+      this.builtinToolsStorageService.setSearchTerm(trimmedTerm);
     }
 
-    if (currentCustomFilter?.searchTerm !== searchTerm) {
-      console.log('Updating custom search term:', searchTerm);
-      this.customToolsStorageService.setSearchTerm(searchTerm);
+    if (currentCustomFilter?.searchTerm !== trimmedTerm) {
+      this.customToolsStorageService.setSearchTerm(trimmedTerm);
     }
+
+    // Force change detection to update the view
+    this.cdr.markForCheck();
   }
 
   public openCustomToolDialog(): void {

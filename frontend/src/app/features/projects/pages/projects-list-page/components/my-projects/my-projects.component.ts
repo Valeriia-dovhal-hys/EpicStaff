@@ -22,7 +22,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Dialog } from '@angular/cdk/dialog';
 import { ProjectTagsDialogComponent } from '../../../../components/project-tags-dialog/project-tags-dialog.component';
 import { ProjectTagsApiService } from '../../../../services/project-tags-api.service';
-import { CreateProjectComponent } from '../../../../../../shared/components/create-project-form-dialog/create-project.component';
+import { CreateProjectComponent } from '../../../../components/create-project-form-dialog/create-project.component';
 
 @Component({
   selector: 'app-my-projects',

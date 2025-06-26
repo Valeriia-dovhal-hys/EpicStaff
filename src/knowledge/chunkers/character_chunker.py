@@ -9,7 +9,8 @@ class CharacterChunker(BaseChunker):
 
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        self.regex_pattern = additional_params.get("regex", None)
+        character_params = additional_params.get("character", {})
+        self.regex_pattern = character_params.get("regex", None)
 
     def chunk(self, text):
         text = text.replace("\r", "")

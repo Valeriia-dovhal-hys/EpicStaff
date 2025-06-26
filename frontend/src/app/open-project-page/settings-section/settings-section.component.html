@@ -10,18 +10,50 @@
       <!-- Memory Setting -->
       <div class="setting-item">
         <div class="setting-label">
-          <div class="setting-title">Memory</div>
+          <div class="setting-title">
+            Memory
+            <app-help-tooltip
+              text="Enable memory to allow agents to remember previous interactions and context throughout the project execution."
+            ></app-help-tooltip>
+          </div>
           <div class="setting-description">
             Enable or disable memory for this project
           </div>
         </div>
         <div class="setting-value">
-          <div class="toggle-wrapper" (click)="toggleSetting('memory')">
-            <div class="toggle-option" [class.active]="settings.memory">
-              Enabled
+          <div class="toggle-wrapper" (click)="toggleMemory()">
+            <div class="toggle-option" [class.active]="memory()">Enabled</div>
+            <div class="toggle-option" [class.active]="!memory()">Disabled</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Process Type Setting -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <div class="setting-title">
+            Process Type
+            <app-help-tooltip
+              text="Sequential process runs tasks in order one after another. Hierarchical process allows for more complex workflows with manager-worker relationships."
+            ></app-help-tooltip>
+          </div>
+          <div class="setting-description">
+            Choose between sequential or hierarchical process
+          </div>
+        </div>
+        <div class="setting-value">
+          <div class="toggle-wrapper" (click)="toggleProcess()">
+            <div
+              class="toggle-option"
+              [class.active]="process() === 'sequential'"
+            >
+              Sequential
             </div>
-            <div class="toggle-option" [class.active]="!settings.memory">
-              Disabled
+            <div
+              class="toggle-option"
+              [class.active]="process() === 'hierarchical'"
+            >
+              Hierarchical
             </div>
           </div>
         </div>
@@ -30,7 +62,10 @@
       <!-- Temperature Setting -->
       <!-- <div class="setting-item">
         <div class="setting-label">
-          <div class="setting-title">Temperature</div>
+          <div class="setting-title">
+            Temperature
+            <app-help-tooltip text="Controls the randomness of the AI's responses. Lower values yield more deterministic, precise responses. Higher values produce more creative, varied outputs."></app-help-tooltip>
+          </div>
           <div class="setting-description">
             Adjust for more precise or creative responses
           </div>
@@ -56,37 +91,45 @@
       </div> -->
 
       <!-- Cache Setting -->
-      <!-- <div class="setting-item">
+      <div class="setting-item">
         <div class="setting-label">
-          <div class="setting-title">Cache</div>
+          <div class="setting-title">
+            Cache
+            <app-help-tooltip
+              text="When enabled, responses from language models will be cached to improve performance and reduce API costs for repeated queries."
+            ></app-help-tooltip>
+          </div>
           <div class="setting-description">
             Enable response caching for better performance
           </div>
         </div>
         <div class="setting-value">
           <div class="toggle-wrapper" (click)="toggleSetting('cache')">
-            <div class="toggle-option" [class.active]="settings.cache">
+            <div class="toggle-option" [class.active]="settings().cache">
               Enabled
             </div>
-            <div class="toggle-option" [class.active]="!settings.cache">
+            <div class="toggle-option" [class.active]="!settings().cache">
               Disabled
             </div>
           </div>
         </div>
-      </div> -->
+      </div>
 
       <!-- Full Output Setting -->
       <!-- <div class="setting-item">
         <div class="setting-label">
-          <div class="setting-title">Full Output</div>
+          <div class="setting-title">
+            Full Output
+            <app-help-tooltip text="When enabled, returns the complete model output including any additional metadata. Useful for debugging or when you need the complete response."></app-help-tooltip>
+          </div>
           <div class="setting-description">Return complete model output</div>
         </div>
         <div class="setting-value">
           <div class="toggle-wrapper" (click)="toggleSetting('full_output')">
-            <div class="toggle-option" [class.active]="settings.full_output">
+            <div class="toggle-option" [class.active]="settings().full_output">
               Enabled
             </div>
-            <div class="toggle-option" [class.active]="!settings.full_output">
+            <div class="toggle-option" [class.active]="!settings().full_output">
               Disabled
             </div>
           </div>
@@ -96,18 +139,22 @@
       <!-- Planning Setting -->
       <!-- <div class="setting-item">
         <div class="setting-label">
-          <div class="setting-title">Planning</div>
+          <div class="setting-title">
+            Planning
+            <app-help-tooltip text="Enable planning to allow agents to create a detailed plan before executing tasks. This can improve results for complex workflows."></app-help-tooltip>
+          </div>
           <div class="setting-description">
             Enable planning for this project
           </div>
         </div>
         <div class="setting-value">
           <div class="toggle-wrapper" (click)="toggleSetting('planning')">
-            <div class="toggle-option" [class.active]="settings.planning">
+            <div class="toggle-option" [class.active]="settings().planning">
               Enabled
             </div>
-            <div class="toggle-option" [class.active]="!settings.planning">
+            <div class="toggle-option" [class.active]="!settings().planning">
               Disabled
+
             </div>
           </div>
         </div>
@@ -116,24 +163,41 @@
       <!-- Max RPM Setting -->
       <div class="setting-item">
         <div class="setting-label">
-          <div class="setting-title">Max RPM</div>
+          <div class="setting-title">
+            Max RPM
+            <app-help-tooltip
+              text="Sets the maximum number of requests per minute to the language model APIs. Helps control costs and prevent rate limiting issues."
+            ></app-help-tooltip>
+          </div>
           <div class="setting-description">Maximum requests per minute</div>
         </div>
         <div class="setting-value">
-          <input
-            type="number"
-            [(ngModel)]="settings.max_rpm"
-            min="1"
-            max="1000"
-            (change)="onRpmChange()"
-          />
+          <div class="slider-container">
+            <span class="slider-value">{{ max_rpm() }}</span>
+            <input
+              [ngModel]="max_rpm()"
+              (ngModelChange)="max_rpm.set($event); onRpmChange()"
+              type="range"
+              step="1"
+              min="1"
+              max="50"
+              class="gradient-slider"
+            />
+            <div class="slider-labels">
+              <span>1</span>
+              <span>50</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Hierarchical Settings Group (conditionally displayed) -->
-  <div class="settings-group hierarchical-group">
+  <div
+    class="settings-group hierarchical-group"
+    *ngIf="process() === 'hierarchical'"
+  >
     <div class="group-header">
       <h3>Hierarchical Process Settings</h3>
       <p>Advanced settings available in hierarchical process mode</p>
@@ -143,49 +207,60 @@
       <!-- Default LLM Configuration -->
       <div class="setting-item">
         <div class="setting-label">
-          <div class="setting-title">Default LLM Configuration</div>
+          <div class="setting-title">
+            Default LLM Configuration
+            <app-help-tooltip
+              text="Select the default language model that will be used as the manager in hierarchical processes. This model will coordinate the work of other agents."
+            ></app-help-tooltip>
+          </div>
           <div class="setting-description">
             Select the default language model
           </div>
         </div>
         <div class="setting-value">
-          <div class="selector">
-            <select
-              [(ngModel)]="settings.manager_llm_config"
-              (change)="onLLMConfigChange()"
-            >
-              <option *ngFor="let llm of availableLLMs()" [value]="llm.id">
-                {{ llm.custom_name }}
-              </option>
-            </select>
-            <i class="ti ti-chevron-down"></i>
-          </div>
+          <app-llm-model-selector
+            [llmConfigs]="fullLLMConfigs()"
+            [placeholder]="'Select LLM model'"
+            [ngModel]="manager_llm_config()"
+            (ngModelChange)="
+              manager_llm_config.set($event); onLLMConfigChange()
+            "
+          ></app-llm-model-selector>
+          <i
+            *ngIf="manager_llm_config() === null"
+            class="ti ti-alert-triangle warning-icon"
+            title="No LLM configuration specified"
+          ></i>
         </div>
       </div>
 
       <!-- Default Embedding Configuration -->
       <div class="setting-item">
         <div class="setting-label">
-          <div class="setting-title">Default Embedding Configuration</div>
+          <div class="setting-title">
+            Default Embedding Configuration
+            <app-help-tooltip
+              text="Choose the embedding model to be used for knowledge retrieval, semantic search, and context understanding within your project."
+            ></app-help-tooltip>
+          </div>
           <div class="setting-description">
             Select the default embedding model
           </div>
         </div>
         <div class="setting-value">
-          <div class="selector">
-            <select
-              [(ngModel)]="settings.embedding_config"
-              (change)="onEmbeddingConfigChange()"
-            >
-              <option
-                *ngFor="let embedding of embeddingConfigs()"
-                [value]="embedding.id"
-              >
-                {{ embedding.custom_name }}
-              </option>
-            </select>
-            <i class="ti ti-chevron-down"></i>
-          </div>
+          <app-embedding-model-selector
+            [embeddingConfigs]="fullEmbeddingConfigs()"
+            [placeholder]="'Select embedding model'"
+            [ngModel]="embedding_config()"
+            (ngModelChange)="
+              embedding_config.set($event); onEmbeddingConfigChange()
+            "
+          ></app-embedding-model-selector>
+          <i
+            *ngIf="embedding_config() === null"
+            class="ti ti-alert-triangle warning-icon"
+            title="No embedding configuration specified"
+          ></i>
         </div>
       </div>
     </div>

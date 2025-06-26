@@ -25,10 +25,10 @@ class LocalMem0Storage(Storage):
             raise ValueError("User ID is required in `memory_config` for `local_mem0`")
 
         # API key in memory config overrides the environment variable
-        db_config = self.memory_config.get("db_config", {})
+        config_dict = self.memory_config.get("config_dict", {})
 
-        if db_config:
-            self.memory = Memory.from_config(config_dict=db_config)
+        if config_dict:
+            self.memory = Memory.from_config(config_dict=config_dict)
         else:
             raise AttributeError('Can not fetch "db_config" from Crew.memory_config')
 

@@ -10,6 +10,7 @@ import {
 } from '@angular/forms';
 import { ChunkStrategy } from '../../../models/source-collection.model';
 import { chunkSizeGreaterThanOverlapValidator } from '../../../../../shared/form-validators/chunk-size.validator';
+import { HelpTooltipComponent } from '../../../../../shared/components/help-tooltip/help-tooltip.component';
 
 // Interface to track file settings
 export interface FileWithSettings {
@@ -24,7 +25,12 @@ export interface FileWithSettings {
 @Component({
   selector: 'app-file-upload-container',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    HelpTooltipComponent,
+  ],
   templateUrl: './file-upload-container.component.html',
   styleUrls: ['./file-upload-container.component.scss'],
 })

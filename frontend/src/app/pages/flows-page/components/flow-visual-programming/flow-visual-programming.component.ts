@@ -158,9 +158,12 @@ export class FlowVisualProgrammingComponent
     ) as StartNodeModel | undefined;
 
     if (!startNodeInFlow) {
+      console.log('no start node in flow');
+
       this.saveGraphDirectly(flowState, showNotif);
       return;
     }
+    console.log('save graph with start node');
 
     this.saveGraphWithStartNode(flowState, startNodeInFlow, showNotif);
   }
@@ -300,18 +303,34 @@ export class FlowVisualProgrammingComponent
 
   public canDeactivate(): boolean | Observable<boolean> {
     if (this.hasUnsavedChanges()) {
-      return this.confirmationDialogService.confirm({
-        title: 'Unsaved Changes',
-        message: 'You have unsaved changes. Do you really want to leave?',
-        confirmText: 'Leave',
-        cancelText: 'Stay',
-        type: 'warning',
-      });
+      return this.confirmationDialogService
+        .confirm({
+          title: 'Unsaved Changes',
+          message:
+            'You have unsaved changes in flow. Do you really want to leave?',
+          confirmText: 'Save and leave',
+          cancelText: 'Stay on flow',
+          type: 'warning',
+        })
+        .pipe(
+          switchMap((result) => {
+            if (result === 'close') {
+              return of(false);
+            }
+            if (result === true) {
+              console.log('save flow');
+
+              this.handleSaveFlow(true);
+              return of(true);
+            }
+            return of(result as boolean);
+          })
+        );
     }
     return true;
   }
   public ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    // this.destroy$.next();
+    // this.destroy$.complete();
   }
 }

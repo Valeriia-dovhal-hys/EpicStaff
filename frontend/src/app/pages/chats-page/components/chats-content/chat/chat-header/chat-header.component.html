@@ -4,9 +4,9 @@
       <h3>{{ agent.role }}</h3>
       <div
         class="model-info"
-        *ngIf="agent.fullRealtimeConfig?.modelName; else noModel"
+        *ngIf="agent.fullRealtimeConfig?.modelDetails?.name; else noModel"
       >
-        {{ agent.fullRealtimeConfig?.modelName }}
+        {{ agent.fullRealtimeConfig?.modelDetails?.name }}
         <ng-container *ngIf="agent.fullRealtimeConfig?.custom_name"
           >({{ agent.fullRealtimeConfig?.custom_name }})</ng-container
         >

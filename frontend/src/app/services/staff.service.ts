@@ -36,7 +36,7 @@ export class AgentsService {
   }
 
   // GET agents by project (crew) ID
-  getAgentsByProjectId(projectId: string): Observable<GetAgentRequest[]> {
+  getAgentsByProjectId(projectId: number): Observable<GetAgentRequest[]> {
     const url = `${this.apiUrl}?crew_id=${projectId}`;
     return this.http
       .get<ApiGetRequest<GetAgentRequest>>(url)

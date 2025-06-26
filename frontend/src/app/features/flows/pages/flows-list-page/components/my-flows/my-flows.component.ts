@@ -18,6 +18,10 @@ import {
 } from '../../../../components/flow-card/flow-card.component';
 import { LoadingSpinnerComponent } from '../../../../../../shared/components/loading-spinner/loading-spinner.component';
 import { FlowSessionsListComponent } from '../../../../components/flow-sessions-dialog/flow-sessions-list.component';
+import { FlowsApiService } from '../../../../services/flows-api.service';
+import { ConfirmationDialogComponent } from '../../../../../../shared/components/cofirm-dialog/confirmation-dialog.component';
+import { FlowRenameDialogComponent } from '../../../../components/flow-rename-dialog/flow-rename-dialog.component';
+import { RunGraphService } from '../../../../../../services/run-graph-session.service';
 
 @Component({
   selector: 'app-my-flows',
@@ -28,13 +32,14 @@ import { FlowSessionsListComponent } from '../../../../components/flow-sessions-
   imports: [
     CommonModule,
     FlowCardComponent,
-
     LoadingSpinnerComponent,
     DialogModule,
   ],
 })
 export class MyFlowsComponent implements OnInit {
   private readonly flowsService = inject(FlowsStorageService);
+  private readonly flowsApiService = inject(FlowsApiService);
+  private readonly runGraphService = inject(RunGraphService);
   private readonly router = inject(Router);
   private readonly dialog = inject(Dialog);
 
@@ -66,7 +71,43 @@ export class MyFlowsComponent implements OnInit {
         break;
 
       case 'delete':
-        console.log('Attempting to delete flow:', flow.name);
+        this.confirmAndDeleteFlow(flow);
+        break;
+
+      case 'viewSessions':
+        console.log('View sessions for flow:', flow.name);
+        this.dialog.open(FlowSessionsListComponent, {
+          data: { flow },
+          panelClass: 'custom-dialog-panel',
+        });
+        break;
+
+      case 'rename':
+        this.openRenameDialog(flow);
+        break;
+
+      case 'run':
+        this.runFlow(flow);
+        break;
+
+      default:
+        console.log(`Action '${action}' not implemented for flow:`, flow.id);
+    }
+  }
+
+  private confirmAndDeleteFlow(flow: GraphDto): void {
+    const dialogRef = this.dialog.open<boolean>(ConfirmationDialogComponent, {
+      data: {
+        title: 'Delete Flow',
+        message: `Are you sure you want to delete the flow "${flow.name}"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        type: 'danger',
+      },
+    });
+
+    dialogRef.closed.subscribe((confirmed) => {
+      if (confirmed) {
         this.flowsService.deleteFlow(flow.id).subscribe({
           next: () => {
             console.log(`Flow ${flow.id} - ${flow.name} deleted successfully.`);
@@ -75,17 +116,53 @@ export class MyFlowsComponent implements OnInit {
             console.error(`Error deleting flow ${flow.id} - ${flow.name}`, err);
           },
         });
-        break;
-      case 'viewSessions':
-        console.log('View sessions for flow:', flow.name);
-        this.dialog.open(FlowSessionsListComponent, {
-          data: { flow },
+      }
+    });
+  }
 
-          panelClass: 'custom-dialog-panel',
-        });
-        break;
-      default:
-        console.log(`Action '${action}' not implemented for flow:`, flow.id);
-    }
+  private openRenameDialog(flow: GraphDto): void {
+    const dialogRef = this.dialog.open<string>(FlowRenameDialogComponent, {
+      data: { flowName: flow.name },
+    });
+
+    dialogRef.closed.subscribe((newName) => {
+      if (newName && newName !== flow.name) {
+        this.flowsService
+          .patchUpdateFlow(flow.id, { name: newName })
+          .subscribe({
+            next: (updatedFlow) => {
+              console.log(`Flow renamed successfully to: ${updatedFlow.name}`);
+            },
+            error: (err) => {
+              console.error(`Error renaming flow ${flow.id}`, err);
+            },
+          });
+      }
+    });
+  }
+
+  private runFlow(flow: GraphDto): void {
+    // Empty inputs object as per API requirements
+    const inputs = {};
+
+    this.runGraphService.runGraph(flow.id, inputs).subscribe({
+      next: (response) => {
+        console.log('Flow execution started:', response);
+
+        if (response && response.session_id) {
+          this.router.navigate([
+            '/graph',
+            flow.id,
+            'session',
+            response.session_id,
+          ]);
+        } else {
+          console.error('Invalid response from run graph API:', response);
+        }
+      },
+      error: (err) => {
+        console.error(`Error running flow ${flow.id}`, err);
+      },
+    });
   }
 }

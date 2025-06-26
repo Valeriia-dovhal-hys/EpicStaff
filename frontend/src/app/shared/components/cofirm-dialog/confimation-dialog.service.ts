@@ -4,7 +4,10 @@ import { Observable, map } from 'rxjs';
 import {
   ConfirmationDialogData,
   ConfirmationDialogComponent,
+  DialogResult,
 } from './confirmation-dialog.component';
+
+export type ConfirmationResult = boolean | 'close';
 
 @Injectable({
   providedIn: 'root',
@@ -12,18 +15,26 @@ import {
 export class ConfirmationDialogService {
   constructor(private dialog: Dialog) {}
 
-  confirm(options: ConfirmationDialogData): Observable<boolean> {
-    const dialogRef = this.dialog.open<boolean>(ConfirmationDialogComponent, {
-      width: '400px',
-      data: options,
-      // Add custom backdrop class here
-    });
+  confirm(options: ConfirmationDialogData): Observable<ConfirmationResult> {
+    const dialogRef = this.dialog.open<DialogResult>(
+      ConfirmationDialogComponent,
+      {
+        width: '400px',
+        data: options,
+      }
+    );
 
-    // Map undefined to false to ensure we always return a boolean
-    return dialogRef.closed.pipe(map((result) => result === true));
+    return dialogRef.closed.pipe(
+      map((result) => {
+        if (!result) return 'close';
+        if (result === 'confirm') return true;
+        if (result === 'cancel') return false;
+        return 'close';
+      })
+    );
   }
 
-  confirmDelete(itemName: string): Observable<boolean> {
+  confirmDelete(itemName: string): Observable<ConfirmationResult> {
     return this.confirm({
       title: 'Confirm Deletion',
       message: `Are you sure you want to delete <strong>${itemName}</strong>? This action cannot be undone.`,

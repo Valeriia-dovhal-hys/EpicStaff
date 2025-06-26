@@ -118,13 +118,14 @@ def handle_check_docker():
 
 
 @socketio.on("update_images")
-def handle_update_images():
+def handle_update_images(data):
     try:
-        for line in docker_service.update_images():
+        for line in docker_service.update_images(mode=data["mode"]):
             emit("update_log", line)
-        emit("update_log", "Images updated.")
+        emit("update_log", "Update process finished.")
     except Exception as e:
         emit("update_log", f"Error: {str(e)}")
+
 
 
 @socketio.on("run_project")
@@ -168,7 +169,7 @@ def handle_restart_container(data):
 def handle_stop_project():
     try:
         docker_service.stop_project()
-        emit("action_success", "All containers removed successfully")
+        emit("action_success", "Process stopped successfully")
     except Exception as e:
         emit("action_error", str(e))
 

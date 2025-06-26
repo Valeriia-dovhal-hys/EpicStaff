@@ -19,7 +19,12 @@
         <div class="form-fields">
           <!-- Name Section -->
           <div class="form-section name-section">
-            <h3>Name <span class="required">*</span></h3>
+            <div class="section-header">
+              <h3>Name <span class="required">*</span></h3>
+              <app-help-tooltip
+                text="Enter a unique name for your custom tool. This name will be displayed in the tools list."
+              ></app-help-tooltip>
+            </div>
             <div class="input-container">
               <input
                 #toolNameInput
@@ -51,7 +56,12 @@
 
           <!-- Description Section -->
           <div class="form-section description-section">
-            <h3>Description <span class="required">*</span></h3>
+            <div class="section-header">
+              <h3>Description <span class="required">*</span></h3>
+              <app-help-tooltip
+                text="Provide a clear description of what your tool does. This will help agents understand when and how to use this tool."
+              ></app-help-tooltip>
+            </div>
             <div class="input-container">
               <textarea
                 class="input-field textarea"

@@ -1,60 +1,98 @@
 import {
   Component,
-  Input,
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  ViewChild,
-  ElementRef,
-  OnDestroy,
+  Input,
+  SimpleChanges,
+  OnChanges,
+  signal,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FullLLMConfig } from '../../../../../../services/full-llm-config.service';
-import { ClickOutsideDirective } from '../../../../../../shared/directives/click-outside.directive';
-import { Overlay, OverlayRef, OverlayModule } from '@angular/cdk/overlay';
-import { ComponentPortal } from '@angular/cdk/portal';
-import { Subject, takeUntil } from 'rxjs';
-import { ModelDropdownContentComponent } from './llm-configs-content.component';
+import { FullLLMConfig } from '../../../../../../features/settings-dialog/services/llms/full-llm-config.service';
+import { getProviderIconPath } from '../../../../../../features/settings-dialog/constants/provider-icons.constants';
+import { AppIconComponent } from '../../../../../../shared/components/app-icon/app-icon.component';
 
 @Component({
   selector: 'app-model-dropdown',
   standalone: true,
-  imports: [CommonModule, FormsModule, OverlayModule],
+  imports: [CommonModule, FormsModule, AppIconComponent],
   template: `
     <div class="model-dropdown-container">
       <div
         class="selected-model-display"
-        [class.expanded]="isDropdownOpen"
+        [class.expanded]="isDropdownOpen()"
         (click)="toggleDropdown()"
-        #trigger
       >
         <div class="model-info">
-          <img
-            class="model-icon"
-            src="assets/icons/openai-logo.svg"
-            alt="Model icon"
-          />
+          <app-icon
+            [icon]="getProviderIcon(selectedModel())"
+            [size]="'2rem'"
+            class="provider-icon"
+          ></app-icon>
           <div class="model-name">
             {{
-              selectedModel
-                ? selectedModel.modelDetails?.name || 'Unknown model'
+              selectedModel()
+                ? selectedModel().modelDetails?.name || 'Unknown model'
                 : 'Select model'
             }}
-            <div class="model-custom-name" *ngIf="selectedModel?.custom_name">
-              {{ selectedModel?.custom_name }}
+            <div class="model-custom-name" *ngIf="selectedModel()?.custom_name">
+              {{ selectedModel()?.custom_name }}
             </div>
           </div>
         </div>
         <i
           class="ti"
-          [class.ti-chevron-up]="isDropdownOpen"
-          [class.ti-chevron-down]="!isDropdownOpen"
+          [class.ti-chevron-up]="isDropdownOpen()"
+          [class.ti-chevron-down]="!isDropdownOpen()"
         ></i>
       </div>
 
-      <!-- Overlay template moved to separate component -->
+      <div class="dropdown-menu" *ngIf="isDropdownOpen()">
+        <div class="dropdown-header">
+          <div class="search-container">
+            <input
+              type="text"
+              placeholder="Search models..."
+              [ngModel]="searchTerm()"
+              (ngModelChange)="setSearchTerm($event)"
+              (click)="$event.stopPropagation()"
+            />
+          </div>
+          <div class="filter-button" (click)="$event.stopPropagation()">
+            <i class="ti ti-filter"></i>
+            <span>Filter</span>
+          </div>
+        </div>
+        <div class="dropdown-items-container">
+          <div
+            *ngFor="let model of filteredModels()"
+            class="dropdown-item"
+            [class.selected]="model.id === selectedModelId()"
+            (click)="selectModel(model); $event.stopPropagation()"
+          >
+            <div class="model-info">
+              <app-icon
+                [icon]="getProviderIcon(model)"
+                [size]="'2rem'"
+                class="provider-icon"
+              ></app-icon>
+              <div class="model-name">
+                {{ model.modelDetails?.name || 'Unknown model' }}
+                <div class="model-custom-name" *ngIf="model.custom_name">
+                  {{ model.custom_name }}
+                </div>
+              </div>
+            </div>
+            <i class="ti ti-check" *ngIf="model.id === selectedModelId()"></i>
+          </div>
+          <div class="no-results" *ngIf="filteredModels().length === 0">
+            No models found
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [
@@ -246,114 +284,60 @@ import { ModelDropdownContentComponent } from './llm-configs-content.component';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ModelDropdownComponent implements OnDestroy {
-  @Input() models: FullLLMConfig[] = [];
-  @Input() selectedModelId: number | null = null;
+export class ModelDropdownComponent implements OnChanges {
+  @Input() public models: FullLLMConfig[] = [];
+  @Input() public selectedModelId: number | null = null;
+
   @Output() modelSelected = new EventEmitter<number>();
-  @ViewChild('trigger') triggerElement!: ElementRef;
 
-  public isDropdownOpen: boolean = false;
-  private overlayRef: OverlayRef | null = null;
-  private destroy$ = new Subject<void>();
+  public readonly searchTerm = signal('');
+  public readonly isDropdownOpen = signal(false);
 
-  public get selectedModel(): FullLLMConfig | undefined {
-    return this.models.find((model) => model.id === this.selectedModelId);
-  }
+  public readonly modelsSignal = signal<FullLLMConfig[]>([]);
+  public readonly selectedModelIdSignal = signal<number | null>(null);
 
-  constructor(
-    private changeDetectorRef: ChangeDetectorRef,
-    private overlay: Overlay
-  ) {}
+  public readonly filteredModels = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    if (!term) return this.modelsSignal();
+    return this.modelsSignal().filter(
+      (model) =>
+        (model.modelDetails?.name?.toLowerCase().includes(term) ?? false) ||
+        (model.custom_name?.toLowerCase().includes(term) ?? false)
+    );
+  });
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.closeDropdown();
+  public readonly selectedModel = computed(() =>
+    this.modelsSignal().find(
+      (model) => model.id === this.selectedModelIdSignal()
+    )
+  );
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['models']) {
+      this.modelsSignal.set(this.models || []);
+    }
+    if (changes['selectedModelId']) {
+      this.selectedModelIdSignal.set(this.selectedModelId ?? null);
+    }
   }
 
   public toggleDropdown(): void {
-    if (this.isDropdownOpen) {
-      this.closeDropdown();
-    } else {
-      this.openDropdown();
-    }
+    this.isDropdownOpen.update((open) => !open);
   }
 
-  private openDropdown(): void {
-    this.isDropdownOpen = true;
-    this.changeDetectorRef.markForCheck();
-
-    // Get the width of the trigger element
-    const triggerWidth =
-      this.triggerElement.nativeElement.getBoundingClientRect().width;
-
-    // Create the overlay with fallback position
-    const positionStrategy = this.overlay
-      .position()
-      .flexibleConnectedTo(this.triggerElement)
-      .withPositions([
-        {
-          originX: 'start',
-          originY: 'bottom',
-          overlayX: 'start',
-          overlayY: 'top',
-          offsetY: 5,
-        },
-        {
-          originX: 'start',
-          originY: 'top',
-          overlayX: 'start',
-          overlayY: 'bottom',
-          offsetY: -5,
-        },
-      ]);
-
-    this.overlayRef = this.overlay.create({
-      positionStrategy,
-      hasBackdrop: true,
-      backdropClass: 'cdk-overlay-transparent-backdrop',
-      panelClass: 'model-dropdown-panel',
-      scrollStrategy: this.overlay.scrollStrategies.reposition(),
-      width: Math.max(triggerWidth, 300), // Ensure minimum width
-    });
-
-    // Attach the dropdown content component to the overlay
-    const dropdownPortal = new ComponentPortal(ModelDropdownContentComponent);
-    const componentRef = this.overlayRef.attach(dropdownPortal);
-
-    // Configure the component
-    componentRef.instance.models = this.models;
-    componentRef.instance.selectedModelId = this.selectedModelId;
-
-    // Handle model selection
-    componentRef.instance.modelSelected
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((model: FullLLMConfig) => {
-        this.modelSelected.emit(model.id);
-        this.closeDropdown();
-      });
-
-    // Handle close event
-    componentRef.instance.close.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      this.closeDropdown();
-    });
-
-    // Close the dropdown when the backdrop is clicked
-    this.overlayRef
-      .backdropClick()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.closeDropdown();
-      });
+  public setSearchTerm(term: string): void {
+    this.searchTerm.set(term);
   }
 
-  public closeDropdown(): void {
-    if (this.overlayRef) {
-      this.overlayRef.dispose();
-      this.overlayRef = null;
-    }
+  public selectModel(model: FullLLMConfig): void {
+    this.selectedModelIdSignal.set(model.id);
+    this.selectedModelId = model.id;
+    this.isDropdownOpen.set(false);
+    this.modelSelected.emit(model.id);
+  }
 
-    this.isDropdownOpen = false;
-    this.changeDetectorRef.markForCheck();
+  private getProviderIcon(model: FullLLMConfig | undefined | null): string {
+    if (!model) return getProviderIconPath(undefined);
+    return getProviderIconPath(model.providerDetails?.name);
   }
 }

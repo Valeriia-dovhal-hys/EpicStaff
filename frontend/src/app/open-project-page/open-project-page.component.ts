@@ -7,6 +7,7 @@ import {
   OnInit,
   signal,
   Type,
+  Input,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './header/header.component';
@@ -20,9 +21,9 @@ import { ProjectsStorageService } from '../features/projects/services/projects-s
 import { TasksService } from '../services/tasks.service';
 import { finalize, forkJoin, Subscription } from 'rxjs';
 import { GetProjectRequest } from '../features/projects/models/project.model';
-
+import { Dialog } from '@angular/cdk/dialog';
 import { FullTask } from './models/full-task.model';
-import { FullAgentService } from '../services/full-agent.service';
+import { FullAgentService, FullAgent } from '../services/full-agent.service';
 import { ProjectStateService } from './services/project-state.service';
 import {
   trigger,
@@ -35,6 +36,7 @@ import { ToastService } from '../services/notifications/toast.service';
 import { SpinnerComponent } from '../shared/components/spinner/spinner.component';
 import { FlowGraphComponent } from '../visual-programming/flow-graph/flow-graph.component';
 import { ActivatedRoute } from '@angular/router';
+import { CreateAgentFormComponent } from '../shared/components/create-agent-form-dialog/create-agent-form-dialog.component';
 
 // Improved animations that work properly with content visibility
 export const expandCollapseAnimation = trigger('expandCollapse', [
@@ -96,12 +98,14 @@ interface FlowModel {
     SettingsSectionComponent,
     FormsModule,
     SpinnerComponent,
-    FlowGraphComponent,
   ],
   animations: [expandCollapseAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OpenProjectPageComponent implements OnInit, OnDestroy {
+  @Input() showHeader: boolean = true;
+  @Input() inputProjectId?: string | number;
+
   public projectId!: string;
   public project!: GetProjectRequest;
   private subscription = new Subscription();
@@ -130,21 +134,29 @@ export class OpenProjectPageComponent implements OnInit, OnDestroy {
     private fullAgentService: FullAgentService,
     public projectStateService: ProjectStateService,
     private toastService: ToastService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private dialog: Dialog
   ) {}
 
   ngOnInit() {
-    this.projectId = this.route.snapshot.paramMap.get('projectId')!;
-    console.log('ngOnInit - projectId:', this.projectId);
+    // Use input projectId if provided, otherwise get from route
+    if (this.inputProjectId) {
+      this.projectId = String(this.inputProjectId);
+      console.log('ngOnInit - using input projectId:', this.projectId);
+      this.loadData();
+    } else {
+      this.projectId = this.route.snapshot.paramMap.get('projectId')!;
+      console.log('ngOnInit - projectId from route:', this.projectId);
 
-    if (!this.projectId) {
-      console.error('No projectId found in route params!');
-      this.toastService.error('Project ID not found');
-      this.isLoading.set(false);
-      return;
+      if (!this.projectId) {
+        console.error('No projectId found in route params or input!');
+        this.toastService.error('Project ID not found');
+        this.isLoading.set(false);
+        return;
+      }
+
+      this.loadData();
     }
-
-    this.loadData();
   }
 
   // Set active tab
@@ -183,7 +195,7 @@ export class OpenProjectPageComponent implements OnInit, OnDestroy {
         },
         showCount: true,
         count: this.projectStateService.taskCount(),
-        showAddButton: true,
+        showAddButton: false,
       },
       {
         id: 'settings',
@@ -295,10 +307,27 @@ export class OpenProjectPageComponent implements OnInit, OnDestroy {
     // Handle add action based on section ID
     if (sectionId === 'agents') {
       console.log('Add agent clicked');
-      // Add your agent creation logic here
+
+      // Open create agent dialog
+      const dialogRef = this.dialog.open<FullAgent>(CreateAgentFormComponent, {
+        width: '600px',
+        data: {
+          isEditMode: false,
+          projectId: this.project.id,
+        },
+      });
+
+      // Handle dialog result
+      dialogRef.closed.subscribe((newAgent) => {
+        if (newAgent) {
+          this.projectStateService.addAgent(newAgent);
+
+          this.setupSections();
+          this.cdr.markForCheck();
+        }
+      });
     } else if (sectionId === 'tasks') {
       console.log('Add task clicked');
-      // Add your task creation logic here
     }
   }
 

@@ -109,31 +109,55 @@ $disabled-color: #666;
       min-height: 0;
 
       .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
 
         label {
-          @include flex-center;
-          justify-content: space-between;
-          font-size: 0.875rem;
+          display: block;
           margin-bottom: 0.5rem;
-          color: #aaa;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: var(--color-text-secondary);
 
           .required {
-            color: #ff4444;
-            margin-left: 4px;
+            color: var(--color-error);
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+          }
+        }
+
+        .label-row {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .field-description {
+          font-size: 0.75rem;
+          color: var(--color-text-secondary);
+          margin-top: 0.25rem;
+          opacity: 0.7;
+        }
+
+        input,
+        textarea,
+        select {
+          width: 100%;
+          padding: 0.5rem 0.75rem;
+          background-color: var(--color-nodes-input-bg);
+          border: 1px solid var(--color-divider-subtle);
+          border-radius: 6px;
+          color: var(--color-text-primary);
+          font-size: 0.875rem;
+          outline: none;
+          transition: border-color 0.2s ease;
+
+          &:focus {
+            border-color: var(--active-color);
           }
 
-          .ti-plus {
-            cursor: pointer;
-            color: #ccc;
-            transition: color 0.2s, background-color 0.2s;
-            padding: 0.2rem;
-            border-radius: 4px;
-
-            &:hover {
-              color: $accent-color;
-              background-color: rgba(0, 170, 255, 0.1);
-            }
+          &::placeholder {
+            color: rgba(255, 255, 255, 0.3);
           }
         }
 
@@ -159,13 +183,6 @@ $disabled-color: #666;
             z-index: 10;
             border: 1px solid red;
           }
-        }
-
-        input[type="text"],
-        input[type="number"],
-        select,
-        textarea {
-          @include input-base;
         }
 
         &.input-map {
@@ -286,5 +303,16 @@ $disabled-color: #666;
 
   i {
     font-size: 16px;
+  }
+}
+
+.label-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  label {
+    margin-bottom: 0;
   }
 }

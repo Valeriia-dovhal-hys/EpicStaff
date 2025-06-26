@@ -80,6 +80,7 @@
       @for (node of flowService.visibleNodes(); track node.id) {
       <app-flow-base-node
         [node]="node"
+        [showVariables]="showVariables()"
         fNode
         fDragHandle
         [fNodeId]="node.id"
@@ -90,6 +91,7 @@
         (fNodePositionChange)="onNodePositionChanged($event, node)"
         (fNodeSizeChange)="onNodeSizeChanged($event, node)"
         (editClicked)="onEditNode($event)"
+        (projectExpandToggled)="onProjectExpandToggled($event)"
       >
       </app-flow-base-node>
       } @for (connection of flowService.visibleConnections(); track
@@ -216,6 +218,14 @@
       (nodeSelected)="onZoomInNode($event)"
       (nodeDoubleClicked)="onNodeDoubleClickAndZoom($event)"
     ></app-nodes-search>
+
+    <button
+      class="show-inputs-btn"
+      [class.active]="showVariables()"
+      (click)="toggleShowVariables()"
+    >
+      {{ showVariables() ? "Hide Variables" : "Show Variables" }}
+    </button>
 
     @if (flowService.vscodeNodes().length > 0) {
     <app-flow-nodes-panel

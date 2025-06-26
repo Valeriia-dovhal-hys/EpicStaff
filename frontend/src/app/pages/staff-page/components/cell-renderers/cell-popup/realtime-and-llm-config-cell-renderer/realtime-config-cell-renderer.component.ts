@@ -2,11 +2,14 @@ import { Component } from '@angular/core';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 import { CommonModule } from '@angular/common';
+import { MergedConfig } from '../../../../../../services/full-agent.service';
+import { AppIconComponent } from '../../../../../../shared/components/app-icon/app-icon.component';
+import { getProviderIconPath } from '../../../../../../features/settings-dialog/constants/provider-icons.constants';
 
 @Component({
   selector: 'app-config-cell-renderer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AppIconComponent],
   template: `
     <div class="configs-cell-wrapper">
       <div *ngIf="!configs || configs.length === 0" class="no-configs">
@@ -18,21 +21,12 @@ import { CommonModule } from '@angular/common';
         class="config-item"
         [ngClass]="config.type"
       >
-        <img
-          *ngIf="
-            config.type === 'llm-config' || config.type === 'fcm-llm-config'
-          "
-          src="https://static.vecteezy.com/system/resources/thumbnails/021/059/825/small_2x/chatgpt-logo-chat-gpt-icon-on-green-background-free-vector.jpg"
-          alt="LLM Logo"
-          class="chatgpt-logo"
-        />
-
-        <img
-          *ngIf="config.type === 'realtime-config'"
-          src="https://cdn-icons-png.flaticon.com/512/6295/6295417.png"
-          alt="Realtime Logo"
-          class="realtime-logo"
-        />
+        <app-icon
+          [icon]="getProviderIcon(config)"
+          size="20px"
+          [ariaLabel]="config.provider_name || ''"
+          class="provider-icon"
+        ></app-icon>
 
         <div class="item-content">
           <div class="item-text">
@@ -69,13 +63,15 @@ import { CommonModule } from '@angular/common';
       background-color: #3a3a3a;
     }
 
-    .chatgpt-logo,
-    .realtime-logo {
+    .provider-icon {
       flex-shrink: 0;
       width: 20px;
       height: 20px;
       margin-right: 8px;
       border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .item-content {
@@ -117,8 +113,7 @@ import { CommonModule } from '@angular/common';
   `,
 })
 export class ConfigCellRendererComponent implements ICellRendererAngularComp {
-  //TO DO a separate model for merged Configs
-  configs: any[] = [];
+  configs: MergedConfig[] = [];
 
   agInit(params: ICellRendererParams): void {
     this.configs = params.value || [];
@@ -127,5 +122,9 @@ export class ConfigCellRendererComponent implements ICellRendererAngularComp {
   refresh(params: ICellRendererParams): boolean {
     this.configs = params.value || [];
     return true;
+  }
+
+  getProviderIcon(config: MergedConfig): string {
+    return getProviderIconPath(config.provider_name);
   }
 }

@@ -4,6 +4,7 @@ import {
   Output,
   Input,
   ChangeDetectionStrategy,
+  OnInit,
 } from '@angular/core';
 import { SearchComponent } from '../search/search.component';
 import { ButtonComponent } from '../buttons/button/button.component';
@@ -21,17 +22,28 @@ export interface SearchFilterChange {
   imports: [ButtonComponent, SearchComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FiltersListComponent {
+export class FiltersListComponent implements OnInit {
   @Input() public searchPlaceholder: string = 'Search...';
   @Input() public showTags: boolean = true;
+  @Input() public initialSearchTerm: string = '';
 
   public searchTerm: string = '';
 
   @Output() change = new EventEmitter<SearchFilterChange>();
 
+  ngOnInit(): void {
+    if (this.initialSearchTerm) {
+      this.searchTerm = this.initialSearchTerm;
+      this.emitChange(this.initialSearchTerm);
+    }
+  }
+
   public onSearchValueChange(searchTerm: string): void {
-    this.searchTerm = searchTerm;
-    this.emitChange(searchTerm);
+    // Only update if searchTerm is actually different
+    if (this.searchTerm !== searchTerm) {
+      this.searchTerm = searchTerm;
+      this.emitChange(searchTerm);
+    }
   }
 
   private emitChange(searchTerm: string): void {

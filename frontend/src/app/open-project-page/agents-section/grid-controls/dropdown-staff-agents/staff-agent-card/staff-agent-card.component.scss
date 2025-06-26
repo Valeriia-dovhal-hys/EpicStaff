@@ -24,40 +24,11 @@
     transition: border-color 0.3s ease;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
+
     .header-left {
       display: flex;
       align-items: center;
-      gap: 12px;
       max-width: calc(100% - 145px);
-
-      .emoji-wrapper {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 35px;
-        height: 35px;
-        background-color: var(--gray-800);
-        border-radius: 8px;
-        padding: 4px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-        border: 1px solid var(--gray-750);
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-
-        &:hover {
-          transform: scale(1.05);
-          background-color: var(--gray-750);
-          box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-        }
-
-        .project-emoji {
-          font-size: 20px;
-          line-height: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-      }
 
       .role-title {
         font-size: 16px;
@@ -282,59 +253,6 @@
       }
     }
 
-    .agent-features {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 18px;
-      margin-top: -5px;
-      .feature-tag {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        padding: 2px 8px;
-        border-radius: 12px;
-        height: 22px;
-        transition: all 0.2s ease;
-        cursor: pointer;
-
-        &.enabled {
-          /* Using the accent color with transparency for the background */
-          background-color: rgba(104, 95, 255, 0.15);
-          /* A slightly lighter shade of the accent color for text */
-          color: #7867ff;
-
-          &:hover {
-            background-color: rgba(104, 95, 255, 0.25);
-            /* A lighter tone on hover */
-            color: #8c7bff;
-            box-shadow: 0 0 4px rgba(104, 95, 255, 0.3);
-          }
-        }
-
-        &.disabled {
-          background-color: var(--gray-800);
-          color: var(--gray-500);
-
-          &:hover {
-            background-color: var(--gray-750);
-            color: var(--gray-400);
-            box-shadow: 0 0 4px rgba(200, 200, 200, 0.1);
-          }
-        }
-
-        .feature-icon {
-          flex-shrink: 0;
-          transition: transform 0.2s ease;
-        }
-
-        &:hover .feature-icon {
-          transform: scale(1.1);
-        }
-      }
-    }
-
     .toggle-button {
       background: none;
       border: none;
@@ -371,6 +289,37 @@
       margin: 4px 0 0;
     }
 
+    .model-info-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .provider-icon {
+        flex-shrink: 0;
+      }
+
+      .model-info {
+        display: flex;
+        flex-direction: column;
+
+        .model-name {
+          font-weight: 500;
+          color: var(--gray-100);
+          font-size: 0.9rem;
+          margin: 0;
+        }
+
+        .model-custom-name {
+          color: var(--gray-400);
+          font-size: 0.8rem;
+          margin-top: 0.15rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+    }
+
     .tools-container {
       display: flex;
       flex-direction: column;
@@ -383,7 +332,7 @@
         padding: 4px 0;
         height: 28px;
 
-        .tool-icon {
+        app-icon {
           color: var(--gray-400);
           flex-shrink: 0;
         }
@@ -392,24 +341,6 @@
           font-size: 14px;
           color: var(--gray-200);
         }
-      }
-    }
-
-    .tags-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 4px;
-      min-height: 24px;
-
-      .tag {
-        background-color: var(--gray-750);
-        color: var(--gray-300);
-        font-size: 12px;
-        padding: 3px 8px;
-        border-radius: 12px;
-        display: inline-block;
-        height: 22px;
       }
     }
   }

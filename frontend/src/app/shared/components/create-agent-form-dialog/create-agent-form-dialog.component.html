@@ -1,167 +1,327 @@
 <div class="wrapper" appShortcutListener (escape)="onCancelForm()">
-  <!-- Header: Icon + Title + Close Button -->
+  <!-- Header -->
   <div class="dialog-header">
     <div class="icon-and-title">
-      <i class="ti ti-robot"></i>
-      <span class="title">{{ "Create New Agent" }}</span>
+      <app-icon
+        icon="ui/agent"
+        size="2rem"
+        ariaLabel="Agent icon"
+        style="color: var(--accent-color); margin-right: 12px"
+      ></app-icon>
+      <span class="title">{{
+        isEditMode ? "Edit Agent" : "Create New Agent"
+      }}</span>
     </div>
-    <div class="header-actions">
-      <div class="close-action">
-        <span class="esc-label">ESC</span>
-        <i class="ti ti-x close-icon" (click)="onCancelForm()"></i>
-      </div>
-    </div>
+    <app-icon-button
+      icon="ui/x"
+      ariaLabel="Close dialog"
+      size="2rem"
+      (onClick)="onCancelForm()"
+    >
+    </app-icon-button>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-navigation">
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'overview'"
+      (click)="switchTab('overview')"
+    >
+      Overview
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'configurations'"
+      (click)="switchTab('configurations')"
+    >
+      Configurations
+    </button>
   </div>
 
   <form [formGroup]="agentForm" (ngSubmit)="$event.preventDefault()">
     <!-- Body -->
     <div class="dialog-content">
-      <!-- Agent Role with Icon -->
-      <div class="form-group name-with-icon">
-        <label for="role">
-          Agent Role
-          <span class="required">
-            @if (agentForm.get('role')?.errors?.['required'] &&
-            agentForm.get('role')?.touched) { Role is required } *
-          </span>
-        </label>
-        <div class="input-with-icon">
-          <input
-            id="role"
-            type="text"
-            formControlName="role"
-            placeholder="Enter agent role..."
+      <!-- Overview Tab -->
+      <div class="tab-content" [hidden]="activeTab !== 'overview'">
+        <!-- Agent Role with Icon -->
+        <div class="form-group">
+          <div class="label-row">
+            <label for="role" class="field-label">
+              Agent Role
+              <span class="required">
+                @if (agentForm.get('role')?.errors?.['required'] &&
+                agentForm.get('role')?.touched) { Role is required } *
+              </span>
+            </label>
+            <app-help-tooltip
+              [text]="
+                'The specific role this agent will play in your project. Choose a clear, descriptive title.'
+              "
+            ></app-help-tooltip>
+          </div>
+          <div class="input-with-icon">
+            <input
+              id="role"
+              type="text"
+              formControlName="role"
+              placeholder="Enter agent role..."
+              autocomplete="off"
+              [style.--active-color]="activeColor"
+            />
+          </div>
+        </div>
+
+        <!-- Goal -->
+        <div class="form-group">
+          <div class="label-row">
+            <label for="goal" class="field-label">
+              Goal
+              <span class="required">
+                @if (agentForm.get('goal')?.errors?.['required'] &&
+                agentForm.get('goal')?.touched) { Goal is required } *
+              </span>
+            </label>
+            <app-help-tooltip
+              [text]="
+                'Define the main objective or task this agent should accomplish.'
+              "
+            ></app-help-tooltip>
+          </div>
+          <textarea
+            id="goal"
+            formControlName="goal"
+            placeholder="Enter agent goal..."
+            rows="3"
             autocomplete="off"
             [style.--active-color]="activeColor"
-          />
+          ></textarea>
+        </div>
+
+        <!-- Backstory -->
+        <div class="form-group">
+          <div class="label-row">
+            <label for="backstory" class="field-label">
+              Backstory
+              <span class="required">
+                @if (agentForm.get('backstory')?.errors?.['required'] &&
+                agentForm.get('backstory')?.touched) { Backstory is required } *
+              </span>
+            </label>
+            <app-help-tooltip
+              [text]="
+                'Provide context, history, and personality for this agent. A rich backstory helps the agent generate more relevant responses.'
+              "
+            ></app-help-tooltip>
+          </div>
+          <textarea
+            id="backstory"
+            formControlName="backstory"
+            placeholder="Enter agent backstory..."
+            rows="3"
+            autocomplete="off"
+            [style.--active-color]="activeColor"
+          ></textarea>
+        </div>
+
+        <!-- Agent LLM -->
+        <div class="form-group">
+          <div class="label-row">
+            <label class="field-label">Agent LLM</label>
+            <app-help-tooltip
+              [text]="
+                'Select the language model that will power this agent. Different models have different capabilities and costs.'
+              "
+            ></app-help-tooltip>
+          </div>
+          <app-llm-model-selector
+            [llmConfigs]="llmConfigs"
+            formControlName="llmId"
+            placeholder="Select agent LLM"
+          ></app-llm-model-selector>
+          <div
+            *ngIf="
+              agentForm.get('llmId')?.invalid && agentForm.get('llmId')?.touched
+            "
+            class="error-message"
+          >
+            Please select an LLM
+          </div>
+        </div>
+
+        <!-- Creativity Level Slider -->
+        <div class="form-group">
+          <div class="label-row">
+            <label class="field-label">Agent Creativity Level</label>
+            <app-help-tooltip
+              [text]="
+                'Adjust how creative the agent should be. Higher values lead to more varied responses, while lower values keep responses more predictable.'
+              "
+            ></app-help-tooltip>
+          </div>
+          <app-form-slider
+            [value]="temperatureValue"
+            label=""
+            (valueChange)="onSliderInput($event)"
+          ></app-form-slider>
         </div>
       </div>
 
-      <!-- Goal -->
-      <div class="form-group">
-        <label for="goal">
-          Goal
-          <span class="required">
-            @if (agentForm.get('goal')?.errors?.['required'] &&
-            agentForm.get('goal')?.touched) { Goal is required } *
-          </span>
-        </label>
-        <textarea
-          id="goal"
-          formControlName="goal"
-          placeholder="Enter agent goal..."
-          rows="3"
-          autocomplete="off"
-          [style.--active-color]="activeColor"
-        ></textarea>
-      </div>
-
-      <!-- Backstory -->
-      <div class="form-group">
-        <label for="backstory">
-          Backstory
-          <span class="required">
-            @if (agentForm.get('backstory')?.errors?.['required'] &&
-            agentForm.get('backstory')?.touched) { Backstory is required } *
-          </span>
-        </label>
-        <textarea
-          id="backstory"
-          formControlName="backstory"
-          placeholder="Enter agent backstory..."
-          rows="3"
-          autocomplete="off"
-          [style.--active-color]="activeColor"
-        ></textarea>
-      </div>
-
-      <!-- Agent LLM -->
-      <div class="form-group">
-        <label>Agent LLM</label>
-        <app-llm-selector
-          formControlName="llm_config"
-          placeholder="Select an agent LLM configuration"
-          [llmConfigs]="availableLLMConfigs"
-        ></app-llm-selector>
-      </div>
-
-      <!-- Creativity Level Slider -->
-      <div class="form-group">
-        <app-form-slider
-          [value]="temperatureValue"
-          label="Agent Creativity Level:"
-          (valueChange)="onSliderInput($event)"
-        ></app-form-slider>
-      </div>
-
-      <!-- Advanced Settings Toggle -->
-      <div class="form-group">
-        <button
-          type="button"
-          class="toggle-settings"
-          (click)="toggleAdvancedSettings()"
-        >
-          {{
-            advancedSettingsVisible
-              ? "Hide Advanced Settings"
-              : "Show Advanced Settings"
-          }}
-        </button>
-      </div>
-
-      <!-- Advanced Settings Section -->
-      @if (advancedSettingsVisible) {
-      <div class="advanced-settings" @smoothExpand>
+      <!-- Configurations Tab -->
+      <div class="tab-content" [hidden]="activeTab !== 'configurations'">
         <!-- Function LLM -->
         <div class="form-group">
-          <label>Function LLM</label>
-          <app-llm-selector
-            formControlName="fcm_llm_config"
-            placeholder="Select a function LLM configuration"
-            [llmConfigs]="availableLLMConfigs"
-          ></app-llm-selector>
+          <div class="label-row">
+            <label class="field-label">Function LLM</label>
+            <app-help-tooltip
+              [text]="
+                'Select a language model specifically for function calling. This can be different from the main agent LLM.'
+              "
+            ></app-help-tooltip>
+          </div>
+          <app-llm-model-selector
+            [llmConfigs]="llmConfigs"
+            formControlName="functionLlmId"
+            placeholder="Select function LLM"
+          ></app-llm-model-selector>
         </div>
 
-        <!-- Toggle Fields Row -->
-        <div class="toggle-row">
-          <div class="toggle-field">
-            <label class="toggle-label">Allow Delegation</label>
-            <app-toggle-switch
-              formControlName="allow_delegation"
-            ></app-toggle-switch>
+        <!-- Knowledge Source -->
+        <div class="form-group">
+          <div class="label-row">
+            <label class="field-label">Knowledge Source</label>
+            <app-help-tooltip
+              [text]="
+                'Choose a knowledge source to provide additional context and information for this agent.'
+              "
+            ></app-help-tooltip>
+          </div>
+          <app-knowledge-selector
+            [collections]="allKnowledgeSources"
+            [selectedCollectionId]="selectedKnowledgeSourceId"
+            [loading]="isLoadingKnowledgeSources"
+            (collectionChange)="onKnowledgeSourceChange($event)"
+          ></app-knowledge-selector>
+        </div>
+
+        <!-- Tools Selection -->
+        <div class="form-group">
+          <div class="label-row">
+            <label class="field-label">Tools</label>
+            <app-help-tooltip
+              [text]="
+                'Select the tools this agent will have access to. Tools provide additional capabilities for the agent.'
+              "
+            ></app-help-tooltip>
+          </div>
+          <app-tools-selector
+            [selectedConfiguredTools]="
+              agentForm.get('configured_tools')?.value || []
+            "
+            [selectedPythonCodeTools]="
+              agentForm.get('python_code_tools')?.value || []
+            "
+            (configuredToolsChange)="onConfiguredToolsChange($event)"
+            (pythonCodeToolsChange)="onPythonToolsChange($event)"
+          ></app-tools-selector>
+        </div>
+
+        <!-- Advanced Options Section -->
+        <h4 class="section-title">Advanced Options</h4>
+
+        <!-- Toggle Fields -->
+        <div class="configurations-settings">
+          <div class="form-group">
+            <div class="label-row toggle-container">
+              <div class="toggle-label-wrapper">
+                <label class="toggle-label">Allow Delegation</label>
+                <app-help-tooltip
+                  [text]="
+                    'When enabled, this agent can delegate tasks to other agents in the project.'
+                  "
+                ></app-help-tooltip>
+              </div>
+              <app-toggle-switch
+                formControlName="allow_delegation"
+              ></app-toggle-switch>
+            </div>
           </div>
 
-          <div class="toggle-field">
-            <label class="toggle-label">Memory</label>
-            <app-toggle-switch formControlName="memory"></app-toggle-switch>
+          <div class="form-group">
+            <div class="label-row toggle-container">
+              <div class="toggle-label-wrapper">
+                <label class="toggle-label">Memory</label>
+                <app-help-tooltip
+                  [text]="
+                    'Enable to give the agent memory of past interactions and results.'
+                  "
+                ></app-help-tooltip>
+              </div>
+              <app-toggle-switch formControlName="memory"></app-toggle-switch>
+            </div>
           </div>
 
-          <div class="toggle-field">
-            <label class="toggle-label">Cache</label>
-            <app-toggle-switch formControlName="cache"></app-toggle-switch>
+          <div class="form-group">
+            <div class="label-row toggle-container">
+              <div class="toggle-label-wrapper">
+                <label class="toggle-label">Cache</label>
+                <app-help-tooltip
+                  [text]="
+                    'Enable to cache responses for repeated queries, improving performance and reducing costs.'
+                  "
+                ></app-help-tooltip>
+              </div>
+              <app-toggle-switch formControlName="cache"></app-toggle-switch>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row toggle-container">
+              <div class="toggle-label-wrapper">
+                <label class="toggle-label">Allow Code Execution</label>
+                <app-help-tooltip
+                  [text]="
+                    'Enable to allow the agent to run code. Use with caution as this gives the agent more capabilities.'
+                  "
+                ></app-help-tooltip>
+              </div>
+              <app-toggle-switch
+                formControlName="allow_code_execution"
+              ></app-toggle-switch>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row toggle-container">
+              <div class="toggle-label-wrapper">
+                <label class="toggle-label">Respect Context Window</label>
+                <app-help-tooltip
+                  [text]="
+                    'When enabled, the agent will be aware of context window limitations and adjust accordingly.'
+                  "
+                ></app-help-tooltip>
+              </div>
+              <app-toggle-switch
+                formControlName="respect_context_window"
+              ></app-toggle-switch>
+            </div>
           </div>
         </div>
 
-        <div class="toggle-row">
-          <div class="toggle-field">
-            <label class="toggle-label">Allow Code Execution</label>
-            <app-toggle-switch
-              formControlName="allow_code_execution"
-            ></app-toggle-switch>
-          </div>
-
-          <div class="toggle-field">
-            <label class="toggle-label">Respect Context Window</label>
-            <app-toggle-switch
-              formControlName="respect_context_window"
-            ></app-toggle-switch>
-          </div>
-        </div>
+        <!-- Execution Settings Section -->
+        <h4 class="section-title">Execution Settings</h4>
 
         <!-- Numeric Fields Row -->
         <div class="numeric-row">
           <div class="form-group">
-            <label for="max_iter">Max Iterations</label>
+            <div class="label-row">
+              <label for="max_iter" class="field-label">Max Iterations</label>
+              <app-help-tooltip
+                [text]="
+                  'The maximum number of iterations the agent will perform before stopping.'
+                "
+              ></app-help-tooltip>
+            </div>
             <input
               id="max_iter"
               type="number"
@@ -173,7 +333,16 @@
           </div>
 
           <div class="form-group">
-            <label for="max_execution_time">Max Execution Time (seconds)</label>
+            <div class="label-row">
+              <label for="max_execution_time" class="field-label"
+                >Max Execution Time (seconds)</label
+              >
+              <app-help-tooltip
+                [text]="
+                  'The maximum time in seconds the agent will run before timing out.'
+                "
+              ></app-help-tooltip>
+            </div>
             <input
               id="max_execution_time"
               type="number"
@@ -184,7 +353,16 @@
           </div>
 
           <div class="form-group">
-            <label for="max_retry_limit">Max Retry Limit</label>
+            <div class="label-row">
+              <label for="max_retry_limit" class="field-label"
+                >Max Retry Limit</label
+              >
+              <app-help-tooltip
+                [text]="
+                  'The maximum number of times the agent will retry failed operations.'
+                "
+              ></app-help-tooltip>
+            </div>
             <input
               id="max_retry_limit"
               type="number"
@@ -193,30 +371,52 @@
               [style.--active-color]="activeColor"
             />
           </div>
-        </div>
 
-        <!-- Max RPM Slider -->
-        <div class="form-group">
-          <app-form-slider
-            [value]="maxRpmSliderValue"
-            [max]="200"
-            label="Max Requests Per Minute (0-50):"
-            (valueChange)="onMaxRpmSliderInput($event)"
-          ></app-form-slider>
+          <!-- Max Requests Per Minute -->
+          <div class="form-group">
+            <div class="label-row">
+              <label for="max_rpm" class="field-label"
+                >Max Requests Per Minute</label
+              >
+              <app-help-tooltip
+                [text]="
+                  'Set the maximum number of API requests the agent can make per minute. Higher values allow more throughput but may increase costs.'
+                "
+              ></app-help-tooltip>
+            </div>
+            <input
+              id="max_rpm"
+              type="number"
+              formControlName="max_rpm"
+              placeholder="Enter max requests per minute"
+              min="1"
+              [style.--active-color]="activeColor"
+            />
+          </div>
         </div>
       </div>
-      }
     </div>
 
     <!-- Footer -->
     <div class="actions">
-      <button type="button" (click)="onCancelForm()">Cancel</button>
+      <button type="button" class="btn-cancel" (click)="onCancelForm()">
+        Cancel
+      </button>
       <button
         type="button"
+        class="btn-create"
         (click)="onSubmitForm()"
         [disabled]="agentForm.invalid || isSubmitting"
       >
-        {{ isSubmitting ? "Creating..." : "Create Agent" }}
+        {{
+          isSubmitting
+            ? isEditMode
+              ? "Updating..."
+              : "Creating..."
+            : isEditMode
+            ? "Update Agent"
+            : "Create Agent"
+        }}
       </button>
     </div>
   </form>

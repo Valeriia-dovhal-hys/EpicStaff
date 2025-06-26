@@ -125,6 +125,7 @@ class CrewData(BaseModel):
     full_output: bool | None
     planning: bool | None
     embedder: EmbedderData | None
+    memory_llm: LLMData | None
     manager_llm: LLMData | None
     planning_llm: LLMData | None
     tools: List[ToolData]
@@ -225,6 +226,7 @@ class DecisionTableNodeData(BaseModel):
     conditional_group_list: list[ConditionGroupData] = []
     default_next_node: str | None = None
     next_error_node: str | None = None
+
 
 class EdgeData(BaseModel):
     start_key: str

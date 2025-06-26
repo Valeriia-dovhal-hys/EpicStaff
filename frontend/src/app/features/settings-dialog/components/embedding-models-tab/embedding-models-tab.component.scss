@@ -1,0 +1,55 @@
+.tab-content {
+  padding: 1.25rem;
+}
+
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-top: 0;
+}
+
+.embedding-configs-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.empty-state,
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-secondary);
+}
+
+.error-state {
+  color: var(--color-error);
+
+  p {
+    margin-bottom: 1rem;
+  }
+}
+
+.create-btn {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

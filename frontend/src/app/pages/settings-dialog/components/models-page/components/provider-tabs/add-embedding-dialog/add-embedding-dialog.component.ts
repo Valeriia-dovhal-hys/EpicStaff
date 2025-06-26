@@ -7,11 +7,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { EmbeddingConfigsService } from '../../../../../../../services/embedding_configs.service';
+import { EmbeddingConfigsService } from '../../../../../../../features/settings-dialog/services/embeddings/embedding_configs.service';
 import { ToastService } from '../../../../../../../services/notifications/toast.service';
-import { CreateEmbeddingConfigRequest } from '../../../../../../../shared/models/embedding-config.model';
-import { EmbeddingModel } from '../../../../../../../shared/models/embedding.model';
-import { LLM_Provider } from '../../../../../../../shared/models/LLM_provider.model';
+import { CreateEmbeddingConfigRequest } from '../../../../../../../features/settings-dialog/models/embeddings/embedding-config.model';
+import { EmbeddingModel } from '../../../../../../../features/settings-dialog/models/embeddings/embedding.model';
+import { LLM_Provider } from '../../../../../../../features/settings-dialog/models/LLM_provider.model';
 
 export interface AddEmbeddingDialogData {
   provider: LLM_Provider;

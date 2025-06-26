@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 
-import { ToolsComponent } from './user-settings-page/tools/tools.component';
 import { BuiltInToolsComponent } from './features/tools/pages/tools-list-page/components/built-in-tools/built-in-tools.component';
 import { CustomToolsComponent } from './features/tools/pages/tools-list-page/components/custom-tools/custom-tools.component';
 
@@ -81,7 +80,7 @@ export const routes: Routes = [
         path: 'chats',
         component: ChatsPageComponent,
       },
-      //
+
       { path: '**', redirectTo: '' },
     ],
   },

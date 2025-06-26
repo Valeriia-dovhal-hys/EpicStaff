@@ -29,6 +29,7 @@ import {
   NodeModel,
   ProjectNodeModel,
   PythonNodeModel,
+  BaseNodeModel,
 } from '../../core/models/node.model';
 import { NodeType } from '../../core/enums/node-type';
 import { FlowService } from '../../services/flow.service';
@@ -51,11 +52,16 @@ import { ResizeHandleComponent } from '../resize-handle/resize-handle.component'
     FFlowModule,
     NgIf,
     NgStyle,
+    NgClass,
 
     ClickOrDragDirective,
     ConditionalEdgeNodeComponent,
     AgentNodeComponent,
     TaskNodeComponent,
+    ToolNodeComponent,
+    LlmNodeComponent,
+    ProjectNodeComponent,
+    PythonNodeComponent,
     DecisionTableNodeComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -72,6 +78,7 @@ export class FlowBaseNodeComponent {
   @Output() editClicked = new EventEmitter<NodeModel>();
   public isExpanded = signal(false);
   public isToggleDisabled = signal(false);
+  @Input() showVariables: boolean = false;
 
   @Output() projectExpandToggled = new EventEmitter<ProjectNodeModel>();
 
@@ -171,6 +178,10 @@ export class FlowBaseNodeComponent {
     return this.node.type === NodeType.START ? (this.node as any) : null;
   }
 
+  public onExpandProjectClick(): void {
+    this.projectExpandToggled.emit(this.node as ProjectNodeModel);
+  }
+
   public onUngroupClick(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
@@ -186,5 +197,13 @@ export class FlowBaseNodeComponent {
 
   onNodeSizeChanged(size: { width: number; height: number }): void {
     this.fNodeSizeChange.emit(size);
+  }
+
+  public isBaseNode(node: NodeModel): node is BaseNodeModel & NodeModel {
+    return 'input_map' in node && 'output_variable_path' in node;
+  }
+
+  public objectKeys(obj: any): string[] {
+    return Object.keys(obj || {});
   }
 }

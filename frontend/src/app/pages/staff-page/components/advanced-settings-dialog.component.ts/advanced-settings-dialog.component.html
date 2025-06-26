@@ -1,54 +1,59 @@
 <div class="dialog-container">
   <!-- Header Section -->
   <div class="header">
-    <h2 class="dialog-title">
-      Advanced Settings for {{ agentData.agentRole }}
-    </h2>
-    <button class="close-button" (click)="dialogRef.close()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-        <line
-          x1="18"
-          y1="6"
-          x2="6"
-          y2="18"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-        />
-        <line
-          x1="6"
-          y1="6"
-          x2="18"
-          y2="18"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-        />
-      </svg>
-    </button>
+    <div class="icon-and-title">
+      <i class="ti ti-settings"></i>
+      <h2 class="dialog-title">
+        Advanced Settings for {{ agentData.agentRole }}
+      </h2>
+    </div>
+    <app-icon-button
+      icon="ui/x"
+      ariaLabel="Close dialog"
+      size="2rem"
+      (onClick)="dialogRef.close()"
+    >
+    </app-icon-button>
   </div>
+
   <!-- Scrollable Content -->
   <div class="scrollable-content">
     <!-- Agent Creativity Section (Top) -->
     <div class="form-section">
-      <!-- Temperature using FormSliderComponent -->
       <div class="form-group">
+        <div class="label-row">
+          <label class="field-label">Agent Creativity Level</label>
+          <app-help-tooltip
+            [text]="
+              'Adjust how creative the agent should be. Higher values lead to more varied responses, while lower values keep responses more predictable.'
+            "
+          ></app-help-tooltip>
+        </div>
         <app-form-slider
           [value]="temperatureValue"
-          label="Agent Creativity Level:"
+          [min]="0"
+          [max]="100"
+          label=""
           (valueChange)="onSliderInput($event)"
         ></app-form-slider>
       </div>
 
       <div class="form-group">
-        <!-- Replaced select with custom LLM selector component -->
-        <app-llm-selector
-          [label]="'Function Calling LLM:'"
+        <div class="label-row">
+          <label class="field-label">Function Calling LLM</label>
+          <app-help-tooltip
+            [text]="
+              'Select a language model specifically for function calling. This can be different from the main agent LLM.'
+            "
+          ></app-help-tooltip>
+        </div>
+        <!-- Replace with new LLM selector component -->
+        <app-llm-model-selector
           [llmConfigs]="combinedLLMs"
-          [loading]="isLoadingLLMs"
-          (llmChange)="onLlmChange($event)"
-          [selectedLlmId]="selectedLlmId"
-        ></app-llm-selector>
+          [(ngModel)]="selectedLlmId"
+          (modelSelected)="onLlmChange($event)"
+          placeholder="Select function LLM"
+        ></app-llm-model-selector>
       </div>
     </div>
 
@@ -56,14 +61,23 @@
     <div class="form-section">
       <h3 class="section-title">Knowledge Source</h3>
 
-      <!-- Knowledge source selector component -->
-      <app-knowledge-selector
-        [label]="'Select Knowledge Source:'"
-        [collections]="allKnowledgeSources"
-        [selectedCollectionId]="agentData.knowledge_collection || null"
-        [loading]="isLoadingKnowledgeSources"
-        (collectionChange)="onKnowledgeSourceChange($event)"
-      ></app-knowledge-selector>
+      <div class="form-group">
+        <div class="label-row">
+          <label class="field-label">Select Knowledge Source</label>
+          <app-help-tooltip
+            [text]="
+              'Choose a knowledge source to provide additional context and information for this agent.'
+            "
+          ></app-help-tooltip>
+        </div>
+        <!-- Knowledge source selector component -->
+        <app-knowledge-selector
+          [collections]="allKnowledgeSources"
+          [selectedCollectionId]="agentData.knowledge_collection || null"
+          [loading]="isLoadingKnowledgeSources"
+          (collectionChange)="onKnowledgeSourceChange($event)"
+        ></app-knowledge-selector>
+      </div>
     </div>
 
     <!-- Execution Settings -->
@@ -71,7 +85,14 @@
       <h3 class="section-title">Execution Settings</h3>
 
       <div class="form-group">
-        <label for="max-iter">Maximum Iterations:</label>
+        <div class="label-row">
+          <label for="max-iter" class="field-label">Maximum Iterations</label>
+          <app-help-tooltip
+            [text]="
+              'The maximum number of iterations the agent will perform before stopping.'
+            "
+          ></app-help-tooltip>
+        </div>
         <input
           id="max-iter"
           [(ngModel)]="agentData.max_iter"
@@ -82,7 +103,16 @@
       </div>
 
       <div class="form-group">
-        <label for="max-rpm">Maximum Requests Per Minute:</label>
+        <div class="label-row">
+          <label for="max-rpm" class="field-label"
+            >Maximum Requests Per Minute</label
+          >
+          <app-help-tooltip
+            [text]="
+              'Set the maximum number of API requests the agent can make per minute. Higher values allow more throughput but may increase costs.'
+            "
+          ></app-help-tooltip>
+        </div>
         <input
           id="max-rpm"
           [(ngModel)]="agentData.max_rpm"
@@ -93,7 +123,16 @@
       </div>
 
       <div class="form-group">
-        <label for="max-exec-time">Maximum Execution Time (seconds):</label>
+        <div class="label-row">
+          <label for="max-exec-time" class="field-label"
+            >Maximum Execution Time (seconds)</label
+          >
+          <app-help-tooltip
+            [text]="
+              'The maximum time in seconds the agent will run before timing out.'
+            "
+          ></app-help-tooltip>
+        </div>
         <input
           id="max-exec-time"
           [(ngModel)]="agentData.max_execution_time"
@@ -104,7 +143,14 @@
       </div>
 
       <div class="form-group">
-        <label for="max-retry">Maximum Retry Limit:</label>
+        <div class="label-row">
+          <label for="max-retry" class="field-label">Maximum Retry Limit</label>
+          <app-help-tooltip
+            [text]="
+              'The maximum number of times the agent will retry failed operations.'
+            "
+          ></app-help-tooltip>
+        </div>
         <input
           id="max-retry"
           [(ngModel)]="agentData.max_retry_limit"
@@ -119,34 +165,61 @@
     <div class="form-section">
       <h3 class="section-title">Advanced Options</h3>
 
-      <div class="form-group checkbox-group">
-        <label for="cache">Enable Response Caching:</label>
-        <input id="cache" [(ngModel)]="agentData.cache" type="checkbox" />
-      </div>
+      <div class="configurations-settings">
+        <div class="form-group">
+          <div class="label-row toggle-container">
+            <div class="toggle-label-wrapper">
+              <label class="toggle-label">Enable Response Caching</label>
+              <app-help-tooltip
+                [text]="
+                  'Enable to cache responses for repeated queries, improving performance and reducing costs.'
+                "
+              ></app-help-tooltip>
+            </div>
+            <app-toggle-switch
+              [(ngModel)]="agentData.cache"
+            ></app-toggle-switch>
+          </div>
+        </div>
 
-      <div class="form-group checkbox-group">
-        <label for="code-execution">Allow Code Execution:</label>
-        <input
-          id="code-execution"
-          [(ngModel)]="agentData.allow_code_execution"
-          type="checkbox"
-        />
-      </div>
+        <div class="form-group">
+          <div class="label-row toggle-container">
+            <div class="toggle-label-wrapper">
+              <label class="toggle-label">Allow Code Execution</label>
+              <app-help-tooltip
+                [text]="
+                  'Enable to allow the agent to run code. Use with caution as this gives the agent more capabilities.'
+                "
+              ></app-help-tooltip>
+            </div>
+            <app-toggle-switch
+              [(ngModel)]="agentData.allow_code_execution"
+            ></app-toggle-switch>
+          </div>
+        </div>
 
-      <div class="form-group checkbox-group">
-        <label for="respect-context">Respect Context Window:</label>
-        <input
-          id="respect-context"
-          [(ngModel)]="agentData.respect_context_window"
-          type="checkbox"
-        />
+        <div class="form-group">
+          <div class="label-row toggle-container">
+            <div class="toggle-label-wrapper">
+              <label class="toggle-label">Respect Context Window</label>
+              <app-help-tooltip
+                [text]="
+                  'When enabled, the agent will be aware of context window limitations and adjust accordingly.'
+                "
+              ></app-help-tooltip>
+            </div>
+            <app-toggle-switch
+              [(ngModel)]="agentData.respect_context_window"
+            ></app-toggle-switch>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Action Buttons -->
   <div class="actions">
-    <button (click)="dialogRef.close()">Cancel</button>
-    <button (click)="save()">Save Changes</button>
+    <button class="btn-cancel" (click)="dialogRef.close()">Cancel</button>
+    <button class="btn-save" (click)="save()">Save Changes</button>
   </div>
 </div>

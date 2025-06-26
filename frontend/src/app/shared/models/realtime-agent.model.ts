@@ -1,4 +1,3 @@
-// Realtime Agent model based on the API schema
 export interface RealtimeAgent {
   agent: number;
   distance_threshold: string;
@@ -11,7 +10,6 @@ export interface RealtimeAgent {
   voice: string;
 }
 
-// PUT request model for updating a Realtime Agent
 export interface UpdateRealtimeAgentRequest {
   agent: number;
   distance_threshold?: string;
@@ -22,7 +20,6 @@ export interface UpdateRealtimeAgentRequest {
   voice_recognition_prompt?: string;
   voice?: string;
 }
-// PUT request model for updating a Realtime Agent
 export interface CreateRealtimeAgentRequest {
   agent: number;
   distance_threshold?: string;

@@ -14,7 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { Overlay, OverlayRef, OverlayModule } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { Subject, takeUntil } from 'rxjs';
-import { FullEmbeddingConfig } from '../../../../../../services/full-embedding.service';
+import { FullEmbeddingConfig } from '../../../../../../features/settings-dialog/services/embeddings/full-embedding.service';
 import { EmbeddingDropdownContentComponent } from './embedding-dropdown-content.component';
 
 @Component({

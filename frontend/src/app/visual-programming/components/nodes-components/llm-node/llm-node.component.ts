@@ -1,5 +1,5 @@
 import { Component, Input, signal } from '@angular/core';
-import { GetLlmConfigRequest } from '../../../../shared/models/LLM_config.model';
+import { GetLlmConfigRequest } from '../../../../features/settings-dialog/models/llms/LLM_config.model';
 import { NgFor, NgIf } from '@angular/common';
 import { LLMNodeModel } from '../../../core/models/node.model';
 

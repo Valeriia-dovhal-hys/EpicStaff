@@ -9,6 +9,14 @@
 <div class="actions" (mousedown)="$event.stopPropagation()">
   <!-- Ungroup Icon -->
   <div
+    *ngIf="node.type === NodeType.PROJECT"
+    class="action-button ungroup-button"
+    title="Expand Project"
+    (click)="onExpandProjectClick()"
+  >
+    <i class="ti ti-edit"></i>
+  </div>
+  <div
     *ngIf="node.parentId"
     class="action-button ungroup-button"
     title="Remove from group"
@@ -83,22 +91,51 @@
 ></app-conditional-edge-node>
 } @if (node.type === NodeType.TABLE) {
 <app-decision-table-node [node]="tableNode"></app-decision-table-node>
-}
-
-<!-- Add resize handles only for table nodes -->
-@if(node.type === NodeType.TABLE) {
-<!-- <app-resize-handle
-  [handleType]="eResizeHandleType.RIGHT_BOTTOM"
-></app-resize-handle>
-<app-resize-handle
-  [handleType]="eResizeHandleType.LEFT_BOTTOM"
-></app-resize-handle>
-<app-resize-handle
-  [handleType]="eResizeHandleType.LEFT_TOP"
-></app-resize-handle>
-<app-resize-handle
-  [handleType]="eResizeHandleType.RIGHT_TOP"
-></app-resize-handle> -->
-<!-- <app-resize-handle [handleType]="eResizeHandleType.RIGHT"></app-resize-handle>
-<app-resize-handle [handleType]="eResizeHandleType.LEFT"></app-resize-handle> -->
+} @if (showVariables && isBaseNode(node) && node.input_map &&
+objectKeys(node.input_map).length > 0) {
+<div
+  class="inputs-overlay"
+  [ngStyle]="{ '--node-overlay-color': node.color || '#23272e' }"
+>
+  <div
+    style="
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+      color: #aaa;
+    "
+  >
+    Inputs
+  </div>
+  <div class="inputs-list">
+    @for (key of objectKeys(node.input_map); track key) {
+    <div class="input-item">
+      <span class="input-key" [title]="key">{{ key }}</span>
+      <span class="equals-sign">=</span>
+      <span class="input-value" [title]="node.input_map[key]">{{
+        node.input_map[key]
+      }}</span>
+    </div>
+    }
+  </div>
+</div>
+} @if (showVariables && isBaseNode(node) && node.output_variable_path) {
+<div
+  class="output-overlay"
+  [ngStyle]="{ '--node-overlay-color': node.color || '#23272e' }"
+>
+  <div
+    style="
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+      color: #aaa;
+    "
+  >
+    Output
+  </div>
+  <span class="output-label">{{ node.output_variable_path }}</span>
+</div>
 }

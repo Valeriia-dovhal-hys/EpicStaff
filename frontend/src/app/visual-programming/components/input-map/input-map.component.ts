@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import {
   FormArray,
   FormGroup,
@@ -7,12 +7,13 @@ import {
   ReactiveFormsModule,
   FormGroupDirective,
 } from '@angular/forms';
-import { NgFor } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { HelpTooltipComponent } from '../../../shared/components/help-tooltip/help-tooltip.component';
 
 @Component({
   selector: 'app-input-map',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CommonModule, HelpTooltipComponent],
   viewProviders: [
     {
       provide: ControlContainer,
@@ -29,16 +30,17 @@ import { NgFor } from '@angular/common';
               <input
                 type="text"
                 formControlName="key"
-                placeholder="Key"
+                placeholder="Function Argument Name"
                 [style.--active-color]="activeColor"
                 autocomplete="off"
               />
             </div>
+            <div class="equals-sign">=</div>
             <div class="input-wrapper">
               <input
                 type="text"
                 formControlName="value"
-                placeholder="Value"
+                placeholder="Domain Variable Name"
                 [style.--active-color]="activeColor"
                 autocomplete="off"
               />
@@ -60,6 +62,29 @@ import { NgFor } from '@angular/common';
         flex-direction: column;
         gap: 12px;
         width: 100%;
+      }
+
+      .input-map-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 4px;
+        padding: 0 4px;
+      }
+
+      .function-arg {
+        flex: 1;
+      }
+
+      .domain-var {
+        flex: 1;
+      }
+
+      .equals {
+        width: 20px;
+        text-align: center;
       }
 
       .input-map-list {
@@ -84,6 +109,12 @@ import { NgFor } from '@angular/common';
       .input-wrapper {
         flex: 1;
         min-width: 0;
+      }
+
+      .equals-sign {
+        color: #fff;
+        font-weight: 500;
+        margin: 0 -2px;
       }
 
       .input-wrapper input {
@@ -150,13 +181,28 @@ import { NgFor } from '@angular/common';
     `,
   ],
 })
-export class InputMapComponent {
+export class InputMapComponent implements OnInit {
   @Input() activeColor: string = '#685fff';
 
   constructor(
     private controlContainer: ControlContainer,
     private fb: FormBuilder
   ) {}
+
+  ngOnInit() {
+    // Ensure there's always at least one empty input map initially
+    if (this.pairs.length === 0) {
+      this.addPair();
+
+      // Mark the initial empty input as pristine and untouched
+      // This prevents it from being considered as a "change" for the unsaved changes guard
+      setTimeout(() => {
+        this.pairs.at(0).markAsPristine();
+        this.pairs.at(0).markAsUntouched();
+        this.pairs.updateValueAndValidity();
+      });
+    }
+  }
 
   get parentForm(): FormGroup {
     return this.controlContainer.control as FormGroup;

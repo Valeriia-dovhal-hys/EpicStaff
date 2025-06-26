@@ -9,15 +9,15 @@ import { CommonModule } from '@angular/common';
 import { finalize, forkJoin } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PageHeaderComponent } from '../../shared/components/header/page-header.component';
-import { FullEmbeddingConfigService } from '../../services/full-embedding.service';
-import { FullLLMConfigService } from '../../services/full-llm-config.service';
-import { FullRealtimeConfigService } from './services/realtime-models-services/full-reamtime-config.service';
+import { FullEmbeddingConfigService } from '../../features/settings-dialog/services/embeddings/full-embedding.service';
+import { FullLLMConfigService } from '../../features/settings-dialog/services/llms/full-llm-config.service';
+import { FullRealtimeConfigService } from '../../features/settings-dialog/services/realtime-llms/full-reamtime-config.service';
 import { ModelsPageService } from './services/models-page.service';
 import { ProviderListComponent } from './components/provider-list/provider-list.component';
-import { EmbeddingModelsService } from '../../services/embeddings.service';
-import { LLM_Models_Service } from '../../services/LLM_models.service';
+import { EmbeddingModelsService } from '../../features/settings-dialog/services/embeddings/embeddings.service';
+import { LLM_Models_Service } from '../../features/settings-dialog/services/llms/LLM_models.service';
 import { ToastService } from '../../services/notifications/toast.service';
-import { LLM_Providers_Service } from '../../services/LLM_providers.service';
+import { LLM_Providers_Service } from '../../features/settings-dialog/services/LLM_providers.service';
 
 @Component({
   selector: 'app-models-page',

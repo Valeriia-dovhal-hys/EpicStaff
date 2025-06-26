@@ -22,7 +22,7 @@ import { InlineSvgDirective } from '../../../core/directives/inline-svg.directiv
 export class AppIconComponent {
   @Input() icon: string = '';
   @Input() ariaLabel: string = '';
-  @Input() size: string = '24';
+  @Input() size: string = '2rem';
 
   get iconPath(): string {
     return this.icon ? `/assets/icons/${this.icon}.svg` : '';

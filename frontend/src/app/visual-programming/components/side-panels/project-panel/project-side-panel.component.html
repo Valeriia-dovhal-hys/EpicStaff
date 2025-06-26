@@ -18,15 +18,21 @@
     <div class="dialog-content">
       <!-- Unique Node Name Field: for node.node_name -->
       <div class="form-group">
-        <label for="node_name">
-          Node name
-          <span
-            class="required"
-            *ngIf="projectForm.get('node_name')?.errors?.['required'] && projectForm.get('node_name')?.touched"
-          >
-            Node name is required *
-          </span>
-        </label>
+        <div class="label-with-tooltip">
+          <label for="node_name">
+            Node name
+            <span
+              class="required"
+              *ngIf="projectForm.get('node_name')?.errors?.['required'] && projectForm.get('node_name')?.touched"
+            >
+              Node name is required *
+            </span>
+          </label>
+          <app-help-tooltip
+            position="right"
+            text="The unique identifier used to reference this project node. This name must be unique within the flow."
+          ></app-help-tooltip>
+        </div>
         <div class="input-with-error">
           <input
             id="node_name"
@@ -43,13 +49,25 @@
 
       <!-- Input Map Key-Value Pairs -->
       <div class="form-group input-map">
-        <label>Input Map</label>
+        <div class="label-with-tooltip">
+          <label>Input Map</label>
+          <app-help-tooltip
+            position="right"
+            text="Maps function arguments to domain variables using key-value pairs. For example, 'project_id' = 'current_project' maps the function parameter 'project_id' to the flow variable 'current_project'."
+          ></app-help-tooltip>
+        </div>
         <app-input-map [activeColor]="activeColor"></app-input-map>
       </div>
 
       <!-- Output Variable Path -->
       <div class="form-group">
-        <label for="output_variable_path">Output Variable Path</label>
+        <div class="label-with-tooltip">
+          <label for="output_variable_path">Output Variable Path</label>
+          <app-help-tooltip
+            position="right"
+            text="The path where the output of this node will be stored in your flow variables. Leave empty if you don't need to store the output."
+          ></app-help-tooltip>
+        </div>
         <input
           id="output_variable_path"
           type="text"

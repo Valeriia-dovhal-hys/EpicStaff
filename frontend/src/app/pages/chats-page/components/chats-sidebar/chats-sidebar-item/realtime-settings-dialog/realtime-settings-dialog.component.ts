@@ -16,6 +16,7 @@ import { AVAILABLE_LANGUAGES } from '../../../../../../shared/constants/language
 import { AVAILABLE_VOICES } from '../../../../../../shared/constants/realtime-voice.constants';
 import { RealtimeAgentService } from '../../../../../../services/realtime-agent.service';
 import { finalize } from 'rxjs';
+import { HelpTooltipComponent } from '../../../../../../shared/components/help-tooltip/help-tooltip.component';
 
 import {
   RealtimeAgent,
@@ -47,6 +48,7 @@ import { AddTranscriptionConfigDialogComponent } from './add-transcription-dialo
     LanguageSelectorComponent,
     VoiceSelectorComponent,
     TranscriptionConfigSelectorComponent,
+    HelpTooltipComponent,
   ],
   templateUrl: './realtime-settings-dialog.component.html',
   styleUrls: ['./realtime-settings-dialog.component.scss'],

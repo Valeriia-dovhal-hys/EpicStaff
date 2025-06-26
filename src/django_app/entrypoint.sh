@@ -2,6 +2,10 @@
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
+# Wait for dependencies to be ready
+echo "Waiting for dependencies to start..."
+sleep 30
+
 # Run database migrations
 echo "Applying database migrations..."
 python manage.py migrate

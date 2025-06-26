@@ -1,5 +1,8 @@
 <div class="visual-slider">
-  <label for="tempSlider">{{ label }} {{ value }}</label>
+  <label *ngIf="label && label.trim() !== ''" for="tempSlider"
+    >{{ label }} {{ value }}</label
+  >
+
   <input
     type="range"
     id="tempSlider"
@@ -9,8 +12,8 @@
     (input)="onSliderInput($event)"
   />
   <div class="scale-markers">
-    <!-- <span>{{ min }} (Precise)</span>
-
-    <span>{{ max }} (Creative)</span> -->
+    <span>{{ min }}</span>
+    <span class="current-value" [style.left]="valuePosition">{{ value }}</span>
+    <span>{{ max }}</span>
   </div>
 </div>

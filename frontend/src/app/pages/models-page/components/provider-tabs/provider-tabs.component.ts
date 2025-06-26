@@ -9,17 +9,17 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Dialog, DialogModule } from '@angular/cdk/dialog';
-import { LLM_Provider } from '../../../../shared/models/LLM_provider.model';
+import { LLM_Provider } from '../../../../features/settings-dialog/models/LLM_provider.model';
 import {
   ModelsPageService,
   ProviderTabType,
 } from '../../services/models-page.service';
-import { FullLLMConfig } from '../../../../services/full-llm-config.service';
-import { FullEmbeddingConfig } from '../../../../services/full-embedding.service';
-import { FullRealtimeConfig } from '../../services/realtime-models-services/full-reamtime-config.service';
-import { LLM_Config_Service } from '../../../../services/LLM_config.service';
-import { EmbeddingConfigsService } from '../../../../services/embedding_configs.service';
-import { RealtimeModelConfigsService } from '../../services/realtime-models-services/real-time-model-config.service';
+import { FullLLMConfig } from '../../../../features/settings-dialog/services/llms/full-llm-config.service';
+import { FullEmbeddingConfig } from '../../../../features/settings-dialog/services/embeddings/full-embedding.service';
+import { FullRealtimeConfig } from '../../../../features/settings-dialog/services/realtime-llms/full-reamtime-config.service';
+import { LLM_Config_Service } from '../../../../features/settings-dialog/services/llms/LLM_config.service';
+import { EmbeddingConfigsService } from '../../../../features/settings-dialog/services/embeddings/embedding_configs.service';
+import { RealtimeModelConfigsService } from '../../../../features/settings-dialog/services/realtime-llms/real-time-model-config.service';
 import { ModelSearchComponent } from '../model-search/model-search.component';
 import { AddModelButtonComponent } from '../add-model-button/add-model-button.component';
 import {

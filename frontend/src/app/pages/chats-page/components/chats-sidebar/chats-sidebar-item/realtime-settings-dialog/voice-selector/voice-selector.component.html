@@ -1,5 +1,5 @@
 <div class="voice-selector" clickOutside (clickOutside)="isOpen = false">
-  <label *ngIf="label">{{ label }}</label>
+  <!-- <label *ngIf="label">{{ label }}</label> -->
   <div class="selector" [class.disabled]="disabled" (click)="toggleDropdown()">
     <div class="selected-voice">{{ getSelectedVoiceName() }}</div>
     <div class="selector-arrow" [class.open]="isOpen">

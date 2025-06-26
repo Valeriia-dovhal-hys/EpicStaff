@@ -7,7 +7,7 @@ SESSION_ID = "111"
 PGVECTOR_MEMORY_CONFIG = {
     "provider": "local_mem0",
     "config": {"user_id": USER_ID, "run_id": SESSION_ID},
-    "db_config": {
+    "config_dict": {
         "vector_store": {
             "provider": "pgvector",
             "config": {

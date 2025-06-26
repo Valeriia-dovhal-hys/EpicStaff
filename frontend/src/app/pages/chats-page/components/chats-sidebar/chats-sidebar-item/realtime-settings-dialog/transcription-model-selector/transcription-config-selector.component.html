@@ -1,5 +1,5 @@
 <div class="config-selector" clickOutside (clickOutside)="isOpen = false">
-  <label *ngIf="label">{{ label }}</label>
+  <!-- <label *ngIf="label">{{ label }}</label> -->
   <div class="selector" [class.disabled]="disabled" (click)="toggleDropdown()">
     <div class="selected-config">{{ getSelectedConfigName() }}</div>
     <div class="selector-arrow" [class.open]="isOpen">
@@ -43,7 +43,17 @@
         [class.selected]="config.id === selectedConfigId"
         (click)="selectConfig(config.id)"
       >
-        {{ config.custom_name }} ({{ config.model_name }})
+        <span class="config-name"
+          >{{ config.custom_name }} ({{ config.model_name }})</span
+        >
+        <app-icon
+          icon="ui/x"
+          size="16"
+          class="delete-icon"
+          (click)="onDeleteConfig($event, config.id)"
+          aria-label="Delete configuration"
+        >
+        </app-icon>
       </div>
 
       <!-- Create new option -->

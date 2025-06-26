@@ -14,169 +14,33 @@ import {
 } from '@angular/core';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { FullLLMConfigService } from '../../../../../../services/full-llm-config.service';
-import { FullRealtimeConfigService } from '../../../../../models-page/services/realtime-models-services/full-reamtime-config.service';
-
-interface MergedConfig {
-  id: number;
-  custom_name: string;
-  model_name: string;
-  type: string;
-}
+import { FullLLMConfigService } from '../../../../../../features/settings-dialog/services/llms/full-llm-config.service';
+import { FullRealtimeConfigService } from '../../../../../../features/settings-dialog/services/realtime-llms/full-reamtime-config.service';
+import { LlmItemComponent } from './llm-item/llm-item.component';
+import { MergedConfig } from '../../../../../../services/full-agent.service';
 
 @Component({
   selector: 'app-llm-popup',
   standalone: true,
-  imports: [NgFor, FormsModule, NgIf, NgClass],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="llm-list-container">
-      <div class="list-header">
-        <input
-          #searchInput
-          type="text"
-          [(ngModel)]="searchTerm"
-          placeholder="Search models..."
-        />
-        <button class="filter-button">
-          <i class="ti ti-filter"></i>
-          Filter
-        </button>
-      </div>
-
-      <div class="tabs-header">
-        <div
-          class="tab"
-          [ngClass]="{ active: activeTab === 'llm' }"
-          (click)="setActiveTab('llm')"
-        >
-          LLM Models
-        </div>
-        <div
-          class="tab"
-          [ngClass]="{ active: activeTab === 'realtime' }"
-          (click)="setActiveTab('realtime')"
-        >
-          Realtime Models
-        </div>
-      </div>
-
-      <!-- LLM Models Tab -->
-      <div class="llm-list-wrapper" *ngIf="activeTab === 'llm'">
-        <ul class="llms-list">
-          <li
-            class="llm-item"
-            *ngFor="let item of filteredLLMs"
-            (click)="onSelectLLM(item)"
-            (keydown.enter)="onSelectLLM(item)"
-            [class.selected]="selectedLLMId === item.id"
-            tabindex="0"
-          >
-            <img
-              src="https://static.vecteezy.com/system/resources/thumbnails/021/059/825/small_2x/chatgpt-logo-chat-gpt-icon-on-green-background-free-vector.jpg"
-              alt="LLM Logo"
-              class="chatgpt-logo"
-            />
-
-            <div class="item-content">
-              <div class="item-text">
-                <div class="model-name">
-                  {{ getModelName(item) }}
-                </div>
-                <div class="custom-name">{{ item.custom_name }}</div>
-              </div>
-            </div>
-
-            <button
-              class="select-button"
-              [title]="
-                selectedLLMId === item.id
-                  ? 'Deselect this LLM configuration'
-                  : 'Select this LLM configuration'
-              "
-            >
-              <i
-                [class]="selectedLLMId === item.id ? 'ti ti-x' : 'ti ti-plus'"
-              ></i>
-            </button>
-          </li>
-
-          <!-- No results message -->
-          <li class="no-results" *ngIf="filteredLLMs.length === 0">
-            <div class="empty-state">
-              <i class="ti ti-search-off"></i>
-              <p>No matching LLM configurations found</p>
-            </div>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Realtime Models Tab -->
-      <div class="llm-list-wrapper" *ngIf="activeTab === 'realtime'">
-        <ul class="llms-list">
-          <li
-            class="llm-item"
-            *ngFor="let item of filteredRealtimeModels"
-            (click)="onSelectRealtime(item)"
-            (keydown.enter)="onSelectRealtime(item)"
-            [class.selected]="selectedRealtimeId === item.id"
-            tabindex="0"
-          >
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/6295/6295417.png"
-              alt="Realtime Logo"
-              class="chatgpt-logo"
-            />
-
-            <div class="item-content">
-              <div class="item-text">
-                <div class="model-name">
-                  {{ getModelName(item) }}
-                </div>
-                <div class="custom-name">{{ item.custom_name }}</div>
-              </div>
-            </div>
-
-            <button
-              class="select-button"
-              [title]="
-                selectedRealtimeId === item.id
-                  ? 'Deselect this Realtime configuration'
-                  : 'Select this Realtime configuration'
-              "
-            >
-              <i
-                [class]="
-                  selectedRealtimeId === item.id ? 'ti ti-x' : 'ti ti-plus'
-                "
-              ></i>
-            </button>
-          </li>
-
-          <!-- No results message -->
-          <li class="no-results" *ngIf="filteredRealtimeModels.length === 0">
-            <div class="empty-state">
-              <i class="ti ti-search-off"></i>
-              <p>No matching Realtime configurations found</p>
-            </div>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Controls footer -->
-      <div class="controls-footer">
-        <button class="cancel-button" (click)="onCancel()">Cancel</button>
-        <button class="save-button" (click)="onSave()">Save</button>
-      </div>
-    </div>
-  `,
+  imports: [NgFor, FormsModule, NgIf, NgClass, LlmItemComponent],
+  templateUrl: './llm-popup.component.html',
   styleUrls: ['./llm-popup.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LLMPopupComponent implements OnInit, OnChanges, OnDestroy {
+  // Input/Output
+  @Input() public cellValue: MergedConfig[] = [];
+  @Output() public configsSelected = new EventEmitter<MergedConfig[]>();
+  @Output() public cancel = new EventEmitter<void>();
+
+  @ViewChild('searchInput')
+  private searchInput: ElementRef<HTMLInputElement> | null = null;
+
   public searchTerm: string = '';
   public activeTab: 'llm' | 'realtime' = 'llm';
+  public loading: boolean = true;
 
   // LLM Models
   public llmConfigs: any[] = [];
@@ -188,14 +52,6 @@ export class LLMPopupComponent implements OnInit, OnChanges, OnDestroy {
   public selectedRealtimeId: number | null = null;
   public selectedRealtime: any = null;
 
-  // Input/Output
-  @Input() public cellValue: any = null;
-  @Output() public configsSelected = new EventEmitter<MergedConfig[]>();
-  @Output() public cancel = new EventEmitter<void>();
-
-  @ViewChild('searchInput')
-  public searchInput: ElementRef<HTMLInputElement> | null = null;
-
   private readonly destroyed$ = new Subject<void>();
 
   constructor(
@@ -205,6 +61,7 @@ export class LLMPopupComponent implements OnInit, OnChanges, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
+    console.log('cellValue', this.cellValue);
     this.loadConfigs();
   }
 
@@ -221,182 +78,229 @@ export class LLMPopupComponent implements OnInit, OnChanges, OnDestroy {
 
   // Load all configurations from services
   private loadConfigs(): void {
-    // Load LLM configs
-    this.fullLLMConfigService
-      .getFullLLMConfigs()
+    this.loading = true;
+    this.cdr.markForCheck();
+
+    // Use forkJoin to load both config types in parallel
+    forkJoin({
+      llmConfigs: this.fullLLMConfigService.getFullLLMConfigs(),
+      realtimeConfigs: this.fullRealtimeConfigService.getFullRealtimeConfigs(),
+    })
       .pipe(takeUntil(this.destroyed$))
       .subscribe({
-        next: (configs) => {
-          this.llmConfigs = configs;
+        next: ({ llmConfigs, realtimeConfigs }) => {
+          // Process LLM configs
+          this.llmConfigs = llmConfigs;
+
+          // Process Realtime configs
+          this.realtimeConfigs = realtimeConfigs.fullConfigs;
+
+          // Preselect configs and update UI
           this.preSelectConfigs();
+          this.loading = false;
           this.cdr.markForCheck();
 
-          // Auto-focus search input
-          if (this.searchInput) {
-            this.searchInput.nativeElement.focus();
-          }
+          // Auto-focus search input after a short delay
+          setTimeout(() => {
+            if (this.searchInput) {
+              this.searchInput.nativeElement.focus();
+            }
+          });
         },
-        error: (err) => console.error('Error fetching LLM configs:', err),
-      });
-
-    // Load Realtime configs
-    this.fullRealtimeConfigService
-      .getFullRealtimeConfigs()
-      .pipe(takeUntil(this.destroyed$))
-      .subscribe({
-        next: (data) => {
-          this.realtimeConfigs = data.fullConfigs;
-          this.preSelectConfigs();
+        error: (err) => {
+          console.error('Error fetching configurations:', err);
+          this.loading = false;
           this.cdr.markForCheck();
         },
-        error: (err) => console.error('Error fetching Realtime configs:', err),
       });
   }
 
-  // Preselect configs based on cell value
   private preSelectConfigs(): void {
-    // Reset selections
-    this.selectedLLMId = null;
-    this.selectedLLM = null;
-    this.selectedRealtimeId = null;
-    this.selectedRealtime = null;
+    if (!this.cellValue || !this.cellValue.length) return;
 
-    // Return if no cell value or configs not loaded yet
-    if (
-      !this.cellValue ||
-      (!this.llmConfigs.length && !this.realtimeConfigs.length)
-    ) {
-      return;
-    }
-
-    const configs = Array.isArray(this.cellValue)
-      ? this.cellValue
-      : [this.cellValue];
-
-    // Find selected configs
-    configs.forEach((config) => {
-      if (config.type === 'llm-config' && this.llmConfigs.length) {
-        this.selectedLLMId = config.id;
-        this.selectedLLM =
-          this.llmConfigs.find((c) => c.id === config.id) || null;
-      } else if (
-        config.type === 'realtime-config' &&
-        this.realtimeConfigs.length
-      ) {
-        this.selectedRealtimeId = config.id;
-        this.selectedRealtime =
-          this.realtimeConfigs.find((c) => c.id === config.id) || null;
+    try {
+      // Find LLM config in cell value
+      const llmConfig: MergedConfig | undefined = this.cellValue.find(
+        (config) => config.type === 'llm'
+      );
+      if (llmConfig) {
+        const matchedConfig = this.llmConfigs.find(
+          (c) => c.id === llmConfig.id
+        );
+        if (matchedConfig) {
+          this.selectedLLMId = matchedConfig.id;
+          this.selectedLLM = matchedConfig;
+        }
       }
-    });
+
+      // Find realtime config in cell value
+      const realtimeConfig = this.cellValue.find(
+        (config) => config.type === 'realtime'
+      );
+      if (realtimeConfig) {
+        const matchedConfig = this.realtimeConfigs.find(
+          (c) => c.id === realtimeConfig.id
+        );
+        if (matchedConfig) {
+          this.selectedRealtimeId = matchedConfig.id;
+          this.selectedRealtime = matchedConfig;
+        }
+      }
+
+      this.cdr.markForCheck();
+    } catch (err) {
+      console.error('Error pre-selecting configs:', err);
+    }
   }
 
-  // Get model name from config (works for both LLM and Realtime)
   public getModelName(config: any): string {
-    // Try to get name from modelDetails if it exists (old structure)
+    if (!config) return 'Unknown Model';
+
+    // For FullLLMConfig objects
     if (config.modelDetails?.name) {
       return config.modelDetails.name;
     }
 
-    // Try to get name from modelName property (new structure)
-    if (config.modelName) {
-      return config.modelName;
+    // For MergedConfig objects
+    if (config.model_name) {
+      return config.model_name;
     }
 
-    return 'Unknown';
+    // For legacy config objects
+    if (config.configuration?.model_name) {
+      return config.configuration.model_name;
+    }
+
+    return 'Unnamed Model';
   }
 
-  // Tab switching
   public setActiveTab(tab: 'llm' | 'realtime'): void {
     this.activeTab = tab;
     this.cdr.markForCheck();
   }
 
-  // Filtered LLMs for search
-  public get filteredLLMs(): any[] {
-    if (!this.searchTerm) {
-      return this.llmConfigs;
+  public get filteredLLMs(): MergedConfig[] {
+    if (!this.llmConfigs || this.llmConfigs.length === 0) {
+      return [];
     }
 
-    const term = this.searchTerm.toLowerCase();
-    return this.llmConfigs.filter((item) => {
-      const modelName = this.getModelName(item).toLowerCase();
-      const customName = (item.custom_name || '').toLowerCase();
+    const configs = this.llmConfigs.map((config) => {
+      return {
+        id: config.id,
+        custom_name: config.custom_name,
+        model_name: config.modelDetails?.name || 'Unknown Model',
+        type: 'llm' as const,
+        provider_id: config.modelDetails?.llm_provider,
+        provider_name: config.providerDetails?.name || 'Unknown Provider',
+      };
+    });
 
-      return modelName.includes(term) || customName.includes(term);
+    if (!this.searchTerm) {
+      return configs;
+    }
+
+    const search = this.searchTerm.toLowerCase();
+    return configs.filter((config) => {
+      const modelName = config.model_name.toLowerCase();
+      const customName = (config.custom_name || '').toLowerCase();
+
+      return modelName.includes(search) || customName.includes(search);
     });
   }
 
-  // Filtered Realtime models for search
-  public get filteredRealtimeModels(): any[] {
-    if (!this.searchTerm) {
-      return this.realtimeConfigs;
+  public get filteredRealtimeModels(): MergedConfig[] {
+    if (!this.realtimeConfigs || this.realtimeConfigs.length === 0) {
+      return [];
     }
 
-    const term = this.searchTerm.toLowerCase();
-    return this.realtimeConfigs.filter((item) => {
-      const modelName = this.getModelName(item).toLowerCase();
-      const customName = (item.custom_name || '').toLowerCase();
+    const configs = this.realtimeConfigs.map((config) => {
+      return {
+        id: config.id,
+        custom_name: config.custom_name,
+        model_name: config.modelDetails?.name || 'Unknown Model',
+        type: 'realtime' as const,
+        provider_id: config.modelDetails?.provider,
+        provider_name: config.providerDetails?.name || 'Unknown Provider',
+      };
+    });
 
-      return modelName.includes(term) || customName.includes(term);
+    if (!this.searchTerm) {
+      return configs;
+    }
+
+    const search = this.searchTerm.toLowerCase();
+    return configs.filter((config) => {
+      const modelName = config.model_name.toLowerCase();
+      const customName = (config.custom_name || '').toLowerCase();
+
+      return modelName.includes(search) || customName.includes(search);
     });
   }
 
-  // LLM selection handler
-  public onSelectLLM(item: any): void {
-    // Toggle selection
+  public onSelectLLM(item: MergedConfig): void {
     if (this.selectedLLMId === item.id) {
+      // If already selected, unselect it
       this.selectedLLMId = null;
       this.selectedLLM = null;
     } else {
+      // Select this item
       this.selectedLLMId = item.id;
-      this.selectedLLM = item;
+      // Find the original config object
+      this.selectedLLM = this.llmConfigs.find(
+        (config) => config.id === item.id
+      );
     }
     this.cdr.markForCheck();
   }
 
-  // Realtime selection handler
-  public onSelectRealtime(item: any): void {
-    // Toggle selection
+  public onSelectRealtime(item: MergedConfig): void {
     if (this.selectedRealtimeId === item.id) {
+      // If already selected, unselect it
       this.selectedRealtimeId = null;
       this.selectedRealtime = null;
     } else {
+      // Select this item
       this.selectedRealtimeId = item.id;
-      this.selectedRealtime = item;
+      // Find the original config object
+      this.selectedRealtime = this.realtimeConfigs.find(
+        (config) => config.id === item.id
+      );
     }
     this.cdr.markForCheck();
   }
 
-  // Save selections and emit back to parent
   public onSave(): void {
-    const mergedConfigs: MergedConfig[] = [];
+    const selectedConfigs: MergedConfig[] = [];
 
-    // Add LLM config if selected
+    // Add selected LLM if any
     if (this.selectedLLM) {
-      mergedConfigs.push({
+      selectedConfigs.push({
         id: this.selectedLLM.id,
         custom_name: this.selectedLLM.custom_name,
-        model_name: this.getModelName(this.selectedLLM),
-        type: 'llm-config',
+        model_name: this.selectedLLM.modelDetails?.name || 'Unknown Model',
+        type: 'llm',
+        provider_id: this.selectedLLM.modelDetails?.llm_provider,
+        provider_name:
+          this.selectedLLM.providerDetails?.name || 'Unknown Provider',
       });
     }
 
-    // Add Realtime config if selected
+    // Add selected Realtime if any
     if (this.selectedRealtime) {
-      mergedConfigs.push({
+      selectedConfigs.push({
         id: this.selectedRealtime.id,
         custom_name: this.selectedRealtime.custom_name,
-        model_name: this.getModelName(this.selectedRealtime),
-        type: 'realtime-config',
+        model_name: this.selectedRealtime.modelDetails?.name || 'Unknown Model',
+        type: 'realtime',
+        provider_id: this.selectedRealtime.modelDetails?.provider,
+        provider_name:
+          this.selectedRealtime.providerDetails?.name || 'Unknown Provider',
       });
     }
 
-    // Emit the merged configs
-    this.configsSelected.emit(mergedConfigs);
-    this.cancel.emit();
+    this.configsSelected.emit(selectedConfigs);
   }
 
-  // Cancel handler
   public onCancel(): void {
     this.cancel.emit();
   }

@@ -1,11 +1,11 @@
 import { ToolCategory } from '../models/tool-category.model';
 
 export const TOOL_CATEGORIES_CONFIG: ToolCategory[] = [
-  {
-    name: 'Favorites',
-    icon: 'ui/star',
-    toolIds: [],
-  },
+  //   {
+  //     name: 'Favorites',
+  //     icon: 'ui/star',
+  //     toolIds: [],
+  //   },
   {
     name: 'Web Scraping & Crawling',
     icon: 'ui/scraping',

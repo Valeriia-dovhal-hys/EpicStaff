@@ -2,24 +2,24 @@ import { Injectable, signal, inject } from '@angular/core';
 import {
   FullEmbeddingConfig,
   FullEmbeddingConfigService,
-} from '../../../services/full-embedding.service';
+} from '../../../features/settings-dialog/services/embeddings/full-embedding.service';
 import {
   FullLLMConfig,
   FullLLMConfigService,
-} from '../../../services/full-llm-config.service';
+} from '../../../features/settings-dialog/services/llms/full-llm-config.service';
 import { PROVIDERS } from '../../../shared/constants/llm_providers';
-import { LLM_Provider } from '../../../shared/models/LLM_provider.model';
+import { LLM_Provider } from '../../../features/settings-dialog/models/LLM_provider.model';
 import {
   GetLlmModelRequest,
   LLM_Model,
-} from '../../../shared/models/LLM.model';
-import { EmbeddingModel } from '../../../shared/models/embedding.model';
+} from '../../../features/settings-dialog/models/llms/LLM.model';
+import { EmbeddingModel } from '../../../features/settings-dialog/models/embeddings/embedding.model';
 import { forkJoin, Observable } from 'rxjs';
 import { tap, finalize } from 'rxjs/operators';
-import { LLM_Models_Service } from '../../../services/LLM_models.service';
-import { EmbeddingModelsService } from '../../../services/embeddings.service';
-import { FullRealtimeConfig } from './realtime-models-services/full-reamtime-config.service';
-import { RealtimeModel } from './realtime-models-services/real-time-models.service';
+import { LLM_Models_Service } from '../../../features/settings-dialog/services/llms/LLM_models.service';
+import { EmbeddingModelsService } from '../../../features/settings-dialog/services/embeddings/embeddings.service';
+import { FullRealtimeConfig } from '../../../features/settings-dialog/services/realtime-llms/full-reamtime-config.service';
+import { RealtimeModel } from '../../../features/settings-dialog/services/realtime-llms/real-time-models.service';
 
 // Define possible tab names
 export type ProviderTabType = 'llm' | 'embedding' | 'realtime';

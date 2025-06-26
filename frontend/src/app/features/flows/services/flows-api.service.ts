@@ -57,14 +57,6 @@ export class FlowsApiService {
     return this.http.delete<void>(`${this.apiUrl}${id}/`);
   }
 
-  runGraph(id: number, inputs: any): Observable<any> {
-    return this.http.post<any>(
-      `${this.apiUrl}${id}/run/`,
-      { inputs },
-      { headers: this.httpHeaders }
-    );
-  }
-
   getGraphStatus(runId: string): Observable<any> {
     return this.http.get<any>(
       `${this.configService.apiUrl}graph_runs/${runId}/status/`

@@ -7,10 +7,10 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { LLM_Provider } from '../../../../../shared/models/LLM_provider.model';
-import { GetLlmModelRequest } from '../../../../../shared/models/LLM.model';
+import { LLM_Provider } from '../../../../../features/settings-dialog/models/LLM_provider.model';
+import { GetLlmModelRequest } from '../../../../../features/settings-dialog/models/llms/LLM.model';
 import { LLM_Config_Service } from '../../../../../services/GetLlmConfigRequest.service';
-import { FullLLMConfig } from '../../../../../services/full-llm-config.service';
+import { FullLLMConfig } from '../../../../../features/settings-dialog/services/llms/full-llm-config.service';
 import { ToastService } from '../../../../../services/notifications/toast.service';
 import { CreateLLMConfigRequest } from '../../../../../shared/models/GetLlmConfigRequest.model';
 

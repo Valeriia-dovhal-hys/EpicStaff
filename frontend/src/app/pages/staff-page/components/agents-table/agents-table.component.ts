@@ -133,7 +133,7 @@ export class AgentsTableComponent {
     this.fullAgentService.getFullAgents().subscribe({
       next: (data: FullAgent[]) => {
         // Sort and set data
-        this.rowData = data.sort((a, b) => a.id - b.id);
+        this.rowData = data.sort((a, b) => b.id - a.id);
         this.rowData.push(this.createEmptyFullAgent());
 
         this.cdr.markForCheck();
@@ -248,7 +248,7 @@ export class AgentsTableComponent {
     headerTextColor: '#d9d9de', // --color-text-primary
     cellTextColor: '#d9d9de', // --color-text-primary
     spacing: 3.3,
-    oddRowBackgroundColor: '#222226', // More subtle, closer to main background
+    oddRowBackgroundColor: '#222226',
   });
 
   // Column definitions
@@ -296,7 +296,7 @@ export class AgentsTableComponent {
       flex: 1, // Increased flex weight
       minWidth: 190, // Minimum width needed for content
       maxWidth: 400,
-      rowDrag: true,
+      //   rowDrag: true,
       editable: true,
     },
     {
@@ -429,25 +429,25 @@ export class AgentsTableComponent {
         return `<div class="tools-cell-wrapper">${toolsHtml}</div>`;
       },
     },
-    {
-      headerName: 'Tags',
-      field: 'tags',
-      cellClass: 'tags-cell-wrapper',
-      cellRenderer: (params: ICellRendererParams) => {
-        return params.value
-          .map((tag: string) => {
-            // Remove the '#' from the tag name to create a clean class name
-            const cleanTag: string = tag.replace('#', '').toLowerCase();
-            return `<span class="tag tag-${cleanTag}" >#${tag}</span>`;
-          })
-          .join(' ');
-      },
+    // {
+    //   headerName: 'Tags',
+    //   field: 'tags',
+    //   cellClass: 'tags-cell-wrapper',
+    //   cellRenderer: (params: ICellRendererParams) => {
+    //     return params.value
+    //       .map((tag: string) => {
 
-      flex: 1, // Slightly less flex priority
-      minWidth: 160, // Minimum width needed
-      maxWidth: 170, // Maximum to prevent overly wide columns
-      editable: false,
-    },
+    //         const cleanTag: string = tag.replace('#', '').toLowerCase();
+    //         return `<span class="tag tag-${cleanTag}" >#${tag}</span>`;
+    //       })
+    //       .join(' ');
+    //   },
+
+    //   flex: 1,
+    //   minWidth: 160,
+    //   maxWidth: 170,
+    //   editable: false,
+    // },
     {
       headerName: '',
       field: 'actions',
@@ -556,7 +556,7 @@ export class AgentsTableComponent {
       if (agentData.mergedConfigs && Array.isArray(agentData.mergedConfigs)) {
         // Find LLM config
         const llmConfig = agentData.mergedConfigs.find(
-          (config: any) => config.type === 'llm-config'
+          (config: any) => config.type === 'llm'
         );
         if (llmConfig) {
           llmConfigId = llmConfig.id;
@@ -564,7 +564,7 @@ export class AgentsTableComponent {
 
         // Find realtime config
         const realtimeConfig = agentData.mergedConfigs.find(
-          (config: any) => config.type === 'realtime-config'
+          (config: any) => config.type === 'realtime'
         );
         if (realtimeConfig) {
           realtimeConfigId = realtimeConfig.id;
@@ -860,7 +860,7 @@ export class AgentsTableComponent {
       Array.isArray(updatedAgent.mergedConfigs)
     ) {
       const realtimeConfig = updatedAgent.mergedConfigs.find(
-        (config) => config.type === 'realtime-config'
+        (config) => config.type === 'realtime'
       );
       if (realtimeConfig) {
         realtimeConfigId = realtimeConfig.id;
@@ -1117,7 +1117,7 @@ export class AgentsTableComponent {
       Array.isArray(newAgentData.mergedConfigs)
     ) {
       const realtimeConfig = newAgentData.mergedConfigs.find(
-        (config) => config.type === 'realtime-config'
+        (config) => config.type === 'realtime'
       );
       if (realtimeConfig) {
         realtimeConfigId = realtimeConfig.id;
@@ -1237,13 +1237,11 @@ export class AgentsTableComponent {
       addIndex: insertIndex,
     });
 
-    // Refresh the index column to update numbering
     this.gridApi.refreshCells({
       force: true,
       columns: ['index'],
     });
 
-    // Mark for change detection due to OnPush strategy
     this.cdr.markForCheck();
 
     this.closeContextMenu();
@@ -1278,7 +1276,7 @@ export class AgentsTableComponent {
       return;
     }
 
-    // Close any existing popup before opening a new one.
+    // Close any existing popup
     this.closePopup();
     this.openPopup(event, cell);
   }
@@ -1452,11 +1450,7 @@ export class AgentsTableComponent {
       const portal = new ComponentPortal(LLMPopupComponent);
       const popupRef = this.popupOverlayRef.attach(portal);
 
-      // Pass the current mergedConfigs to the popup (not just fullLlmConfig)
       popupRef.instance.cellValue = event.data?.mergedConfigs || [];
-
-      // Log what we're passing to help debug
-      console.log('Passing to popup:', popupRef.instance.cellValue);
 
       // Subscribe to the configsSelected event
       popupRef.instance.configsSelected.subscribe((mergedConfigs: any[]) => {
@@ -1511,7 +1505,6 @@ export class AgentsTableComponent {
       const popupRef = this.popupOverlayRef.attach(portal);
       popupRef.instance.cellTags = event.data?.tags || [];
 
-      // Subscribe to the tagsSaved event
       popupRef.instance.tagsSaved.subscribe((updatedTags: string[]) => {
         console.log('Updated tags:', updatedTags);
 

@@ -15,12 +15,7 @@ import { SearchShortcutDirective } from '../../directives/search-shortcut.direct
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [
-    CommonModule,
-    AppIconComponent,
-    ButtonComponent,
-    SearchShortcutDirective,
-  ],
+  imports: [CommonModule, AppIconComponent, SearchShortcutDirective],
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,36 +28,27 @@ export class SearchComponent implements OnChanges {
   @Input() public ariaLabel: string = 'Search';
   @Output() public valueChange = new EventEmitter<string>();
 
-  private isBlurred: boolean = false;
+  private internalValue: string = '';
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Reset blur flag when value changes from parent
-    if (changes['value']) {
-      this.isBlurred = false;
+    // Update internal value when external value changes
+    if (changes['value'] && changes['value'].currentValue !== undefined) {
+      this.internalValue = changes['value'].currentValue;
     }
-  }
-
-  public onBlur(): void {
-    this.isBlurred = true;
   }
 
   public onInput(value: string): void {
     const trimmedValue = value.trim();
 
-    // Delay execution to check if blur occurred (Telerik forum solution)
-    setTimeout(() => {
-      if (this.isBlurred) {
-        // Reset blur flag and skip emission
-        this.isBlurred = false;
-        return;
-      }
-
-      // Emit the trimmed value
+    // Only emit if the value has actually changed
+    if (trimmedValue !== this.internalValue) {
+      this.internalValue = trimmedValue;
       this.valueChange.emit(trimmedValue);
-    }, 10);
+    }
   }
 
   public clear(): void {
+    this.internalValue = '';
     this.valueChange.emit('');
   }
 }

@@ -14,11 +14,19 @@
   --color-ghost-btn-hover: rgba(104, 95, 255, 0.08);
   --color-ghost-btn-active: rgba(104, 95, 255, 0.15);
   --color-input-text-placeholder: #c8ceda4d;
+  --color-input-background: #27272b;
+  --color-input-border: #c8ceda24;
+  --color-modals-background: #222225;
 
   //border colors
   --color-components-card-border: #ffffff08;
   --color-divider-regular: #c8ceda24;
   --color-divider-subtle: #c8ceda14;
+
+  //scrollbar colors
+  --color-scrollbar-thumb: rgba(217, 217, 227, 0.16);
+  --color-scrollbar-thumb-hover: rgba(217, 217, 227, 0.24);
+  --color-scrollbar-track: transparent;
 
   --gray-50: #f9f9f9;
   --gray-100: #ececec;

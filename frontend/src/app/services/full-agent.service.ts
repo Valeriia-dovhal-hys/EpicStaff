@@ -3,48 +3,41 @@ import { forkJoin, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { AgentsService } from './staff.service';
-import { LLM_Config_Service } from './LLM_config.service';
+import { LLM_Config_Service } from '../features/settings-dialog/services/llms/LLM_config.service';
 import { ToolConfigService } from './tool_config.service';
 import { PythonCodeToolService } from '../user-settings-page/tools/custom-tool-editor/services/pythonCodeToolService.service';
-import { LLM_Models_Service } from './LLM_models.service';
+import { LLM_Models_Service } from '../features/settings-dialog/services/llms/LLM_models.service';
 import { ProjectsStorageService } from '../features/projects/services/projects-storage.service';
+import { LLM_Providers_Service } from '../features/settings-dialog/services/LLM_providers.service';
+import { ToolsService } from '../features/tools/services/tools.service';
 
 import { GetAgentRequest } from '../shared/models/agent.model';
-import { GetLlmConfigRequest } from '../shared/models/LLM_config.model';
-import { GetLlmModelRequest } from '../shared/models/LLM.model';
-import { GetToolConfigRequest } from '../shared/models/tool_config,model';
+import { GetToolConfigRequest } from '../shared/models/tool_config.model';
 import { GetPythonCodeToolRequest } from '../features/tools/models/python-code-tool.model';
-import {
-  RealtimeModelConfig,
-  RealtimeModelConfigsService,
-} from '../pages/models-page/services/realtime-models-services/real-time-model-config.service';
-import {
-  RealtimeModel,
-  RealtimeModelsService,
-} from '../pages/models-page/services/realtime-models-services/real-time-models.service';
+import { RealtimeModelConfigsService } from '../features/settings-dialog/services/realtime-llms/real-time-model-config.service';
+import { RealtimeModelsService } from '../features/settings-dialog/services/realtime-llms/real-time-models.service';
+import { LLM_Provider } from '../features/settings-dialog/models/LLM_provider.model';
+import { FullLLMConfig } from '../features/settings-dialog/services/llms/full-llm-config.service';
+import { FullRealtimeConfig } from '../features/settings-dialog/services/realtime-llms/full-reamtime-config.service';
+import { Tool } from '../shared/models/tool.model';
 
-export interface FullLlmConfig extends GetLlmConfigRequest {
-  modelName: string;
-  modelDetails: GetLlmModelRequest | null;
-}
-
-export interface EnhancedRealtimeConfig extends RealtimeModelConfig {
-  modelName: string; // Store only the model name instead of the full details
+export interface MergedConfig {
+  id: number;
+  custom_name: string;
+  model_name: string;
+  type: 'llm' | 'realtime'; // Using literal string union type for better type safety
+  provider_id?: number;
+  provider_name?: string;
 }
 
 export interface FullAgent extends GetAgentRequest {
-  fullLlmConfig?: FullLlmConfig | null;
-  fullFcmLlmConfig?: FullLlmConfig | null;
-  fullRealtimeConfig?: EnhancedRealtimeConfig | null;
+  fullLlmConfig?: FullLLMConfig | null;
+  fullFcmLlmConfig?: FullLLMConfig | null;
+  fullRealtimeConfig?: FullRealtimeConfig | null;
   fullConfiguredTools: GetToolConfigRequest[];
   fullPythonTools: GetPythonCodeToolRequest[];
   mergedTools: { id: number; name: string; type: string }[];
-  mergedConfigs: {
-    id: number;
-    custom_name: string;
-    model_name: string;
-    type: string;
-  }[];
+  mergedConfigs: MergedConfig[];
   tags: string[];
 }
 
@@ -64,7 +57,9 @@ export class FullAgentService {
     private llmModelsService: LLM_Models_Service,
     private projectsService: ProjectsStorageService,
     private realtimeModelConfigsService: RealtimeModelConfigsService,
-    private realtimeModelsService: RealtimeModelsService
+    private realtimeModelsService: RealtimeModelsService,
+    private llmProvidersService: LLM_Providers_Service,
+    private toolService: ToolsService
   ) {}
 
   getFullAgents(): Observable<FullAgent[]> {
@@ -76,6 +71,8 @@ export class FullAgentService {
       llmModels: this.llmModelsService.getLLMModels(),
       realtimeConfigs: this.realtimeModelConfigsService.getAllConfigs(),
       realtimeModels: this.realtimeModelsService.getAllModels(),
+      llmProviders: this.llmProvidersService.getProviders(),
+      tools: this.toolService.getTools(),
     }).pipe(
       map(
         ({
@@ -86,28 +83,41 @@ export class FullAgentService {
           llmModels,
           realtimeConfigs,
           realtimeModels,
+          llmProviders,
+          tools,
         }) => {
-          const possibleTags = [
-            'Premium',
-            'Searcher',
-            'Boxer',
-            'Scientist',
-            'Economist',
-            'Programmer',
-          ];
+          // Build lookup tables for models and providers
+          const modelMap: Record<number, any> = {};
+          llmModels.forEach((model) => {
+            modelMap[model.id] = model;
+          });
+
+          const realtimeModelMap: Record<number, any> = {};
+          realtimeModels.forEach((model) => {
+            realtimeModelMap[model.id] = model;
+          });
+
+          const providerMap: Record<number, LLM_Provider> = {};
+          llmProviders.forEach((provider) => {
+            providerMap[provider.id] = provider;
+          });
 
           return agents.map((agent) => {
-            const findEnhancedConfig = (
+            const findEnhancedLlmConfig = (
               configId: number | null
-            ): FullLlmConfig | null => {
+            ): FullLLMConfig | null => {
               if (configId === null) return null;
               const config = llmConfigs.find((cfg) => cfg.id === configId);
               if (config) {
-                const model = llmModels.find((m) => m.id === config.model);
+                const model = modelMap[config.model] || null;
+                const provider = model?.llm_provider
+                  ? providerMap[model.llm_provider]
+                  : null;
+
                 return {
                   ...config,
-                  modelName: model ? model.name : 'Unknown',
-                  modelDetails: model ? model : null,
+                  modelDetails: model,
+                  providerDetails: provider,
                 };
               }
               return null;
@@ -115,26 +125,31 @@ export class FullAgentService {
 
             const findEnhancedRealtimeConfig = (
               configId: number | null
-            ): EnhancedRealtimeConfig | null => {
+            ): FullRealtimeConfig | null => {
               if (configId === null) return null;
               const config = realtimeConfigs.find((cfg) => cfg.id === configId);
               if (config) {
-                const modelDetails =
-                  realtimeModels.find((m) => m.id === config.realtime_model) ||
-                  null;
+                const model = realtimeModelMap[config.realtime_model] || null;
+                const provider = model?.provider
+                  ? providerMap[model.provider]
+                  : null;
+
                 return {
                   ...config,
-                  modelName: modelDetails ? modelDetails.name : 'Unknown',
+                  modelDetails: model,
+                  providerDetails: provider,
                 };
               }
               return null;
             };
 
             // Use the helper functions, ensuring they don't receive `null`
-            const fullLlmConfig = findEnhancedConfig(agent.llm_config);
-            const fullFcmLlmConfig = findEnhancedConfig(agent.fcm_llm_config);
+            const fullLlmConfig = findEnhancedLlmConfig(agent.llm_config);
+            const fullFcmLlmConfig = findEnhancedLlmConfig(
+              agent.fcm_llm_config
+            );
             const fullRealtimeConfig = findEnhancedRealtimeConfig(
-              agent.realtime_agent.realtime_config
+              agent.realtime_agent?.realtime_config
             );
 
             // Tool configs
@@ -145,11 +160,17 @@ export class FullAgentService {
               agent.python_code_tools.includes(pt.id)
             );
 
+            // Create a map of tool IDs to tool names
+            const toolsMap = new Map<number, string>();
+            tools.forEach((tool: Tool) => {
+              toolsMap.set(tool.id, tool.name);
+            });
+
             // Merge both sets of tools
             const mergedTools = [
               ...fullConfiguredTools.map((tc) => ({
                 id: tc.id,
-                name: tc.name,
+                name: toolsMap.get(tc.tool) || tc.name, // Use the actual tool name instead of config name
                 type: 'tool-config',
               })),
               ...fullPythonTools.map((pt) => ({
@@ -159,24 +180,18 @@ export class FullAgentService {
               })),
             ];
 
-            const randomTagCount = Math.floor(Math.random() * 5) + 1;
-            const randomTags: string[] = [];
-            for (let i = 0; i < randomTagCount; i++) {
-              const randomIndex = Math.floor(
-                Math.random() * possibleTags.length
-              );
-              randomTags.push(possibleTags[randomIndex]);
-            }
-
             // Merge LLM and realtime configs
-            const mergedConfigs = [];
+            const mergedConfigs: MergedConfig[] = [];
 
             if (fullLlmConfig) {
               mergedConfigs.push({
                 id: fullLlmConfig.id,
                 custom_name: fullLlmConfig.custom_name,
-                model_name: fullLlmConfig.modelName,
-                type: 'llm-config',
+                model_name: fullLlmConfig.modelDetails?.name || 'Unknown Model',
+                type: 'llm',
+                provider_id: fullLlmConfig.modelDetails?.llm_provider,
+                provider_name:
+                  fullLlmConfig.providerDetails?.name || 'Unknown Provider',
               });
             }
 
@@ -184,8 +199,13 @@ export class FullAgentService {
               mergedConfigs.push({
                 id: fullRealtimeConfig.id,
                 custom_name: fullRealtimeConfig.custom_name,
-                model_name: fullRealtimeConfig.modelName,
-                type: 'realtime-config',
+                model_name:
+                  fullRealtimeConfig.modelDetails?.name || 'Unknown Model',
+                type: 'realtime',
+                provider_id: fullRealtimeConfig.modelDetails?.provider,
+                provider_name:
+                  fullRealtimeConfig.providerDetails?.name ||
+                  'Unknown Provider',
               });
             }
 
@@ -198,7 +218,7 @@ export class FullAgentService {
               fullPythonTools,
               mergedTools,
               mergedConfigs,
-              tags: randomTags,
+              tags: [], // Empty array instead of random tags
             };
           });
         }
@@ -210,13 +230,15 @@ export class FullAgentService {
     // Fetch project and all other data concurrently
     return forkJoin({
       project: this.projectsService.getProjectById(projectId),
-      agents: this.agentsService.getAgents(),
+      agents: this.agentsService.getAgentsByProjectId(projectId),
       llmConfigs: this.llmConfigService.getAllConfigsLLM(),
       toolConfigs: this.toolConfigService.getToolConfigs(),
       pythonTools: this.pythonCodeToolService.getPythonCodeTools(),
       llmModels: this.llmModelsService.getLLMModels(),
       realtimeConfigs: this.realtimeModelConfigsService.getAllConfigs(),
       realtimeModels: this.realtimeModelsService.getAllModels(),
+      llmProviders: this.llmProvidersService.getProviders(),
+      tools: this.toolService.getTools(),
     }).pipe(
       map(
         ({
@@ -228,15 +250,24 @@ export class FullAgentService {
           llmModels,
           realtimeConfigs,
           realtimeModels,
+          llmProviders,
+          tools,
         }) => {
-          const possibleTags = [
-            'Premium',
-            'Searcher',
-            'Boxer',
-            'Scientist',
-            'Economist',
-            'Programmer',
-          ];
+          // Build lookup tables for models and providers
+          const modelMap: Record<number, any> = {};
+          llmModels.forEach((model) => {
+            modelMap[model.id] = model;
+          });
+
+          const realtimeModelMap: Record<number, any> = {};
+          realtimeModels.forEach((model) => {
+            realtimeModelMap[model.id] = model;
+          });
+
+          const providerMap: Record<number, LLM_Provider> = {};
+          llmProviders.forEach((provider) => {
+            providerMap[provider.id] = provider;
+          });
 
           // Filter agents to include only those related to the project
           const projectAgentIds = project?.agents || []; // Agents field from the project
@@ -246,17 +277,21 @@ export class FullAgentService {
           );
 
           return filteredAgents.map((agent) => {
-            const findEnhancedConfig = (
+            const findEnhancedLlmConfig = (
               configId: number | null
-            ): FullLlmConfig | null => {
+            ): FullLLMConfig | null => {
               if (configId === null) return null;
               const config = llmConfigs.find((cfg) => cfg.id === configId);
               if (config) {
-                const model = llmModels.find((m) => m.id === config.model);
+                const model = modelMap[config.model] || null;
+                const provider = model?.llm_provider
+                  ? providerMap[model.llm_provider]
+                  : null;
+
                 return {
                   ...config,
-                  modelName: model ? model.name : 'Unknown',
-                  modelDetails: model ? model : null,
+                  modelDetails: model,
+                  providerDetails: provider,
                 };
               }
               return null;
@@ -264,26 +299,31 @@ export class FullAgentService {
 
             const findEnhancedRealtimeConfig = (
               configId: number | null
-            ): EnhancedRealtimeConfig | null => {
+            ): FullRealtimeConfig | null => {
               if (configId === null) return null;
               const config = realtimeConfigs.find((cfg) => cfg.id === configId);
               if (config) {
-                const modelDetails =
-                  realtimeModels.find((m) => m.id === config.realtime_model) ||
-                  null;
+                const model = realtimeModelMap[config.realtime_model] || null;
+                const provider = model?.provider
+                  ? providerMap[model.provider]
+                  : null;
+
                 return {
                   ...config,
-                  modelName: modelDetails ? modelDetails.name : 'Unknown',
+                  modelDetails: model,
+                  providerDetails: provider,
                 };
               }
               return null;
             };
 
             // Use the helper functions
-            const fullLlmConfig = findEnhancedConfig(agent.llm_config);
-            const fullFcmLlmConfig = findEnhancedConfig(agent.fcm_llm_config);
+            const fullLlmConfig = findEnhancedLlmConfig(agent.llm_config);
+            const fullFcmLlmConfig = findEnhancedLlmConfig(
+              agent.fcm_llm_config
+            );
             const fullRealtimeConfig = findEnhancedRealtimeConfig(
-              agent.realtime_agent.realtime_config
+              agent.realtime_agent?.realtime_config
             );
 
             // Tool configs
@@ -294,11 +334,17 @@ export class FullAgentService {
               agent.python_code_tools.includes(pt.id)
             );
 
+            // Create a map of tool IDs to tool names
+            const toolsMap = new Map<number, string>();
+            tools.forEach((tool: Tool) => {
+              toolsMap.set(tool.id, tool.name);
+            });
+
             // Merge both sets of tools
             const mergedTools = [
               ...fullConfiguredTools.map((tc) => ({
                 id: tc.id,
-                name: tc.name,
+                name: toolsMap.get(tc.tool) || tc.name, // Use the actual tool name instead of config name
                 type: 'tool-config',
               })),
               ...fullPythonTools.map((pt) => ({
@@ -308,24 +354,18 @@ export class FullAgentService {
               })),
             ];
 
-            const randomTagCount = Math.floor(Math.random() * 5) + 1;
-            const randomTags: string[] = [];
-            for (let i = 0; i < randomTagCount; i++) {
-              const randomIndex = Math.floor(
-                Math.random() * possibleTags.length
-              );
-              randomTags.push(possibleTags[randomIndex]);
-            }
-
             // Merge LLM and realtime configs
-            const mergedConfigs = [];
+            const mergedConfigs: MergedConfig[] = [];
 
             if (fullLlmConfig) {
               mergedConfigs.push({
                 id: fullLlmConfig.id,
                 custom_name: fullLlmConfig.custom_name,
-                model_name: fullLlmConfig.modelName,
-                type: 'llm-config',
+                model_name: fullLlmConfig.modelDetails?.name || 'Unknown Model',
+                type: 'llm',
+                provider_id: fullLlmConfig.modelDetails?.llm_provider,
+                provider_name:
+                  fullLlmConfig.providerDetails?.name || 'Unknown Provider',
               });
             }
 
@@ -333,8 +373,13 @@ export class FullAgentService {
               mergedConfigs.push({
                 id: fullRealtimeConfig.id,
                 custom_name: fullRealtimeConfig.custom_name,
-                model_name: fullRealtimeConfig.modelName,
-                type: 'realtime-config',
+                model_name:
+                  fullRealtimeConfig.modelDetails?.name || 'Unknown Model',
+                type: 'realtime',
+                provider_id: fullRealtimeConfig.modelDetails?.provider,
+                provider_name:
+                  fullRealtimeConfig.providerDetails?.name ||
+                  'Unknown Provider',
               });
             }
 
@@ -347,7 +392,7 @@ export class FullAgentService {
               fullPythonTools,
               mergedTools,
               mergedConfigs,
-              tags: randomTags,
+              tags: [], // Empty array instead of random tags
             };
           });
         }
@@ -364,6 +409,8 @@ export class FullAgentService {
       llmModels: this.llmModelsService.getLLMModels(),
       realtimeConfigs: this.realtimeModelConfigsService.getAllConfigs(),
       realtimeModels: this.realtimeModelsService.getAllModels(),
+      llmProviders: this.llmProvidersService.getProviders(),
+      tools: this.toolService.getTools(),
     }).pipe(
       map(
         ({
@@ -374,6 +421,8 @@ export class FullAgentService {
           llmModels,
           realtimeConfigs,
           realtimeModels,
+          llmProviders,
+          tools,
         }) => {
           // Find the agent with the specified ID
           const agent = agents.find((agent) => agent.id === agentId);
@@ -383,26 +432,37 @@ export class FullAgentService {
             return null;
           }
 
-          const possibleTags = [
-            'Premium',
-            'Searcher',
-            'Boxer',
-            'Scientist',
-            'Economist',
-            'Programmer',
-          ];
+          // Build lookup tables for models and providers
+          const modelMap: Record<number, any> = {};
+          llmModels.forEach((model) => {
+            modelMap[model.id] = model;
+          });
 
-          const findEnhancedConfig = (
+          const realtimeModelMap: Record<number, any> = {};
+          realtimeModels.forEach((model) => {
+            realtimeModelMap[model.id] = model;
+          });
+
+          const providerMap: Record<number, LLM_Provider> = {};
+          llmProviders.forEach((provider) => {
+            providerMap[provider.id] = provider;
+          });
+
+          const findEnhancedLlmConfig = (
             configId: number | null
-          ): FullLlmConfig | null => {
+          ): FullLLMConfig | null => {
             if (configId === null) return null;
             const config = llmConfigs.find((cfg) => cfg.id === configId);
             if (config) {
-              const model = llmModels.find((m) => m.id === config.model);
+              const model = modelMap[config.model] || null;
+              const provider = model?.llm_provider
+                ? providerMap[model.llm_provider]
+                : null;
+
               return {
                 ...config,
-                modelName: model ? model.name : 'Unknown',
-                modelDetails: model ? model : null,
+                modelDetails: model,
+                providerDetails: provider,
               };
             }
             return null;
@@ -410,26 +470,29 @@ export class FullAgentService {
 
           const findEnhancedRealtimeConfig = (
             configId: number | null
-          ): EnhancedRealtimeConfig | null => {
+          ): FullRealtimeConfig | null => {
             if (configId === null) return null;
             const config = realtimeConfigs.find((cfg) => cfg.id === configId);
             if (config) {
-              const modelDetails =
-                realtimeModels.find((m) => m.id === config.realtime_model) ||
-                null;
+              const model = realtimeModelMap[config.realtime_model] || null;
+              const provider = model?.provider
+                ? providerMap[model.provider]
+                : null;
+
               return {
                 ...config,
-                modelName: modelDetails ? modelDetails.name : 'Unknown',
+                modelDetails: model,
+                providerDetails: provider,
               };
             }
             return null;
           };
 
           // Use the helper functions
-          const fullLlmConfig = findEnhancedConfig(agent.llm_config);
-          const fullFcmLlmConfig = findEnhancedConfig(agent.fcm_llm_config);
+          const fullLlmConfig = findEnhancedLlmConfig(agent.llm_config);
+          const fullFcmLlmConfig = findEnhancedLlmConfig(agent.fcm_llm_config);
           const fullRealtimeConfig = findEnhancedRealtimeConfig(
-            agent.realtime_agent.realtime_config
+            agent.realtime_agent?.realtime_config
           );
 
           // Tool configs
@@ -440,11 +503,17 @@ export class FullAgentService {
             agent.python_code_tools.includes(pt.id)
           );
 
+          // Create a map of tool IDs to tool names
+          const toolsMap = new Map<number, string>();
+          tools.forEach((tool: Tool) => {
+            toolsMap.set(tool.id, tool.name);
+          });
+
           // Merge both sets of tools
           const mergedTools = [
             ...fullConfiguredTools.map((tc) => ({
               id: tc.id,
-              name: tc.name,
+              name: toolsMap.get(tc.tool) || tc.name, // Use the actual tool name instead of config name
               type: 'tool-config',
             })),
             ...fullPythonTools.map((pt) => ({
@@ -454,22 +523,18 @@ export class FullAgentService {
             })),
           ];
 
-          const randomTagCount = Math.floor(Math.random() * 5) + 1;
-          const randomTags: string[] = [];
-          for (let i = 0; i < randomTagCount; i++) {
-            const randomIndex = Math.floor(Math.random() * possibleTags.length);
-            randomTags.push(possibleTags[randomIndex]);
-          }
-
           // Merge LLM and realtime configs
-          const mergedConfigs = [];
+          const mergedConfigs: MergedConfig[] = [];
 
           if (fullLlmConfig) {
             mergedConfigs.push({
               id: fullLlmConfig.id,
               custom_name: fullLlmConfig.custom_name,
-              model_name: fullLlmConfig.modelName,
-              type: 'llm-config',
+              model_name: fullLlmConfig.modelDetails?.name || 'Unknown Model',
+              type: 'llm',
+              provider_id: fullLlmConfig.modelDetails?.llm_provider,
+              provider_name:
+                fullLlmConfig.providerDetails?.name || 'Unknown Provider',
             });
           }
 
@@ -477,8 +542,12 @@ export class FullAgentService {
             mergedConfigs.push({
               id: fullRealtimeConfig.id,
               custom_name: fullRealtimeConfig.custom_name,
-              model_name: fullRealtimeConfig.modelName,
-              type: 'realtime-config',
+              model_name:
+                fullRealtimeConfig.modelDetails?.name || 'Unknown Model',
+              type: 'realtime',
+              provider_id: fullRealtimeConfig.modelDetails?.provider,
+              provider_name:
+                fullRealtimeConfig.providerDetails?.name || 'Unknown Provider',
             });
           }
 
@@ -491,7 +560,7 @@ export class FullAgentService {
             fullPythonTools,
             mergedTools,
             mergedConfigs,
-            tags: randomTags,
+            tags: [], // Empty array instead of random tags
           };
         }
       )

@@ -114,7 +114,12 @@
           <div class="file-settings" *ngIf="fileWithSettings.isValid">
             <div class="setting-row">
               <div class="setting-group">
-                <label>Chunk Strategy</label>
+                <div class="setting-label">
+                  <label>Chunk Strategy</label>
+                  <app-help-tooltip
+                    text="Choose how to split your document into chunks. Different strategies work better for different document types."
+                  ></app-help-tooltip>
+                </div>
                 <select
                   class="chunk-strategy-select"
                   [value]="fileWithSettings.chunkStrategy"
@@ -136,7 +141,12 @@
               </div>
 
               <div class="setting-group">
-                <label>Chunk Size</label>
+                <div class="setting-label">
+                  <label>Chunk Size</label>
+                  <app-help-tooltip
+                    text="The maximum size of each document chunk. Smaller chunks are more precise but may lose context. Larger chunks preserve more context but may be less precise."
+                  ></app-help-tooltip>
+                </div>
                 <input
                   type="number"
                   [value]="fileWithSettings.chunkSize"
@@ -154,7 +164,12 @@
               </div>
 
               <div class="setting-group">
-                <label>Chunk Overlap</label>
+                <div class="setting-label">
+                  <label>Chunk Overlap</label>
+                  <app-help-tooltip
+                    text="The number of characters or tokens that overlap between chunks. Helps maintain context between chunks. Must be smaller than chunk size."
+                  ></app-help-tooltip>
+                </div>
                 <input
                   type="number"
                   [value]="fileWithSettings.overlapSize"

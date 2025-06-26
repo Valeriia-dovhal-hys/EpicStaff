@@ -16,7 +16,20 @@
     <form [formGroup]="nodeForm" (ngSubmit)="onSubmit()">
       <!-- Initial State JSON Editor -->
       <div class="form-group">
-        <label>Initial Variables</label>
+        <div class="label-with-tooltip">
+          <label>Initial Variables</label>
+          <app-help-tooltip
+            position="right"
+            text="Variables are named containers that store values and pass data between nodes in a flow.
+Example:
+{
+  'first_name': 'Anna',
+  'city': 'Paris'
+}
+
+These variables will be accessible to all other nodes in your flow."
+          ></app-help-tooltip>
+        </div>
         <app-json-editor
           class="json-editor"
           [jsonData]="initialStateJson"

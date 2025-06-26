@@ -3,8 +3,9 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ICONS } from '../../../shared/constants/icons.constants';
 import { TooltipComponent } from './tooltip.component';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { Dialog } from '@angular/cdk/dialog';
-import { SettingsDialogComponent } from '../../../pages/settings-dialog/settings-dialog.component';
+import { SettingsDialogService } from '../../../features/settings-dialog/settings-dialog.service';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { PortalModule } from '@angular/cdk/portal';
 
 interface NavItem {
   id: string;
@@ -19,7 +20,13 @@ interface NavItem {
 @Component({
   selector: 'app-left-sidebar',
   standalone: true,
-  imports: [TooltipComponent, RouterLinkActive, RouterLink],
+  imports: [
+    TooltipComponent,
+    RouterLinkActive,
+    RouterLink,
+    OverlayModule,
+    PortalModule,
+  ],
   templateUrl: './sidenav.component.html',
   styleUrls: ['./sidenav.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,7 +35,10 @@ export class LeftSidebarComponent {
   public topNavItems: NavItem[];
   public bottomNavItems: NavItem[];
 
-  constructor(private sanitizer: DomSanitizer, private dialog: Dialog) {
+  constructor(
+    private sanitizer: DomSanitizer,
+    private settingsDialogService: SettingsDialogService
+  ) {
     this.topNavItems = [
       {
         id: 'projects',
@@ -86,15 +96,8 @@ export class LeftSidebarComponent {
     ];
   }
 
-  public trackItem(index: number, item: NavItem) {
-    return item.id;
-  }
-
   private onSettingsClick(): void {
-    this.dialog.open(SettingsDialogComponent, {
-      width: '500px',
-      height: '560px',
-    });
+    this.settingsDialogService.openSettingsDialog();
   }
 
   public handleItemClick(item: NavItem, event: MouseEvent): void {

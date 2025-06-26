@@ -55,9 +55,13 @@ export class FlowsStorageService {
     const templates = this.templatesSignal();
     const filter = this.filterSignal();
     if (!filter) return templates;
-    return templates.filter((t) =>
-      t.name.toLowerCase().includes(filter.searchTerm?.toLowerCase() || '')
-    );
+    let filtered = templates;
+    if (filter.searchTerm) {
+      filtered = filtered.filter((t) =>
+        t.name.toLowerCase().includes(filter.searchTerm.toLowerCase())
+      );
+    }
+    return filtered;
   });
 
   // --- State Mutators ---
@@ -72,7 +76,32 @@ export class FlowsStorageService {
   }
 
   public setFilter(filter: SearchFilterChange | null) {
-    this.filterSignal.set(filter);
+    // Only update filter if it's different from current filter
+    const currentFilter = this.filterSignal();
+
+    // Check if filter is the same as current filter
+    if (currentFilter === null && filter === null) {
+      return;
+    }
+
+    // If either is null but not both, they're different
+    if (currentFilter === null || filter === null) {
+      this.filterSignal.set(filter);
+      return;
+    }
+
+    // Compare searchTerm
+    const searchTermChanged = currentFilter.searchTerm !== filter.searchTerm;
+
+    // Only update if there's a change
+    if (searchTermChanged) {
+      this.filterSignal.set(filter);
+    }
+  }
+
+  // Get the current filter value
+  public getCurrentFilter(): SearchFilterChange | null {
+    return this.filterSignal();
   }
 
   // --- Data Fetching Methods ---
@@ -122,7 +151,6 @@ export class FlowsStorageService {
   public createFlow(flowData: CreateGraphDtoRequest): Observable<GraphDto> {
     return this.flowsApiService.createGraph(flowData).pipe(
       tap((newFlow) => {
-        console.log('newFlow', newFlow);
         this.addFlowToCache(newFlow);
       })
     );

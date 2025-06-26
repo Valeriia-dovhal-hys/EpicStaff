@@ -69,4 +69,20 @@
   padding: 1rem 3rem;
   padding-top: 0;
   overflow: auto;
+  position: relative;
+}
+
+/* Loading overlay styling */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(18, 18, 18, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  backdrop-filter: blur(3px);
 }

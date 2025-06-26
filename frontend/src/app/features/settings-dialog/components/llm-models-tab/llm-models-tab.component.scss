@@ -1,0 +1,130 @@
+.tab-content {
+  padding: 1.25rem;
+}
+
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-top: 0;
+}
+
+.llm-configs-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.llm-config-card {
+  background-color: var(--color-surface-card);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid var(--color-divider-subtle);
+
+  .config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    h4 {
+      margin: 0;
+      color: var(--color-text-primary);
+      font-weight: 600;
+    }
+  }
+
+  .provider-badge {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .config-details {
+    margin-bottom: 1rem;
+  }
+
+  .detail-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+
+    .label {
+      color: var(--color-text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .value {
+      color: var(--color-text-primary);
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+  }
+
+  .config-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.75rem;
+      background: none;
+
+      &.edit {
+        color: var(--color-text-secondary);
+      }
+
+      &.delete {
+        color: var(--color-error);
+      }
+    }
+  }
+}
+
+.empty-state,
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-secondary);
+}
+
+.error-state {
+  color: var(--color-error);
+
+  p {
+    margin-bottom: 1rem;
+  }
+}
+
+.create-btn {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

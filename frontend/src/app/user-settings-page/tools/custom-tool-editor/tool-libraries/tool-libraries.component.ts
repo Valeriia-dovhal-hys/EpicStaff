@@ -4,13 +4,15 @@ import {
   Component,
   Input,
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgFor, NgIf } from '@angular/common';
 import { AppIconComponent } from '../../../../shared/components/app-icon/app-icon.component';
+import { HelpTooltipComponent } from '../../../../shared/components/help-tooltip/help-tooltip.component';
 
 @Component({
   selector: 'app-tool-libraries',
-  imports: [FormsModule, NgFor, AppIconComponent],
+  standalone: true,
+  imports: [CommonModule, FormsModule, AppIconComponent, HelpTooltipComponent],
   templateUrl: './tool-libraries.component.html',
   styleUrls: ['./tool-libraries.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

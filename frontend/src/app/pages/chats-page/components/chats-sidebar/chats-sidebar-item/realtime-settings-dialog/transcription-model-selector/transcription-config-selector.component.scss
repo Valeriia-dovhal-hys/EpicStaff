@@ -72,6 +72,28 @@
       font-size: 14px;
       cursor: pointer;
       transition: background-color 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .config-name {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .delete-icon {
+        opacity: 0.6;
+        margin-left: 8px;
+        color: rgba(255, 255, 255, 0.8);
+        transition: opacity 0.2s ease;
+
+        &:hover {
+          opacity: 1;
+          color: #ff4d4f;
+        }
+      }
 
       &:hover {
         background-color: #333333;

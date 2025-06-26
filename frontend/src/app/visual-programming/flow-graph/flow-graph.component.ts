@@ -85,6 +85,8 @@ import { NodesSearchComponent } from '../components/nodes-search/nodes-search.co
 import { generateNodeDisplayName } from '../core/helpers/generate-node-display-name.util';
 import { SidePanelService } from '../services/side-panel.service';
 import { map, takeUntil } from 'rxjs/operators';
+import { Dialog } from '@angular/cdk/dialog';
+import { ProjectDialogComponent } from '../components/project-dialog/project-dialog.component';
 
 @Component({
   selector: 'app-flow-graph',
@@ -143,13 +145,16 @@ export class FlowGraphComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private selectedNode$!: Observable<NodeModel | null>;
 
+  public showVariables = signal<boolean>(false);
+
   constructor(
     public readonly flowService: FlowService,
     private readonly undoRedoService: UndoRedoService,
     private readonly clipboardService: ClipboardService,
     private readonly groupCollapserService: GroupCollapserService,
     private readonly sidePanelService: SidePanelService,
-    private readonly cd: ChangeDetectorRef
+    private readonly cd: ChangeDetectorRef,
+    private readonly dialog: Dialog
   ) {}
 
   public ngOnInit(): void {
@@ -629,19 +634,15 @@ export class FlowGraphComponent implements OnInit, OnDestroy {
       // Get current selections
       const { fNodeIds, fGroupIds } = this.fFlowComponent.getSelection();
 
-      // If we have selected groups, put the new group inside the first selected group
-      if (fGroupIds.length > 0) {
-        const targetGroupId = fGroupIds[0]; // Use the first selected group as target
-
-        // Elements to add will be the new group plus any selected nodes
-        const elementsToAdd = [newNodeId, ...fNodeIds];
-
-        const dropEvent = new FDropToGroupEvent(targetGroupId, elementsToAdd, {
+      const dropEvent = new FDropToGroupEvent(
+        newNodeId,
+        [...fNodeIds, ...fGroupIds],
+        {
           x: 0,
           y: 0,
-        });
-        this.onDropToGroup(dropEvent);
-      }
+        }
+      );
+      this.onDropToGroup(dropEvent);
     } else {
       // Create and add a regular node
       const newNode: NodeModel = {
@@ -1989,7 +1990,34 @@ export class FlowGraphComponent implements OnInit, OnDestroy {
     this.fZoomDirective.setZoom(position, 1, EFZoomDirection.ZOOM_IN, true);
   }
 
+  public toggleShowVariables(): void {
+    this.showVariables.set(!this.showVariables());
+    console.log('Show Variables:', this.showVariables());
+  }
+
+  public onProjectExpandToggled(project: ProjectNodeModel): void {
+    console.log('Project expanded:', project.data.id);
+
+    const dialogRef = this.dialog.open(ProjectDialogComponent, {
+      width: '90vw',
+      height: '90vh',
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+      data: {
+        projectId: project.data.id,
+        projectName: project.data.name,
+      },
+    });
+
+    dialogRef.closed.subscribe(() => {});
+  }
+
   public ngOnDestroy(): void {
+    // Close any open side panels
+    this.sidePanelService.tryClosePanel().then(() => {
+      console.log('Side panel closed on flow graph destroy');
+    });
+
     this.destroy$.next();
     this.destroy$.complete();
   }
