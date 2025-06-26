@@ -9,10 +9,16 @@
     <div class="form-content">
       <!-- Name Field -->
       <div class="form-group">
-        <label for="name">
-          Configuration Name
-          <span class="required-asterisk">*</span>
-        </label>
+        <div class="label-with-tooltip">
+          <label for="name">
+            Configuration Name
+            <span class="required-asterisk">*</span>
+          </label>
+          <app-help-tooltip
+            position="right"
+            [text]="'A unique name for this tool configuration.'"
+          ></app-help-tooltip>
+        </div>
         <input
           id="name"
           formControlName="name"
@@ -41,37 +47,32 @@
         *ngFor="let field of tool.tool_fields"
         [ngSwitch]="field.data_type"
       >
-        <label [for]="field.name" class="field-label">
-          {{ field.name }}
-          <span class="required-asterisk" *ngIf="field.required">*</span>
-          <span class="info-icon" [title]="field.description">ℹ</span>
-        </label>
+        <div class="label-with-tooltip">
+          <label [for]="field.name" class="field-label">
+            {{ field.name }}
+            <span class="required-asterisk" *ngIf="field.required">*</span>
+          </label>
+          <app-help-tooltip
+            position="right"
+            [text]="field.description"
+          ></app-help-tooltip>
+        </div>
 
-        <select
-          *ngSwitchCase="'GetLlmConfigRequest'"
-          [id]="field.name"
+        <!-- LLM Config Selector -->
+        <app-llm-model-selector
+          *ngSwitchCase="'llm_config'"
           [formControlName]="field.name"
-          [attr.aria-required]="field.required ? 'true' : 'false'"
-          autocomplete="off"
-        >
-          <option value="">Select LLM Config</option>
-          <option *ngFor="let config of llmConfigs" [value]="config.id">
-            {{ config.custom_name }}
-          </option>
-        </select>
+          [placeholder]="'Select LLM model'"
+          [llmConfigs]="llmConfigs"
+        ></app-llm-model-selector>
 
-        <select
+        <!-- Embedding Config Selector -->
+        <app-embedding-model-selector
           *ngSwitchCase="'embedding_config'"
-          [id]="field.name"
           [formControlName]="field.name"
-          [attr.aria-required]="field.required ? 'true' : 'false'"
-          autocomplete="off"
-        >
-          <option value="">Select Embedding Config</option>
-          <option *ngFor="let config of embeddingConfigs" [value]="config.id">
-            {{ config.custom_name }}
-          </option>
-        </select>
+          [placeholder]="'Select embedding model'"
+          [embeddingConfigs]="embeddingConfigs"
+        ></app-embedding-model-selector>
 
         <input
           *ngSwitchCase="'string'"
@@ -97,9 +98,6 @@
             type="checkbox"
             [attr.aria-required]="field.required ? 'true' : 'false'"
           />
-          <!-- <label [for]="field.name">
-            {{ field.description }}
-          </label> -->
         </div>
 
         <input

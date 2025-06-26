@@ -329,21 +329,21 @@ export class TasksTableComponent {
       cellClass: 'memory-checkbox',
       width: 60,
     },
-    {
-      headerName: 'Async Execution',
+    // {
+    //   headerName: 'Async Execution',
 
-      headerComponent: AsyncHeaderComponent,
-      field: 'async_execution',
-      cellRenderer: 'agCheckboxCellRenderer',
-      cellEditor: 'agCheckboxCellEditor',
-      editable: true,
-      cellClass: 'memory-checkbox',
-      width: 60,
-    },
+    //   headerComponent: AsyncHeaderComponent,
+    //   field: 'async_execution',
+    //   cellRenderer: 'agCheckboxCellRenderer',
+    //   cellEditor: 'agCheckboxCellEditor',
+    //   editable: true,
+    //   cellClass: 'memory-checkbox',
+    //   width: 60,
+    // },
 
     // {
     //   headerName: 'Tools',
-    //   field: 'mergedTools', // Must match the property in your model
+    //   field: 'mergedTools',
     //   editable: false,
     //   minWidth: 240,
     //   maxWidth: 260,

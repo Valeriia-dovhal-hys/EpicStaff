@@ -27,6 +27,7 @@ import { CustomToolsStorageService } from '../../../features/tools/services/cust
 import { ToastService } from '../../../services/notifications/toast.service';
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 import { ButtonComponent } from '../../../shared/components/buttons/button/button.component';
+import { HelpTooltipComponent } from '../../../shared/components/help-tooltip/help-tooltip.component';
 
 // Models
 import {
@@ -57,6 +58,7 @@ interface DialogData {
     DialogModule,
     AppIconComponent,
     ButtonComponent,
+    HelpTooltipComponent,
   ],
   templateUrl: './custom-tool-dialog.component.html',
   styleUrls: ['./custom-tool-dialog.component.scss'],
@@ -76,7 +78,11 @@ export class CustomToolDialogComponent implements OnInit, AfterViewInit {
   public pythonCode: string =
     'def main(arg1: str, arg2: str) -> dict:\n    return {\n        "result": arg1 + arg2,\n    }\n';
   public editorHasError = false;
-  public selectedVariables: Array<{ name: string; description: string }> = [];
+  public selectedVariables: Array<{
+    name: string;
+    description: string;
+    required: boolean;
+  }> = [];
   public selectedLibraries: string[] = [];
   public selectedTool?: GetPythonCodeToolRequest;
 
@@ -119,6 +125,8 @@ export class CustomToolDialogComponent implements OnInit, AfterViewInit {
         ).map(([name, prop]: [string, any]) => ({
           name,
           description: prop.description || '',
+          required:
+            this.selectedTool?.args_schema.required?.includes(name) || false,
         }));
       }
     }

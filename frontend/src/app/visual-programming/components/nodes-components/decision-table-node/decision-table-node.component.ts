@@ -26,7 +26,7 @@ import { generatePortsForDecisionTableNode } from '../../../core/helpers/helpers
   templateUrl: './decision-table-node.component.html',
   styleUrls: ['./decision-table-node.component.scss'],
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, EditableTextareaComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DecisionTableNodeComponent {

@@ -1,8 +1,15 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ClickOutsideDirective } from '../../../../../shared/directives/click-outside.directive';
-import { GetSourceCollectionRequest } from '../../../../knowledge-sources/models/source-collection.model';
+import { GetSourceCollectionRequest } from '../../../../../pages/knowledge-sources/models/source-collection.model';
 
 @Component({
   selector: 'app-knowledge-selector',
@@ -15,42 +22,56 @@ import { GetSourceCollectionRequest } from '../../../../knowledge-sources/models
   ],
   templateUrl: './knowledge-selector.component.html',
   styleUrls: ['./knowledge-selector.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class KnowledgeSelectorComponent {
-  @Input() selectedCollectionId: number | null = null;
   @Input() collections: GetSourceCollectionRequest[] = [];
+  @Input() selectedCollectionId: number | null = null;
   @Input() label: string = 'Knowledge Source';
   @Input() disabled: boolean = false;
   @Input() loading: boolean = false;
 
   @Output() collectionChange = new EventEmitter<number | null>();
 
-  isOpen = false;
+  public isOpen = false;
+  public isPlaceholder = true;
 
-  toggleDropdown(): void {
-    if (!this.disabled && !this.loading) {
-      this.isOpen = !this.isOpen;
+  constructor(private cdr: ChangeDetectorRef) {}
+
+  public toggleDropdown(): void {
+    if (this.disabled || this.loading) {
+      return;
     }
+
+    this.isOpen = !this.isOpen;
+    this.cdr.markForCheck();
   }
 
-  selectCollection(collectionId: number | null): void {
-    this.selectedCollectionId = collectionId;
-    this.collectionChange.emit(collectionId);
+  public closeDropdown(): void {
     this.isOpen = false;
+    this.cdr.markForCheck();
   }
 
-  getSelectedCollectionName(): string {
-    if (this.loading) {
-      return 'Loading collections...';
-    }
+  public selectCollection(
+    collectionId: number | null,
+    isPlaceholder: boolean = true
+  ): void {
+    this.selectedCollectionId = collectionId;
+    this.isPlaceholder = isPlaceholder;
+    this.collectionChange.emit(collectionId);
+    this.closeDropdown();
+  }
 
+  public getSelectedCollectionName(): string {
     if (this.selectedCollectionId === null) {
-      return 'No knowledge source';
+      return this.loading ? 'Loading...' : 'Select knowledge source';
     }
 
-    const selected = this.collections.find(
-      (collection) => collection.collection_id === this.selectedCollectionId
+    const selectedCollection = this.collections.find(
+      (c) => c.collection_id === this.selectedCollectionId
     );
-    return selected ? selected.collection_name : 'Select a knowledge source';
+    return selectedCollection
+      ? selectedCollection.collection_name
+      : 'Select knowledge source';
   }
 }

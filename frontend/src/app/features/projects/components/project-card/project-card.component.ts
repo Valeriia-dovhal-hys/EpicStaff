@@ -52,61 +52,33 @@ export class ProjectCardComponent implements OnInit, OnChanges {
   public isMenuOpen = false;
   public readonly maxVisibleTags = 2;
 
-  // Color pairs for icon container and icon
-  private readonly iconColors = [
-    { bg: 'rgba(125, 211, 252, 0.15)', color: '#7dd3fc' }, // blue
-    { bg: 'rgba(192, 132, 252, 0.15)', color: '#c084fc' }, // purple
-    { bg: 'rgba(163, 230, 53, 0.15)', color: '#a3e635' }, // green
-    { bg: 'rgba(253, 186, 116, 0.15)', color: '#fdba74' }, // orange
-    { bg: 'rgba(110, 231, 183, 0.15)', color: '#6ee7b7' }, // teal
-  ];
-  private readonly colorIndex = Math.floor(
-    Math.random() * this.iconColors.length
-  );
   ngOnInit(): void {
-    console.log('project', this.project);
-    // Set initial project value
     if (this.project) {
       this.projectSignal.set(this.project);
     }
   }
+
   public getIconContainerStyle() {
-    const pair = this.iconColors[this.colorIndex];
     return {
-      'background-color': pair.bg,
+      'background-color': '#333333', // Fixed dark-grey shade for background
     };
   }
 
   public getIconStyle() {
-    const pair = this.iconColors[this.colorIndex];
     return {
-      color: pair.color,
+      color: 'var(--accent-color)', // Use accent color from variables.scss
     };
   }
 
-  // Get project icon from metadata or use default
   public getProjectIconPath(): string {
-    // Try to get icon from metadata first
-    if (this.project?.metadata?.icon) {
-      return this.project.metadata.icon;
-    }
-    // Fallback to default icon
-    return 'ui/star';
+    return 'ui/project'; // Always use ui/project icon
   }
 
-  // Reactive computed properties for tags that will update when project or tags change
   public readonly projectTags = computed(() => {
     const project = this.projectSignal();
     if (project && project.tags && project.tags.length > 0) {
       const tagNames = this.projectTagsStorageService.getTagNames(project.tags);
-      console.log(
-        'project.tags computed for',
-        project.id,
-        ':',
-        tagNames,
-        'from IDs:',
-        project.tags
-      );
+
       return tagNames;
     }
     return [];
@@ -134,12 +106,6 @@ export class ProjectCardComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     // Update the signal when the project input changes
     if (changes['project'] && this.project) {
-      console.log(
-        'Project input changed:',
-        this.project.id,
-        'tags:',
-        this.project.tags
-      );
       this.projectSignal.set(this.project);
       // Trigger change detection to ensure UI updates
       this.cdr.markForCheck();

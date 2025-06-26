@@ -65,6 +65,7 @@ from tables.models import (
     ToolConfig,
 )
 
+
 from django.core.exceptions import ValidationError
 
 
@@ -297,10 +298,101 @@ class TemplateAgentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class TaskContextListField(serializers.Field):
+    """
+    Custom field to handle task context list as integers.
+    """
+
+    def to_representation(self, value):
+        """Convert TaskContext queryset to list of context task IDs"""
+        if value is None:
+            return []
+        return list(value.values_list("context_id", flat=True))
+
+    def to_internal_value(self, data):
+        """Convert list of integers to validated context task IDs"""
+        if not isinstance(data, list):
+            raise serializers.ValidationError("Expected a list of integers.")
+
+        if not data:
+            return []
+
+        context_ids = []
+        for item in data:
+            if not isinstance(item, int):
+                raise serializers.ValidationError("All items must be integers.")
+            context_ids.append(item)
+
+        return context_ids
+
+    def validate_context_tasks(self, context_ids, task_instance=None, task_data=None):
+        """Validate context task constraints"""
+        if not context_ids:
+            return context_ids
+
+        task_order = None
+        crew_id = None
+
+        if task_instance:
+            task_order = (
+                task_data.get("order", task_instance.order)
+                if task_data
+                else task_instance.order
+            )
+            crew_id = (
+                task_data.get("crew", task_instance.crew_id)
+                if task_data
+                else task_instance.crew_id
+            )
+        elif task_data:
+            task_order = task_data.get("order")
+            crew_id = task_data.get("crew")
+
+        if task_order is None:
+            raise serializers.ValidationError(
+                "Task must have an order to assign context tasks."
+            )
+
+        if task_instance and task_instance.id in context_ids:
+            raise serializers.ValidationError(
+                "A task cannot be assigned as its own context."
+            )
+
+        # context tasks existing
+        context_tasks = Task.objects.filter(id__in=context_ids)
+        if context_tasks.count() != len(context_ids):
+            existing_ids = set(context_tasks.values_list("id", flat=True))
+            missing_ids = set(context_ids) - existing_ids
+            raise serializers.ValidationError(
+                f"Context tasks do not exist: {list(missing_ids)}"
+            )
+
+        # order constraint
+        invalid_tasks = context_tasks.filter(order__gte=task_order)
+        if invalid_tasks.exists():
+            invalid_names = list(invalid_tasks.values_list("name", flat=True))
+            raise serializers.ValidationError(
+                f"Context tasks must have lower order. Invalid tasks: {invalid_names}"
+            )
+
+        # crew constraint
+        if crew_id:
+            different_crew_tasks = context_tasks.exclude(crew_id=crew_id)
+            if different_crew_tasks.exists():
+                raise serializers.ValidationError(
+                    "Context tasks must belong to the same crew."
+                )
+
+        # self-reference constraint
+        if task_instance and task_instance.id in context_ids:
+            raise serializers.ValidationError("Task cannot be a context of itself.")
+
+        return context_ids
+
+
 class TaskSerializer(serializers.ModelSerializer):
-    task_context_list = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=TaskContext.objects.all(), required=False
-    )
+    task_context_list = TaskContextListField(required=False)
+
     task_tool_list = serializers.PrimaryKeyRelatedField(
         many=True, queryset=TaskTools.objects.all(), required=False
     )
@@ -310,8 +402,66 @@ class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-
         fields = "__all__"
+
+    def validate(self, attrs):
+        """Validate the entire serializer data"""
+        attrs = super().validate(attrs)
+
+        task_context_field = self.fields["task_context_list"]
+
+        context_ids = self.initial_data.get("task_context_list", [])
+
+        if context_ids:
+            validated_context_ids = task_context_field.validate_context_tasks(
+                context_ids, task_instance=self.instance, task_data=attrs
+            )
+            # Store validated context IDs for create/update methods
+            attrs["_validated_context_ids"] = validated_context_ids
+        else:
+            attrs["_validated_context_ids"] = []
+
+        return attrs
+
+    def create(self, validated_data):
+        """Create task and handle context relationships"""
+        context_ids = validated_data.pop("_validated_context_ids", [])
+
+        # Remove task_context_list from validated_data as it's not a model field
+        validated_data.pop("task_context_list", None)
+
+        task = super().create(validated_data)
+        self._update_task_contexts(task, context_ids)
+        return task
+
+    def update(self, instance, validated_data):
+        """Update task and handle context relationships"""
+        context_ids = validated_data.pop("_validated_context_ids", None)
+
+        # Remove task_context_list from validated_data as it's not a model field
+        validated_data.pop("task_context_list", None)
+
+        task = super().update(instance, validated_data)
+
+        if context_ids is not None:
+            self._update_task_contexts(task, context_ids)
+
+        return task
+
+    def _update_task_contexts(self, task, context_ids):
+        """Update task contexts - remove old ones and create new ones"""
+        TaskContext.objects.filter(task=task).delete()
+
+        context_objects = []
+        if context_ids:
+            for context_id in context_ids:
+                context = Task.objects.get(id=context_id)  # Needed for context.order
+                instance = TaskContext(task=task, context=context)
+
+                instance.full_clean()
+
+                context_objects.append(instance)
+            TaskContext.objects.bulk_create(context_objects)
 
 
 class CrewSerializer(serializers.ModelSerializer):
@@ -325,6 +475,11 @@ class CrewSerializer(serializers.ModelSerializer):
     )
     embedding_config = serializers.PrimaryKeyRelatedField(
         queryset=EmbeddingConfig.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    memory_llm_config = serializers.PrimaryKeyRelatedField(
+        queryset=LLMConfig.objects.all(),
         required=False,
         allow_null=True,
     )
@@ -492,7 +647,7 @@ class CrewNodeSerializer(serializers.ModelSerializer):
         read_only_fields = ["crew"]
 
     def validate_crew_id(self, value):
-        if not Crew.objects.only('id').filter(id=value).exists():
+        if not Crew.objects.only("id").filter(id=value).exists():
             raise serializers.ValidationError("Invalid crew_id: crew does not exist.")
         return value
 
@@ -598,6 +753,7 @@ class StartNodeSerializer(serializers.ModelSerializer):
 
     def get_node_name(self, obj):
         return "__start__"
+
 
 class SessionSerializer(serializers.ModelSerializer):
 
@@ -727,7 +883,6 @@ class DecisionTableNodeSerializer(serializers.ModelSerializer):
         fields = ["graph", "condition_groups", "node_name", "default_next_node"]
 
 
-
 class GraphSerializer(serializers.ModelSerializer):
     # Reverse relationships
     crew_node_list = CrewNodeSerializer(many=True, read_only=True)
@@ -754,4 +909,3 @@ class GraphSerializer(serializers.ModelSerializer):
             "start_node_list",
             "time_to_live",
         ]
-

@@ -138,6 +138,7 @@ class CrewData(BaseModel):
     full_output: bool | None
     planning: bool | None
     embedder: EmbedderData | None
+    memory_llm: LLMData | None
     manager_llm: LLMData | None
     planning_llm: LLMData | None
     tools: List[ToolData]
@@ -223,6 +224,7 @@ class LLMNodeData(BaseModel):
 class ConditionData(BaseModel):
     condition: str
 
+
 class ConditionGroupData(BaseModel):
     group_name: str
     group_type: Literal["simple", "complex"]
@@ -230,6 +232,7 @@ class ConditionGroupData(BaseModel):
     manipulation: str | None = None
     condition_list: list[ConditionData] = []
     next_node: str | None = None
+
 
 class DecisionTableNodeData(BaseModel):
     node_name: str

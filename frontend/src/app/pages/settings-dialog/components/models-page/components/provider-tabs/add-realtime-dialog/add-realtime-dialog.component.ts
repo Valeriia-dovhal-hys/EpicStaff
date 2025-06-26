@@ -12,7 +12,7 @@ import { FullRealtimeConfig } from '../../../services/realtime-models-services/f
 import { RealtimeModelConfigsService } from '../../../services/realtime-models-services/real-time-model-config.service';
 import { RealtimeModel } from '../../../services/realtime-models-services/real-time-models.service';
 import { ToastService } from '../../../../../../../services/notifications/toast.service';
-import { LLM_Provider } from '../../../../../../../shared/models/LLM_provider.model';
+import { LLM_Provider } from '../../../../../../../features/settings-dialog/models/LLM_provider.model';
 
 export interface AddRealtimeDialogData {
   provider: LLM_Provider;

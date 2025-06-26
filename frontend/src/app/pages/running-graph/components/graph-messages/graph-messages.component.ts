@@ -25,6 +25,7 @@ import { forkJoin, interval, Subject, of } from 'rxjs';
 import {
   takeUntil,
   switchMap,
+  exhaustMap,
   catchError,
   map,
   takeWhile,
@@ -222,7 +223,7 @@ export class GraphMessagesComponent implements OnInit, OnDestroy, OnChanges {
         takeUntil(this.destroy$),
         startWith(0), // Start immediately
         takeWhile(() => this.shouldPoll),
-        switchMap(() => {
+        exhaustMap(() => {
           if (!this.sessionId) return of(null);
 
           return forkJoin({

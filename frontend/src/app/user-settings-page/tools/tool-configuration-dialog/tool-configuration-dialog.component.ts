@@ -13,20 +13,22 @@ import {
   ToolConfig,
   CreateToolConfigRequest,
   GetToolConfigRequest,
-} from '../../../shared/models/tool_config,model';
+} from '../../../shared/models/tool_config.model';
 import { ToolConfigService } from '../../../services/tool_config.service';
-import { GetLlmConfigRequest } from '../../../shared/models/LLM_config.model';
-import {
-  EmbeddingConfig,
-  GetEmbeddingConfigRequest,
-} from '../../../shared/models/embedding-config.model';
 import { NgIf, NgFor, NgClass } from '@angular/common';
 import { ToolConfigFormComponent } from './tool-config-form/tool-config-form.component';
 import { ConfirmationDialogService } from '../../../shared/components/cofirm-dialog/confimation-dialog.service';
-import { LLM_Config_Service } from '../../../services/LLM_config.service';
-import { EmbeddingConfigsService } from '../../../services/embedding_configs.service';
 import { forkJoin, Observable, Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import {
+  FullLLMConfigService,
+  FullLLMConfig,
+} from '../../../features/settings-dialog/services/llms/full-llm-config.service';
+import {
+  FullEmbeddingConfigService,
+  FullEmbeddingConfig,
+} from '../../../features/settings-dialog/services/embeddings/full-embedding.service';
+import { ToastService } from '../../../services/notifications/toast.service';
 
 @Component({
   selector: 'app-tool-configuration-dialog',
@@ -38,9 +40,10 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
   tool: Tool;
+  isLoading = true;
 
-  llmConfigs: GetLlmConfigRequest[] = [];
-  embeddingConfigs: GetEmbeddingConfigRequest[] = [];
+  llmConfigs: FullLLMConfig[] = [];
+  embeddingConfigs: FullEmbeddingConfig[] = [];
   existingToolConfigs: ToolConfig[] = [];
 
   selectedConfig: ToolConfig | null = null;
@@ -58,11 +61,11 @@ export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
     public dialogRef: DialogRef<any>,
     @Inject(DIALOG_DATA) public data: { tool: Tool },
     private toolConfigService: ToolConfigService,
-    private llmConfigService: LLM_Config_Service,
-    private embeddingConfigService: EmbeddingConfigsService,
+    private fullLlmConfigService: FullLLMConfigService,
+    private fullEmbeddingConfigService: FullEmbeddingConfigService,
     private _confirmationDialogService: ConfirmationDialogService,
-
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toastService: ToastService
   ) {
     this.tool = data.tool;
   }
@@ -78,10 +81,13 @@ export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
   }
 
   private fetchData(): void {
-    const llmConfigs$: Observable<GetLlmConfigRequest[]> =
-      this.llmConfigService.getAllConfigsLLM();
-    const embeddingConfigs$: Observable<EmbeddingConfig[]> =
-      this.embeddingConfigService.getEmbeddingConfigs();
+    this.isLoading = true;
+    this.cdr.markForCheck();
+
+    const llmConfigs$: Observable<FullLLMConfig[]> =
+      this.fullLlmConfigService.getFullLLMConfigs();
+    const embeddingConfigs$: Observable<FullEmbeddingConfig[]> =
+      this.fullEmbeddingConfigService.getFullEmbeddingConfigs();
     const toolConfigs$: Observable<GetToolConfigRequest[]> =
       this.toolConfigService.getToolConfigs();
 
@@ -100,10 +106,16 @@ export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
             // Initialize filteredConfigs
             this.filteredConfigs = [...this.existingToolConfigs];
             this.onFilteredConfigsChange(this.filteredConfigs);
+            this.isLoading = false;
             this.cdr.markForCheck();
           },
           error: (err) => {
             console.error('Error fetching configurations:', err);
+            this.toastService.error(
+              `Failed to load configurations: ${err.message || 'Unknown error'}`
+            );
+            this.isLoading = false;
+            this.cdr.markForCheck();
           },
         })
     );
@@ -171,17 +183,29 @@ export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
     const index = this.existingToolConfigs.findIndex(
       (c) => c.id === updatedConfig.id
     );
+
     if (index !== -1) {
-      this.existingToolConfigs[index] = updatedConfig; // Update
+      // Update existing config
+      this.existingToolConfigs[index] = updatedConfig;
+      this.toastService.success(
+        `Configuration "${updatedConfig.name}" was updated successfully`
+      );
     } else {
-      this.existingToolConfigs.push(updatedConfig); // Add new
+      // Add new config
+      this.existingToolConfigs.push(updatedConfig);
+      this.toastService.success(
+        `Configuration "${updatedConfig.name}" was created successfully`
+      );
     }
+
     this.selectedConfig = updatedConfig;
     this.applyFilter(); // Re-apply filter to update filteredConfigs
     this.cdr.markForCheck();
   }
 
   onDeleteConfig(config: ToolConfig): void {
+    event?.stopPropagation(); // Prevent triggering the list item click
+
     this._confirmationDialogService
       .confirmDelete(config.name)
       .pipe(takeUntil(this._destroy$))
@@ -198,6 +222,11 @@ export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
                     (c) => c.id !== config.id
                   );
 
+                  // Show success notification
+                  this.toastService.success(
+                    `Configuration "${config.name}" was deleted successfully`
+                  );
+
                   // Re-apply filter to update filtered configs
                   this.applyFilter();
 
@@ -212,6 +241,11 @@ export class ToolConfigurationDialogComponent implements OnInit, OnDestroy {
                 },
                 error: (err) => {
                   console.error('Error deleting configuration:', err);
+                  this.toastService.error(
+                    `Failed to delete configuration: ${
+                      err.message || 'Unknown error'
+                    }`
+                  );
                 },
               });
           }

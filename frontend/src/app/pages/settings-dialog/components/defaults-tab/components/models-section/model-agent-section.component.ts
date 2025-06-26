@@ -6,8 +6,8 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FullEmbeddingConfig } from '../../../../../../services/full-embedding.service';
-import { FullLLMConfig } from '../../../../../../services/full-llm-config.service';
+import { FullEmbeddingConfig } from '../../../../../../features/settings-dialog/services/embeddings/full-embedding.service';
+import { FullLLMConfig } from '../../../../../../features/settings-dialog/services/llms/full-llm-config.service';
 import { ModelDropdownComponent } from '../llm-configs-dropdown/llm-configs-dropdown.component';
 
 @Component({

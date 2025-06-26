@@ -7,7 +7,7 @@ import { ArgsSchema } from '../../../../features/tools/models/python-code-tool.m
  */
 export function buildArgsSchema(
   pythonCode: string,
-  variables: Array<{ name: string; description: string }>
+  variables: Array<{ name: string; description: string; required: boolean }>
 ): ArgsSchema {
   const argsSchema: ArgsSchema = {
     title: 'ArgumentsSchema',
@@ -44,22 +44,29 @@ export function buildArgsSchema(
     });
   }
 
-  // Create schema properties from the variables list.
+  // Create schema properties from the variables list and collect required fields.
   const requiredFields: string[] = [];
+
   for (const variable of variables) {
     // Only add variables that have a valid (non-empty) name.
     if (!variable.name.trim()) {
       continue;
     }
+
     const varType = paramMapping.get(variable.name) || 'string';
+
     argsSchema.properties[variable.name] = {
       type: varType,
       description: variable.description,
     };
-    requiredFields.push(variable.name);
+
+    // Only add to required array if the variable is marked as required
+    if (variable.required) {
+      requiredFields.push(variable.name);
+    }
   }
 
-  // Add required field if we have any properties
+  // Add required field if we have any required properties
   if (requiredFields.length > 0) {
     argsSchema.required = requiredFields;
   }
@@ -68,7 +75,12 @@ export function buildArgsSchema(
 }
 
 export function buildArgsSchemaFromVariables(
-  variables: Array<{ name: string; description: string; type: string }>
+  variables: Array<{
+    name: string;
+    description: string;
+    type: string;
+    required: boolean;
+  }>
 ): ArgsSchema {
   const argsSchema: ArgsSchema = {
     title: 'ArgumentsSchema',
@@ -77,6 +89,7 @@ export function buildArgsSchemaFromVariables(
   };
 
   const requiredFields: string[] = [];
+
   variables.forEach((variable) => {
     if (!variable.name.trim()) {
       return;
@@ -91,10 +104,14 @@ export function buildArgsSchemaFromVariables(
       type: varType,
       description: variable.description || '',
     };
-    requiredFields.push(variable.name);
+
+    // Only add to required array if the variable is marked as required
+    if (variable.required) {
+      requiredFields.push(variable.name);
+    }
   });
 
-  // Add required field if we have any properties
+  // Add required field if we have any required properties
   if (requiredFields.length > 0) {
     argsSchema.required = requiredFields;
   }

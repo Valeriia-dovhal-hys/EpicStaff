@@ -80,7 +80,39 @@ export class ProjectsStorageService {
   }
 
   public setFilter(filter: SearchFilterChange | null) {
-    this.filterSignal.set(filter);
+    // Only update filter if it's different from current filter
+    const currentFilter = this.filterSignal();
+
+    // Check if filter is the same as current filter
+    if (currentFilter === null && filter === null) {
+      return;
+    }
+
+    // If either is null but not both, they're different
+    if (currentFilter === null || filter === null) {
+      this.filterSignal.set(filter);
+      return;
+    }
+
+    // Compare searchTerm and selectedTagIds
+    const searchTermChanged = currentFilter.searchTerm !== filter.searchTerm;
+    const tagsChanged =
+      (!currentFilter.selectedTagIds && filter.selectedTagIds) ||
+      (currentFilter.selectedTagIds && !filter.selectedTagIds) ||
+      (currentFilter.selectedTagIds &&
+        filter.selectedTagIds &&
+        JSON.stringify(currentFilter.selectedTagIds.sort()) !==
+          JSON.stringify(filter.selectedTagIds.sort()));
+
+    // Only update if there's a change
+    if (searchTermChanged || tagsChanged) {
+      this.filterSignal.set(filter);
+    }
+  }
+
+  // Get the current filter value
+  public getCurrentFilter(): SearchFilterChange | null {
+    return this.filterSignal();
   }
 
   // --- Data Fetching Methods (API Interactions) ---

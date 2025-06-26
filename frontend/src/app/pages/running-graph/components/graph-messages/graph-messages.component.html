@@ -3,7 +3,7 @@
   <!-- Messages list -->
   <div class="messages-list" *ngIf="messages.length > 0">
     @for (message of messages; track message.id; let i = $index) {
-    <div class="message" [class.animate-message]="animatedIndices[i]">
+    <div class="message">
       <!-- Project transition indicator -->
       <app-project-transition
         *ngIf="shouldShowTransition(message, i)"
@@ -51,7 +51,6 @@
   <!-- Waiting for user input component -->
   <app-wait-for-user-input
     *ngIf="statusWaitForUser"
-    [class.animate-user-input]="showUserInputWithDelay"
     (messageSubmitted)="onUserMessageSubmitted($event)"
   ></app-wait-for-user-input>
 </div>

@@ -1,5 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { EmbeddingConfig } from '../../../shared/models/embedding-config.model';
+import { EmbeddingConfig } from '../../../features/settings-dialog/models/embeddings/embedding-config.model';
 import { GetSourceCollectionRequest } from '../models/source-collection.model';
 import { Source } from '../models/source.model';
 

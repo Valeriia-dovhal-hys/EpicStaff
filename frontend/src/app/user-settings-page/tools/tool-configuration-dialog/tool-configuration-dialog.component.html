@@ -14,7 +14,7 @@
     </div>
   </div>
 
-  <div class="dialog-content">
+  <div class="dialog-content" *ngIf="!isLoading">
     <div class="config-list-container">
       <!-- Search Input -->
       <div
@@ -84,5 +84,13 @@
       (submitForm)="onFormSubmit($event)"
       (cancelForm)="onCancel()"
     ></app-tool-config-form>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="spinner">
+      <i class="ti ti-loader"></i>
+    </div>
+    <div class="loading-text">Loading configurations...</div>
   </div>
 </div>

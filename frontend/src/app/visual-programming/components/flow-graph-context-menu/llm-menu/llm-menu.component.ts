@@ -8,8 +8,8 @@ import {
   Output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LLM_Config_Service } from '../../../../services/LLM_config.service';
-import { GetLlmConfigRequest } from '../../../../shared/models/LLM_config.model';
+import { LLM_Config_Service } from '../../../../features/settings-dialog/services/llms/LLM_config.service';
+import { GetLlmConfigRequest } from '../../../../features/settings-dialog/models/llms/LLM_config.model';
 import { NodeType } from '../../../core/enums/node-type';
 
 @Component({

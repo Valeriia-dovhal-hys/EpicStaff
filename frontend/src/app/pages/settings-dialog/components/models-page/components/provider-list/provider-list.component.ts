@@ -6,7 +6,7 @@ import {
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LLM_Provider } from '../../../../../../shared/models/LLM_provider.model';
+import { LLM_Provider } from '../../../../../../features/settings-dialog/models/LLM_provider.model';
 import { expandCollapseAnimation } from '../../../../../../shared/animations/animations-expand-collapse';
 import { ProviderItemComponent } from '../provider-item/provider-item.component';
 import { ModelsPageService } from '../../services/models-page.service';

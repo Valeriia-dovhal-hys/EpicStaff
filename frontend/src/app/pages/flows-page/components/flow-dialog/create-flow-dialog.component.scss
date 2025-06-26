@@ -1,26 +1,28 @@
 .dialog-container {
-  background-color: #1e1e1e;
+  background: var(--color-sidenav-background);
   border-radius: 12px;
-  padding: 24px;
-  color: rgba(255, 255, 255, 0.9);
-  min-width: 400px;
+  padding: 1.5rem;
+  width: 500px;
+  max-width: 100%;
+  color: var(--color-text-primary);
 
   .dialog-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem;
 
     .dialog-title {
       margin: 0;
-      font-size: 18px;
+      font-size: 1.25rem;
       font-weight: 600;
+      color: var(--color-text-primary);
     }
 
     .close-button {
       background: none;
       border: none;
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--color-text-secondary);
       cursor: pointer;
       padding: 4px;
       display: flex;
@@ -31,49 +33,48 @@
 
       &:hover {
         background-color: rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.9);
+        color: var(--color-text-primary);
       }
     }
   }
 
   .dialog-content {
-    margin-bottom: 24px;
+    margin-bottom: 1.5rem;
 
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: 1rem;
       position: relative;
 
       label {
         display: block;
-        margin-bottom: 8px;
-        font-size: 14px;
-        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--color-text-secondary);
 
         .required {
-          color: #685fff;
+          color: var(--accent-color);
           margin-left: 2px;
         }
       }
 
-      .text-input {
+      .form-control {
         width: 100%;
-        padding: 10px 12px;
-        background-color: rgba(30, 30, 30, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0.525rem;
+        background-color: var(--color-input-background);
+        border: 1px solid var(--color-input-border);
         border-radius: 6px;
-        color: white;
-        font-size: 14px;
-        transition: border-color 0.2s ease;
+        color: var(--color-text-primary);
+        font-size: 0.875rem;
+        transition: border-color 0.2s;
         resize: vertical;
 
         &:focus {
           outline: none;
-          border-color: #685fff;
-          box-shadow: 0 0 0 2px rgba(104, 95, 255, 0.2);
+          border-color: var(--accent-color);
         }
 
         &::placeholder {
-          color: rgba(255, 255, 255, 0.4);
+          color: var(--color-input-text-placeholder);
         }
       }
 
@@ -81,24 +82,20 @@
         font-size: 12px;
         color: #ff4d4f;
         margin-top: 4px;
-        position: absolute;
-        bottom: -20px;
-        right: 0;
       }
 
       &.name-with-icon {
         .input-with-icon {
           display: flex;
           align-items: center;
-          background-color: rgba(30, 30, 30, 0.6);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background-color: var(--color-input-background);
+          border: 1px solid var(--color-input-border);
           border-radius: 6px;
           padding: 0.125rem;
           padding-left: 0.35rem;
 
           &:focus-within {
-            border-color: #685fff;
-            box-shadow: 0 0 0 2px rgba(104, 95, 255, 0.2);
+            border-color: var(--accent-color);
           }
 
           input {
@@ -107,12 +104,17 @@
             box-shadow: none;
             flex: 1;
             padding-inline: 0.875rem;
+            color: var(--color-text-primary);
 
             &:focus {
               border: none;
               box-shadow: none;
               background-color: transparent;
               outline: none;
+            }
+
+            &::placeholder {
+              color: var(--color-input-text-placeholder);
             }
           }
         }
@@ -123,40 +125,7 @@
   .dialog-footer {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-
-    .button {
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-      border: none;
-
-      &.secondary {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.9);
-
-        &:hover {
-          background-color: rgba(255, 255, 255, 0.15);
-        }
-      }
-
-      &.primary {
-        background-color: #685fff;
-        color: white;
-
-        &:hover {
-          background-color: #7a70ff;
-        }
-
-        &:disabled {
-          background-color: rgba(104, 95, 255, 0.5);
-          cursor: not-allowed;
-        }
-      }
-    }
+    gap: 0.75rem;
   }
 }
 
@@ -165,7 +134,7 @@
   font-size: 13px;
   text-align: center;
   margin-top: 10px;
-  margin-bottom: -10px;
+  margin-bottom: 10px;
 }
 
 .spinner {

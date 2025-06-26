@@ -82,7 +82,7 @@ export class FlowGraphContextMenuComponent {
       return [
         { label: 'Core', type: 'flow-core' },
         { label: 'Projects', type: 'projects' },
-        { label: 'Models', type: 'llms' },
+        // { label: 'Models', type: 'llms' },
       ];
     } else {
       return [

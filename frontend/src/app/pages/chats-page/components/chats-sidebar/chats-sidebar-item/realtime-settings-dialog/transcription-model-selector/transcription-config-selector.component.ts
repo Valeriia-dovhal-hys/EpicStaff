@@ -2,11 +2,12 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EnhancedTranscriptionConfig } from '../../../../../../../shared/models/transcription-config.model';
 import { ClickOutsideDirective } from '../../../../../../../shared/directives/click-outside.directive';
+import { AppIconComponent } from '../../../../../../../shared/components/app-icon/app-icon.component';
 
 @Component({
   selector: 'app-transcription-config-selector',
   standalone: true,
-  imports: [CommonModule, ClickOutsideDirective],
+  imports: [CommonModule, ClickOutsideDirective, AppIconComponent],
   templateUrl: './transcription-config-selector.component.html',
   styleUrls: ['./transcription-config-selector.component.scss'],
 })
@@ -19,6 +20,7 @@ export class TranscriptionConfigSelectorComponent {
 
   @Output() configChange = new EventEmitter<number | null>();
   @Output() createNew = new EventEmitter<void>();
+  @Output() deleteConfig = new EventEmitter<number>();
 
   isOpen = false;
 
@@ -32,6 +34,11 @@ export class TranscriptionConfigSelectorComponent {
     this.selectedConfigId = configId;
     this.configChange.emit(configId);
     this.isOpen = false;
+  }
+
+  onDeleteConfig(event: Event, configId: number): void {
+    event.stopPropagation(); // Prevent dropdown from closing
+    this.deleteConfig.emit(configId);
   }
 
   getSelectedConfigName(): string {

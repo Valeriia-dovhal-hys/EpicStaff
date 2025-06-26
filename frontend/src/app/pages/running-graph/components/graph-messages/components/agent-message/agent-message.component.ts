@@ -290,11 +290,12 @@ import { GetAgentRequest } from '../../../../../../shared/models/agent.model';
     }
 
     .formatted-content {
-   
       font-size: 0.85rem;
       white-space: pre-wrap;
       word-break: break-word;
       color: var(--gray-200);
+      max-height: 400px;
+      overflow-y: auto;
     }
 
     /* Tool Output Styling */
@@ -304,24 +305,24 @@ import { GetAgentRequest } from '../../../../../../shared/models/agent.model';
 
     .result-content {
         background-color: var(--gray-850);
-
       border: 1px solid var(--gray-750);
       border-radius: 8px;
       padding: 1rem;
       color: #e3e3e3;
       word-break: break-word;
       overflow-y: auto;
+      max-height: 400px;
       white-space: pre-wrap;
       margin-left: 23px;
     }
 
     .code-content {
-    
-        
       white-space: pre-wrap;
       word-break: break-word;
       color: var(--gray-200);
       font-size: 0.85rem;
+      max-height: 400px;
+      overflow-y: auto;
     }
   `,
 })

@@ -10,17 +10,19 @@ import { CommonModule } from '@angular/common';
 
 import { GraphDto } from '../../models/graph.model';
 import { ButtonComponent } from '../../../../shared/components/buttons/button/button.component';
-import { IconButtonComponent } from '../../../../shared/components/buttons/icon-button/icon-button.component';
+import { FlowMenuComponent } from './flow-menu/flow-menu.component';
+
+export type FlowAction = 'viewSessions' | 'delete' | 'open' | 'rename' | 'run';
 
 export interface FlowCardAction {
-  action: 'viewSessions' | 'delete' | 'open'; // Added 'open' back
+  action: FlowAction;
   flow: GraphDto;
 }
 
 @Component({
   selector: 'app-flow-card',
   standalone: true,
-  imports: [CommonModule, ButtonComponent, IconButtonComponent], // Added button components
+  imports: [CommonModule, ButtonComponent, FlowMenuComponent],
   templateUrl: './flow-card.component.html',
   styleUrls: ['./flow-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,26 +30,32 @@ export interface FlowCardAction {
 export class FlowCardComponent {
   @Input({ required: true }) flow!: GraphDto;
 
-  @Output() cardClick = new EventEmitter<GraphDto>(); // This will signify opening/editing the flow
+  @Output() cardClick = new EventEmitter<GraphDto>();
   @Output() action = new EventEmitter<FlowCardAction>();
 
-  // private router = inject(Router); // Router not needed if parent handles navigation
+  public isMenuOpen = false;
 
   onCardClick(): void {
     this.cardClick.emit(this.flow);
   }
 
   onViewSessions(event: MouseEvent): void {
-    event.stopPropagation(); // Prevent card click
-    this.action.emit({ action: 'viewSessions', flow: this.flow });
+    event.stopPropagation();
+    this.emitAction('viewSessions');
   }
 
-  onDelete(event?: MouseEvent | void): void {
-    if (event && typeof event === 'object' && 'stopPropagation' in event) {
-      event.stopPropagation(); // Prevent card click only if it's a MouseEvent
-    }
-    this.action.emit({ action: 'delete', flow: this.flow });
+  onMenuToggle(isOpen: boolean): void {
+    this.isMenuOpen = isOpen;
   }
 
-  // onEdit method removed
+  onActionSelected(action: string): void {
+    this.emitAction(action as FlowAction);
+  }
+
+  private emitAction(action: FlowAction): void {
+    this.action.emit({
+      action,
+      flow: this.flow,
+    });
+  }
 }

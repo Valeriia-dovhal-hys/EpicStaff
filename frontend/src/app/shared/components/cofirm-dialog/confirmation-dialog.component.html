@@ -1,15 +1,24 @@
 <!-- confirmation-dialog.component.html -->
 <div class="dialog-container" [ngClass]="data.type || 'info'">
-  <div class="dialog-title-row">
-    <span class="dialog-icon">
-      <i *ngIf="data.type === 'danger'" class="ti ti-alert-triangle"></i>
-      <i *ngIf="data.type === 'warning'" class="ti ti-alert-circle"></i>
-      <i
-        *ngIf="!data.type || data.type === 'info'"
-        class="ti ti-info-circle"
-      ></i>
-    </span>
-    <h2 class="dialog-title">{{ data.title }}</h2>
+  <div class="dialog-header">
+    <div class="dialog-title-row">
+      <span class="dialog-icon">
+        <i *ngIf="data.type === 'danger'" class="ti ti-alert-triangle"></i>
+        <i *ngIf="data.type === 'warning'" class="ti ti-alert-circle"></i>
+        <i
+          *ngIf="!data.type || data.type === 'info'"
+          class="ti ti-info-circle"
+        ></i>
+      </span>
+      <h2 class="dialog-title">{{ data.title }}</h2>
+    </div>
+    <app-icon-button
+      icon="ui/x"
+      size="2rem"
+      ariaLabel="Close"
+      (click)="onClose()"
+      class="close-button"
+    ></app-icon-button>
   </div>
   <p class="dialog-message" [innerHTML]="data.message"></p>
 

@@ -1,15 +1,18 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import platform
+from queue import Empty, Queue
 import shutil
+import tempfile
 import threading
 import docker
 from docker.errors import DockerException
 import subprocess
 from pathlib import Path
-from typing import List, Dict, Any, Generator
+from typing import List, Dict, Any, Generator, Literal
 import os
 import time
 
@@ -77,9 +80,11 @@ class DefaultState(State):
         self._docker_service.transition_to(StopContainerState())
         self._docker_service.restart_container(container_id)
 
-    def update_images(self) -> Generator[str, None, None]:
+    def update_images(
+        self, mode: Literal["pull", "build"]
+    ) -> Generator[str, None, None]:
         self._docker_service.transition_to(UpdateImagesState())
-        yield from self._docker_service.update_images()
+        yield from self._docker_service.update_images(mode=mode)
 
     def run_project(
         self, savefiles_path: str | None = None
@@ -126,27 +131,122 @@ class UpdateImagesState(State):
     STATE_NAME = "update_images"
 
     def __init__(self):
-        self.update_process = None
+        self.update_process_list: list[subprocess.Popen] = []
         self.terminate_update_images_flag = False
         self.update_images_started = False
 
     def terminate(self):
         """Terminate the update process if it is running"""
         self.terminate_update_images_flag = True
-        if self.update_process is not None:
-            self.update_process.terminate()
-            self.update_process = None
-        else:
-            raise StateException("No update process is currently running.")
+        if self.update_process_list:
+            for process in self.update_process_list:
+                if process and process.poll() is None:
+                    process.terminate()
+        
+        self.update_process_list = []
+        self.update_images_started = False
 
-    def update_images(self) -> Generator[str, None, None]:
+    def _clone_git_and_build_images(self) -> Generator[str, None, None]:
+        image_build_configs = {
+            "django_app": {"dockerfile": "src/django_app/Dockerfile.dj", "context": "src/django_app"},
+            "manager": {"dockerfile": "src/manager/Dockerfile.man", "context": "src"},
+            "crew": {"dockerfile": "src/crew/Dockerfile.crew", "context": "src"},
+            "frontend": {"dockerfile": "frontend/Dockerfile.fe", "context": "frontend"},
+            "sandbox": {"dockerfile": "src/sandbox/Dockerfile.sandbox", "context": "src"},
+            "knowledge": {
+                "dockerfile": "src/knowledge/Dockerfile.knowledge",
+                "context": "src/knowledge",
+            },
+            "realtime": {
+                "dockerfile": "src/realtime/Dockerfile.realtime",
+                "context": "src/realtime",
+            },
+            "crewdb": {"dockerfile": "src/crewdb/Dockerfile.crewdb", "context": "src/crewdb"},
+        }
+
+        # Use the branch from the original code
+        branch = "main"
+        # Use the GitLab repository URL
+        # repo_url = "https://gitlab.hysdev.com/sheetsui/crewai-sheetsui.git"
+        repo_url = "https://github.com/EpicStaff/EpicStaff.git"
+        tmp_repo_path = None  # Initialize to None for cleanup in finally block
+        try:
+            # 1. Create a temporary directory
+            tmp_repo_path = Path(tempfile.mkdtemp(prefix="docker_build_repo_"))
+            yield f"[INFO] Cloning repository to temporary directory: {tmp_repo_path}\n"
+
+            # 2. Clone the repository into the temporary directory
+            # Git will handle authentication (e.g., via credential manager, SSH agent, or prompts if interactive)
+            clone_command = f'git clone -b {branch} {repo_url} "{tmp_repo_path}"'
+            yield from self._run_script(clone_command, prefix="git clone")
+
+            # Basic check to see if cloning was successful
+            if not tmp_repo_path.is_dir() or not any(tmp_repo_path.iterdir()):
+                yield "[ERROR] Git clone failed or resulted in an empty directory. Cannot proceed with build.\n"
+                self.docker_service.transition_to(DefaultState())
+                return
+
+            # Stop and remove all containers (existing code)
+            container_ids = subprocess.check_output(
+                "docker ps -a -q", shell=True, text=True
+            ).splitlines()
+            for cid in container_ids:
+                if cid.strip():
+                    yield from self._run_script(
+                        f"docker stop {cid}", prefix="stop"
+                    )
+                    yield from self._run_script(
+                        f"docker rm {cid}", prefix="rm"
+                    )
+
+            # For capturing outputs from all parallel builds
+            output_queue = Queue()
+
+            def run_build(image_name, config):
+                if self.terminate_update_images_flag:
+                    output_queue.put(f"[{image_name}] Terminated before building.\n")
+                    return
+
+                # Construct the command using local paths relative to the cloned repo root
+                dockerfile_full_path = tmp_repo_path / config["dockerfile"]
+                context_full_path = tmp_repo_path / config["context"]
+
+                # Ensure paths are strings for subprocess.Popen
+                command = f'docker build -t {image_name} -f "{dockerfile_full_path}" "{context_full_path}"'
+                for line in self._run_script(command, prefix=image_name):
+                    output_queue.put(line)
+
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                futures = [
+                    executor.submit(run_build, name, cfg)
+                    for name, cfg in image_build_configs.items()
+                ]
+
+                # Read from the queue while builds are running
+                finished = False
+                while not finished:
+                    try:
+                        line = output_queue.get(timeout=0.5)
+                        yield line
+                    except Empty:
+                        if all(f.done() for f in futures):
+                            finished = True
+        except Exception as e:
+            yield f"[CRITICAL ERROR] Failed during image update process: {e}\n"
+        finally:
+            # Clean up the temporary directory
+            if tmp_repo_path and tmp_repo_path.exists():
+                yield f"[INFO] Cleaning up temporary directory: {tmp_repo_path}\n"
+                try:
+                    shutil.rmtree(tmp_repo_path)
+                except OSError as e:
+                    yield f"[WARNING] Failed to remove temporary directory {tmp_repo_path}: {e}\n"
+            self.update_images_started = (
+                False  # Reset flag regardless of success/failure
+            )
+
+    def _pull_docker_images(self) -> Generator[str, None, None]:
         """Updates Docker images from the registry"""
-        if self.update_images_started:
-            # If an update_images_started is running, we need to terminate it first
-            self.terminate()
-
-        self.update_images_started = True
-        self.terminate_update_images_flag = False
 
         images = [
             "django_app",
@@ -167,8 +267,8 @@ class UpdateImagesState(State):
         ).splitlines()
         for cid in container_ids:
             if cid.strip():
-                yield from self._run_script(f"docker stop {cid}")
-                yield from self._run_script(f"docker rm {cid}")
+                yield from self._run_script(f"docker stop {cid}", prefix="stop")
+                yield from self._run_script(f"docker rm {cid}", prefix="rm")
 
         # Pull and tag new images
         for image in images:
@@ -178,31 +278,69 @@ class UpdateImagesState(State):
                 return
 
             full_image = f"{registry_dir}/{image}:{image_tag}"
-            yield from self._run_script(f"docker pull {full_image}")
-            yield from self._run_script(f"docker tag {full_image} {image}")
+            yield from self._run_script(f"docker pull {full_image}", prefix=image)
+            yield from self._run_script(
+                f"docker tag {full_image} {image}", prefix=image
+            )
 
+    def update_images(
+        self, mode: Literal["pull", "build"]
+    ) -> Generator[str, None, None]:
+        """Updates Docker images by cloning the repo locally first."""
+
+        try:
+            if self.update_images_started:
+                self.terminate()
+
+            self.update_images_started = True
+            self.terminate_update_images_flag = False
+            if mode == "build":
+                yield from self._clone_git_and_build_images()
+            elif mode == "pull":
+                yield from self._pull_docker_images()
+            else:
+                yield "[ERROR] Invalid mode for update_images. Use 'pull' or 'build'.\n"
+            self.terminate_update_images_flag = False
+            self.update_images_started = False
+        except Exception as e:
+            yield f"[CRITICAL ERROR] Failed during image update process: {e}\n"
+        finally:
+            self.docker_service.transition_to(DefaultState())
+
+    def stop_project(self) -> None:
+        """Stop update"""
+        self.terminate()
         self.docker_service.transition_to(DefaultState())
 
-    def _run_script(self, path) -> Generator[str, None, None]:
+
+    def _run_script(
+        self, path: str, prefix: str = ""
+    ) -> Generator[str, None, None]:
         """Runs a script and yields its output in real time"""
         try:
 
-            self.update_process = subprocess.Popen(
+            process = subprocess.Popen(
                 path,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
                 shell=True,
+                bufsize=1,
             )
-            for line in iter(self.update_process.stdout.readline, ""):
-                yield f"{line.rstrip()}\n"
-            self.update_process.stdout.close()
-        except subprocess.CalledProcessError as e:
-            yield f"Error running script '{path}': {e}\n"
-        finally:
-            if self.update_process is not None:
-                self.update_process.terminate()
-                self.update_process = None
+            self.update_process_list.append(process)
+
+            if process.stdout is None:
+                yield f"[{prefix}] Failed to capture output of: {path}\n"
+                return
+
+            for line in process.stdout:
+                yield f"[{prefix}] {line.rstrip()}\n"
+
+            process.stdout.close()
+            process.wait()
+
+        except Exception as e:
+            yield f"[{prefix}] Error running script '{path}': {e}\n"
 
 
 class ManageProjectState(State):
@@ -347,9 +485,11 @@ class DockerService:
         """Stop a specific container if it belongs to allowed projects"""
         self._state.stop_container(container_id)
 
-    def update_images(self) -> Generator[str, None, None]:
+    def update_images(
+        self, mode: Literal["pull", "build"]
+    ) -> Generator[str, None, None]:
         """Updates Docker images"""
-        yield from self._state.update_images()
+        yield from self._state.update_images(mode=mode)
 
     def restart_container(self, container_id: str) -> None:
         """Restart a specific container if it belongs to allowed projects"""

@@ -9,7 +9,7 @@ import { RouterOutlet } from '@angular/router';
   template: `
     <div class="app-layout" style="display: flex; height: 100%; width: 100%;">
       <app-left-sidebar></app-left-sidebar>
-      <div class="main-content" style="flex: 1; ">
+      <div class="main-content" style="flex: 1; margin-left: 3.7rem;">
         <router-outlet></router-outlet>
       </div>
     </div>

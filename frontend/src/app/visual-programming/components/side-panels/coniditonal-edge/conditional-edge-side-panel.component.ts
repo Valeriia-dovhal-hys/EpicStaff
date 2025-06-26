@@ -36,6 +36,7 @@ import { Dialog } from '@angular/cdk/dialog';
 import { DialogModule } from '@angular/cdk/dialog';
 import { ConfirmationDialogComponent } from '../../../../shared/components/cofirm-dialog/confirmation-dialog.component';
 import { SidePanelService } from '../../../services/side-panel.service';
+import { HelpTooltipComponent } from '../../../../shared/components/help-tooltip/help-tooltip.component';
 
 interface InputMapPair {
   key: string;
@@ -61,6 +62,7 @@ interface InputMapPair {
     DragDropModule,
     InputMapComponent,
     DialogModule,
+    HelpTooltipComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

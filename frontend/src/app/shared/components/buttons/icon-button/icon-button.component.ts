@@ -11,7 +11,7 @@ import { AppIconComponent } from '../../app-icon/app-icon.component';
       class="icon-button"
       [style.width]="size"
       [style.height]="size"
-      (click)="onClick()"
+      (click)="onButtonClick()"
       [disabled]="disabled"
       [attr.aria-label]="ariaLabel"
     >
@@ -47,30 +47,26 @@ import { AppIconComponent } from '../../app-icon/app-icon.component';
           cursor: not-allowed;
           opacity: 0.5;
         }
-        app-icon {
-          margin-left: 1px;
-        }
       }
     `,
   ],
 })
 export class IconButtonComponent {
   @Input() icon: string = '';
-  @Input() size: string = '2rem';
+  @Input() size: string = '1.5rem';
   @Input() ariaLabel: string = '';
   @Input() disabled: boolean = false;
-  @Output() click = new EventEmitter<void>();
+  @Output() onClick = new EventEmitter<void>();
 
   get iconSize(): string {
-    // Calculate icon size as 60% of button size
     const sizeValue = parseFloat(this.size);
     const unit = this.size.replace(/[\d.]/g, '');
     return `${sizeValue * 0.6}${unit}`;
   }
 
-  onClick(): void {
+  onButtonClick(): void {
     if (!this.disabled) {
-      this.click.emit();
+      this.onClick.emit();
     }
   }
 }

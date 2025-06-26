@@ -12,6 +12,7 @@ export interface ArgsSchema {
     [key: string]: {
       type: string;
       description?: string;
+      required?: boolean;
     };
   };
   required?: string[];

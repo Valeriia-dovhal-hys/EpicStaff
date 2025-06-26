@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { expandCollapseAnimation } from '../../../../../../shared/animations/animations-expand-collapse';
-import { LLM_Provider } from '../../../../../../shared/models/LLM_provider.model';
+import { LLM_Provider } from '../../../../../../features/settings-dialog/models/LLM_provider.model';
 
 import {
   ModelsPageService,

@@ -18,13 +18,7 @@ import { IconButtonComponent } from '../../../../shared/components/buttons/icon-
 
 @Component({
   selector: 'app-code-editor',
-  imports: [
-    FormsModule,
-    NgIf,
-    MonacoEditorModule,
-    AppIconComponent,
-    IconButtonComponent,
-  ],
+  imports: [FormsModule, NgIf, MonacoEditorModule, AppIconComponent],
   templateUrl: './code-editor.component.html',
   styleUrls: ['./code-editor.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

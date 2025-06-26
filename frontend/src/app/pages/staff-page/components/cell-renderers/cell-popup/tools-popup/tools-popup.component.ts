@@ -17,6 +17,7 @@ import { forkJoin, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { animate, style, transition, trigger } from '@angular/animations';
+import { FormsModule } from '@angular/forms';
 
 import { GetPythonCodeToolRequest } from '../../../../../../features/tools/models/python-code-tool.model';
 import { ToolsService } from '../../../../../../features/tools/services/tools.service';
@@ -26,14 +27,22 @@ import {
   FullToolConfigService,
 } from '../../../../../../services/full-tool-config.service';
 import { PythonCodeToolService } from '../../../../../../user-settings-page/tools/custom-tool-editor/services/pythonCodeToolService.service';
-import { GetToolConfigRequest } from '../../../../../../shared/models/tool_config,model';
-import { FormsModule } from '@angular/forms';
+import { GetToolConfigRequest } from '../../../../../../shared/models/tool_config.model';
 import { ToastService } from '../../../../../../services/notifications/toast.service';
+import { ToolItemComponent } from './tool-item/tool-item.component';
+import { PythonToolItemComponent } from './python-tool-item/python-tool-item.component';
 
 @Component({
   selector: 'app-tools-list',
   standalone: true,
-  imports: [NgFor, NgIf, NgClass, FormsModule],
+  imports: [
+    NgFor,
+    NgIf,
+    NgClass,
+    FormsModule,
+    ToolItemComponent,
+    PythonToolItemComponent,
+  ],
   templateUrl: './tools-popup.component.html',
   styleUrls: ['./tools-popup.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,7 +65,7 @@ import { ToastService } from '../../../../../../services/notifications/toast.ser
 export class ToolsPopupComponent
   implements OnInit, OnChanges, OnDestroy, AfterViewInit
 {
-  @ViewChild('searchInput') searchInput!: ElementRef;
+  @ViewChild('searchInput') private searchInput!: ElementRef;
 
   public tools: FullToolConfig[] = [];
   public pythonTools: GetPythonCodeToolRequest[] = [];
@@ -86,22 +95,22 @@ export class ToolsPopupComponent
     private readonly _pythonCodeToolService: PythonCodeToolService,
     private readonly _fullToolConfigService: FullToolConfigService,
     private readonly _cdr: ChangeDetectorRef,
-    private toastService: ToastService
+    private readonly toastService: ToastService
   ) {}
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     console.log('ToolsPopupComponent initialized.');
     this.loadToolsData();
   }
 
-  ngAfterViewInit(): void {
+  public ngAfterViewInit(): void {
     // Automatically focus search input
     if (this.searchInput) {
       this.searchInput.nativeElement.focus();
     }
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  public ngOnChanges(changes: SimpleChanges): void {
     if (changes['mergedTools']) {
       console.log(
         'Detected changes in mergedTools input:',
@@ -111,13 +120,13 @@ export class ToolsPopupComponent
     }
   }
 
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     console.log('ToolsPopupComponent destroyed.');
     this._destroyed$.next();
     this._destroyed$.complete();
   }
 
-  loadToolsData(): void {
+  public loadToolsData(): void {
     console.log('Loading tools data...');
     this.loading = true;
     forkJoin({
@@ -147,7 +156,7 @@ export class ToolsPopupComponent
   }
 
   // Computed getter for filtering built-in tools based on searchTerm
-  get filteredTools(): FullToolConfig[] {
+  public get filteredTools(): FullToolConfig[] {
     let toolsToFilter = this.tools;
 
     if (this.searchTerm) {
@@ -165,7 +174,7 @@ export class ToolsPopupComponent
   }
 
   // Computed getter for filtering python/custom tools based on searchTerm
-  get filteredPythonTools(): GetPythonCodeToolRequest[] {
+  public get filteredPythonTools(): GetPythonCodeToolRequest[] {
     let toolsToFilter = this.pythonTools;
 
     if (this.searchTerm) {
@@ -221,19 +230,19 @@ export class ToolsPopupComponent
     }
   }
 
-  toggleToolType(isPython: boolean): void {
+  public toggleToolType(isPython: boolean): void {
     this.showPythonTools = isPython;
     this.selectedMenu = isPython;
     this._cdr.markForCheck();
   }
 
-  onSelectMenu(type: boolean): void {
+  public onSelectMenu(type: boolean): void {
     this.selectedMenu = type;
     this.showPythonTools = type;
     this._cdr.markForCheck();
   }
 
-  save(): void {
+  public save(): void {
     const mergedToolConfigs = this.tools
       .flatMap((tool) => tool.toolConfigs)
       .filter((config) => this.selectedToolConfigs.has(config.id))
@@ -249,44 +258,46 @@ export class ToolsPopupComponent
         name: pTool.name,
         type: 'python-tool',
       }));
+
     const updatedMergedTools = [...mergedToolConfigs, ...mergedPythonTools];
     this.mergedToolsUpdated.emit(updatedMergedTools);
   }
 
-  onCheckboxToggle(tool: FullToolConfig): void {
-    if (tool.toolConfigs.length === 1) {
-      const config = tool.toolConfigs[0];
-      if (!this.selectedToolConfigs.has(config.id)) {
-        this.selectedToolConfigs.add(config.id);
-      } else {
-        this.selectedToolConfigs.delete(config.id);
-      }
-
-      // Re-sort tools after selection
-      this.tools = this._sortToolsBySelection(this.tools);
-      this._cdr.markForCheck();
+  public onCheckboxToggle(tool: FullToolConfig): void {
+    // For tools without configurations, toggle all configs
+    if (!tool.toolConfigs.length) {
+      return;
     }
+
+    // For tools with configs, select/unselect all configs
+    const isToolSelected = this.isToolSelected(tool);
+    tool.toolConfigs.forEach((config) => {
+      if (isToolSelected) {
+        this.selectedToolConfigs.delete(config.id);
+      } else {
+        this.selectedToolConfigs.add(config.id);
+      }
+    });
+
+    this._cdr.markForCheck();
   }
 
-  onPythonToolToggle(pTool: GetPythonCodeToolRequest): void {
+  public onPythonToolToggle(pTool: GetPythonCodeToolRequest): void {
     if (this.selectedPythonTools.has(pTool.id)) {
       this.selectedPythonTools.delete(pTool.id);
     } else {
       this.selectedPythonTools.add(pTool.id);
     }
-
-    // Re-sort python tools after selection
-    this.pythonTools = this._sortPythonToolsBySelection(this.pythonTools);
     this._cdr.markForCheck();
   }
 
-  isToolSelected(tool: FullToolConfig): boolean {
+  public isToolSelected(tool: FullToolConfig): boolean {
     return tool.toolConfigs.some((config) =>
       this.selectedToolConfigs.has(config.id)
     );
   }
 
-  toggleToolConfigs(tool: FullToolConfig): void {
+  public toggleToolConfigs(tool: FullToolConfig): void {
     if (this.expandedToolConfigs.has(tool.id)) {
       this.expandedToolConfigs.delete(tool.id);
     } else {
@@ -295,19 +306,24 @@ export class ToolsPopupComponent
     this._cdr.markForCheck();
   }
 
-  onConfigToggle(config: GetToolConfigRequest): void {
+  public onConfigToggle(config: GetToolConfigRequest): void {
     if (this.selectedToolConfigs.has(config.id)) {
       this.selectedToolConfigs.delete(config.id);
     } else {
       this.selectedToolConfigs.add(config.id);
     }
-
-    // Re-sort tools after selection
-    this.tools = this._sortToolsBySelection(this.tools);
     this._cdr.markForCheck();
   }
 
-  onCreateConfig(tool: FullToolConfig): void {
-    this.toastService.info(`Feature not implemented`);
-  }
+  // This method is commented out as per the requirement
+  /* public onCreateConfig(tool: FullToolConfig): void {
+    if (!tool) return;
+    
+    this.toastService.showToast({
+      title: "Create Config",
+      message: `Creating a new configuration for tool: ${tool.name}`,
+    });
+    
+    // Additional logic for creating a configuration would go here
+  } */
 }

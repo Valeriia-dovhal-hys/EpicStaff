@@ -2,14 +2,14 @@ import { Injectable, signal, inject } from '@angular/core';
 
 import { FullRealtimeConfig } from './realtime-models-services/full-reamtime-config.service';
 import { RealtimeModel } from './realtime-models-services/real-time-models.service';
-import { FullLLMConfig } from '../../../../../services/full-llm-config.service';
+import { FullLLMConfig } from '../../../../../features/settings-dialog/services/llms/full-llm-config.service';
 import { PROVIDERS } from '../../../../../shared/constants/llm_providers';
-import { EmbeddingModel } from '../../../../../shared/models/embedding.model';
+import { EmbeddingModel } from '../../../../../features/settings-dialog/models/embeddings/embedding.model';
 import {
   GetLlmModelRequest,
   LLM_Model,
-} from '../../../../../shared/models/LLM.model';
-import { LLM_Provider } from '../../../../../shared/models/LLM_provider.model';
+} from '../../../../../features/settings-dialog/models/llms/LLM.model';
+import { LLM_Provider } from '../../../../../features/settings-dialog/models/LLM_provider.model';
 import { FullEmbeddingConfig } from '../components/provider-tabs/add-embedding-dialog/add-embedding-dialog.component';
 
 // Define possible tab names

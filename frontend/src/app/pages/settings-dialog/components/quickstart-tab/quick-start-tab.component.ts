@@ -12,30 +12,26 @@ import { DialogRef } from '@angular/cdk/dialog';
 
 // RxJS imports
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
-import { EmbeddingConfigsService } from '../../../../services/embedding_configs.service';
-import { EmbeddingModelsService } from '../../../../services/embeddings.service';
-import { LLM_Config_Service } from '../../../../services/LLM_config.service';
-import { LLM_Models_Service } from '../../../../services/LLM_models.service';
+import { EmbeddingConfigsService } from '../../../../features/settings-dialog/services/embeddings/embedding_configs.service';
+import { EmbeddingModelsService } from '../../../../features/settings-dialog/services/embeddings/embeddings.service';
+import { LLM_Config_Service } from '../../../../features/settings-dialog/services/llms/LLM_config.service';
+import { LLM_Models_Service } from '../../../../features/settings-dialog/services/llms/LLM_models.service';
 import { ToastService } from '../../../../services/notifications/toast.service';
 import { TranscriptionConfigsService } from '../../../../services/transcription-config.service';
 import { GetRealtimeTranscriptionModelRequest } from '../../../../services/transcription-models.service';
 import {
   EmbeddingConfig,
   CreateEmbeddingConfigRequest,
-} from '../../../../shared/models/embedding-config.model';
-import { EmbeddingModel } from '../../../../shared/models/embedding.model';
-import { GetLlmModelRequest } from '../../../../shared/models/LLM.model';
-import { CreateLLMConfigRequest } from '../../../../shared/models/LLM_config.model';
+} from '../../../../features/settings-dialog/models/embeddings/embedding-config.model';
+import { EmbeddingModel } from '../../../../features/settings-dialog/models/embeddings/embedding.model';
+import { GetLlmModelRequest } from '../../../../features/settings-dialog/models/llms/LLM.model';
+import { CreateLLMConfigRequest } from '../../../../features/settings-dialog/models/llms/LLM_config.model';
 import { CreateTranscriptionConfigRequest } from '../../../../shared/models/transcription-config.model';
-import {
-  RealtimeModelConfigsService,
-  CreateRealtimeModelConfigRequest,
-} from '../../../models-page/services/realtime-models-services/real-time-model-config.service';
-import {
-  RealtimeModelsService,
-  RealtimeModel,
-} from '../../../models-page/services/realtime-models-services/real-time-models.service';
+import { RealtimeModelConfigsService } from '../../../../features/settings-dialog/services/realtime-llms/real-time-model-config.service';
+import { RealtimeModelsService } from '../../../../features/settings-dialog/services/realtime-llms/real-time-models.service';
 import { Router } from '@angular/router';
+import { RealtimeModel } from '../../../../features/settings-dialog/models/realtime-voice/realtime-model.model';
+import { CreateRealtimeModelConfigRequest } from '../../../../features/settings-dialog/models/realtime-voice/realtime-llm-config.model';
 
 interface LLM_Provider {
   id: number;

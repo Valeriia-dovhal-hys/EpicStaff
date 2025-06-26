@@ -31,10 +31,10 @@ import {
   AddRealtimeDialogComponent,
   AddRealtimeDialogData,
 } from './add-realtime-dialog/add-realtime-dialog.component';
-import { EmbeddingConfigsService } from '../../../../../../services/embedding_configs.service';
-import { FullLLMConfig } from '../../../../../../services/full-llm-config.service';
-import { LLM_Config_Service } from '../../../../../../services/LLM_config.service';
-import { LLM_Provider } from '../../../../../../shared/models/LLM_provider.model';
+import { EmbeddingConfigsService } from '../../../../../../features/settings-dialog/services/embeddings/embedding_configs.service';
+import { FullLLMConfig } from '../../../../../../features/settings-dialog/services/llms/full-llm-config.service';
+import { LLM_Config_Service } from '../../../../../../features/settings-dialog/services/llms/LLM_config.service';
+import { LLM_Provider } from '../../../../../../features/settings-dialog/models/LLM_provider.model';
 import { FullRealtimeConfig } from '../../services/realtime-models-services/full-reamtime-config.service';
 
 @Component({

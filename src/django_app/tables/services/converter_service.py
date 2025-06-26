@@ -1,5 +1,9 @@
 from typing import Iterable
-from tables.models.llm_models import RealtimeConfig, RealtimeTranscriptionConfig
+from tables.models.llm_models import (
+    RealtimeConfig,
+    RealtimeTranscriptionConfig,
+    LLMConfig,
+)
 from tables.models import (
     Agent,
     Task,
@@ -17,7 +21,15 @@ from tables.models import (
 )
 
 from tables.models.realtime_models import RealtimeAgentChat
-from tables.models.graph_models import Condition, ConditionGroup, ConditionalEdge, CrewNode, DecisionTableNode, Graph, PythonNode
+from tables.models.graph_models import (
+    Condition,
+    ConditionGroup,
+    ConditionalEdge,
+    CrewNode,
+    DecisionTableNode,
+    Graph,
+    PythonNode,
+)
 from tables.request_models import *
 from tables.request_models import CrewData
 from utils.singleton_meta import SingletonMeta
@@ -28,18 +40,54 @@ from tables.validators import ToolConfigValidator, validate_tool_configs
 tool_config_serializer = ToolConfigSerializer(
     ToolConfigValidator(validate_missing_reqired_fields=True, validate_null_fields=True)
 )
+from tables.models.embedding_models import EmbeddingConfig
 
 
 class ConverterService(metaclass=SingletonMeta):
 
     def __init__(self): ...
 
+    # TODO: refactor after hackathon
+    def get_embedder(self, embedding_config):
+        if embedding_config is None:
+            instance = (
+                EmbeddingConfig.objects.filter(custom_name__startswith="quickstart")
+                .order_by("-id")
+                .first()
+            )
+            if instance:
+                return instance
+
+        return embedding_config
+
+    # TODO: refactor after hackathon
+    def get_memory_llm(self, memory_llm_config):
+        if memory_llm_config is None:
+            instance = (
+                LLMConfig.objects.filter(custom_name__startswith="quickstart")
+                .order_by("-id")
+                .first()
+            )
+            if instance:
+                return instance
+
+        return memory_llm_config
+
     def convert_crew_to_pydantic(self, crew_id: int) -> CrewData:
         crew = Crew.objects.get(pk=crew_id).fill_with_defaults()
 
         manager_llm = self.convert_llm_config_to_pydantic(crew.manager_llm_config)
         planning_llm = self.convert_llm_config_to_pydantic(crew.planning_llm_config)
-        embedder = self.convert_embedding_config_to_pydantic(crew.embedding_config)
+
+        # TODO: refactor after hackathon
+        embedder = None
+        memory_llm = None
+        if crew.memory:
+            memory_llm_config = self.get_memory_llm(crew.memory_llm_config)
+            embedding_config = self.get_embedder(crew.embedding_config)
+
+            embedder = self.convert_embedding_config_to_pydantic(embedding_config)
+            memory_llm = self.convert_llm_config_to_pydantic(memory_llm_config)
         task_list = Task.objects.filter(crew_id=crew_id)
 
         task_data_list: list[TaskData] = []
@@ -108,6 +156,7 @@ class ConverterService(metaclass=SingletonMeta):
             full_output=crew.full_output,
             planning=crew.planning,
             embedder=embedder,
+            memory_llm=memory_llm,
             manager_llm=manager_llm,
             planning_llm=planning_llm,
             tools=tool_data_list,
@@ -333,7 +382,7 @@ class ConverterService(metaclass=SingletonMeta):
             input_map=llm_node.input_map,
             output_variable_path=llm_node.output_variable_path,
         )
-    
+
     def convert_condition_to_pydantic(self, condition: Condition) -> ConditionData:
         return ConditionData(condition=condition.condition)
 
@@ -343,7 +392,6 @@ class ConverterService(metaclass=SingletonMeta):
             group_type=condition_group.group_type,
             expression=condition_group.expression,
             manipulation=condition_group.manipulation,
-            
             condition_list=[
                 ConditionData(condition=condition.condition)
                 for condition in condition_group.conditions.all()
@@ -351,18 +399,19 @@ class ConverterService(metaclass=SingletonMeta):
             next_node=condition_group.next_node,
         )
 
-    def convert_decision_table_node_to_pydantic(self, decision_table_node: DecisionTableNode):
+    def convert_decision_table_node_to_pydantic(
+        self, decision_table_node: DecisionTableNode
+    ):
         condition_group_list = [
             self.convert_condition_group_to_pydantic(condition_group)
             for condition_group in decision_table_node.condition_groups.all()
         ]
-        
+
         return DecisionTableNodeData(
             node_name=decision_table_node.node_name,
             conditional_group_list=condition_group_list,
             default_next_node=decision_table_node.default_next_node,
             next_error_node=decision_table_node.next_error_node,
-
         )
 
     def convert_crew_node_to_pydantic(self, crew_node: CrewNode):

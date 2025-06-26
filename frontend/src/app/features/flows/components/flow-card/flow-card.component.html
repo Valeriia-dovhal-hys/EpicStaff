@@ -9,13 +9,11 @@
       >
         View Sessions
       </app-button>
-      <app-icon-button
-        icon="ui/x"
-        size="2rem"
-        ariaLabel="Delete flow"
-        (click)="onDelete($event)"
-      >
-      </app-icon-button>
+      <app-flow-menu
+        [isOpen]="isMenuOpen"
+        (menuToggle)="onMenuToggle($event)"
+        (actionSelected)="onActionSelected($event)"
+      ></app-flow-menu>
     </div>
   </div>
 

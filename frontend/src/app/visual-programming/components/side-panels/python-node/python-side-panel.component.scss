@@ -256,3 +256,21 @@
   color: #ddd !important;
   background-color: var(--color-nodes-input-bg) !important;
 }
+
+.field-description {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+  opacity: 0.7;
+}
+
+.label-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  label {
+    margin-bottom: 0;
+  }
+}

@@ -35,8 +35,6 @@ import {
   styles: [
     `
       .form-group {
-        margin-bottom: 16px;
-
         label {
           display: block;
           margin-bottom: 8px;
@@ -47,7 +45,7 @@ import {
         .text-input {
           width: 100%;
           padding: 10px 12px;
-          background-color: rgba(30, 30, 30, 0.6);
+          background-color: var(--color-input-background);
           border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 6px;
           color: white;

@@ -15,7 +15,7 @@ import { ToastService } from '../../../../../../services/notifications/toast.ser
       *ngIf="isOpen"
       (clickOutside)="onClickOutside()"
     >
-      <div class="menu-item" (click)="onAdvancedSettings()">
+      <div class="menu-item" (click)="onEditAgent()">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -28,32 +28,10 @@ import { ToastService } from '../../../../../../services/notifications/toast.ser
           stroke-linejoin="round"
         >
           <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path
-            d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"
-          />
-          <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+          <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+          <path d="M13.5 6.5l4 4" />
         </svg>
-        <span>Show Advanced Settings</span>
-      </div>
-
-      <div class="menu-item" (click)="onAddToFavorites()">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path
-            d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"
-          />
-        </svg>
-        <span>Add to Favorites</span>
+        <span>Edit Agent</span>
       </div>
 
       <div
@@ -137,6 +115,7 @@ export class AgentMenuComponent {
   @Output() advancedSettings = new EventEmitter<void>();
   @Output() addToFavorites = new EventEmitter<void>();
   @Output() removeAgent = new EventEmitter<void>();
+  @Output() editAgent = new EventEmitter<void>();
 
   constructor(private toastService: ToastService) {}
 
@@ -158,6 +137,11 @@ export class AgentMenuComponent {
 
   onRemoveAgent(): void {
     this.removeAgent.emit();
+    this.close.emit();
+  }
+
+  onEditAgent(): void {
+    this.editAgent.emit();
     this.close.emit();
   }
 }

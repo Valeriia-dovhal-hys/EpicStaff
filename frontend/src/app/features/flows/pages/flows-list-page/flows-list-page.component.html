@@ -36,11 +36,30 @@
         }
       </div>
       <div class="tabs-right">
-        <app-filters-list
-          [searchPlaceholder]="'Search flows...'"
-          [showTags]="false"
-          (change)="onFiltersChange($event)"
-        ></app-filters-list>
+        <div class="search-container">
+          <app-icon
+            icon="ui/search"
+            class="search-icon"
+            size="1.1rem"
+          ></app-icon>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Search flows..."
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchTermChange($event)"
+          />
+          @if (searchTerm) {
+          <button
+            type="button"
+            class="clear-btn"
+            aria-label="Clear"
+            (click)="clearSearch()"
+          >
+            <app-icon icon="ui/x" size="1.1rem"></app-icon>
+          </button>
+          }
+        </div>
       </div>
     </nav>
   </div>

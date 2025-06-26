@@ -74,9 +74,15 @@
       .section-title {
         font-size: 16px;
         color: rgba(255, 255, 255, 0.8);
-        margin-top: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
         margin-bottom: 16px;
-        font-weight: 500;
+      }
+
+      .section-title app-help-tooltip {
+        display: inline-flex;
+        align-items: center;
       }
     }
   }

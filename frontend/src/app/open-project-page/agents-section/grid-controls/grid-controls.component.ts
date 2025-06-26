@@ -18,20 +18,13 @@ export type GridSizeOption = 'small' | 'medium' | 'large';
 @Component({
   selector: 'app-grid-controls',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    SearchDropdownComponent,
-    ProjectFilterButtonComponent,
-    ProjectSortButtonComponent,
-    ProjectFavoriteButtonComponent,
-  ],
+  imports: [CommonModule, FormsModule, SearchDropdownComponent],
   templateUrl: './grid-controls.component.html',
   styleUrls: ['./grid-controls.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GridControlsComponent {
-  @Input() currentSize: GridSizeOption = 'medium';
+  @Input() currentSize: GridSizeOption = 'small';
   @Output() showDropdownChange = new EventEmitter<boolean>();
   @Output() currentSizeChange = new EventEmitter<GridSizeOption>();
   @Output() filterChange = new EventEmitter<void>();

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import {
   RouterOutlet,
   RouterLink,
@@ -11,17 +11,18 @@ import { TabButtonComponent } from '../../../../shared/components/tab-button/tab
 // import { ButtonVariant } from '../../../../core/enums/button-variants.enum'; // Likely unused now
 // import { NgClass } from '@angular/common'; // Likely unused now
 import { Dialog } from '@angular/cdk/dialog';
-import { CreateProjectComponent } from '../../../../shared/components/create-project-form-dialog/create-project.component';
+import { CreateProjectComponent } from '../../components/create-project-form-dialog/create-project.component';
 import { ProjectsStorageService } from '../../services/projects-storage.service';
 import { GetProjectRequest } from '../../models/project.model';
-import {
-  FiltersListComponent,
-  SearchFilterChange,
-} from '../../../../shared/components/filters-list/filters-list.component'; // New Import
+import { SearchFilterChange } from '../../../../shared/components/filters-list/filters-list.component';
 import {
   ProjectTagsFilterComponent,
   ProjectTagsFilterChange,
 } from '../../components/project-tags-filter/project-tags-filter.component';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { FormsModule } from '@angular/forms';
+import { AppIconComponent } from '../../../../shared/components/app-icon/app-icon.component';
 
 @Component({
   selector: 'app-projects-list-page',
@@ -35,23 +36,46 @@ import {
     RouterLinkActive,
     ButtonComponent,
     TabButtonComponent,
-    FiltersListComponent,
     ProjectTagsFilterComponent,
+    FormsModule,
+    AppIconComponent,
   ],
 })
-export class ProjectsListPageComponent {
+export class ProjectsListPageComponent implements OnDestroy {
   public tabs = [
     { label: 'My projects', link: 'my' },
     { label: 'Templates', link: 'templates' },
   ];
 
-  private currentFilter: SearchFilterChange = { searchTerm: '' };
+  // Search term for ngModel binding
+  public searchTerm: string = '';
+
+  // For debounce
+  private searchTerms = new Subject<string>();
+  private subscription: Subscription;
 
   constructor(
     public router: Router,
     private dialog: Dialog,
     private projectsService: ProjectsStorageService
-  ) {}
+  ) {
+    // Setup search with debounce
+    this.subscription = this.searchTerms
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((term) => {
+        this.updateFilter(term);
+      });
+  }
+
+  ngOnDestroy(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+
+    // Reset search filter when component is destroyed
+    this.searchTerm = '';
+    this.projectsService.setFilter(null);
+  }
 
   get isMyProjectsActive(): boolean {
     return this.router.url.includes('/projects/my');
@@ -60,20 +84,30 @@ export class ProjectsListPageComponent {
     return this.router.url.includes('/projects/templates');
   }
 
-  public onFiltersChange(event: SearchFilterChange): void {
-    this.currentFilter = {
-      ...this.currentFilter,
-      searchTerm: event.searchTerm,
+  public onSearchTermChange(term: string): void {
+    this.searchTerms.next(term);
+  }
+
+  public clearSearch(): void {
+    this.searchTerm = '';
+    this.updateFilter('');
+  }
+
+  private updateFilter(searchTerm: string): void {
+    const filter = {
+      searchTerm,
+      selectedTagIds:
+        this.projectsService.getCurrentFilter()?.selectedTagIds || [],
     };
-    this.projectsService.setFilter(this.currentFilter);
+    this.projectsService.setFilter(filter);
   }
 
   public onProjectTagsChange(event: ProjectTagsFilterChange): void {
-    this.currentFilter = {
-      ...this.currentFilter,
+    const filter = {
+      searchTerm: this.searchTerm,
       selectedTagIds: event.selectedTagIds,
     };
-    this.projectsService.setFilter(this.currentFilter);
+    this.projectsService.setFilter(filter);
   }
 
   public openCreateProjectDialog(): void {
@@ -81,7 +115,6 @@ export class ProjectsListPageComponent {
       CreateProjectComponent,
       {
         width: '590px',
-        hasBackdrop: true,
       }
     );
     dialogRef.closed.subscribe((result: GetProjectRequest | undefined) => {

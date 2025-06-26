@@ -21,14 +21,15 @@ import {
 import {
   FullEmbeddingConfig,
   FullEmbeddingConfigService,
-} from '../../../../services/full-embedding.service';
+} from '../../../../features/settings-dialog/services/embeddings/full-embedding.service';
 import { CollectionsService } from '../../services/source-collections.service';
 import { ToastService } from '../../../../services/notifications/toast.service';
 
 import { uniqueCollectionNameValidator } from '../../../../shared/form-validators/unique-collection-name.validator';
 import { FileUploadContainerComponent } from './file-upload-container/file-upload-container.component';
-import { EmbeddingSelectorComponent } from './embeddings-dropdown/dropdown-picker.component';
+import { EmbeddingModelSelectorComponent } from '../../../../shared/components/embedding-model-selector/embedding-model-selector.component';
 import { ButtonComponent } from '../../../../shared/components/buttons/button/button.component';
+import { HelpTooltipComponent } from '../../../../shared/components/help-tooltip/help-tooltip.component';
 
 @Component({
   selector: 'app-create-collection-dialog',
@@ -39,8 +40,9 @@ import { ButtonComponent } from '../../../../shared/components/buttons/button/bu
     DialogModule,
 
     FileUploadContainerComponent,
-    EmbeddingSelectorComponent,
+    EmbeddingModelSelectorComponent,
     ButtonComponent,
+    HelpTooltipComponent,
   ],
   templateUrl: './create-collection-dialog.component.html',
   styleUrls: ['./create-collection-dialog.component.scss'],

@@ -5,7 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EpicStaff Manager</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
-    
+    <style>
+        /* Switch styles */
+        .switch-container {
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        
+        .switch-label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #e2e8ee;
+            font-size: 14px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: rgb(61, 58, 58);
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #f39f21;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+        
+        .switch-options {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .option-label {
+            font-size: 13px;
+            color: #666;
+            min-width: 35px;
+        }
+        
+        .option-label.active {
+            color: #2196F3;
+            font-weight: bold;
+        }
+        
+        /* Docker fields visibility */
+        .docker-fields {
+            transition: opacity 0.3s ease;
+        }
+        
+        .docker-fields.hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="toast" id="toast"></div>
@@ -22,7 +107,7 @@
             <div class="buttons">
                 <button id="update-button" class="button update" onclick="updateImages()">Update System</button>
                 <button id="run-button" class="button" onclick="runDockerCompose()">Start System</button>
-                <button id="stop-button" class="button stop" onclick="stopDockerCompose()">Stop System</button>
+                <button id="stop-button" class="button stop" onclick="stopProcess()">Stop</button>
             </div>
 
             <button id="redirect-button" class="redirect-button" onclick="redirectToProjects()" disabled>
@@ -67,24 +152,42 @@
                         </button>
                     {% endif %}
                 </div>
+                
                 <h3>Update Source</h3>
-                <div class="flex items-center margin-top-2">
-                    <input type="text" id="imageRepository" name="imageRepository" 
-                        class="input"
-                        value="{{ image_repository }}">
-                    <button type="button" onclick="saveImageRepository()"
-                        class="save-button">
-                        Save Components Source
-                    </button>
+                
+                <!-- Switch for Docker/Git -->
+                <div class="switch-container">
+                    <div class="switch-label">Source Type</div>
+                    <div class="switch-options">
+                        <span class="option-label" id="gitLabel">Git</span>
+                        <label class="switch">
+                            <input type="checkbox" id="sourceSwitch" onchange="toggleSource()">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="option-label" id="dockerLabel">Docker</span>
+                    </div>
                 </div>
-                <div class="flex items-center margin-top-2">
-                    <input type="text" id="imageTag" name="imageTag" 
-                        class="input"
-                        value="{{ image_tag }}">
-                    <button type="button" onclick="saveImageTag()"
-                        class="save-button">
-                        Save Components Tag
-                    </button>
+                
+                <!-- Docker fields (imageRepository and imageTag) -->
+                <div id="dockerFields" class="docker-fields">
+                    <div class="flex items-center margin-top-2">
+                        <input type="text" id="imageRepository" name="imageRepository" 
+                            class="input"
+                            value="{{ image_repository }}">
+                        <button type="button" onclick="saveImageRepository()"
+                            class="save-button">
+                            Save Components Source
+                        </button>
+                    </div>
+                    <div class="flex items-center margin-top-2">
+                        <input type="text" id="imageTag" name="imageTag" 
+                            class="input"
+                            value="{{ image_tag }}">
+                        <button type="button" onclick="saveImageTag()"
+                            class="save-button">
+                            Save Components Tag
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -124,6 +227,47 @@
         let socket = null;
         let reconnect = false;
         const VOLUME_NAME = 'crew_pgdata';
+
+        // Initialize the switch state from localStorage
+        function initializeSwitch() {
+            const savedState = localStorage.getItem('sourceType');
+            const sourceSwitch = document.getElementById('sourceSwitch');
+            
+            // Default to Git (unchecked) if no saved state
+            if (savedState === 'pull') {
+                sourceSwitch.checked = true;
+            } else if (savedState === 'build') {
+                sourceSwitch.checked = false;
+            } else {
+                sourceSwitch.checked = false; // Default to Git
+                localStorage.setItem('sourceType', 'build');
+            }
+            
+            // Apply the initial state
+            toggleSource();
+        }
+        
+        // Toggle between Docker and Git options
+        function toggleSource() {
+            const sourceSwitch = document.getElementById('sourceSwitch');
+            const dockerFields = document.getElementById('dockerFields');
+            const gitLabel = document.getElementById('gitLabel');
+            const dockerLabel = document.getElementById('dockerLabel');
+            
+            if (sourceSwitch.checked) {
+                // Docker option selected
+                dockerFields.classList.remove('hidden');
+                dockerLabel.classList.add('active');
+                gitLabel.classList.remove('active');
+                localStorage.setItem('sourceType', 'pull');
+            } else {
+                // Git option selected
+                dockerFields.classList.add('hidden');
+                gitLabel.classList.add('active');
+                dockerLabel.classList.remove('active');
+                localStorage.setItem('sourceType', 'build');
+            }
+        }
 
         function connectSocket() {
             socket = io();
@@ -213,8 +357,9 @@
         }
 
         function updateImages() {
+            updateMode = localStorage.getItem('sourceType') || 'build';
             logMessage('Updating system components...');
-            socket.emit('update_images');
+            socket.emit('update_images', { mode: updateMode });
         }
 
         function runDockerCompose() {
@@ -235,7 +380,7 @@
             } else if (data.state === 'update_images') {
                 stateText.innerText = 'Updating Images';
                 document.getElementById('run-button').disabled = true;
-                document.getElementById('stop-button').disabled = true;
+                document.getElementById('stop-button').disabled = false;
             } else if (data.state === 'manage_project') {
                 stateText.innerText = 'Running';
                 document.getElementById('run-button').disabled = true;
@@ -347,11 +492,11 @@
             socket.emit('restart_container', { container_id: containerId });
         }
 
-        function stopDockerCompose() {
-            if (!confirm('Are you sure you want to stop the system? This will stop all running components.')) {
+        function stopProcess() {
+            if (!confirm('Are you sure you want to stop current process?')) {
                 return;
             }
-            logMessage('Stopping system...');
+            logMessage('Stopping...');
             socket.emit('stop_project');
         }
 
@@ -407,7 +552,7 @@
             link.addEventListener('click', function() {
                 setTimeout(() => {
                     logMessage('Database volume export completed');
-                    showToast('Success! Wait for download complete', false);
+                    showToast('Wait for download complete', false);
                     document.body.removeChild(link);
                 }, 1000);
             });
@@ -500,8 +645,11 @@
 
         logContainer.textContent = localStorage.getItem('logs') || '';
 
-        // Initialize Socket.IO connection
+        // Initialize Socket.IO connection and switch
         connectSocket();
+        
+        // Initialize the switch when the page loads
+        document.addEventListener('DOMContentLoaded', initializeSwitch);
     </script>
 </body>
 </html>

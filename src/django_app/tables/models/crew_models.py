@@ -2,6 +2,7 @@ from typing import Any
 from django.db import models
 from django.db.models import CheckConstraint
 from tables.models import DefaultBaseModel, AbstractDefaultFillableModel, Process
+from django.core.exceptions import ValidationError
 
 
 class DefaultCrewConfig(DefaultBaseModel):
@@ -142,6 +143,14 @@ class Crew(AbstractDefaultFillableModel):
         max_length=255, choices=Process.choices, default=Process.SEQUENTIAL
     )
     memory = models.BooleanField(null=True, default=None)
+    memory_llm_config = models.ForeignKey(
+        "LLMConfig",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        default=None,
+        related_name="memory_llm_config",
+    )
     embedding_config = models.ForeignKey(
         "EmbeddingConfig",
         on_delete=models.SET_NULL,
@@ -163,7 +172,12 @@ class Crew(AbstractDefaultFillableModel):
     full_output = models.BooleanField(default=False)
     planning = models.BooleanField(default=False)
     planning_llm_config = models.ForeignKey(
-        "LLMConfig", default=None, blank=True, null=True, on_delete=models.SET_NULL
+        "LLMConfig",
+        default=None,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="planning_llm_config",
     )
     default_temperature = models.FloatField(null=True, default=None)
     knowledge_collection = models.ForeignKey(
@@ -369,6 +383,17 @@ class TaskContext(models.Model):
                 check=~models.Q(task=models.F("context")), name="task_not_equal_context"
             )
         ]
+
+    def clean(self):
+        super().clean()
+        if self.task.order is not None and self.context.order is not None:
+            if self.context.order >= self.task.order:
+                raise ValidationError(
+                    "Context task order must be lower than the main task order"
+                )
+
+        if self.task_id == self.context_id:
+            raise ValidationError("A task cannot be assigned as its own context.")
 
 
 def set_field_value_null_in_tool_configs(field_type: str, value: Any):

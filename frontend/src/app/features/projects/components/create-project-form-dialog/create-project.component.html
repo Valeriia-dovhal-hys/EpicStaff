@@ -1,0 +1,268 @@
+<div class="wrapper">
+  <!-- Header -->
+  <div class="dialog-header">
+    <div class="icon-and-title">
+      <app-icon
+        icon="ui/project"
+        size="2rem"
+        style="color: var(--accent-color); margin-right: 12px"
+      ></app-icon>
+      <span class="title">Create New Project</span>
+    </div>
+    <app-icon-button
+      icon="ui/x"
+      ariaLabel="Close dialog"
+      size="2rem"
+      (onClick)="onCancelForm()"
+    >
+    </app-icon-button>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-navigation">
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'overview'"
+      (click)="switchTab('overview')"
+    >
+      Overview
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab === 'configurations'"
+      (click)="switchTab('configurations')"
+    >
+      Configurations
+    </button>
+  </div>
+
+  <form [formGroup]="projectForm" (ngSubmit)="$event.preventDefault()">
+    <div class="dialog-content">
+      <!-- Overview Tab -->
+      <div class="tab-content" [hidden]="activeTab !== 'overview'">
+        <!-- Project Name with Icon -->
+        <div class="form-group">
+          <div class="label-row">
+            <label for="name" class="field-label">
+              Project Name
+              <span
+                class="required"
+                *ngIf="projectForm.get('name')?.errors?.['required'] && projectForm.get('name')?.dirty"
+              >
+                Name is required *
+              </span>
+            </label>
+            <app-help-tooltip
+              [text]="'Enter a descriptive name for your project.'"
+            ></app-help-tooltip>
+          </div>
+          <div class="input-with-icon">
+            <!-- <app-icon-picker
+              [selectedIcon]="selectedIcon"
+              (iconSelected)="onIconSelected($event)"
+            ></app-icon-picker> -->
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              placeholder="Enter project name..."
+              autocomplete="off"
+              [style.--active-color]="activeColor"
+            />
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <div class="label-row">
+            <label for="description" class="field-label"
+              >Project Description</label
+            >
+            <app-help-tooltip
+              [text]="
+                'Provide a brief description of what this project aims to accomplish.'
+              "
+            ></app-help-tooltip>
+          </div>
+          <textarea
+            id="description"
+            formControlName="description"
+            placeholder="Enter project description (optional)..."
+            rows="5"
+            [style.--active-color]="activeColor"
+          ></textarea>
+        </div>
+
+        <!-- Process Type -->
+        <div class="form-group">
+          <div class="label-row">
+            <label class="field-label">Process Type</label>
+            <app-help-tooltip
+              [text]="
+                'Select the process type for your project. Sequential runs tasks in order, hierarchical allows for more complex flows.'
+              "
+            ></app-help-tooltip>
+          </div>
+          <app-process-selector
+            [initialValue]="projectForm.get('process_type')?.value"
+            (valueChange)="setProcessType($event)"
+          ></app-process-selector>
+        </div>
+
+        <!-- Manager Settings (only for hierarchical) -->
+        <div
+          class="manager-settings"
+          [hidden]="projectForm.get('process_type')?.value !== 'hierarchical'"
+        >
+          <p class="info-message">Required fields for hierarchical process:</p>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label class="field-label">Manager LLM</label>
+              <app-help-tooltip
+                [text]="
+                  'Choose the LLM configuration that will manage the hierarchical process.'
+                "
+              ></app-help-tooltip>
+            </div>
+            <app-llm-model-selector
+              [llmConfigs]="llmConfigs"
+              placeholder="Select a manager LLM configuration"
+              formControlName="manager_llm_config"
+              (modelSelected)="onLLMChange($event)"
+            ></app-llm-model-selector>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label class="field-label">Embedding Model</label>
+              <app-help-tooltip
+                [text]="
+                  'Select the embedding model to use for knowledge and context.'
+                "
+              ></app-help-tooltip>
+            </div>
+            <app-embedding-model-selector
+              [embeddingConfigs]="embeddingConfigs"
+              placeholder="Select an embedding configuration"
+              formControlName="embedding_config"
+              (modelSelected)="onEmbeddingChange($event)"
+            ></app-embedding-model-selector>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label class="field-label">Manager Creativity</label>
+              <app-help-tooltip
+                [text]="
+                  'Adjust the creativity level for the manager LLM. Higher values allow for more creative responses.'
+                "
+              ></app-help-tooltip>
+            </div>
+            <app-form-slider
+              [value]="sliderValue"
+              label=""
+              (valueChange)="onSliderInput($event)"
+            ></app-form-slider>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configurations Tab -->
+      <div class="tab-content" [hidden]="activeTab !== 'configurations'">
+        <!-- Advanced Settings -->
+        <div class="configurations-settings">
+          <div class="form-group">
+            <div class="label-row toggle-container">
+              <div class="toggle-label-wrapper">
+                <label class="toggle-label">Memory</label>
+                <app-help-tooltip
+                  [text]="
+                    'Enable or disable memory for this project. Memory allows the agent to remember previous interactions.'
+                  "
+                ></app-help-tooltip>
+              </div>
+              <app-toggle-switch formControlName="memory"></app-toggle-switch>
+            </div>
+          </div>
+
+          <!-- Additional toggle switches for cache, full_output, and planning -->
+          <div class="form-group">
+            <div class="label-row toggle-container">
+              <div class="toggle-label-wrapper">
+                <label class="toggle-label">Cache</label>
+                <app-help-tooltip
+                  [text]="
+                    'Enable or disable caching for this project. Caching can improve performance by reusing previous results.'
+                  "
+                ></app-help-tooltip>
+              </div>
+              <app-toggle-switch formControlName="cache"></app-toggle-switch>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row toggle-container">
+              <div class="toggle-label-wrapper">
+                <label class="toggle-label">Full Output</label>
+                <app-help-tooltip
+                  [text]="
+                    'Enable to get detailed output from all operations in the project.'
+                  "
+                ></app-help-tooltip>
+              </div>
+              <app-toggle-switch
+                formControlName="full_output"
+              ></app-toggle-switch>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row toggle-container">
+              <div class="toggle-label-wrapper">
+                <label class="toggle-label">Planning</label>
+                <app-help-tooltip
+                  [text]="'Enable to use planning in the project workflow.'"
+                ></app-help-tooltip>
+              </div>
+              <app-toggle-switch formControlName="planning"></app-toggle-switch>
+            </div>
+          </div>
+        </div>
+
+        <!-- Max Requests Per Minute -->
+        <div class="form-group">
+          <div class="label-row">
+            <label class="field-label">Max Requests Per Minute</label>
+            <app-help-tooltip
+              [text]="
+                'Set the maximum number of requests per minute (RPM) for this project.'
+              "
+            ></app-help-tooltip>
+          </div>
+          <app-form-slider
+            [value]="maxRpmSliderValue"
+            [max]="50"
+            label=""
+            (valueChange)="onMaxRpmSliderInput($event)"
+          ></app-form-slider>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="actions">
+      <button type="button" class="btn-cancel" (click)="onCancelForm()">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn-create"
+        (click)="onSubmitForm()"
+        [disabled]="projectForm.invalid || isSubmitting"
+      >
+        {{ isSubmitting ? "Creating..." : "Create Project" }}
+      </button>
+    </div>
+  </form>
+</div>

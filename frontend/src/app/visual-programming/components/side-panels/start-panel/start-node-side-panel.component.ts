@@ -17,6 +17,7 @@ import { NgIf } from '@angular/common';
 import { StartNodeModel } from '../../../core/models/node.model';
 import { FlowService } from '../../../services/flow.service';
 import { JsonEditorComponent } from '../../../../shared/components/json-editor/json-editor.component';
+import { HelpTooltipComponent } from '../../../../shared/components/help-tooltip/help-tooltip.component';
 import { CodeEditorComponent } from '../../../../user-settings-page/tools/custom-tool-editor/code-editor/code-editor.component';
 
 @Component({
@@ -24,7 +25,13 @@ import { CodeEditorComponent } from '../../../../user-settings-page/tools/custom
   standalone: true,
   templateUrl: './start-node-side-panel.component.html',
   styleUrls: ['./start-node-side-panel.component.scss'],
-  imports: [FormsModule, ReactiveFormsModule, JsonEditorComponent],
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    JsonEditorComponent,
+    NgIf,
+    HelpTooltipComponent,
+  ],
 })
 export class StartNodeSidePanelComponent implements OnInit {
   @Input() node!: StartNodeModel;

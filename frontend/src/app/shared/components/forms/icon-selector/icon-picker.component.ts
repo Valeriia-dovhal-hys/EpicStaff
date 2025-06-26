@@ -47,7 +47,7 @@ export const UI_ICONS: Record<string, string> = {
 @Component({
   selector: 'app-icon-picker',
   standalone: true,
-  imports: [NgFor, NgIf, NgClass, AppIconComponent],
+  imports: [NgFor, NgIf, AppIconComponent],
   templateUrl: './icon-picker.component.html',
   styleUrls: ['./icon-picker.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

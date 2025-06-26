@@ -1,6 +1,6 @@
 <div class="sidebar-item-container">
   <button (click)="onSelect()" [class.active]="isSelected()">
-    {{ agent.role }}
+    <span class="agent-role">{{ agent.role }}</span>
   </button>
   <button class="settings-btn" (click)="openSettings($event)">
     <i class="ti ti-settings"></i>

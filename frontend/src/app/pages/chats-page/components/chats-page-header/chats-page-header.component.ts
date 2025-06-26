@@ -15,10 +15,7 @@ import {
   transition,
 } from '@angular/animations';
 import { ToastService } from '../../../../services/notifications/toast.service';
-import {
-  RealtimeModelConfig,
-  RealtimeModelConfigsService,
-} from '../../../models-page/services/realtime-models-services/real-time-model-config.service';
+import { RealtimeModelConfigsService } from '../../../../features/settings-dialog/services/realtime-llms/real-time-model-config.service';
 import { ConsoleService } from '../../services/console.service';
 
 @Component({

@@ -12,11 +12,14 @@ import { DialogModule, Dialog } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription, finalize } from 'rxjs';
-import { CreateProjectComponent } from '../../shared/components/create-project-form-dialog/create-project.component';
+import { CreateProjectComponent } from '../../features/projects/components/create-project-form-dialog/create-project.component';
 import { PageHeaderComponent } from '../../shared/components/header/page-header.component';
 import { ToastService } from '../../services/notifications/toast.service';
 import { ProjectsStorageService } from '../../features/projects/services/projects-storage.service';
-import { ConfirmationDialogService } from '../../shared/components/cofirm-dialog/confimation-dialog.service';
+import {
+  ConfirmationDialogService,
+  ConfirmationResult,
+} from '../../shared/components/cofirm-dialog/confimation-dialog.service';
 import { GetProjectRequest } from '../../features/projects/models/project.model';
 import { ProjectListItemCardComponent } from './project-list-item-card/project-list-item-card.component';
 import { SpinnerComponent } from '../../shared/components/spinner/spinner.component';
@@ -191,7 +194,7 @@ export class ProjectsPageComponent implements OnInit, OnDestroy {
   public onDeleteProject(project: ProjectListItem): void {
     this.confirmationService
       .confirmDelete(project.name)
-      .subscribe((confirmed: boolean) => {
+      .subscribe((confirmed: ConfirmationResult) => {
         if (confirmed) {
           const deleteSubscription = this.projectsStorageService
             .deleteProject(project.id)

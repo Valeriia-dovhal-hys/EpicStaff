@@ -1,7 +1,10 @@
 import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-conditional-edge-node',
+  standalone: true,
+  imports: [CommonModule],
   template: `
     <svg
       [attr.width]="width"

@@ -21,7 +21,7 @@ import { FormsModule } from '@angular/forms';
 
 import { Subscription } from 'rxjs';
 import { ProjectStateService } from '../services/project-state.service';
-import { FullAgent } from '../../services/full-agent.service';
+import { FullAgent, FullAgentService } from '../../services/full-agent.service';
 import {
   GridControlsComponent,
   GridSizeOption,
@@ -37,6 +37,10 @@ import {
   CardState,
   StaffAgentCardComponent,
 } from './grid-controls/dropdown-staff-agents/staff-agent-card/staff-agent-card.component';
+import { Dialog } from '@angular/cdk/dialog';
+import { CreateAgentFormComponent } from '../../shared/components/create-agent-form-dialog/create-agent-form-dialog.component';
+import { AgentsService } from '../../services/staff.service';
+import { ToastService } from '../../services/notifications/toast.service';
 
 @Component({
   selector: 'app-agents-section',
@@ -72,7 +76,11 @@ export class AgentsSectionComponent implements OnInit, OnDestroy {
   public isLoaded: boolean = false;
   constructor(
     private projectStateService: ProjectStateService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private dialog: Dialog,
+    private agentsService: AgentsService,
+    private toastService: ToastService,
+    private fullAgentService: FullAgentService
   ) {}
 
   ngOnInit(): void {
@@ -102,6 +110,29 @@ export class AgentsSectionComponent implements OnInit, OnDestroy {
   }
   public onRemoveStaffAgent(staffAgent: FullAgent) {
     this.projectStateService.removeAgent(staffAgent);
+  }
+
+  public onEditAgent(agent: FullAgent): void {
+    const dialogRef = this.dialog.open<FullAgent>(CreateAgentFormComponent, {
+      width: '600px',
+      data: { agent, isEditMode: true },
+    });
+
+    dialogRef.closed.subscribe((updatedAgent) => {
+      if (updatedAgent) {
+        // Update the agent via service
+        this.agentsService.updateAgent(updatedAgent).subscribe({
+          next: (result) => {
+            // After updating the agent, refresh the full agent data
+            this.projectStateService.refreshAgent(result.id);
+          },
+          error: (error) => {
+            console.error('Error updating agent:', error);
+            this.toastService.error('Failed to update agent');
+          },
+        });
+      }
+    });
   }
 
   public trackAgentById(index: number, staffAgent: FullAgent): string | number {

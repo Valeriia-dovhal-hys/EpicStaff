@@ -11,11 +11,11 @@ import { switchMap } from 'rxjs/operators';
 import {
   FullEmbeddingConfig,
   FullEmbeddingConfigService,
-} from '../../../../services/full-embedding.service';
+} from '../../../../features/settings-dialog/services/embeddings/full-embedding.service';
 import {
   FullLLMConfig,
   FullLLMConfigService,
-} from '../../../../services/full-llm-config.service';
+} from '../../../../features/settings-dialog/services/llms/full-llm-config.service';
 import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
 import { ExpandableSectionComponent } from './components/expandable-section.component';
 import { ModelAgentSectionComponent } from './components/models-section/model-agent-section.component';

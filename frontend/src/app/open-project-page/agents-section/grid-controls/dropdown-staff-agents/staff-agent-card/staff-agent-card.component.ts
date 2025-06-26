@@ -3,9 +3,12 @@ import {
   Input,
   ChangeDetectionStrategy,
   OnInit,
+  OnChanges,
+  SimpleChanges,
   Output,
   EventEmitter,
   HostBinding,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -17,6 +20,8 @@ import {
 } from '@angular/animations';
 import { FullAgent } from '../../../../../services/full-agent.service';
 import { AgentMenuComponent } from './header-sub-menu/header-sub-menu.component';
+import { AppIconComponent } from '../../../../../shared/components/app-icon/app-icon.component';
+import { getProviderIconPath } from '../../../../../features/settings-dialog/constants/provider-icons.constants';
 
 export type CardState = 'default' | 'adding' | 'removing';
 
@@ -29,7 +34,7 @@ interface SectionStates {
 @Component({
   selector: 'app-staff-agent-card',
   standalone: true,
-  imports: [CommonModule, AgentMenuComponent],
+  imports: [CommonModule, AgentMenuComponent, AppIconComponent],
   templateUrl: './staff-agent-card.component.html',
   styleUrls: ['./staff-agent-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,7 +56,7 @@ interface SectionStates {
     ]),
   ],
 })
-export class StaffAgentCardComponent implements OnInit {
+export class StaffAgentCardComponent implements OnInit, OnChanges {
   @HostBinding('attr.size') @Input() size: 'small' | 'medium' | 'large' =
     'medium';
   @Input() agent!: FullAgent;
@@ -61,11 +66,11 @@ export class StaffAgentCardComponent implements OnInit {
   @Output() public showAdvancedSettings = new EventEmitter<void>();
   @Output() public addToFavorites = new EventEmitter<void>();
   @Output() public removeAgent = new EventEmitter<FullAgent>();
+  @Output() public editAgent = new EventEmitter<FullAgent>();
 
   public goalExpanded = false;
   public backstoryExpanded = false;
   public toolsExpanded = false;
-  public tagsExpanded = false;
   public isMenuOpen = false;
 
   // Default state for sections (all collapsed)
@@ -75,17 +80,28 @@ export class StaffAgentCardComponent implements OnInit {
     details: false,
   };
 
-  // Store the emoji so it doesn't change on re-renders
-  private agentEmoji = '';
+  constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    // Initialize the agent's emoji once
-    this.initializeAgentEmoji();
-
     // Initially collapse all sections
     this.sectionStates.goal = false;
     this.sectionStates.backstory = false;
     this.sectionStates.details = false;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['agent'] && !changes['agent'].firstChange) {
+      console.log('Agent updated:', this.agent);
+      console.log('Updated tools:', this.agent.mergedTools);
+
+      // Ensure the details section is expanded when agent is updated
+      // so the user can see the updated tools
+      if (this.agent.mergedTools && this.agent.mergedTools.length > 0) {
+        this.sectionStates.details = true;
+        // Force change detection to update the view
+        this.cdr.markForCheck();
+      }
+    }
   }
 
   public onAddAgentClick(): void {
@@ -120,98 +136,15 @@ export class StaffAgentCardComponent implements OnInit {
     this.closeMenu();
   }
 
-  /**
-   * Toggle the expanded/collapsed state of a section
-   */
+  public onEditAgent(): void {
+    console.log('Edit agent clicked:', this.agent.role);
+    this.editAgent.emit(this.agent);
+    this.closeMenu();
+  }
+
   public toggleSection(section: keyof SectionStates): void {
     // Toggle the section's expanded state
     this.sectionStates[section] = !this.sectionStates[section];
-  }
-
-  private initializeAgentEmoji(): void {
-    const emojis = [
-      '💻',
-      '⚙️',
-      '🔌',
-      '🖥️',
-      '📱',
-      '🤖',
-      '📡',
-      '💰',
-      '💹',
-      '📊',
-      '📈',
-      '💸',
-      '🏦',
-      '💲',
-      '🔬',
-      '🧪',
-      '📝',
-      '🔍',
-      '🧠',
-      '📚',
-      '🧮',
-      '🎓',
-      '✏️',
-      '🧑‍🏫',
-      '🔤',
-      '📖',
-      '📣',
-      '📢',
-      '🎯',
-      '💬',
-      '🔮',
-      '🧩',
-      '🚀',
-      '💡',
-      '✨',
-      '🔧',
-      '📌',
-      '🔔',
-      '🎨',
-      '🎭',
-      '🏆',
-      '🌟',
-      '🔥',
-      '⭐',
-      '💫',
-      '🌈',
-      '🌞',
-      '🌱',
-      '🌿',
-      '🍀',
-    ];
-
-    // Use the agent's ID or role to create a deterministic index
-    let seed = 0;
-    if (this.agent.id) {
-      // Convert ID to a number for seeding
-      seed =
-        typeof this.agent.id === 'number'
-          ? this.agent.id
-          : this.hashString(String(this.agent.id));
-    } else if (this.agent.role) {
-      // Use the role string if no ID is available
-      seed = this.hashString(this.agent.role);
-    }
-
-    // Get a deterministic index based on the agent's properties
-    const index = Math.abs(seed) % emojis.length;
-    this.agentEmoji = emojis[index];
-  }
-
-  private hashString(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return hash;
-  }
-
-  public getAgentEmoji(): string {
-    return this.agentEmoji;
   }
 
   public isTextTruncated(text?: string): boolean {
@@ -230,23 +163,17 @@ export class StaffAgentCardComponent implements OnInit {
     }
   }
 
-  public getDisplayedTags(): string[] {
-    if (!this.agent.tags || this.agent.tags.length === 0) {
-      return [];
-    }
-
-    if (this.tagsExpanded || this.agent.tags.length <= 6) {
-      return this.agent.tags;
-    } else {
-      return this.agent.tags.slice(0, 6);
-    }
-  }
-
   public shouldShowToolsToggle(): boolean {
     return !!this.agent.mergedTools && this.agent.mergedTools.length > 4;
   }
 
-  public shouldShowTagsToggle(): boolean {
-    return !!this.agent.tags && this.agent.tags.length > 6;
+  public toggleToolsExpanded(): void {
+    this.toolsExpanded = !this.toolsExpanded;
+    console.log('Tools expanded:', this.toolsExpanded);
+    this.cdr.markForCheck();
+  }
+
+  public getProviderIcon(providerName: string | undefined | null): string {
+    return getProviderIconPath(providerName);
   }
 }

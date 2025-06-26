@@ -29,9 +29,12 @@ import { TOOL_PROVIDERS_AND_DESCRIPTIONS } from '../../../../../../constants/too
 })
 export class BuiltInToolCardComponent {
   @Input() public tool!: Tool;
-  @Input() public enabled: boolean = false;
   @Input() public starred: boolean = false;
   @Output() public configure = new EventEmitter<Tool>();
+  @Output() public enabledChange = new EventEmitter<{
+    tool: Tool;
+    enabled: boolean;
+  }>();
 
   constructor(private cdr: ChangeDetectorRef) {}
 
@@ -72,9 +75,9 @@ export class BuiltInToolCardComponent {
     this.configure.emit(this.tool);
   }
 
-  public onToggle(val: boolean): void {
-    console.log('Toggle clicked for tool:', this.tool);
-    this.enabled = val;
+  public onToggle(enabled: boolean): void {
+    console.log('Toggle clicked for tool:', this.tool, 'new state:', enabled);
+    this.enabledChange.emit({ tool: this.tool, enabled });
   }
 
   public onStar(): void {

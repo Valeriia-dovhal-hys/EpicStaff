@@ -7,12 +7,12 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { FullLLMConfig } from '../../../../../../../services/full-llm-config.service';
-import { LLM_Config_Service } from '../../../../../../../services/LLM_config.service';
+import { FullLLMConfig } from '../../../../../../../features/settings-dialog/services/llms/full-llm-config.service';
+import { LLM_Config_Service } from '../../../../../../../features/settings-dialog/services/llms/LLM_config.service';
 import { ToastService } from '../../../../../../../services/notifications/toast.service';
-import { GetLlmModelRequest } from '../../../../../../../shared/models/LLM.model';
-import { CreateLLMConfigRequest } from '../../../../../../../shared/models/LLM_config.model';
-import { LLM_Provider } from '../../../../../../../shared/models/LLM_provider.model';
+import { GetLlmModelRequest } from '../../../../../../../features/settings-dialog/models/llms/LLM.model';
+import { CreateLLMConfigRequest } from '../../../../../../../features/settings-dialog/models/llms/LLM_config.model';
+import { LLM_Provider } from '../../../../../../../features/settings-dialog/models/LLM_provider.model';
 
 export interface AddLLMDialogData {
   provider: LLM_Provider;

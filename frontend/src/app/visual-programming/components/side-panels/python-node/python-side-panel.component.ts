@@ -30,6 +30,7 @@ import { ConfirmationDialogComponent } from '../../../../shared/components/cofir
 import { DialogModule } from '@angular/cdk/dialog';
 import { SidePanelService } from '../../../services/side-panel.service';
 import { ShortcutListenerDirective } from '../../../core/directives/shortcut-listener.directive';
+import { HelpTooltipComponent } from '../../../../shared/components/help-tooltip/help-tooltip.component';
 
 @Component({
   selector: 'app-python-side-panel',
@@ -42,6 +43,7 @@ import { ShortcutListenerDirective } from '../../../core/directives/shortcut-lis
     InputMapComponent,
     DialogModule,
     ShortcutListenerDirective,
+    HelpTooltipComponent,
   ],
   templateUrl: './python-side-panel.component.html',
   styleUrls: ['./python-side-panel.component.scss'],

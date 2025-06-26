@@ -8,6 +8,7 @@ import {
   OnDestroy,
   ChangeDetectorRef,
   signal,
+  AfterViewInit,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -20,7 +21,7 @@ import {
 import { ProjectNodeModel } from '../../../core/models/node.model';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { uniqueNodeNameValidator } from '../unique-node-name-validator/unique-node-name.validator';
 import { FlowService } from '../../../services/flow.service';
 import { NgIf, NgFor, NgClass } from '@angular/common';
@@ -30,6 +31,7 @@ import { DialogModule } from '@angular/cdk/dialog';
 import { ConfirmationDialogComponent } from '../../../../shared/components/cofirm-dialog/confirmation-dialog.component';
 import { SidePanelService } from '../../../services/side-panel.service';
 import { ShortcutListenerDirective } from '../../../core/directives/shortcut-listener.directive';
+import { HelpTooltipComponent } from '../../../../shared/components/help-tooltip/help-tooltip.component';
 
 interface InputMapPair {
   key: string;
@@ -46,12 +48,15 @@ interface InputMapPair {
     NgIf,
     DialogModule,
     ShortcutListenerDirective,
+    HelpTooltipComponent,
   ],
   templateUrl: './project-side-panel.component.html',
   styleUrls: ['./project-side-panel.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProjectSidePanelComponent implements OnInit, OnDestroy {
+export class ProjectSidePanelComponent
+  implements OnInit, OnDestroy, AfterViewInit
+{
   @Input() public node!: ProjectNodeModel;
   @Output() private closePanel = new EventEmitter<void>();
   @Output() private nodeUpdated = new EventEmitter<ProjectNodeModel>();
@@ -59,6 +64,7 @@ export class ProjectSidePanelComponent implements OnInit, OnDestroy {
   public projectForm: FormGroup;
   public readonly hasUnsavedChanges = signal<boolean>(false);
   private initialFormValue: any;
+  private formInitialized: boolean = false;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -78,7 +84,16 @@ export class ProjectSidePanelComponent implements OnInit, OnDestroy {
   public ngOnInit(): void {
     this.initializeFormValues();
     this.initializeInputMap();
-    this.setupFormChangeTracking();
+  }
+
+  public ngAfterViewInit(): void {
+    // Set up form change tracking after view is initialized and initial values are set
+    setTimeout(() => {
+      this.formInitialized = true;
+      this.updateInitialFormValue();
+      this.setupFormChangeTracking();
+      this.cdr.detectChanges();
+    });
   }
 
   public ngOnDestroy(): void {
@@ -130,30 +145,43 @@ export class ProjectSidePanelComponent implements OnInit, OnDestroy {
         node_name: this.node.node_name,
         output_variable_path: this.node.output_variable_path,
       });
-      this.updateInitialFormValue();
-      this.hasUnsavedChanges.set(false);
     }
   }
 
   private updateInitialFormValue(): void {
-    this.initialFormValue = this.projectForm.getRawValue();
+    this.initialFormValue = this.getNormalizedFormValue();
   }
 
   private setupFormChangeTracking(): void {
     this.projectForm.valueChanges
-      .pipe(takeUntil(this.destroy$))
+      .pipe(debounceTime(100), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => {
-        this.checkForChanges();
+        if (this.formInitialized) {
+          this.checkForChanges();
+        }
       });
   }
 
   private checkForChanges(): void {
-    const formChanged = !this.isEqual(
-      this.projectForm.getRawValue(),
-      this.initialFormValue
-    );
+    const currentValue = this.getNormalizedFormValue();
+    const formChanged = !this.isEqual(currentValue, this.initialFormValue);
     this.hasUnsavedChanges.set(formChanged);
     this.sidePanelService.setHasUnsavedChanges(formChanged);
+  }
+
+  private getNormalizedFormValue(): any {
+    const formValue = this.projectForm.getRawValue();
+    const normalizedValue = { ...formValue };
+
+    // Filter out empty input pairs
+    if (normalizedValue.input_map?.length) {
+      normalizedValue.input_map = normalizedValue.input_map.filter(
+        (pair: InputMapPair) =>
+          pair.key.trim() !== '' || pair.value.trim() !== ''
+      );
+    }
+
+    return normalizedValue;
   }
 
   private isEqual(obj1: any, obj2: any): boolean {
@@ -161,7 +189,7 @@ export class ProjectSidePanelComponent implements OnInit, OnDestroy {
   }
 
   private initializeInputMap(): void {
-    if (this.node.input_map) {
+    if (this.node.input_map && Object.keys(this.node.input_map).length > 0) {
       Object.entries(this.node.input_map).forEach(([key, value]) => {
         this.inputMapPairs.push(
           this.fb.group({
@@ -171,17 +199,7 @@ export class ProjectSidePanelComponent implements OnInit, OnDestroy {
         );
       });
     }
-  }
-
-  private ensureMinimumInputMapPairs(): void {
-    if (this.inputMapPairs.length === 0) {
-      this.inputMapPairs.push(
-        this.fb.group({
-          key: [''],
-          value: [''],
-        })
-      );
-    }
+    // The empty input map will be added by the InputMapComponent's ngOnInit
   }
 
   private getValidInputPairs(): AbstractControl[] {

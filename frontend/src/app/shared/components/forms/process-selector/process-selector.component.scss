@@ -1,49 +1,38 @@
-/* Process switcher inside custom field */
-.switch-container {
+.process-selector {
   display: flex;
   width: 100%;
-  background-color: var(--gray-800);
-  border-radius: 6px;
-  padding: 4px;
-  height: 40px;
-  position: relative;
+  background-color: var(--color-nodes-input-bg);
+  border-radius: 8px;
+  padding: 0;
+  gap: 0.25rem;
+  border: 1px solid var(--color-divider-subtle);
 }
 
-.switch-option {
+.process-option {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  z-index: 1;
+  padding: 0.5rem 0.4rem;
+  border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  border-radius: 4px;
-  color: var(--gray-400);
-  transition: color 0.2s ease;
-}
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
 
-.switch-option.active {
-  color: var(--gray-100);
-}
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
 
-.switch-slider {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  height: calc(100% - 8px);
-  border-radius: 4px;
-  background-color: var(--accent-color);
-  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-  opacity: 0.9;
-  width: calc(50% - 4px);
-}
+  &.active {
+    background-color: var(--accent-color);
+    color: #202020;
+    box-shadow: 0 2px 8px rgba(104, 95, 255, 0.3);
+  }
 
-.sequential-option.active ~ .switch-slider {
-  transform: translateX(0);
-}
-
-.hierarchical-option.active ~ .switch-slider {
-  transform: translateX(calc(100% + 0px));
+  .option-icon {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+  }
 }

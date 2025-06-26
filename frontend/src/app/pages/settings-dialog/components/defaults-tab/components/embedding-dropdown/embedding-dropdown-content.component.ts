@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FullEmbeddingConfig } from '../../../../../../services/full-embedding.service';
+import { FullEmbeddingConfig } from '../../../../../../features/settings-dialog/services/embeddings/full-embedding.service';
 
 @Component({
   selector: 'app-embedding-dropdown-content',

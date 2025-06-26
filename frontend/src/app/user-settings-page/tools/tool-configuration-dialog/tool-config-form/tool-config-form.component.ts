@@ -22,9 +22,9 @@ import { Tool } from '../../../../shared/models/tool.model';
 import {
   CreateToolConfigRequest,
   ToolConfig,
-} from '../../../../shared/models/tool_config,model';
-import { GetLlmConfigRequest } from '../../../../shared/models/LLM_config.model';
-import { EmbeddingConfig } from '../../../../shared/models/embedding-config.model';
+} from '../../../../shared/models/tool_config.model';
+import { GetLlmConfigRequest } from '../../../../features/settings-dialog/models/llms/LLM_config.model';
+import { EmbeddingConfig } from '../../../../features/settings-dialog/models/embeddings/embedding-config.model';
 import {
   NgIf,
   NgFor,
@@ -33,6 +33,12 @@ import {
   NgSwitchDefault,
 } from '@angular/common';
 import { ToolConfigService } from '../../../../services/tool_config.service';
+import { HelpTooltipComponent } from '../../../../shared/components/help-tooltip/help-tooltip.component';
+import { LlmModelSelectorComponent } from '../../../../shared/components/llm-model-selector/llm-model-selector.component';
+import { EmbeddingModelSelectorComponent } from '../../../../shared/components/embedding-model-selector/embedding-model-selector.component';
+import { FullLLMConfig } from '../../../../features/settings-dialog/services/llms/full-llm-config.service';
+import { FullEmbeddingConfig } from '../../../../features/settings-dialog/services/embeddings/full-embedding.service';
+import { ToastService } from '../../../../services/notifications/toast.service';
 
 @Component({
   selector: 'app-tool-config-form',
@@ -46,11 +52,14 @@ import { ToolConfigService } from '../../../../services/tool_config.service';
     NgSwitch,
     NgSwitchCase,
     NgSwitchDefault,
+    HelpTooltipComponent,
+    LlmModelSelectorComponent,
+    EmbeddingModelSelectorComponent,
   ],
 })
 export class ToolConfigFormComponent implements OnInit, OnChanges {
-  @Input({ required: true }) llmConfigs!: GetLlmConfigRequest[];
-  @Input({ required: true }) embeddingConfigs!: EmbeddingConfig[];
+  @Input({ required: true }) llmConfigs!: FullLLMConfig[];
+  @Input({ required: true }) embeddingConfigs!: FullEmbeddingConfig[];
   @Input({ required: true }) existingToolConfigs!: ToolConfig[];
   @Input({ required: true }) tool!: Tool;
   @Input() selectedConfig: ToolConfig | null = null;
@@ -63,7 +72,8 @@ export class ToolConfigFormComponent implements OnInit, OnChanges {
   constructor(
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
-    private toolConfigService: ToolConfigService
+    private toolConfigService: ToolConfigService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -77,11 +87,16 @@ export class ToolConfigFormComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedConfig']) {
+      // Make sure form is built first if it doesn't exist
+      if (!this.form) {
+        this.buildForm();
+      }
+
       if (this.selectedConfig) {
         // Edit mode
         this.populateFormWithConfig(this.selectedConfig);
       } else {
-        // Create mode
+        // Create mode - reset the form
         this.buildForm();
       }
     }
@@ -102,7 +117,12 @@ export class ToolConfigFormComponent implements OnInit, OnChanges {
       const validators = field.required ? [Validators.required] : [];
       switch (field.data_type) {
         case 'llm_config':
+          // Handle LLM config field - should be a dropdown with LLM configs
+          console.log('Creating LLM config field:', field.name);
+          this.form.addControl(field.name, this.fb.control('', validators));
+          break;
         case 'embedding_config':
+          // Handle embedding config field - should be a dropdown with embedding configs
           this.form.addControl(field.name, this.fb.control('', validators));
           break;
         case 'string':
@@ -125,7 +145,15 @@ export class ToolConfigFormComponent implements OnInit, OnChanges {
   }
 
   populateFormWithConfig(config: ToolConfig): void {
-    if (config && config.configuration) {
+    // Make sure form and config exist before proceeding
+    if (!this.form || !config || !config.configuration) {
+      console.warn(
+        'Form or config is not initialized in populateFormWithConfig'
+      );
+      return;
+    }
+
+    try {
       const formData: any = { name: config.name };
       for (const key in config.configuration) {
         if (config.configuration.hasOwnProperty(key)) {
@@ -142,15 +170,28 @@ export class ToolConfigFormComponent implements OnInit, OnChanges {
           this.form.controls[field.name]
         ) {
           const control = this.form.get(field.name);
-          if (control && control.value === null) {
-            // Set to empty string so required validator fails
-            control.setValue('');
+          if (control) {
+            if (control.value === null) {
+              // Set to empty string so required validator fails
+              control.setValue('');
+            } else {
+              // Ensure LLM config and embedding config values are numbers
+              // This handles cases where they might be stored as strings
+              const numValue = Number(control.value);
+              if (!isNaN(numValue)) {
+                control.setValue(numValue);
+              }
+            }
+
             // Mark the control as touched or dirty so errors appear immediately
             control.markAsTouched();
             control.updateValueAndValidity(); // Re-run validation
           }
         }
       });
+    } catch (error) {
+      console.error('Error in populateFormWithConfig:', error);
+      this.toastService.error(`Error loading configuration: ${error}`);
     }
   }
 
@@ -257,8 +298,11 @@ export class ToolConfigFormComponent implements OnInit, OnChanges {
           },
           error: (err) => {
             console.error('Error creating configuration:', err);
-
-            // Show error snackbar
+            this.toastService.error(
+              `Failed to create configuration: ${
+                err.message || 'Unknown error'
+              }`
+            );
           },
         });
       } else {
@@ -272,13 +316,19 @@ export class ToolConfigFormComponent implements OnInit, OnChanges {
             },
             error: (err) => {
               console.error('Error updating configuration:', err);
-
-              // Show error snackbar
+              this.toastService.error(
+                `Failed to update configuration: ${
+                  err.message || 'Unknown error'
+                }`
+              );
             },
           });
       }
     } else {
       this.form.markAllAsTouched();
+      this.toastService.warning(
+        'Please fix the validation errors before submitting the form.'
+      );
     }
   }
 

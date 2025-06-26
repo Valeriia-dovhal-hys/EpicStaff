@@ -14,13 +14,19 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--color-input-background);
+    border: 1px solid var(--color-input-border);
     border-radius: 6px;
-    color: #ededed;
-    font-size: 14px;
+    padding: 0.625rem 0.75rem;
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease;
+    min-height: 42px;
+
+    &:hover {
+      border-color: var(--accent-color);
+    }
 
     &.disabled {
       opacity: 0.5;
@@ -32,14 +38,19 @@
       cursor: wait;
     }
 
+    &.placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
     .selected-collection {
-      font-weight: 500;
+      font-weight: normal;
     }
 
     .selector-arrow {
       display: flex;
       align-items: center;
-      color: rgba(255, 255, 255, 0.8);
+      color: var(--color-text-secondary);
+      margin-left: 8px;
       transition: transform 0.2s ease;
 
       &.open {
@@ -50,33 +61,40 @@
 
   .dropdown-menu {
     position: absolute;
-    top: calc(100% + 5px);
+    top: calc(100% + 4px);
     left: 0;
     right: 0;
-    max-height: 250px;
+    max-height: 300px;
     overflow-y: auto;
-    background-color: #2a2a2a;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: var(--color-modals-background);
+    border: 1px solid var(--color-divider-subtle);
     border-radius: 6px;
-    z-index: 10;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
     .dropdown-item {
-      padding: 10px 12px;
-      color: #ededed;
-      font-size: 14px;
+      padding: 0.625rem 0.75rem;
+      color: var(--color-text-primary);
+      font-size: 0.875rem;
       cursor: pointer;
       transition: background-color 0.2s ease;
 
       &:hover {
-        background-color: #333333;
+        background-color: rgba(255, 255, 255, 0.05);
       }
 
       &.selected {
-        background-color: #1e72e6;
-        color: white;
-        font-weight: 500;
+        background-color: rgba(104, 95, 255, 0.1);
+        color: var(--accent-color);
       }
+    }
+
+    .no-results {
+      padding: 12px;
+      text-align: center;
+      color: var(--color-text-secondary);
+      font-size: 0.875rem;
+      font-style: italic;
     }
   }
 }

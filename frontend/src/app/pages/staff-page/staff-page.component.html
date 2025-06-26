@@ -10,10 +10,10 @@
         </h1>
       </div>
       <div class="header-actions">
-        <app-filters-list
+        <!-- <app-filters-list
           [searchPlaceholder]="'Search agents...'"
           [showTags]="true"
-        ></app-filters-list>
+        ></app-filters-list> -->
         <app-button
           type="primary"
           class="btn-primary create-btn"
@@ -26,6 +26,14 @@
     </header>
   </div>
   <section class="body">
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoadingAgent" class="loading-overlay">
+      <app-loading-spinner
+        [message]="'Adding agent...'"
+        [size]="'md'"
+      ></app-loading-spinner>
+    </div>
+
     <app-agents-table [newAgent]="newlyCreatedAgent"></app-agents-table>
   </section>
 </div>

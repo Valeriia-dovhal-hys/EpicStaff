@@ -26,7 +26,7 @@ import { ComponentType } from '@angular/cdk/portal';
         top: 1rem;
         bottom: 1rem;
         right: 1rem;
-        z-index: 10001;
+        z-index: 999;
       }
     `,
   ],

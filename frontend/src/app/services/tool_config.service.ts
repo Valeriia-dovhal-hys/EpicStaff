@@ -7,7 +7,7 @@ import {
   CreateToolConfigRequest,
   GetToolConfigRequest,
   ToolConfig,
-} from '../shared/models/tool_config,model';
+} from '../shared/models/tool_config.model';
 import { ConfigService } from './config/config.service';
 
 @Injectable({

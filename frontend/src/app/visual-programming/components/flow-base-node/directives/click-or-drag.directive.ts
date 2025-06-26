@@ -29,7 +29,6 @@ export class ClickOrDragDirective implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.ngZone.runOutsideAngular(() => {
-      // Mouse down listener
       this.unlisteners.push(
         this.renderer.listen(
           this.elementRef.nativeElement,
@@ -41,7 +40,6 @@ export class ClickOrDragDirective implements OnInit, OnDestroy {
         )
       );
 
-      // Mouse move listener
       this.unlisteners.push(
         this.renderer.listen(
           this.elementRef.nativeElement,
@@ -59,7 +57,6 @@ export class ClickOrDragDirective implements OnInit, OnDestroy {
         )
       );
 
-      // Mouse up listener
       this.unlisteners.push(
         this.renderer.listen(
           this.elementRef.nativeElement,
@@ -72,7 +69,6 @@ export class ClickOrDragDirective implements OnInit, OnDestroy {
               !event.altKey &&
               !event.metaKey
             ) {
-              // Run inside zone only when we need to emit the event
               this.ngZone.run(() => {
                 this.actualClick.emit();
               });
@@ -82,7 +78,6 @@ export class ClickOrDragDirective implements OnInit, OnDestroy {
         )
       );
 
-      // Mouse leave listener
       this.unlisteners.push(
         this.renderer.listen(
           this.elementRef.nativeElement,
@@ -96,7 +91,6 @@ export class ClickOrDragDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Clean up all event listeners
     this.unlisteners.forEach((unlisten) => unlisten());
     this.unlisteners = [];
   }

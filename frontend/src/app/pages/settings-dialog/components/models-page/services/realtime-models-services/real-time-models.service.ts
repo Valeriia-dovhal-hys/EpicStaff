@@ -2,13 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { ConfigService } from '../../../../../../services/config/config.service';
-
-export interface ApiGetResponse<T> {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-}
+import { ApiGetResponse } from '../../../../../../services/transcription-models.service';
 
 export interface RealtimeModel {
   id: number;

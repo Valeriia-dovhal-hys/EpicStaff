@@ -32,6 +32,12 @@
       <div class="scrollable-content">
         <!-- Voice Selector -->
         <div class="form-section">
+          <div class="section-header">
+            <h3>Voice</h3>
+            <app-help-tooltip
+              text="Select the voice that the AI agent will use when speaking. Different voices have different characteristics and accents."
+            ></app-help-tooltip>
+          </div>
           <app-voice-selector
             label="Voice"
             [voices]="voices"
@@ -42,6 +48,12 @@
 
         <!-- Transcription Config Selector -->
         <div class="form-section">
+          <div class="section-header">
+            <h3>Transcription Model</h3>
+            <app-help-tooltip
+              text="Choose the model that will convert your speech to text. More advanced models provide better accuracy but may be slower or more expensive."
+            ></app-help-tooltip>
+          </div>
           <app-transcription-config-selector
             label="Transcription Model"
             [configs]="transcriptionConfigs"
@@ -56,7 +68,12 @@
 
         <!-- Wakeword Input -->
         <div class="form-section">
-          <h3>Wake word</h3>
+          <div class="section-header">
+            <h3>Wake word</h3>
+            <app-help-tooltip
+              text="A phrase that activates the agent. When you say this phrase, the agent will start listening to your commands."
+            ></app-help-tooltip>
+          </div>
           <div class="input-container">
             <input
               type="text"
@@ -69,7 +86,12 @@
 
         <!-- Stopword Input -->
         <div class="form-section">
-          <h3>Stop word</h3>
+          <div class="section-header">
+            <h3>Stop word</h3>
+            <app-help-tooltip
+              text="A phrase that tells the agent to stop listening or speaking. Use this to end the current interaction."
+            ></app-help-tooltip>
+          </div>
           <div class="input-container">
             <input
               type="text"
@@ -82,6 +104,12 @@
 
         <!-- Preferred Language Dropdown -->
         <div class="form-section">
+          <div class="section-header">
+            <h3>Preferred Language</h3>
+            <app-help-tooltip
+              text="The primary language the agent should use for speech recognition and responses. This helps improve accuracy for non-English languages."
+            ></app-help-tooltip>
+          </div>
           <app-language-selector
             label="Preferred Language"
             [languages]="languages"
@@ -92,7 +120,12 @@
 
         <!-- Prompt Textarea -->
         <div class="form-section">
-          <h3>Voice recognition prompt</h3>
+          <div class="section-header">
+            <h3>Voice recognition prompt</h3>
+            <app-help-tooltip
+              text="Additional instructions for the voice recognition system. You can provide context or specific guidelines to improve recognition accuracy."
+            ></app-help-tooltip>
+          </div>
           <div class="input-container">
             <textarea
               class="input-field textarea"
@@ -105,6 +138,12 @@
 
         <!-- Threshold Slider -->
         <div class="form-section">
+          <div class="section-header">
+            <h3>Threshold</h3>
+            <app-help-tooltip
+              text="Sets the similarity threshold for knowledge retrieval. Lower values return more results but may be less relevant. Higher values are more precise but may miss useful information."
+            ></app-help-tooltip>
+          </div>
           <app-range-slider
             label="Threshold"
             [value]="settingsForm.get('threshold')?.value"
@@ -118,6 +157,12 @@
 
         <!-- Search Limit Slider -->
         <div class="form-section">
+          <div class="section-header">
+            <h3>Search Limit</h3>
+            <app-help-tooltip
+              text="The maximum number of items to retrieve when searching for relevant information. Higher values provide more context but may slow down responses."
+            ></app-help-tooltip>
+          </div>
           <app-range-slider
             label="Search Limit"
             [value]="settingsForm.get('searchLimit')?.value"

@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { FullAgent } from '../../services/full-agent.service';
+import { FullAgent, FullAgentService } from '../../services/full-agent.service';
 import { FullTask } from '../models/full-task.model';
 import { GetProjectRequest } from '../../features/projects/models/project.model';
 import { ProjectsStorageService } from '../../features/projects/services/projects-storage.service';
@@ -26,7 +26,8 @@ export class ProjectStateService {
 
   constructor(
     private projectsService: ProjectsStorageService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private fullAgentService: FullAgentService
   ) {
     // Subscribe to update signal counts
     this.tasksSubject.subscribe((tasks) => {
@@ -86,13 +87,11 @@ export class ProjectStateService {
           next: (updatedProject) => {
             console.log(updatedProject);
             this.projectSubject.next(updatedProject);
-            this.toastService.success('Agent added successfully');
           },
           error: (error) => {
             console.error('Error updating project agents:', error);
             // Revert the change by removing the agent we just added.
             this.agentsSubject.next(currentAgents);
-            this.toastService.error('Error adding agent');
           },
         });
     }
@@ -126,6 +125,30 @@ export class ProjectStateService {
           },
         });
     }
+  }
+
+  // Refresh a single agent with full details
+  public refreshAgent(agentId: number): void {
+    this.fullAgentService.getFullAgentById(agentId).subscribe({
+      next: (refreshedAgent: FullAgent | null) => {
+        if (refreshedAgent) {
+          const currentAgents = this.agentsSubject.getValue();
+          const updatedAgents = [...currentAgents];
+          const index = updatedAgents.findIndex((a) => a.id === agentId);
+
+          if (index !== -1) {
+            // Replace the agent with the refreshed one
+            updatedAgents[index] = refreshedAgent;
+            this.agentsSubject.next(updatedAgents);
+            this.toastService.success('Agent updated successfully');
+          }
+        }
+      },
+      error: (error: any) => {
+        console.error('Error refreshing agent:', error);
+        this.toastService.error('Error updating agent');
+      },
+    });
   }
 
   // Add a new task

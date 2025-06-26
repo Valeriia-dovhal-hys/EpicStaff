@@ -17,7 +17,12 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db import transaction
 from django.db.models import Prefetch
-from tables.models.graph_models import Condition, ConditionGroup, DecisionTableNode, LLMNode
+from tables.models.graph_models import (
+    Condition,
+    ConditionGroup,
+    DecisionTableNode,
+    LLMNode,
+)
 from tables.models.realtime_models import (
     RealtimeSessionItem,
     RealtimeAgent,
@@ -40,7 +45,7 @@ from tables.serializers.model_serializers import (
     RealtimeAgentChatSerializer,
     StartNodeSerializer,
     ConditionGroupSerializer,
-    ConditionSerializer
+    ConditionSerializer,
 )
 
 
@@ -314,24 +319,42 @@ class GraphViewSet(viewsets.ModelViewSet):
     serializer_class = GraphSerializer
 
     def get_queryset(self):
-        return Graph.objects.defer('metadata', 'tags').prefetch_related(
-            Prefetch("crew_node_list", queryset=CrewNode.objects.select_related('crew')),
-            Prefetch("python_node_list", queryset=PythonNode.objects.select_related('python_code')), 
-            Prefetch("edge_list", queryset=Edge.objects.all()), 
-            Prefetch("conditional_edge_list", queryset=ConditionalEdge.objects.select_related('python_code')), 
-            Prefetch("llm_node_list", queryset=LLMNode.objects.select_related('llm_config')),
-            Prefetch("decision_table_node_list", queryset=DecisionTableNode.objects.all())
-        ).all()
+        return (
+            Graph.objects.defer("metadata", "tags")
+            .prefetch_related(
+                Prefetch(
+                    "crew_node_list", queryset=CrewNode.objects.select_related("crew")
+                ),
+                Prefetch(
+                    "python_node_list",
+                    queryset=PythonNode.objects.select_related("python_code"),
+                ),
+                Prefetch("edge_list", queryset=Edge.objects.all()),
+                Prefetch(
+                    "conditional_edge_list",
+                    queryset=ConditionalEdge.objects.select_related("python_code"),
+                ),
+                Prefetch(
+                    "llm_node_list",
+                    queryset=LLMNode.objects.select_related("llm_config"),
+                ),
+                Prefetch(
+                    "decision_table_node_list", queryset=DecisionTableNode.objects.all()
+                ),
+            )
+            .all()
+        )
 
 
 class GraphLightViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GraphLightSerializer
     filter_backends = [DjangoFilterBackend, drf_filters.SearchFilter]
     # filterset_fields = ['tags']  TODO: Uncomment when tags logic implemented
-    search_fields = ['name', 'description']
+    search_fields = ["name", "description"]
 
     def get_queryset(self):
         return Graph.objects.prefetch_related("tags")
+
 
 class CrewNodeViewSet(viewsets.ModelViewSet):
     queryset = CrewNode.objects.all()
@@ -600,22 +623,28 @@ class RealtimeAgentChatViewSet(ReadOnlyModelViewSet):
             {"detail": "Deleted successfully"}, status=status.HTTP_204_NO_CONTENT
         )
 
+
 class StartNodeModelViewSet(viewsets.ModelViewSet):
     queryset = StartNode.objects.all()
     serializer_class = StartNodeSerializer
 
+
 class ConditionGroupModelViewSet(viewsets.ModelViewSet):
     queryset = ConditionGroup.objects.all()
     serializer_class = ConditionGroupSerializer
+
+
 class ConditionModelViewSet(viewsets.ModelViewSet):
     queryset = Condition.objects.all()
     serializer_class = ConditionSerializer
+
 
 class DecisionTableNodeModelViewSet(viewsets.ModelViewSet):
     queryset = DecisionTableNode.objects.all()
     serializer_class = DecisionTableNodeSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["graph"]
+
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         # Extract nested data
@@ -645,7 +674,7 @@ class DecisionTableNodeModelViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
         condition_groups_data = request.data.pop("condition_groups", [])
 

@@ -7,7 +7,7 @@ import {
   SimpleChanges,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { ToolConfig } from '../../../../shared/models/tool_config,model';
+import { ToolConfig } from '../../../../shared/models/tool_config.model';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 
