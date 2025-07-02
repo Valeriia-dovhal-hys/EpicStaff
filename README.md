@@ -1,12 +1,32 @@
 ![EpicStaff Logo](logo.png)
 
-**EpicStaff** is an open-source platform designed primarily for developers, yet fully accessible to non-developers for orchestrating high-performance, agent-driven AI workflows. It provides fine-grained, low-level control over task orchestration within a lean, asynchronous architecture.
+# EpicStaff - AI Agent Without The Frustration
 
-The platform includes a clean, modular backend for developers and a graphic interface for building, editing, and managing projects visually – enabling seamless experimentation and debugging whether you prefer code or clicks.
+You wanted to build smart AI agents.
+But instead, you got stuck in YAML files. Debugging configs. Fighting workflows. Losing time
 
-EpicStaff is built for **precision, speed, and flexibility**: rather than relying on fixed templates or hidden abstractions, developers define custom workflows directly in code and can plug in any language model or AI service. This transparency and efficiency make EpicStaff ideal for building custom, event-driven agent systems.
+**EpicStaff fixes that**
 
-EpicStaff is designed for those who want to go **beyond generic agents** and build **production-grade AI systems** with memory, reasoning, external tools, and model flexibility.
+**EpicStaff** is an open-source platform for building agent-based AI systems with maximum flexebility and minimum friction.
+With **EpicStaff**, you can create AI agents that work quickly and efficiently, remember the context of your tasks, and can make decisions based on the information they receive.
+
+We built EpicStaff because we've seen the gap and offers a dual-approach platform:
+
+🔹For non-technical users:
+
+An intuitive visual interface for designing and exucuting AI agent workflows - without requiring YAML or programming knowledge.
+
+🔹For developers:
+
+A modular, transparent backend that enables fine-grained control and direct access to orchestration logic.
+
+Whether you're experementing, prototyping, or deploying to production, EpicStaff adapts to your team:
+
+- Use drag and drop when needed
+- Dive into code when preferred
+- Or combine both, seamlessly
+
+We hide the comlexity, not the logic.
 
 ---
 
