@@ -5,12 +5,12 @@
 You wanted to build smart AI agents.
 But instead, you got stuck in YAML files. Debugging configs. Fighting workflows. Losing time
 
-**EpicStaff fixes that**
+## EpicStaff fixes that
 
 **EpicStaff** is an open-source platform for building agent-based AI systems with maximum flexebility and minimum friction.
 With **EpicStaff**, you can create AI agents that work quickly and efficiently, remember the context of your tasks, and can make decisions based on the information they receive.
 
-We built EpicStaff because we've seen the gap and offers a dual-approach platform:
+## We built EpicStaff because we've seen the gap and offers a dual-approach platform:
 
 🔹For non-technical users:
 
