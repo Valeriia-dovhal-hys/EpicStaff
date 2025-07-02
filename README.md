@@ -29,35 +29,18 @@ Whether you're experementing, prototyping, or deploying to production, EpicStaff
 We hide the comlexity, not the logic.
 
 ---
+|  Feature                 |  Description                                                                 |
+|--------------------------|------------------------------------------------------------------------------|
+| 🧩 Graphic Project Builder | Build projects using a visual interface without writing any code             |
+| 🧠 Memory Persistence      | Save and retrieve agent memory between steps                                 |
+| 📚 Knowledge Injection     | Inject knowledge from files and structured data to improve results           |
+| 🐍 Python Tools            | Connect your own Python tools without needing to redeploy                    |
+| ⚙️ Developer Control       | Full control for developers via orchestration API                            |
+| ⚡ High-Performance Core   | Asynchronous architecture optimized for speed                                |
+| 🧱 Modular Backend         | Modular architecture that is easy to extend                                  |
+| 🌍 Open-Source             | Open code and freedom for community-driven development                       |
+| 🤖 LLM Compatibility       | Compatible with any language model and supports multi-step workflows         |
 
-## 🔧 Key Features
-
-### 🧩 Graphic Project Builder (Frontend UI)
-Create, configure, and run your own agentic projects via an intuitive web interface. Define agents, assign tools, track progress – all without touching YAML.
-
-### 🧠 Memory Persistence
-Enable agents to retain and retrieve memory across steps or workflows, improving long-term consistency and contextual reasoning.
-
-### 📚 Knowledge Injection
-Equip agents with knowledge from files, documents, or structured data sources and use it during reasoning, writing, or analysis tasks.
-
-### 🐍 Custom Python Tools
-Define and integrate your own Python tools – and manage them directly from the frontend. No need to hard-code logic or redeploy.
-
-### 🛠️ Developer-Centric Control
-Fine-grained orchestration API letting developers manage each step of AI workflows directly, without hidden abstractions or rigid templates.
-
-### ⚡ High-Performance Core
-Asynchronous, minimal-overhead architecture optimized for speed and concurrency, enabling rapid execution of complex tasks.
-
-### 🧱 Modular Backend
-Pluggable, RESTful service architecture built for flexible extension, scalable integration, and easy deployment of custom components.
-
-### 🌍 Open-Source
-Community-driven and permissively licensed, focusing on transparency and developer freedom rather than proprietary lock-in.
-
-### 🤖 LLM & Workflow Compatibility
-Designed to integrate seamlessly with any language model or AI service and to support explicit, structured multi-step workflows out of the box.
 ---
 
 ## Mission
