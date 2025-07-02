@@ -79,6 +79,12 @@ Join the journey with **EpicStaff**, and together let’s shape the future of in
 
 ---
 
+## 💫Show Your Support
+
+If u find EpicStaff helpful - give it a ⭐️ on GitHub!
+
+---
+
 # Downloader
 
 ## Requirements
