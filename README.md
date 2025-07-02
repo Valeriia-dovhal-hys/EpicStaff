@@ -12,11 +12,11 @@ With **EpicStaff**, you can create AI agents that work quickly and efficiently, 
 
 ## We built EpicStaff because we've seen the gap and offers a dual-approach platform:
 
-🔹For non-technical users:
+### 🔹For non-technical users:
 
 An intuitive visual interface for designing and exucuting AI agent workflows - without requiring YAML or programming knowledge.
 
-🔹For developers:
+### 🔹For developers:
 
 A modular, transparent backend that enables fine-grained control and direct access to orchestration logic.
 
@@ -29,6 +29,18 @@ Whether you're experementing, prototyping, or deploying to production, EpicStaff
 We hide the comlexity, not the logic.
 
 ---
+## 🎯 Who is EpicStaff ideal for?
+
+- AI developers who desire flexibility without templates
+
+- Business teams who wish to quickly create functional AI agents
+
+- No-code users who prefer an interface over YAML
+
+- R&D teams and startups working with agent systems
+
+---
+
 |  Feature                 |  Description                                                                 |
 |--------------------------|------------------------------------------------------------------------------|
 | 🧩 Graphic Project Builder | Build projects using a visual interface without writing any code             |
