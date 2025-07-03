@@ -4,6 +4,8 @@
 
 AI agent don't need to be complicated. EpicStaff gives teams visual workflows and developers full backend control - in one platform.
 
+---
+
 **EpicStaff** is an open-source platform for building agent-based AI systems with maximum flexebility and minimum friction.
 With **EpicStaff**, you can create AI agents that work quickly and efficiently, remember the context of your tasks and can make decisions based on the information they receive.
 
