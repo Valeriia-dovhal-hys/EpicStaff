@@ -100,34 +100,41 @@ If u find EpicStaff helpful - give it a ⭐️ on GitHub!
 
 ## 🚀 Getting Started
 
-### 🪟 Windows
+### Windows/Linux
 
 1. **Install dependencies**  
-   - [Git](https://git-scm.com/download/win)  
+   - [Git](https://github.com/EpicStaff/EpicStaff/releases/tag/Hackathon)  
    - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
 2. **Start Docker Desktop**
 
 3. **Download the project**  
-   Double-click `downloader.bat`
 
-4. **Navigate to the program directory**  
-   ```bash
-   cd run_program/windows
-   ```
+4. **Open the installer file. If Docker is not running, it will start automatically.**
 
-5. **Update the program**  
-   Double-click `update.bat`
+5. **Your browser will open the installer page.**
 
-6. **Run the program**  
-   Double-click `run_project.bat`
+6. **You will see a few basic control buttons:**
+* **Start System**
+*  **Update**
+*  **Stop System**
 
-7. **Open the app**  
+7. **In the “Data Storage Location” section, select the folder on your computer where all system results and data will be stored by clicking the “Select” button.**
+   
+9. **Open the app**
+
+After the system starts, wait until all the containers have finished loading (you will see them appear with the status Running). 
+When everything is ready, a new button will appear: 
+
+(Open Application)
+
+Click it to enter the main application and start using the platform.
+
    Visit: [http://127.0.0.1:4200/](http://127.0.0.1:4200/)
 
 ---
 
-### 🐧 Linux / 🍎 macOS
+### 🍎 macOS
 
 1. **Install dependencies**  
    - [Git](https://git-scm.com/downloads)  
@@ -136,27 +143,35 @@ If u find EpicStaff helpful - give it a ⭐️ on GitHub!
 2. **Start Docker Desktop**
 
 3. **Download the project**  
-   ```bash
-   chmod +x downloader.sh
-   ./downloader.sh
-   ```
 
-4. **Navigate to the program directory**  
-   ```bash
-   cd run_program/linux_mac
-   ```
+4. **🛠️ Mandatory steps for macOS**
 
-5. **Update the program**
-   ```bash
-   chmod +x update.sh
-   ./update.sh
-   ```
+For macOS, you will need to run additional commands in the terminal to make the program run in the unpacked directory.
 
-6. **Run the program**
-   ```bash
-   chmod +x run_project.sh
-   ./run_project.sh
-   ```
+Run the following commands to grant permissions and remove the quarantine attribute:
 
-7. **Open the app**  
+chmod -R epicstaff.app 
+
+xattr -r -d com.apple.quarantine epicstaff.app
+
+5. **Open the installer file. If Docker is not running, it will start automatically.**
+
+6. **Your browser will open the installer page.**
+
+7. **You will see a few basic control buttons:**
+* **Start System**
+*  **Update**
+*  **Stop System**
+
+8. **In the “Data Storage Location” section, select the folder on your computer where all system results and data will be stored by clicking the “Select” button.**
+   
+9. **Open the app**
+
+After the system starts, wait until all the containers have finished loading (you will see them appear with the status Running). 
+When everything is ready, a new button will appear: 
+
+(Open Application)
+
+Click it to enter the main application and start using the platform.
+
    Visit: [http://127.0.0.1:4200/](http://127.0.0.1:4200/)
