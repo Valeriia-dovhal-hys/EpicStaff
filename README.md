@@ -150,9 +150,10 @@ For macOS, you will need to run additional commands in the terminal to make the 
 
 Run the following commands to grant permissions and remove the quarantine attribute:
 
+```bash
 chmod -R epicstaff.app 
-
 xattr -r -d com.apple.quarantine epicstaff.app
+```
 
 5. **Open the installer file. If Docker is not running, it will start automatically.**
 
