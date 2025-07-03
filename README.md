@@ -2,8 +2,7 @@
 
 # EpicStaff - AI Agent Without The Frustration
 
-You wanted to build smart AI agents.
-But instead, you got stuck in YAML files. Debugging configs. Fighting workflows. Losing time
+AI agent don't need to be complicated. EpicStaff gives teams visual workflows, and developers full backend control - in one platform.
 
 ## EpicStaff fixes that
 
@@ -57,21 +56,27 @@ We hide the comlexity, not the logic.
 
 ## Mission
 
-We aim to empower businesses and developers with advanced AI-driven solutions that foster **collaboration** and **efficiency**.  
-By embracing the latest advancements in AI, we strive to create a seamless and intuitive experience for users — whether they are automating workflows or developing new applications.
+To empower teams to build intelligant AI agent: quickly, collaboratively and without unnecessary complexity.
 
 ---
 
-## Core Values
+## 💎 Core Values
 
-- **Continuous Innovation**  
-  We are committed to staying at the forefront of AI technology, ensuring our tools remain relevant and effective in a rapidly evolving landscape.
+ **Clarity over complexity**
 
-- **User-Centric Approach**  
-  Our focus is on delivering solutions that meet the diverse needs of our users, from developers to non-technical teams, ensuring everyone can leverage AI to enhance their workflows.
+We hide the overhead, not the logic. Users stay focused on what matters: building, testing and delivering.
 
-- **Collaborative Spirit**  
-  We believe in the power of collaboration — between humans and AI, as well as within our community. This spirit drives us to build tools that facilitate seamless interaction and mutual support.
+ **Collaboration by design**
+
+EpicStaff build for teams: visual first for non-technical users, full code fllexebility for developers. Everyone works better, together.
+
+ **Developer respect**
+ 
+No black boxes. No magic. Just clean, extendable architecture that gives engineers the control they need.
+
+**Open by default**
+
+We believe in open ecosystems. That's why EpicStaff is fully open-source, modular and community driven.
 
 ## Join Us
 
