@@ -137,7 +137,7 @@ Click it to enter the main application and start using the platform.
 ### 🍎 macOS
 
 1. **Install dependencies**  
-   - [Git](https://git-scm.com/downloads)  
+   - [Git](https://github.com/EpicStaff/EpicStaff/releases/tag/Hackathon)  
    - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
 2. **Start Docker Desktop**
