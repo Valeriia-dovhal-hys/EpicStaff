@@ -176,3 +176,5 @@ When everything is ready, a new button will appear:
 Click it to enter the main application and start using the platform.
 
    Visit: [http://127.0.0.1:4200/](http://127.0.0.1:4200/)
+
+   Full instruction is here [docs.pdf](https://github.com/Valeriia-dovhal-hys/EpicStaff/blob/b423d70c946e4132c910d97f168de6ee8b6f47f2/docs.pdf) 
