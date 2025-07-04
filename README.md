@@ -13,7 +13,7 @@ With **EpicStaff**, you can create AI agents that work quickly and efficiently, 
 
 ### 🔹For non-technical users:
 
-An intuitive visual interface for designing and exucuting AI agent workflows - without requiring YAML or programming knowledge.
+Create multitasking AI agents through an intuitive interface. Use node-based programming frameworks to connect blocks in charge of actions: text analysis, response generation, working with files and CRM systems, etc.
 
 ### 🔹For developers:
 
