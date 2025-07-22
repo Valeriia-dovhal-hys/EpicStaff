@@ -12,7 +12,7 @@ Create intelligent agents that operate with high performance, retain memory acro
 
 ### Watch EpicStaff in Action!
 
-[![Watch the EpicStaff Demo](http.googleusercontent.com/youtube.com/8)](http.googleusercontent.com/youtube.com/7)
+[![Watch the EpicStaff Demo](http.googleusercontent.com/youtube.com/8)](https://youtu.be/fEaBBupvWRE)
 
 ---
 
